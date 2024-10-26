@@ -5,6 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
 
     id("com.gradleup.nmcp").version("0.0.8")
+    alias(libs.plugins.compose.compiler)
 }
 
 import com.android.tools.profgen.ArtProfileKt
@@ -48,9 +49,9 @@ android {
         resourceConfigurations += ["en", "fr", "ru"]
     }
 
-//    buildFeatures {
-//        compose true
-//    }
+    buildFeatures {
+        compose true
+    }
 
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "1.1.1"
@@ -135,82 +136,122 @@ android {
 
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
-    implementation 'androidx.room:room-testing:2.6.1'
-    implementation 'androidx.activity:activity:1.9.1'
-    def paging_version = "3.3.0"
-    def m3 = "1.2.1"
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    implementation libs.androidx.room.testing
+    def paging_version = "3.3.0"
+
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
     // optional - Test helpers
-    androidTestImplementation "androidx.work:work-testing:2.9.1"
+    androidTestImplementation libs.androidx.work.testing
     // alternatively - without Android dependencies for tests
     testImplementation "androidx.paging:paging-common:$paging_version"
 
-    implementation "androidx.work:work-runtime:2.9.1"
-    implementation "androidx.work:work-rxjava2:2.9.1"
+    implementation libs.androidx.work.runtime
+    implementation libs.androidx.work.rxjava2
+
     // optional - GCMNetworkManager support
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.paging:paging-guava:3.3.2'
+    implementation libs.androidx.ktx
+
+    implementation libs.androidx.paging.guava
     // optional - Multiprocess support
-    implementation "androidx.work:work-multiprocess:2.9.1"
+    implementation libs.androidx.work.multiprocess
 
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.android.volley:volley:1.2.1'
-    implementation "androidx.core:core:1.13.1"
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.legacy.support.v4
+    implementation libs.volley
+    implementation libs.androidx.core
 
-    implementation 'commons-codec:commons-codec:1.16.0'
-    implementation "io.getstream:avatarview-coil:1.0.7"
+    implementation libs.commons.codec
+    implementation libs.avatarview.coil
 
-    implementation "androidx.room:room-runtime:2.6.1"
-    implementation "androidx.room:room-paging:2.6.1"
-    annotationProcessor "androidx.room:room-compiler:2.6.1"
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.paging
+    annotationProcessor libs.androidx.room.compiler
 
-    implementation "androidx.paging:paging-runtime:$paging_version"
+    implementation libs.androidx.paging.runtime
 
-    implementation 'com.googlecode.libphonenumber:libphonenumber:8.13.40'
+    implementation libs.libphonenumber
 
-    implementation 'com.madgag.spongycastle:prov:1.58.0.0'
+    implementation libs.prov
 
-    implementation 'net.jpountz.lz4:lz4:1.3.0'
-    implementation 'androidx.preference:preference:1.2.1'
+    implementation libs.lz4
+    implementation libs.androidx.preference
 
-    implementation 'com.rabbitmq:amqp-client:5.20.0'
+    implementation libs.amqp.client
 
-    implementation 'org.java-websocket:Java-WebSocket:1.5.5'
+    implementation libs.java.websocket
 
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation libs.gson
 
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation libs.material
 
-    implementation "androidx.compose.material3:material3:$m3"
+    implementation libs.androidx.material3
 
-    implementation 'com.sun.mail:android-mail:1.6.2'
-    implementation 'com.sun.mail:android-activation:1.6.2'
+    implementation libs.android.mail
+    implementation libs.android.activation
 
-    implementation 'commons-net:commons-net:3.6'
+    implementation libs.commons.net
 
-    def fuelVersion = "2.3.1"
-    implementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
-    testImplementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1'//
+    implementation libs.fuel //for JVM
+    testImplementation libs.fuel //for JVM
+    testImplementation libs.kotlinx.coroutines.test//
 
-    implementation "com.github.kittinunf.fuel:fuel-android:$fuelVersion" //for Android
-    implementation "com.github.kittinunf.fuel:fuel-coroutines:$fuelVersion"
+    implementation libs.fuel.android //for Android
+    implementation libs.fuel.coroutines
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
+    implementation libs.kotlinx.serialization.json
 
-    implementation "androidx.startup:startup-runtime:1.2.0"
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation libs.androidx.startup.runtime
+    implementation libs.androidx.security.crypto
 //    implementation('com.google.crypto.tink:tink-android') {
 //        version {
 //            strictly '1.4.0'
 //        }
 //    }
 
-    implementation 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+    implementation libs.rxbinding
+
+    // COMPOSE BEGINS
+    def composeBom = libs.androidx.compose.bom
+    implementation composeBom
+    androidTestImplementation composeBom
+
+    // Choose one of the following:
+    // Material Design 3
+    implementation libs.material3
+    // or Material Design 2
+    implementation libs.androidx.material
+    // or skip Material Design and build directly on top of foundational components
+    implementation libs.androidx.foundation
+    // or only import the main APIs for the underlying toolkit systems,
+    // such as input and measurement/layout
+    implementation libs.androidx.ui
+
+    // Android Studio Preview support
+    implementation libs.androidx.ui.tooling.preview
+    debugImplementation libs.androidx.ui.tooling
+
+    // UI Tests
+    androidTestImplementation libs.androidx.ui.test.junit4
+    debugImplementation libs.androidx.ui.test.manifest
+
+    // Optional - Included automatically by material, only add when you need
+    // the icons but not the material library (e.g. when using Material3 or a
+    // custom design system based on Foundation)
+    implementation libs.androidx.material.icons.core
+    // Optional - Add full set of material icons
+    implementation libs.androidx.material.icons.extended
+
+    // Optional - Integration with activities
+    implementation libs.androidx.activity.compose
+    // Optional - Integration with ViewModels
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    // Optional - Integration with LiveData
+    implementation libs.androidx.runtime.livedata
+    // Optional - Integration with RxJava
+    implementation libs.androidx.runtime.rxjava2
 }
 
