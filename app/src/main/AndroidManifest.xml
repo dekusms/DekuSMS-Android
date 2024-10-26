@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk android:minSdkVersion="@{minSdk}" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -17,15 +17,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="true" />
-
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <queries>
+        <intent>
+            <action android:name="android.provider.Telephony.SMS_DELIVER"/>
+        </intent>
+    </queries>
 
     <application
         android:enableOnBackInvokedCallback="true"
@@ -59,14 +55,6 @@
             android:name=".AboutActivity"
             android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity" />
-        <activity
-            android:name=".LinkedDevicesQRActivity"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity">
-            <meta-data
-                android:name="com.google.android.gms.vision.DEPENDENCIES"
-                android:value="barcode" />
-        </activity>
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
@@ -243,9 +231,6 @@
             <meta-data
                 android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionServiceInitializer"
                 android:value="androidx.startup" />
-            <!-- <meta-data -->
-            <!-- android:name="com.afkanerd.deku.NotificationsInitializer" -->
-            <!-- android:value="androidx.startup" /> -->
         </provider>
     </application>
 

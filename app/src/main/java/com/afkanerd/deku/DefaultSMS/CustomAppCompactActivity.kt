@@ -41,10 +41,10 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!_checkIsDefaultApp()) {
-            startActivity(Intent(this, DefaultCheckActivity::class.java))
-            finish()
-        }
+//        if (!_checkIsDefaultApp()) {
+//            startActivity(Intent(this, DefaultCheckActivity::class.java))
+//            finish()
+//        }
 
         databaseConnector = Datastore.getDatastore(applicationContext)
 
