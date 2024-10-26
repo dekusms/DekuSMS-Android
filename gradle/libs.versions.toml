@@ -32,6 +32,7 @@ roomTesting = "2.6.1"
 rxbinding = "0.4.0"
 securityCrypto = "1.1.0-alpha06"
 startupRuntime = "1.2.0"
+uiTextGoogleFonts = "1.7.4"
 volley = "1.2.1"
 workRuntime = "2.9.1"
 
@@ -68,6 +69,7 @@ androidx-startup-runtime = { module = "androidx.startup:startup-runtime", versio
 androidx-ui = { module = "androidx.compose.ui:ui" }
 androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "workRuntime" }

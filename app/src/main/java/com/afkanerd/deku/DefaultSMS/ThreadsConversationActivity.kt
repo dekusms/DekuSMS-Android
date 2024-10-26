@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.afkanerd.deku.DefaultSMS.ui.theme.MainTheme
+import com.example.compose.AppTheme
 
 class ThreadsConversationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +56,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @Preview
     @Composable
     fun PreviewMessageCard() {
-        MainTheme(darkTheme = false) {
+        AppTheme(darkTheme = true) {
             Surface(modifier = Modifier.fillMaxSize()) {
                 MessageCard()
             }
