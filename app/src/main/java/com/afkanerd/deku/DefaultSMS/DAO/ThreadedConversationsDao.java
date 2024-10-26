@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.DAO;
 import android.content.Context;
 import android.provider.Telephony;
 
+import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -30,6 +31,9 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
     List<ThreadedConversations> getAll();
+
+    @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
+    LiveData<List<ThreadedConversations>> getAllLiveData();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getArchived();

@@ -100,6 +100,16 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    private LiveData<List<ThreadedConversations>> threadsLiveData = null;
+
+    public LiveData<List<ThreadedConversations>> getAllLiveData(Context context){
+        if(threadsLiveData == null) {
+            threadsLiveData = new MutableLiveData<>();
+            threadsLiveData = Datastore.getDatastore(context).threadedConversationsDao().getAllLiveData();
+        }
+        return threadsLiveData;
+    }
+
     public LiveData<PagingData<ThreadedConversations>> get(Context context){
         this.databaseConnector = Datastore.getDatastore(context);
         try {
