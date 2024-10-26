@@ -43,8 +43,8 @@ class DefaultCheckActivity : AppCompatActivity() {
             }
         })
 
-        println("Default: ${Telephony.Sms.getDefaultSmsPackage(this)}")
         val defaultName = Telephony.Sms.getDefaultSmsPackage(applicationContext)
+        // TODO: this is a hack because defaultName is always null in Android SDK 35 (15)
         if(defaultName.isNullOrBlank()) {
             when {
                 ContextCompat.checkSelfPermission(applicationContext,
