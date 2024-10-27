@@ -18,19 +18,25 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -47,11 +53,14 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
 import com.google.android.material.button.MaterialButton
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 
 class ThreadsConversationActivity : AppCompatActivity() {
@@ -82,86 +91,120 @@ class ThreadsConversationActivity : AppCompatActivity() {
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-        Scaffold (
-            modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text= stringResource(R.string.app_name),
-                            maxLines =1,
-                            overflow = TextOverflow.Ellipsis)
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            TODO("Implement search functions")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = stringResource(R.string.search_messages)
-                            )
-                        }
-                        IconButton(onClick = {
-                            TODO("Implement menu functionality")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.open_menu)
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehaviour
-                )
-            },
-            bottomBar = {
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
 
-            },
-            floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    onClick = { TODO("Implement compose new message method") },
-                    icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
-                    text = { Text(text = "Compose") },
-                    expanded = listState.isScrollingUp()
-                )
-            }
-        ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier.padding(innerPadding),
-                state = listState
-            )  {
-                items(
-                    items = items,
-                    key = { threadConversation ->
-                        threadConversation.thread_id
-                    }
-                ) { message ->
-                    var firstName = message.address
-                    var lastName = ""
-                    val isContact = !message.contact_name.isNullOrBlank()
-                    if(!message.contact_name.isNullOrBlank()) {
-                        message.contact_name.split(" ").let {
-                            firstName = it[0]
-                            if(it.size > 1)
-                                lastName = it[1]
-                        }
-                    }
-
-                    ThreadConversationCard(
-                        id = message.thread_id,
-                        firstName = firstName,
-                        lastName = lastName,
-                        content = message.snippet,
-                        date =
-                        if(!message.date.isNullOrBlank())
-                            Helpers.formatDate(applicationContext, message.date.toLong())
-                        else "Tues",
-                        isRead = message.isIs_read,
-                        isContact = isContact
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    Text("Inboxes", modifier = Modifier.padding(16.dp))
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Drawer Item") },
+                        selected = false,
+                        onClick = { }
                     )
                 }
             }
+        ) {
+            Scaffold (
+                modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text= stringResource(R.string.app_name),
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if(isClosed) open() else close()
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = stringResource(R.string.open_side_menu)
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                TODO("Implement search functions")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = stringResource(R.string.search_messages)
+                                )
+                            }
+                            IconButton(onClick = {
+                                TODO("Implement menu functionality")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = stringResource(R.string.open_menu)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehaviour
+                    )
+                },
+                bottomBar = {
+
+                },
+                floatingActionButton = {
+                    ExtendedFloatingActionButton(
+                        onClick = { TODO("Implement compose new message method") },
+                        icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
+                        text = { Text(text = "Compose") },
+                        expanded = listState.isScrollingUp()
+                    )
+                }
+            ) { innerPadding ->
+                LazyColumn(
+                    modifier = Modifier.padding(innerPadding),
+                    state = listState
+                )  {
+                    items(
+                        items = items,
+                        key = { threadConversation ->
+                            threadConversation.thread_id
+                        }
+                    ) { message ->
+                        var firstName = message.address
+                        var lastName = ""
+                        val isContact = !message.contact_name.isNullOrBlank()
+                        if(!message.contact_name.isNullOrBlank()) {
+                            message.contact_name.split(" ").let {
+                                firstName = it[0]
+                                if(it.size > 1)
+                                    lastName = it[1]
+                            }
+                        }
+
+                        ThreadConversationCard(
+                            id = message.thread_id,
+                            firstName = firstName,
+                            lastName = lastName,
+                            content = message.snippet,
+                            date =
+                            if(!message.date.isNullOrBlank())
+                                Helpers.formatDate(applicationContext, message.date.toLong())
+                            else "Tues",
+                            isRead = message.isIs_read,
+                            isContact = isContact
+                        )
+                    }
+                }
+
+            }
 
         }
+
     }
 
     @Preview
