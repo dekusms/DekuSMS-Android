@@ -6,11 +6,24 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
@@ -26,68 +39,91 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
 import com.google.android.material.button.MaterialButton
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import kotlin.concurrent.thread
 
 class ThreadsConversationActivity : AppCompatActivity() {
+    val viewModel: ThreadedConversationsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             AppTheme {
-                Surface(Modifier.fillMaxSize()) {
-                    ThreadConversationLayout()
+                Surface(Modifier.safeDrawingPadding()) {
+                    ThreadConversationLayout(getThreads())
                 }
             }
         }
     }
 
-    data class Messages(
-        var id: String,
-        val firstName: String,
-        val lastName: String,
-        val content: String)
-
     @Composable
-    fun ThreadConversationLayout() {
-        val viewModel: ThreadedConversationsViewModel by viewModels()
-        val items: List<ThreadedConversations> by
-        viewModel.getAllLiveData(applicationContext).observeAsState(emptyList())
+    private fun getThreads() : List<ThreadedConversations>{
+        val items: List<ThreadedConversations> by viewModel
+            .getAllLiveData(applicationContext).observeAsState(emptyList())
+        return items
+    }
 
-        var messages = remember {
-            mutableStateListOf(
-                Messages("0", "Jane", "Doe", "Hello world"),
-                Messages("1", "Jane", "Doe", "Hello world"),
-                Messages("2", "Jane", "Doe", "Hello world"),
-                Messages("3", "Jane", "Doe", "Hello world"),
-                Messages("4", "Jane", "Doe", "Hello world"),
-                Messages("5", "Jane", "Doe", "Hello world"),
-                Messages("6", "Jane", "Doe", "Hello world"),
-                Messages("7", "Jane", "Doe", "Hello world"),
-                Messages("8", "Jane", "Doe", "Hello world"),
-                Messages("9", "Jane", "Doe", "Hello world")
-            )
-        }
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ThreadConversationLayout(items: List<ThreadedConversations>) {
+        val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-        Column {
-            Button(onClick = {
-                val lastId = messages.last().id.toInt() + 1
-                messages.add(Messages(lastId.toString(), "Jane: $lastId", "Doe", "Hello world"))
-                println(messages)
-            }) {
-                Text("Add")
+        Scaffold (
+            modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(text= stringResource(R.string.app_name))
+                    },
+                )
+            },
+            bottomBar = {
+
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = {
+                    TODO("Implement compose new message method")
+                }) {
+                    Icon(Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Compose new message")
+                }
             }
-            LazyColumn {
-                items(
-                    items = items,
-                    key = { threadConversation ->
-                        threadConversation.thread_id
+        ) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding)) {
+                LazyColumn {
+                    items(
+                        items = items,
+                        key = { threadConversation ->
+                            threadConversation.thread_id
+                        }
+                    ) { message ->
+                        var firstName = message.address
+                        var lastName = ""
+                        val isContact = !message.contact_name.isNullOrBlank()
+                        if(!message.contact_name.isNullOrBlank()) {
+                            message.contact_name.split(" ").let {
+                                firstName = it[0]
+                                if(it.size > 1)
+                                    lastName = it[1]
+                            }
+                        }
+
+                        ThreadConversationCard(
+                            id = message.thread_id,
+                            firstName = firstName,
+                            lastName = lastName,
+                            content = message.snippet,
+                            date =
+                            if(!message.date.isNullOrBlank())
+                                Helpers.formatDate(applicationContext, message.date.toLong())
+                            else "Tues",
+                            isRead = message.isIs_read,
+                            isContact = isContact
+                        )
                     }
-                ) { message ->
-                    ThreadConversationCard(
-                        id = message.thread_id,
-                        firstName = message.address,
-                        lastName = if(!message.contact_name.isNullOrBlank()) message.contact_name else "",
-                        content = message.snippet
-                    )
                 }
             }
         }
@@ -97,8 +133,19 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @Composable
     fun PreviewMessageCard() {
         AppTheme(darkTheme = true) {
-            Surface(Modifier.fillMaxSize()) {
-                ThreadConversationLayout()
+            Surface(Modifier.safeDrawingPadding()) {
+                var messages: MutableList<ThreadedConversations> =
+                    remember { mutableListOf( ) }
+                for(i in 0..10) {
+                    val thread = ThreadedConversations()
+                    thread.thread_id = i.toString()
+                    thread.address = "$i"
+                    thread.contact_name = "Jane $i"
+                    thread.snippet = "Hello world: $i"
+                    thread.date = ""
+                    messages.add(thread)
+                }
+                ThreadConversationLayout(messages)
             }
         }
     }
