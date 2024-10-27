@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.DAO;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -21,6 +22,9 @@ public interface ConversationDao {
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     PagingSource<Integer, Conversation> get(String thread_id);
+
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
+    LiveData<List<Conversation>> getLiveData(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     List<Conversation> getDefault(String thread_id);

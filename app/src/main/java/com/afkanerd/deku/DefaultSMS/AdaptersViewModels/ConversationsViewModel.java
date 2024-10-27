@@ -5,6 +5,7 @@ import android.content.Context;
 import android.provider.Telephony;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
@@ -60,6 +61,14 @@ public class ConversationsViewModel extends ViewModel {
                 threadId,
                 pointer >= this.positions.size()-1 ? null : this.positions.get(++pointer));
         return customPagingSource;
+    }
+
+    private LiveData<List<Conversation>> liveData = null;
+    public LiveData<List<Conversation>> getLiveData(Context context, String threadId) {
+        if(liveData == null) {
+            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId);
+        }
+        return liveData;
     }
 
     public LiveData<PagingData<Conversation>> get(String threadId)

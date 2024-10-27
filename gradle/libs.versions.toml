@@ -10,6 +10,7 @@ composeBom = "2024.10.00"
 constraintlayout = "2.1.4"
 espressoCore = "3.6.1"
 fuelVersion = "2.3.1"
+graphicsShapes = "1.0.1"
 gson = "2.11.0"
 javaWebsocket = "1.5.5"
 junit = "4.13.2"
@@ -48,6 +49,7 @@ androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayo
 androidx-core = { module = "androidx.core:core", version.ref = "ktx" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
 androidx-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx" }
 androidx-legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4" }
