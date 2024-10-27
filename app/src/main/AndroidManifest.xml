@@ -37,6 +37,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
+            android:name=".ConversationsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ThreadsConversationActivity"
             android:exported="false" />
         <activity
@@ -119,7 +122,7 @@
         <activity
             android:name=".ConversationActivity"
             android:excludeFromRecents="true"
-            android:exported="true"
+            android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity"
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>

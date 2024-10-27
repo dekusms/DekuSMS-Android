@@ -35,6 +35,7 @@ startupRuntime = "1.2.0"
 uiTextGoogleFonts = "1.7.4"
 volley = "1.2.1"
 workRuntime = "2.9.1"
+activity = "1.9.3"
 
 [libraries]
 amqp-client = { module = "com.rabbitmq:amqp-client", version.ref = "amqpClient" }
@@ -94,6 +95,7 @@ material3 = { module = "androidx.compose.material3:material3" }
 prov = { module = "com.madgag.spongycastle:prov", version.ref = "prov" }
 rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxbinding" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

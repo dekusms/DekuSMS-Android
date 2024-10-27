@@ -138,6 +138,7 @@ dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
 
     implementation libs.androidx.room.testing
+    implementation libs.androidx.activity
     def paging_version = "3.3.0"
 
     testImplementation libs.junit
