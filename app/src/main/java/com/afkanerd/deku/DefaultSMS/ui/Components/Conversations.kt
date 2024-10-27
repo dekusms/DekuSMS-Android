@@ -4,6 +4,8 @@ import android.provider.Telephony
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
@@ -21,9 +23,14 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.res.ResourcesCompat.getColor
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
@@ -47,9 +54,10 @@ enum class ConversationPositionTypes(val value: Int) {
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun ConversationReceived(
+    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp)
@@ -65,15 +73,21 @@ private fun ConversationReceived(
     Box(
         modifier = Modifier
             .clip(shape=shape)
-            .background(Color.Blue)
-            .size(100.dp)
+            .background(colorResource(R.color.md_theme_inverseSurface_highContrast))
+            .padding(16.dp)
     ) {
+        Text(
+            text=text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorResource(R.color.md_theme_inverseOnSurface_highContrast)
+        )
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun ConversationSent(
+    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
@@ -89,28 +103,47 @@ private fun ConversationSent(
     Box(
         modifier = Modifier
             .clip(shape=shape)
-            .background(Color.Blue)
-            .size(100.dp)
+            .background(colorResource(R.color.md_theme_primaryContainer))
+            .padding(16.dp)
     ) {
+        Text(
+            text=text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorResource(R.color.md_theme_onPrimaryContainer)
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ConversationsCard(
+    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
+    date: String = "Yesterday",
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL
 ) {
-
-    when(type)  {
-        ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
-        ConversationMessageTypes.MESSAGE_TYPE_INBOX -> TODO()
-        ConversationMessageTypes.MESSAGE_TYPE_SENT -> {
-            ConversationSent(position)
+    Column(modifier = Modifier.padding(start = 8.dp)) {
+        Text(
+            text=date,
+            style= MaterialTheme.typography.labelSmall,
+            color = colorResource(R.color.md_theme_secondary),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+        Row(modifier = Modifier.fillMaxWidth(0.8f)) {
+            when(type)  {
+                ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
+                ConversationMessageTypes.MESSAGE_TYPE_INBOX -> TODO()
+                ConversationMessageTypes.MESSAGE_TYPE_SENT -> {
+                    ConversationSent(text, position)
+                }
+                ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
+                ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> TODO()
+                ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
+                ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
+            }
         }
-        ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
-        ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> TODO()
-        ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
-        ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
     }
 }

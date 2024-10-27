@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -46,6 +47,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
 import kotlinx.coroutines.launch
@@ -97,7 +99,7 @@ class ConversationsActivity : AppCompatActivity() {
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                CenterAlignedTopAppBar(
+                TopAppBar(
                     title = {
                         Text(
                             text= "Contact Name",
@@ -134,6 +136,9 @@ class ConversationsActivity : AppCompatActivity() {
                     items = items,
                     key = { conversation -> conversation.id }
                 ) { conversation ->
+                    ConversationsCard(
+
+                    )
                 }
             }
 
@@ -144,7 +149,7 @@ class ConversationsActivity : AppCompatActivity() {
     @Preview
     @Composable
     fun PreviewConversations() {
-        AppTheme {
+        AppTheme(darkTheme = true) {
             Surface(Modifier.safeDrawingPadding()) {
                 var conversations: MutableList<Conversation> =
                     remember { mutableListOf( ) }
@@ -154,6 +159,7 @@ class ConversationsActivity : AppCompatActivity() {
                     conversation.thread_id = i.toString()
                     conversation.text = stringResource(R.string
                         .settings_add_gateway_server_protocol_meta_description)
+                    conversations.add(conversation)
                 }
                 Conversations(conversations)
             }
