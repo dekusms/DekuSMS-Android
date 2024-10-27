@@ -47,6 +47,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
@@ -143,6 +144,7 @@ class ConversationsActivity : AppCompatActivity() {
                             Helpers.formatDateExtended(applicationContext,
                                 conversation.date!!.toLong())
                         else "1730062120",
+                        type= ConversationMessageTypes.fromInt(conversation.type)!!
                     )
                 }
             }
@@ -158,13 +160,17 @@ class ConversationsActivity : AppCompatActivity() {
             Surface(Modifier.safeDrawingPadding()) {
                 var conversations: MutableList<Conversation> =
                     remember { mutableListOf( ) }
+                var isSend = false
                 for(i in 0..10) {
                     val conversation = Conversation()
                     conversation.id = i.toLong()
                     conversation.thread_id = i.toString()
                     conversation.text = stringResource(R.string
                         .settings_add_gateway_server_protocol_meta_description)
+                    conversation.type = if(!isSend) ConversationMessageTypes.MESSAGE_TYPE_INBOX.value
+                    else ConversationMessageTypes.MESSAGE_TYPE_SENT.value
                     conversations.add(conversation)
+                    isSend = !isSend
                 }
                 Conversations(conversations)
             }

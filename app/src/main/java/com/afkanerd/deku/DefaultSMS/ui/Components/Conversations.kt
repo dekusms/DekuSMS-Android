@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.provider.Telephony
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -34,6 +36,7 @@ import androidx.core.content.res.ResourcesCompat.getColor
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
+import androidx.room.util.TableInfo
 import com.google.android.material.card.MaterialCardView
 
 enum class ConversationMessageTypes(val value: Int) {
@@ -43,7 +46,13 @@ enum class ConversationMessageTypes(val value: Int) {
     MESSAGE_TYPE_DRAFT(3),
     MESSAGE_TYPE_OUTBOX(4),
     MESSAGE_TYPE_FAILED(5),
-    MESSAGE_TYPE_QUEUED(6)
+    MESSAGE_TYPE_QUEUED(6);
+
+    companion object {
+        fun fromInt(value: Int): ConversationMessageTypes? {
+            return ConversationMessageTypes.entries.find { it.value == value }
+        }
+    }
 }
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -70,17 +79,23 @@ private fun ConversationReceived(
         ConversationPositionTypes.MIDDLE -> receivedMiddleShape
         ConversationPositionTypes.END -> receivedEndShape
     }
-    Box(
-        modifier = Modifier
-            .clip(shape=shape)
-            .background(colorResource(R.color.md_theme_inverseSurface_highContrast))
-            .padding(16.dp)
+
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(end=32.dp)
     ) {
-        Text(
-            text=text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colorResource(R.color.md_theme_inverseOnSurface_highContrast)
-        )
+        Box(
+            modifier = Modifier
+                .clip(shape=shape)
+                .background(colorResource(R.color.md_theme_inverseSurface_highContrast))
+                .padding(16.dp)
+        ) {
+            Text(
+                text=text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colorResource(R.color.md_theme_inverseOnSurface_highContrast)
+            )
+        }
     }
 }
 
@@ -100,17 +115,33 @@ private fun ConversationSent(
         ConversationPositionTypes.MIDDLE -> sentMiddleShape
         ConversationPositionTypes.END -> sentEndShape
     }
-    Box(
+
+    Row(
         modifier = Modifier
-            .clip(shape=shape)
-            .background(colorResource(R.color.md_theme_primaryContainer))
-            .padding(16.dp)
+            .padding(start=32.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
     ) {
-        Text(
-            text=text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colorResource(R.color.md_theme_onPrimaryContainer)
-        )
+        Column {
+            Box(
+                modifier = Modifier
+                    .clip(shape=shape)
+                    .background(colorResource(R.color.md_theme_primaryContainer))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text=text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorResource(R.color.md_theme_onPrimaryContainer)
+                )
+            }
+            Text(
+                text="sent",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colorResource(R.color.md_theme_onPrimaryContainer),
+                modifier = Modifier.align(Alignment.End)
+            )
+        }
     }
 }
 
@@ -122,7 +153,7 @@ fun ConversationsCard(
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL
 ) {
-    Column(modifier = Modifier.padding(start = 8.dp)) {
+    Column(modifier = Modifier.padding(start = 8.dp, end=8.dp)) {
         Text(
             text=timestamp,
             style= MaterialTheme.typography.labelSmall,
@@ -132,18 +163,14 @@ fun ConversationsCard(
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
-        Row(modifier = Modifier.fillMaxWidth(0.9f)) {
-            when(type)  {
-                ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
-                ConversationMessageTypes.MESSAGE_TYPE_INBOX -> TODO()
-                ConversationMessageTypes.MESSAGE_TYPE_SENT -> {
-                    ConversationSent(text, position)
-                }
-                ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
-                ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> TODO()
-                ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
-                ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
-            }
+        when(type)  {
+            ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
+            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(text, position)
+            ConversationMessageTypes.MESSAGE_TYPE_SENT -> ConversationSent(text, position)
+            ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
+            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> TODO()
+            ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
+            ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }
     }
 }
