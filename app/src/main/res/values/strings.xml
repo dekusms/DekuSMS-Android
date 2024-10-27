@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">DekuSMS</string>
+    <string name="app_name" translatable="false">Deku SMS</string>
     <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
     <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>

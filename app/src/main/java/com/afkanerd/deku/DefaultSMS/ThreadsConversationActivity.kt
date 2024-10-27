@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -88,15 +89,19 @@ class ThreadsConversationActivity : AppCompatActivity() {
                             overflow = TextOverflow.Ellipsis)
                     },
                     actions = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+                            TODO("Implement search functions")
+                        }) {
                             Icon(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = stringResource(R.string.search_messages)
                             )
                         }
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+                            TODO("Implement menu functionality")
+                        }) {
                             Icon(
-                                imageVector = Icons.Filled.Menu,
+                                imageVector = Icons.Filled.MoreVert,
                                 contentDescription = stringResource(R.string.open_menu)
                             )
                         }
