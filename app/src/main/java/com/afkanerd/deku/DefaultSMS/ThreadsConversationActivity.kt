@@ -12,11 +12,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +46,7 @@ import com.google.android.material.button.MaterialButton
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import kotlin.concurrent.thread
 
@@ -69,15 +75,33 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ThreadConversationLayout(items: List<ThreadedConversations>) {
-        val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+        val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(text= stringResource(R.string.app_name))
+                        Text(
+                            text= stringResource(R.string.app_name),
+                            maxLines =1,
+                            overflow = TextOverflow.Ellipsis)
                     },
+                    actions = {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = stringResource(R.string.search_messages)
+                            )
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = stringResource(R.string.open_menu)
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehaviour
                 )
             },
             bottomBar = {
@@ -87,45 +111,46 @@ class ThreadsConversationActivity : AppCompatActivity() {
                 FloatingActionButton(onClick = {
                     TODO("Implement compose new message method")
                 }) {
-                    Icon(Icons.Default.ChatBubbleOutline,
-                        contentDescription = "Compose new message")
+                    Icon(
+                        Icons.Default.ChatBubbleOutline,
+                        contentDescription = stringResource(R.string.compose_new_message)
+                    )
                 }
             }
         ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
-                LazyColumn {
-                    items(
-                        items = items,
-                        key = { threadConversation ->
-                            threadConversation.thread_id
-                        }
-                    ) { message ->
-                        var firstName = message.address
-                        var lastName = ""
-                        val isContact = !message.contact_name.isNullOrBlank()
-                        if(!message.contact_name.isNullOrBlank()) {
-                            message.contact_name.split(" ").let {
-                                firstName = it[0]
-                                if(it.size > 1)
-                                    lastName = it[1]
-                            }
-                        }
-
-                        ThreadConversationCard(
-                            id = message.thread_id,
-                            firstName = firstName,
-                            lastName = lastName,
-                            content = message.snippet,
-                            date =
-                            if(!message.date.isNullOrBlank())
-                                Helpers.formatDate(applicationContext, message.date.toLong())
-                            else "Tues",
-                            isRead = message.isIs_read,
-                            isContact = isContact
-                        )
+            LazyColumn(modifier = Modifier.padding(innerPadding))  {
+                items(
+                    items = items,
+                    key = { threadConversation ->
+                        threadConversation.thread_id
                     }
+                ) { message ->
+                    var firstName = message.address
+                    var lastName = ""
+                    val isContact = !message.contact_name.isNullOrBlank()
+                    if(!message.contact_name.isNullOrBlank()) {
+                        message.contact_name.split(" ").let {
+                            firstName = it[0]
+                            if(it.size > 1)
+                                lastName = it[1]
+                        }
+                    }
+
+                    ThreadConversationCard(
+                        id = message.thread_id,
+                        firstName = firstName,
+                        lastName = lastName,
+                        content = message.snippet,
+                        date =
+                        if(!message.date.isNullOrBlank())
+                            Helpers.formatDate(applicationContext, message.date.toLong())
+                        else "Tues",
+                        isRead = message.isIs_read,
+                        isContact = isContact
+                    )
                 }
             }
+
         }
     }
 

@@ -284,5 +284,8 @@
     <string name="secure_communication_requested">-- Secure communication request sent --</string>
     <string name="secure_communications_request_received">-- Secure communications request received --</string>
     <string name="secured">Secured</string>
+    <string name="search_messages">Search messages</string>
+    <string name="open_menu">Open menu</string>
+    <string name="compose_new_message">Compose new message</string>
 
 </resources>
