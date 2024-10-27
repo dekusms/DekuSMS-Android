@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 
 @Composable
 private fun ThreadConversationsAvatar(
@@ -110,9 +112,15 @@ fun ThreadConversationCard(
     content: String = "Text Template",
     date: String = "Tues",
     isRead: Boolean = false,
-    isContact: Boolean = true
+    isContact: Boolean = true,
+    onItemClick: ((String) -> Unit)? = null
 ) {
     Row(Modifier
+        .clickable {
+            onItemClick?.let {
+                it(id)
+            }
+        }
         .fillMaxWidth()
         .padding(all = 8.dp)
     ) {

@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -197,7 +198,14 @@ class ThreadsConversationActivity : AppCompatActivity() {
                                 Helpers.formatDate(applicationContext, message.date.toLong())
                             else "Tues",
                             isRead = message.isIs_read,
-                            isContact = isContact
+                            isContact = isContact,
+                            onItemClick = { selectedItem ->
+                                startActivity(Intent(applicationContext,
+                                    ConversationsActivity::class.java).apply {
+                                        putExtra(ConversationsActivity
+                                            .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
+                                })
+                            }
                         )
                     }
                 }
