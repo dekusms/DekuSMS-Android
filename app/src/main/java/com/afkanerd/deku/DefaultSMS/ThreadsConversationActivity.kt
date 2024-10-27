@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Menu
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +51,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import kotlin.concurrent.thread
 
 class ThreadsConversationActivity : AppCompatActivity() {
@@ -76,6 +79,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ThreadConversationLayout(items: List<ThreadedConversations>) {
+        val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
         Scaffold (
@@ -113,17 +117,18 @@ class ThreadsConversationActivity : AppCompatActivity() {
 
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = {
-                    TODO("Implement compose new message method")
-                }) {
-                    Icon(
-                        Icons.Default.ChatBubbleOutline,
-                        contentDescription = stringResource(R.string.compose_new_message)
-                    )
-                }
+                ExtendedFloatingActionButton(
+                    onClick = { TODO("Implement compose new message method") },
+                    icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
+                    text = { Text(text = "Compose") },
+                    expanded = listState.isScrollingUp()
+                )
             }
         ) { innerPadding ->
-            LazyColumn(modifier = Modifier.padding(innerPadding))  {
+            LazyColumn(
+                modifier = Modifier.padding(innerPadding),
+                state = listState
+            )  {
                 items(
                     items = items,
                     key = { threadConversation ->
