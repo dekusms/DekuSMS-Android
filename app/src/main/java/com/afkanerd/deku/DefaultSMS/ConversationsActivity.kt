@@ -137,7 +137,12 @@ class ConversationsActivity : AppCompatActivity() {
                     key = { conversation -> conversation.id }
                 ) { conversation ->
                     ConversationsCard(
-
+                        text= conversation.text!!,
+                        timestamp =
+                        if(!conversation.date.isNullOrBlank())
+                            Helpers.formatDateExtended(applicationContext,
+                                conversation.date!!.toLong())
+                        else "1730062120",
                     )
                 }
             }
@@ -149,7 +154,7 @@ class ConversationsActivity : AppCompatActivity() {
     @Preview
     @Composable
     fun PreviewConversations() {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = false) {
             Surface(Modifier.safeDrawingPadding()) {
                 var conversations: MutableList<Conversation> =
                     remember { mutableListOf( ) }

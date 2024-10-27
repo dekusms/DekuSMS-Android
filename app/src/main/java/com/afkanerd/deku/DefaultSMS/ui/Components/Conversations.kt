@@ -117,14 +117,14 @@ private fun ConversationSent(
 @Preview(showBackground = true)
 @Composable
 fun ConversationsCard(
-    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
-    date: String = "Yesterday",
+    text: String = "Hello world",
+    timestamp: String = "Yesterday",
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL
 ) {
     Column(modifier = Modifier.padding(start = 8.dp)) {
         Text(
-            text=date,
+            text=timestamp,
             style= MaterialTheme.typography.labelSmall,
             color = colorResource(R.color.md_theme_secondary),
             modifier = Modifier
@@ -132,7 +132,7 @@ fun ConversationsCard(
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
-        Row(modifier = Modifier.fillMaxWidth(0.8f)) {
+        Row(modifier = Modifier.fillMaxWidth(0.9f)) {
             when(type)  {
                 ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
                 ConversationMessageTypes.MESSAGE_TYPE_INBOX -> TODO()
