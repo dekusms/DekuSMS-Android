@@ -13,7 +13,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +23,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.ExperimentalMaterialApi
@@ -134,51 +138,63 @@ class ConversationsActivity : AppCompatActivity() {
     @Composable
     fun ChatCompose() {
         val interactionsSource = remember { MutableInteractionSource() }
-        var userInput by remember { mutableStateOf("Hello world\nNew line\nOther line\nKeep it going\nFinally") }
-        BasicTextField(
-            value = userInput,
-            onValueChange = {
-                userInput = it
-            },
-            maxLines = 7,
-            singleLine = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-        ) { innerTextField ->
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
-                .background(MaterialTheme.colorScheme.outline)
-                .padding(16.dp)
-            ) {
-                innerTextField()
-            }
-//            TextFieldDefaults.DecorationBox(
-//                value = userInput,
-//                visualTransformation = VisualTransformation.None,
-//                innerTextField = it,
-//                singleLine = false,
-//                enabled = true,
-//                interactionSource = interactionsSource,
-//                placeholder = {
-//                    Text(text="Text message")
-//                },
-//                shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
-//                colors = OutlinedTextFieldDefaults.colors(
-//                    focusedBorderColor = Color.Transparent,
-//                    unfocusedBorderColor = Color.Transparent,
-//                    focusedContainerColor = MaterialTheme.colorScheme.outline,
-//                    unfocusedContainerColor = MaterialTheme.colorScheme.outline,
-//                ),
-//                trailingIcon = {
-//                    IconButton(onClick = {}) {
-//                        Icon(Icons.AutoMirrored.Default.Send, "Send message")
-//                    }
-//                }
-//            )
-        }
+        var userInput by remember { mutableStateOf("") }
+        Row(modifier = Modifier
+            .height(IntrinsicSize.Min)
+        ) {
+            Column(modifier = Modifier
+                .padding(start=8.dp, end=8.dp)
+                .weight(1f)
+                .fillMaxSize()) {
+                BasicTextField(
+                    value = userInput,
+                    onValueChange = {
+                        userInput = it
+                    },
+                    maxLines = 7,
+                    singleLine = false,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
+                        .background(MaterialTheme.colorScheme.outline)
+                        .fillMaxWidth()
+                ) {
+                    TextFieldDefaults.DecorationBox(
+                        value = userInput,
+                        visualTransformation = VisualTransformation.None,
+                        innerTextField = it,
+                        singleLine = false,
+                        enabled = true,
+                        interactionSource = interactionsSource,
+                        placeholder = {
+                            Text(text="Text message")
+                        },
+                        shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
+                }
 
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(end=8.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                IconButton(onClick = {},
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.outline)
+                ) {
+                    Icon(Icons.AutoMirrored.Default.Send, "Send message" )
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
