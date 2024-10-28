@@ -87,13 +87,13 @@ private fun ConversationReceived(
         Box(
             modifier = Modifier
                 .clip(shape=shape)
-                .background(colorResource(R.color.md_theme_inverseSurface_highContrast))
+                .background(colorResource(R.color.md_theme_outline))
                 .padding(16.dp)
         ) {
             Text(
                 text=text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.md_theme_inverseOnSurface_highContrast)
+                color = colorResource(R.color.md_theme_outlineVariant)
             )
         }
     }
@@ -157,7 +157,7 @@ fun ConversationsCard(
         Text(
             text=timestamp,
             style= MaterialTheme.typography.labelSmall,
-            color = colorResource(R.color.md_theme_secondary),
+            color = colorResource(R.color.md_theme_outlineVariant),
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),

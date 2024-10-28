@@ -175,7 +175,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
 
-        databaseConnector.conversationDao().insertAll(conversationList);
+        Datastore.getDatastore(context).conversationDao().insertAll(conversationList);
         refresh(context);
     }
 
@@ -245,6 +245,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 } while(cursor.moveToNext());
                 cursor.close();
             }
+            databaseConnector = Datastore.getDatastore(context);
             databaseConnector.threadedConversationsDao().deleteAll();
             databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList);
             getCount();

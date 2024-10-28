@@ -22,6 +22,8 @@ import com.google.android.material.button.MaterialButton
 class DefaultCheckActivity : AppCompatActivity() {
     val getDefaultPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+
+            println("Moving to bring up activities")
             if (result.resultCode == RESULT_OK) {
                 val sharedPreferences =
                     PreferenceManager.getDefaultSharedPreferences(applicationContext)
@@ -51,11 +53,6 @@ class DefaultCheckActivity : AppCompatActivity() {
                     Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED -> {
                         startUserActivities()
                 }
-                else -> {
-                    // You can directly ask for the permission.
-                    // The registered ActivityResultCallback gets the result of this request.
-                    makeDefault()
-                }
             }
         }
         else if (packageName ==  defaultName) {
@@ -82,6 +79,7 @@ class DefaultCheckActivity : AppCompatActivity() {
                 putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
             }
         }
+
         getDefaultPermission.launch(roleManagerIntent)
     }
 

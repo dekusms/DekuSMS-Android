@@ -60,8 +60,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 
@@ -71,6 +74,9 @@ class ThreadsConversationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        checkLoadNatives()
+
         setContent {
             AppTheme {
                 Surface(Modifier.safeDrawingPadding()) {
@@ -79,6 +85,19 @@ class ThreadsConversationActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun checkLoadNatives() {
+        if(PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(getString(R.string.configs_load_natives), false)){
+            CoroutineScope(Dispatchers.Default).launch {
+                viewModel.reset(applicationContext)
+                PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+                    .putBoolean(getString(R.string.configs_load_natives), true).apply()
+            }
+        }
+
+    }
+
 
     @Composable
     private fun getThreads() : List<ThreadedConversations>{

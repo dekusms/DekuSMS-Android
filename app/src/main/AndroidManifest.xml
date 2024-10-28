@@ -122,7 +122,7 @@
         <activity
             android:name=".ConversationActivity"
             android:excludeFromRecents="true"
-            android:exported="false"
+            android:exported="true"
             android:parentActivityName=".ThreadedConversationsActivity"
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
