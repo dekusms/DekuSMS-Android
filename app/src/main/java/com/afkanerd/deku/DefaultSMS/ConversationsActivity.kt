@@ -141,6 +141,7 @@ class ConversationsActivity : AppCompatActivity() {
         var userInput by remember { mutableStateOf("") }
         Row(modifier = Modifier
             .height(IntrinsicSize.Min)
+            .padding(top=4.dp, bottom=4.dp)
         ) {
             Column(modifier = Modifier
                 .padding(start=8.dp, end=8.dp)
@@ -235,33 +236,29 @@ class ConversationsActivity : AppCompatActivity() {
                     scrollBehavior = scrollBehaviour
                 )
             },
+            bottomBar = {
+                ChatCompose()
+            }
         ) { innerPadding ->
-            Column(
+            LazyColumn(
                 modifier = Modifier.padding(innerPadding),
+                state = listState,
+                reverseLayout = true,
             ) {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    state = listState
-                ) {
-                    items(
-                        items = items,
-                        key = { conversation -> conversation.id }
-                    ) { conversation ->
-                        ConversationsCard(
-                            text= conversation.text!!,
-                            timestamp =
-                            if(!conversation.date.isNullOrBlank())
-                                Helpers.formatDateExtended(applicationContext,
-                                    conversation.date!!.toLong())
-                            else "1730062120",
-                            type= ConversationMessageTypes.fromInt(conversation.type)!!
-                        )
-                    }
+                items(
+                    items = items,
+                    key = { conversation -> conversation.id }
+                ) { conversation ->
+                    ConversationsCard(
+                        text= conversation.text!!,
+                        timestamp =
+                        if(!conversation.date.isNullOrBlank())
+                            Helpers.formatDateExtended(applicationContext,
+                                conversation.date!!.toLong())
+                        else "1730062120",
+                        type= ConversationMessageTypes.fromInt(conversation.type)!!
+                    )
                 }
-                Column {
-                    ChatCompose()
-                }
-
             }
         }
 
