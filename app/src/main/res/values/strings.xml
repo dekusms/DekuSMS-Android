@@ -289,5 +289,7 @@
     <string name="compose_new_message">Compose new message</string>
     <string name="open_side_menu">Open side menu</string>
     <string name="call">Call</string>
+    <string name="text_message">Text message</string>
+    <string name="send_message">Send message</string>
 
 </resources>

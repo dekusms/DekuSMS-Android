@@ -74,14 +74,13 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
 
     protected open fun informSecured(secured: Boolean) {}
 
-    protected fun sendTextMessage(text: String?, subscriptionId: Int, messageId: String?) {
+    protected fun sendTextMessage(text: String?, subscriptionId: Int, messageId: String?= null) {
         var messageId = messageId
         if (text != null) {
             if (messageId == null) messageId = System.currentTimeMillis().toString()
 
             val conversation = Conversation()
             conversation.text = text
-            val messageIdFinal: String = messageId
             conversation.message_id = messageId
             conversation.thread_id = threadId
             conversation.subscription_id = subscriptionId
@@ -148,6 +147,7 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             }
         }
     }
+
 
     @Throws(InterruptedException::class)
     protected fun saveDraft(messageId: String?, text: String?) {

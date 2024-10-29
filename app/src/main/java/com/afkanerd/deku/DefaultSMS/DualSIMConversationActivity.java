@@ -28,14 +28,7 @@ public class DualSIMConversationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
 
-    ImageButton sendImageButton;
-    TextView currentSimcardTextView;
-
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
         sendImageButton = findViewById(R.id.conversation_send_btn);
         currentSimcardTextView = findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
         final boolean dualSim = SIMHandler.isDualSim(getApplicationContext());
@@ -89,8 +82,10 @@ public class DualSIMConversationActivity extends AppCompatActivity {
             }
             defaultSubscriptionId.setValue(subscriptionId[0]);
         }
-
     }
+
+    ImageButton sendImageButton;
+    TextView currentSimcardTextView;
 
     private void showMultiDualSimAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

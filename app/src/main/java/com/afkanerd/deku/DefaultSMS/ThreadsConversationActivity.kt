@@ -109,6 +109,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ThreadConversationLayout(items: List<ThreadedConversations>) {
+
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -196,36 +197,38 @@ class ThreadsConversationActivity : AppCompatActivity() {
                             threadConversation.thread_id
                         }
                     ) { message ->
-                        var firstName = message.address
-                        var lastName = ""
-                        val isContact = !message.contact_name.isNullOrBlank()
-                        if(!message.contact_name.isNullOrBlank()) {
-                            message.contact_name.split(" ").let {
-                                firstName = it[0]
-                                if(it.size > 1)
-                                    lastName = it[1]
+                        message.address?.let {
+                            var firstName = message.address
+                            var lastName = ""
+                            val isContact = !message.contact_name.isNullOrBlank()
+                            if(!message.contact_name.isNullOrBlank()) {
+                                message.contact_name.split(" ").let {
+                                    firstName = it[0]
+                                    if(it.size > 1)
+                                        lastName = it[1]
+                                }
                             }
-                        }
 
-                        ThreadConversationCard(
-                            id = message.thread_id,
-                            firstName = firstName,
-                            lastName = lastName,
-                            content = message.snippet,
-                            date =
-                            if(!message.date.isNullOrBlank())
-                                Helpers.formatDate(applicationContext, message.date.toLong())
-                            else "Tues",
-                            isRead = message.isIs_read,
-                            isContact = isContact,
-                            onItemClick = { selectedItem ->
-                                startActivity(Intent(applicationContext,
-                                    ConversationsActivity::class.java).apply {
+                            ThreadConversationCard(
+                                id = message.thread_id,
+                                firstName = firstName,
+                                lastName = lastName,
+                                content = message.snippet,
+                                date =
+                                if(!message.date.isNullOrBlank())
+                                    Helpers.formatDate(applicationContext, message.date.toLong())
+                                else "Tues",
+                                isRead = message.isIs_read,
+                                isContact = isContact,
+                                onItemClick = { selectedItem ->
+                                    startActivity(Intent(applicationContext,
+                                        ConversationsActivity::class.java).apply {
                                         putExtra(ConversationsActivity
                                             .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
-                                })
-                            }
-                        )
+                                    })
+                                }
+                            )
+                        }
                     }
                 }
 

@@ -89,7 +89,8 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public long insert(Context context, Conversation conversation) throws InterruptedException {
-        datastore.threadedConversationsDao().insertThreadAndConversation(context, conversation);
+        Datastore.getDatastore(context).threadedConversationsDao()
+                .insertThreadAndConversation(context, conversation);
         if(customPagingSource != null)
             customPagingSource.invalidate();
         return 0;

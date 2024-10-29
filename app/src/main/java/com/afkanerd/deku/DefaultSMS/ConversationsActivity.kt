@@ -1,11 +1,14 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.os.Build
 import android.os.Bundle
 import android.provider.Telephony
+import android.telephony.TelephonyCallback
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.InteractionSource
@@ -88,6 +91,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
@@ -96,8 +100,8 @@ import com.example.compose.AppTheme
 import kotlinx.coroutines.launch
 import kotlin.getValue
 
-class ConversationsActivity : AppCompatActivity() {
-    private lateinit var threadId: String
+class ConversationsActivity : CustomAppCompactActivity(){
+//    private lateinit var threadId: String
 
     val viewModel: ConversationsViewModel by viewModels()
 
@@ -108,6 +112,10 @@ class ConversationsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // TODO: remove this, temp used for now
+        conversationsViewModel = viewModel
+
         if(!intent.hasExtra(EXPECTED_INTENTS.THREAD_ID.value) ||
             intent.getStringExtra(EXPECTED_INTENTS.THREAD_ID.value).isNullOrBlank()) {
             Toast.makeText(applicationContext, "Error: No ThreadID found!", Toast.LENGTH_LONG)
@@ -141,10 +149,10 @@ class ConversationsActivity : AppCompatActivity() {
         var userInput by remember { mutableStateOf("") }
         Row(modifier = Modifier
             .height(IntrinsicSize.Min)
-            .padding(top=4.dp, bottom=4.dp)
+            .padding(top = 4.dp, bottom = 4.dp)
         ) {
             Column(modifier = Modifier
-                .padding(start=8.dp, end=8.dp)
+                .padding(start = 8.dp, end = 8.dp)
                 .weight(1f)
                 .fillMaxSize()) {
                 BasicTextField(
@@ -167,7 +175,7 @@ class ConversationsActivity : AppCompatActivity() {
                         enabled = true,
                         interactionSource = interactionsSource,
                         placeholder = {
-                            Text(text="Text message")
+                            Text(text= stringResource(R.string.text_message))
                         },
                         shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -183,16 +191,19 @@ class ConversationsActivity : AppCompatActivity() {
 
             Column(
                 modifier = Modifier
-                    .padding(end=8.dp)
+                    .padding(end = 8.dp)
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                IconButton(onClick = {},
+                IconButton(onClick = {
+                    val subscriptionId = SIMHandler.getDefaultSimSubscription(applicationContext)
+                    sendTextMessage(userInput, subscriptionId)
+                },
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.outline)
                 ) {
-                    Icon(Icons.AutoMirrored.Default.Send, "Send message" )
+                    Icon(Icons.AutoMirrored.Default.Send, stringResource(R.string.send_message))
                 }
             }
         }
@@ -241,7 +252,9 @@ class ConversationsActivity : AppCompatActivity() {
             }
         ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(innerPadding),
                 state = listState,
                 reverseLayout = true,
             ) {
@@ -272,7 +285,7 @@ class ConversationsActivity : AppCompatActivity() {
                 var conversations: MutableList<Conversation> =
                     remember { mutableListOf( ) }
                 var isSend = false
-                for(i in 0..10) {
+                for(i in 0..1) {
                     val conversation = Conversation()
                     conversation.id = i.toLong()
                     conversation.thread_id = i.toString()
