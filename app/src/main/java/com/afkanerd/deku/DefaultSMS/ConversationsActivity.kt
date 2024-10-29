@@ -62,6 +62,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -98,6 +99,8 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.getValue
 
@@ -228,6 +231,10 @@ class ConversationsActivity : CustomAppCompactActivity(){
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
+        LaunchedEffect(items){
+            // Make sure this stable
+            listState.animateScrollToItem(0)
+        }
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
