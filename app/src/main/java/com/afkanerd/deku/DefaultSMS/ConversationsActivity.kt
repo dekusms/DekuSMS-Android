@@ -255,7 +255,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         } else {
             if(Helpers.isSameHour(conversation.date!!.toLong(),
-                    conversations[index - 1].date!!.toLong())) {
+                    conversations[index + 1].date!!.toLong())) {
                 if(conversation.type == conversations[index - 1].type) {
                     if(Helpers.isSameMinute(conversation.date!!.toLong(),
                             conversations[index - 1].date!!.toLong())) {
@@ -269,11 +269,11 @@ class ConversationsActivity : CustomAppCompactActivity(){
                                 conversations[index + 1].date!!.toLong())) {
                             return ConversationPositionTypes.END
                         }
-                        return ConversationPositionTypes.NORMAL
+//                        return ConversationPositionTypes.NORMAL
                     }
                 }
             } else {
-                if(conversation.type == conversations[index - 1].type) {
+                if(conversation.type == conversations[index + 1].type) {
                     if(Helpers.isSameMinute(conversation.date!!.toLong(),
                             conversations[index - 1].date!!.toLong())) {
                         return ConversationPositionTypes.START_TIMESTAMP
