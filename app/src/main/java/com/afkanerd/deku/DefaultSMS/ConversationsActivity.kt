@@ -90,6 +90,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
@@ -142,7 +143,9 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 }
             }
         }
+    }
 
+    private fun getContactDetails(contactName: String) {
     }
 
     @Composable
@@ -228,12 +231,20 @@ class ConversationsActivity : CustomAppCompactActivity(){
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Conversations(items: List<Conversation>) {
+        var contactName by remember { mutableStateOf("Template Contact")}
+        LaunchedEffect("contact_name"){
+            val defaultRegion = Helpers.getUserCountry( applicationContext )
+            contactName = Contacts.retrieveContactName( applicationContext,
+                Helpers.getFormatCompleteNumber(address, defaultRegion) )
+            if(contactName.isNullOrBlank())
+                contactName = address
+        }
+
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
         LaunchedEffect(items){
-            // Make sure this stable
-            listState.animateScrollToItem(0)
+            if(items.isNotEmpty()) listState.animateScrollToItem(0)
         }
 
         Scaffold (
@@ -242,7 +253,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 TopAppBar(
                     title = {
                         Text(
-                            text= "Contact Name",
+                            text= contactName,
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
                     },
