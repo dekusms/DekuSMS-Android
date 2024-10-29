@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
-import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +13,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;

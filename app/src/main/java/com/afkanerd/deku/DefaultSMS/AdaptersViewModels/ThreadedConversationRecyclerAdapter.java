@@ -10,13 +10,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsReceivedViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsSentViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 

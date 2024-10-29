@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
-    tools:context=".ConversationActivity"
+    tools:context=".Deprecated.ConversationActivity"
     android:layout_height="match_parent" >
 
     <com.google.android.material.appbar.MaterialToolbar

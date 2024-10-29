@@ -65,6 +65,12 @@ android {
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 exclude 'com/afkanerd/deku/E2EE'
+                exclude 'com/afkanerd/deku/DefaultSMS/Deprecated/*'
+                exclude 'com/afkanerd/deku/DefaultSMS/Deprecated'
+                /* The holder name I want to excludes its all classes */
+            }
+            kotlin {
+                exclude 'com/afkanerd/deku/DefaultSMS/Deprecated/*'
                 /* The holder name I want to excludes its all classes */
             }
             resources {

@@ -94,6 +94,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
@@ -101,28 +102,35 @@ import kotlinx.coroutines.launch
 import kotlin.getValue
 
 class ConversationsActivity : CustomAppCompactActivity(){
-//    private lateinit var threadId: String
+    private lateinit var threadId: String
+    private lateinit var address: String
 
     val viewModel: ConversationsViewModel by viewModels()
 
     enum class EXPECTED_INTENTS(val value: String) {
-        THREAD_ID("THREAD_ID")
+        THREAD_ID("THREAD_ID"),
+        ADDRESS("ADDRESS")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // TODO: remove this, temp used for now
-        conversationsViewModel = viewModel
-
         if(!intent.hasExtra(EXPECTED_INTENTS.THREAD_ID.value) ||
             intent.getStringExtra(EXPECTED_INTENTS.THREAD_ID.value).isNullOrBlank()) {
             Toast.makeText(applicationContext, "Error: No ThreadID found!", Toast.LENGTH_LONG)
                 .show()
             finish()
-        } else {
+        }
+        if(!intent.hasExtra(EXPECTED_INTENTS.ADDRESS.value) ||
+            intent.getStringExtra(EXPECTED_INTENTS.ADDRESS.value).isNullOrBlank()) {
+            Toast.makeText(applicationContext, "Error: No Address found!", Toast.LENGTH_LONG)
+                .show()
+            finish()
+        }
+        else {
             threadId = intent.getStringExtra(EXPECTED_INTENTS.THREAD_ID.value)!!
+            address = intent.getStringExtra(EXPECTED_INTENTS.ADDRESS.value)!!
             setContent {
                 AppTheme {
                     Surface(Modifier.safeDrawingPadding()) {
@@ -197,7 +205,12 @@ class ConversationsActivity : CustomAppCompactActivity(){
             ) {
                 IconButton(onClick = {
                     val subscriptionId = SIMHandler.getDefaultSimSubscription(applicationContext)
-                    sendTextMessage(userInput, subscriptionId)
+                    sendTextMessage(
+                        text=userInput,
+                        address=address,
+                        subscriptionId= subscriptionId,
+                        threadId=threadId,
+                        conversationsViewModel = viewModel)
                 },
                     modifier = Modifier
                         .clip(CircleShape)
@@ -269,7 +282,8 @@ class ConversationsActivity : CustomAppCompactActivity(){
                             Helpers.formatDateExtended(applicationContext,
                                 conversation.date!!.toLong())
                         else "1730062120",
-                        type= ConversationMessageTypes.fromInt(conversation.type)!!
+                        type= ConversationMessageTypes.fromInt(conversation.type)!!,
+                        status = ConversationStatusTypes.fromInt(conversation.status)!!
                     )
                 }
             }

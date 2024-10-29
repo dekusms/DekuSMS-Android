@@ -14,24 +14,19 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.ConversationActivity
+import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.spongycastle.jcajce.provider.symmetric.ARC4.Base
 import java.io.IOException
-import java.nio.charset.Charset
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 

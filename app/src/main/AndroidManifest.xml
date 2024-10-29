@@ -38,7 +38,28 @@
         android:theme="@style/Theme.main">
         <activity
             android:name=".ConversationsActivity"
-            android:exported="false" />
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:parentActivityName=".ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ThreadsConversationActivity"
             android:exported="false" />
@@ -79,7 +100,7 @@
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
-            android:parentActivityName=".ConversationActivity" />
+            android:parentActivityName=".Deprecated.ConversationActivity" />
         <activity
             android:name=".RespondViaMessageActivity"
             android:exported="false">
@@ -119,30 +140,30 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ConversationActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:parentActivityName=".ThreadedConversationsActivity"
-            android:windowSoftInputMode="stateAlwaysHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.SENDTO" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
+<!--        <activity-->
+<!--            android:name=".ConversationActivity"-->
+<!--            android:excludeFromRecents="true"-->
+<!--            android:exported="true"-->
+<!--            android:parentActivityName=".ThreadedConversationsActivity"-->
+<!--            android:windowSoftInputMode="stateAlwaysHidden">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />-->
+<!--                <action android:name="android.intent.action.SEND" />-->
+<!--                <action android:name="android.intent.action.SENDTO" />-->
+<!--                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />-->
+<!--                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />-->
+<!--                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />-->
+<!--                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="sms" />
-                <data android:scheme="smsto" />
-                <data android:scheme="mms" />
-                <data android:scheme="mmsto" />
-            </intent-filter>
-        </activity>
+<!--                <data android:scheme="sms" />-->
+<!--                <data android:scheme="smsto" />-->
+<!--                <data android:scheme="mms" />-->
+<!--                <data android:scheme="mmsto" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
         <activity
             android:name=".DefaultCheckActivity"
             android:exported="true">

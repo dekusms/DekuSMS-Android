@@ -62,6 +62,19 @@ enum class ConversationPositionTypes(val value: Int) {
     END(3),
 }
 
+enum class ConversationStatusTypes(val value: Int) {
+    STATUS_NONE(-1),
+    STATUS_COMPLETE(0),
+    STATUS_PENDING(32),
+    STATUS_FAILED(64);
+
+    companion object {
+        fun fromInt(value: Int): ConversationStatusTypes? {
+            return ConversationStatusTypes.entries.find { it.value == value }
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -103,7 +116,9 @@ private fun ConversationReceived(
 @Composable
 private fun ConversationSent(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL) {
+    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_NONE
+) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
     val sentMiddleShape = RoundedCornerShape(18.dp, 5.dp, 5.dp, 18.dp)
@@ -136,9 +151,13 @@ private fun ConversationSent(
                 )
             }
             Text(
-                text="sent",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.md_theme_onPrimaryContainer),
+                text= if(status == ConversationStatusTypes.STATUS_PENDING)
+                    stringResource(R.string.sms_status_sending)
+                else if(status == ConversationStatusTypes.STATUS_COMPLETE)
+                    stringResource(R.string.sms_status_delivered)
+                else stringResource(R.string.sms_status_sent),
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.md_theme_outlineVariant),
                 modifier = Modifier.align(Alignment.End)
             )
         }
@@ -151,7 +170,8 @@ fun ConversationsCard(
     text: String = "Hello world",
     timestamp: String = "Yesterday",
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL
+    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_COMPLETE,
 ) {
     Column(modifier = Modifier.padding(start = 8.dp, end=8.dp)) {
         Text(
@@ -166,9 +186,9 @@ fun ConversationsCard(
         when(type)  {
             ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(text, position)
-            ConversationMessageTypes.MESSAGE_TYPE_SENT -> ConversationSent(text, position)
+            ConversationMessageTypes.MESSAGE_TYPE_SENT,
+            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(text, position, status)
             ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }

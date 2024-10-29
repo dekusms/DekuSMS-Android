@@ -27,11 +27,11 @@ import kotlinx.coroutines.launch
 import org.spongycastle.jcajce.provider.symmetric.ARC4.Base
 
 open class CustomAppCompactActivity : DualSIMConversationActivity() {
-    protected var address: String? = null
-    protected var contactName: String? = null
-    protected var threadId: String? = null
-    protected var conversationsViewModel: ConversationsViewModel? = null
-
+//    protected var address: String? = null
+//    protected var contactName: String? = null
+//    protected var threadId: String? = null
+//    protected var conversationsViewModel: ConversationsViewModel? = null
+//
     protected var threadedConversationsViewModel: ThreadedConversationsViewModel? = null
 
     var databaseConnector: Datastore? = null
@@ -74,44 +74,65 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
 
     protected open fun informSecured(secured: Boolean) {}
 
-    protected fun sendTextMessage(text: String?, subscriptionId: Int, messageId: String?= null) {
+    protected fun sendTextMessage(
+        text: String,
+        address: String,
+        subscriptionId: Int,
+        threadId: String,
+        conversationsViewModel: ConversationsViewModel,
+        messageId: String?= null,
+    ) {
         var messageId = messageId
-        if (text != null) {
-            if (messageId == null) messageId = System.currentTimeMillis().toString()
 
-            val conversation = Conversation()
-            conversation.text = text
-            conversation.message_id = messageId
-            conversation.thread_id = threadId
-            conversation.subscription_id = subscriptionId
-            conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-            conversation.date = System.currentTimeMillis().toString()
-            conversation.address = address
-            conversation.status = Telephony.Sms.STATUS_PENDING
+        if (messageId == null) messageId = System.currentTimeMillis().toString()
 
-            if (conversationsViewModel != null) {
-                CoroutineScope(Dispatchers.Default).launch{
-                    try {
-                        conversationsViewModel!!.insert(applicationContext, conversation)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        return@launch
-                    }
+        val conversation = Conversation()
+        conversation.text = text
+        conversation.message_id = messageId
+        conversation.thread_id = threadId
+        conversation.subscription_id = subscriptionId
+        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+        conversation.date = System.currentTimeMillis().toString()
+        conversation.address = address
+        conversation.status = Telephony.Sms.STATUS_PENDING
 
-                    val payload = encryptMessage(applicationContext, text, address!!)
-                    conversation.text = payload.first
-                    sendSMS(conversation)
+        CoroutineScope(Dispatchers.Default).launch{
+            try {
+                conversationsViewModel.insert(applicationContext, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@launch
+            }
 
-                    payload.second?.let {
-                        E2EEHandler.storeState(applicationContext, payload.second!!.serializedStates,
-                            address!!)
-                    }
-                }
+            val payload = encryptMessage(applicationContext, text, address)
+            conversation.text = payload.first
+            sendSMS(conversation, conversationsViewModel)
+
+            payload.second?.let {
+                E2EEHandler.storeState(applicationContext, payload.second!!.serializedStates,
+                    address)
             }
         }
     }
 
-    private fun sendTxt(conversation: Conversation) {
+    private fun sendSMS(conversation: Conversation, conversationsViewModel: ConversationsViewModel) {
+        when {
+            ContextCompat.checkSelfPermission( applicationContext,
+                android.Manifest.permission.SEND_SMS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                sendTxt(conversation, conversationsViewModel)
+            }
+            else -> {
+                // You can directly ask for the permission.
+                // The registered ActivityResultCallback gets the result of this request.
+                requestPermissionLauncher?.launch(android.Manifest.permission.SEND_SMS)
+            }
+        }
+    }
+
+    private fun sendTxt(
+        conversation: Conversation,
+        conversationsViewModel: ConversationsViewModel) {
         try {
             SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
         } catch (e: Exception) {
@@ -121,55 +142,31 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
             conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
             conversation.error_code = 1
-            conversationsViewModel!!.update(conversation)
+            conversationsViewModel.update(conversation)
         }
     }
 
-    private fun sendSMS(conversation: Conversation) {
-        when {
-            ContextCompat.checkSelfPermission( applicationContext,
-                android.Manifest.permission.SEND_SMS
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                sendTxt(conversation)
-            }
-//            ActivityCompat.shouldShowRequestPermissionRationale( this,
-//                android.Manifest.permission.READ_PHONE_STATE) -> {
-//                // In an educational UI, explain to the user why your app requires this
-//                // permission for a specific feature to behave as expected, and what
-//                // features are disabled if it's declined. In this UI, include a
-//                // "cancel" or "no thanks" button that lets the user continue
-//                // using your app without granting the permission.
-//            }
-            else -> {
-                // You can directly ask for the permission.
-                // The registered ActivityResultCallback gets the result of this request.
-                requestPermissionLauncher?.launch(android.Manifest.permission.SEND_SMS)
-            }
-        }
-    }
-
-
-    @Throws(InterruptedException::class)
-    protected fun saveDraft(messageId: String?, text: String?) {
-        if (text != null) {
-            if (conversationsViewModel != null) {
-                ThreadingPoolExecutor.executorService.execute {
-                    val conversation = Conversation()
-                    conversation.message_id = messageId
-                    conversation.thread_id = threadId
-                    conversation.text = text
-                    conversation.isRead = true
-                    conversation.type = Telephony.Sms.MESSAGE_TYPE_DRAFT
-                    conversation.date = System.currentTimeMillis().toString()
-                    conversation.address = address
-                    conversation.status = Telephony.Sms.STATUS_PENDING
-                    try {
-                        conversationsViewModel!!.insert(applicationContext, conversation)
-                        SMSDatabaseWrapper.saveDraft(applicationContext, conversation)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+    protected fun saveDraft(
+        messageId: String,
+        text: String,
+        address: String,
+        threadId: String,
+        conversationsViewModel: ConversationsViewModel) {
+        ThreadingPoolExecutor.executorService.execute {
+            val conversation = Conversation()
+            conversation.message_id = messageId
+            conversation.thread_id = threadId
+            conversation.text = text
+            conversation.isRead = true
+            conversation.type = Telephony.Sms.MESSAGE_TYPE_DRAFT
+            conversation.date = System.currentTimeMillis().toString()
+            conversation.address = address
+            conversation.status = Telephony.Sms.STATUS_PENDING
+            try {
+                conversationsViewModel.insert(applicationContext, conversation)
+                SMSDatabaseWrapper.saveDraft(applicationContext, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

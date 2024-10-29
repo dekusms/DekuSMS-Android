@@ -225,6 +225,8 @@ class ThreadsConversationActivity : AppCompatActivity() {
                                         ConversationsActivity::class.java).apply {
                                         putExtra(ConversationsActivity
                                             .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
+                                        putExtra(ConversationsActivity
+                                            .EXPECTED_INTENTS.ADDRESS.value, message.address)
                                     })
                                 }
                             )
