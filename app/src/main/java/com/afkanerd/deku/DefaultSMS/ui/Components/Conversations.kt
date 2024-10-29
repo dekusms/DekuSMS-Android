@@ -12,8 +12,12 @@ import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,7 +121,7 @@ private fun ConversationReceived(
 private fun ConversationSent(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
-    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_NONE
+    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
@@ -155,11 +159,25 @@ private fun ConversationSent(
                     stringResource(R.string.sms_status_sending)
                 else if(status == ConversationStatusTypes.STATUS_COMPLETE)
                     stringResource(R.string.sms_status_delivered)
+                else if(status == ConversationStatusTypes.STATUS_FAILED)
+                    stringResource(R.string.sms_status_failed_only)
                 else stringResource(R.string.sms_status_sent),
                 style = MaterialTheme.typography.labelSmall,
-                color = colorResource(R.color.md_theme_outlineVariant),
+                color = if(status == ConversationStatusTypes.STATUS_FAILED)
+                    colorResource(R.color.md_theme_error)
+                else colorResource(R.color.md_theme_outlineVariant),
                 modifier = Modifier.align(Alignment.End)
             )
+        }
+
+        if(status == ConversationStatusTypes.STATUS_FAILED) {
+            Column(modifier = Modifier
+                .align(Alignment.CenterVertically)) {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.Info, "Message failed icon",
+                        tint=colorResource(R.color.md_theme_error))
+                }
+            }
         }
     }
 }
@@ -171,7 +189,7 @@ fun ConversationsCard(
     timestamp: String = "Yesterday",
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
-    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_COMPLETE,
+    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
 ) {
     Column(modifier = Modifier.padding(start = 8.dp, end=8.dp)) {
         Text(
@@ -187,9 +205,9 @@ fun ConversationsCard(
             ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(text, position)
             ConversationMessageTypes.MESSAGE_TYPE_SENT,
+            ConversationMessageTypes.MESSAGE_TYPE_FAILED,
             ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(text, position, status)
             ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_FAILED -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }
     }
