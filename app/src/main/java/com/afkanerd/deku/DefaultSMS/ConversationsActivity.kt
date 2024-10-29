@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,8 +67,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -96,6 +99,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
@@ -103,6 +107,9 @@ import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import kotlin.getValue
 
 class ConversationsActivity : CustomAppCompactActivity(){
@@ -143,9 +150,6 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 }
             }
         }
-    }
-
-    private fun getContactDetails(contactName: String) {
     }
 
     @Composable
@@ -228,10 +232,63 @@ class ConversationsActivity : CustomAppCompactActivity(){
         }
     }
 
+    private fun getContentType(index: Int, conversation: Conversation, conversations: List<Conversation>):
+            ConversationPositionTypes {
+        if(index == 0) {
+            if(Helpers.isSameHour(conversation.date!!.toLong(),
+                    conversations[index + 1].date!!.toLong())) {
+                if(conversation.type == conversations[index + 1].type) {
+                    if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                            conversations[index + 1].date!!.toLong())) {
+                        return ConversationPositionTypes.END
+                    }
+                }
+                return ConversationPositionTypes.NORMAL
+            }
+        } else if(index == conversations.size - 1) {
+            if(conversation.type == conversations[index - 1].type) {
+                if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                        conversations[index - 1].date!!.toLong())) {
+                    return ConversationPositionTypes.START_TIMESTAMP
+                }
+            }
+            return ConversationPositionTypes.NORMAL_TIMESTAMP
+        } else {
+            if(Helpers.isSameHour(conversation.date!!.toLong(),
+                    conversations[index - 1].date!!.toLong())) {
+                if(conversation.type == conversations[index - 1].type) {
+                    if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                            conversations[index - 1].date!!.toLong())) {
+                        if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                                conversations[index + 1].date!!.toLong())) {
+                            return ConversationPositionTypes.MIDDLE
+                        }
+                        return ConversationPositionTypes.START
+                    } else {
+                        if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                                conversations[index + 1].date!!.toLong())) {
+                            return ConversationPositionTypes.END
+                        }
+                        return ConversationPositionTypes.NORMAL
+                    }
+                }
+            } else {
+                if(conversation.type == conversations[index - 1].type) {
+                    if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                            conversations[index - 1].date!!.toLong())) {
+                        return ConversationPositionTypes.START_TIMESTAMP
+                    }
+                }
+            }
+        }
+        return ConversationPositionTypes.NORMAL_TIMESTAMP
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Conversations(items: List<Conversation>) {
         var contactName by remember { mutableStateOf("Template Contact")}
+
         LaunchedEffect("contact_name"){
             val defaultRegion = Helpers.getUserCountry( applicationContext )
             contactName = Contacts.retrieveContactName( applicationContext,
@@ -240,12 +297,15 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 contactName = address
         }
 
+
+
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
         LaunchedEffect(items){
             if(items.isNotEmpty()) listState.animateScrollToItem(0)
         }
+
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -289,10 +349,10 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 state = listState,
                 reverseLayout = true,
             ) {
-                items(
+                itemsIndexed(
                     items = items,
-                    key = { conversation -> conversation.id }
-                ) { conversation ->
+                    key = { index, conversation -> conversation.id }
+                ) { index, conversation ->
                     ConversationsCard(
                         text= conversation.text!!,
                         timestamp =
@@ -301,12 +361,21 @@ class ConversationsActivity : CustomAppCompactActivity(){
                                 conversation.date!!.toLong())
                         else "1730062120",
                         type= ConversationMessageTypes.fromInt(conversation.type)!!,
-                        status = ConversationStatusTypes.fromInt(conversation.status)!!
+                        status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                        position = getContentType(index, conversation, items),
+                        date =
+                        if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
+                        else "1730062120",
                     )
                 }
             }
         }
 
+    }
+
+    private fun deriveMetaDate(conversation: Conversation): String{
+        val dateFormat: DateFormat = SimpleDateFormat("h:mm a");
+        return dateFormat.format(Date(conversation.date!!.toLong()));
     }
 
     @Preview

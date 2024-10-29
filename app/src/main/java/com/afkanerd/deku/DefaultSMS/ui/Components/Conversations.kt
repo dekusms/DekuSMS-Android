@@ -64,6 +64,8 @@ enum class ConversationPositionTypes(val value: Int) {
     START(1),
     MIDDLE(2),
     END(3),
+    START_TIMESTAMP(4),
+    NORMAL_TIMESTAMP(5),
 }
 
 enum class ConversationStatusTypes(val value: Int) {
@@ -84,33 +86,45 @@ enum class ConversationStatusTypes(val value: Int) {
 @Composable
 private fun ConversationReceived(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL) {
+    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    date: String = "yesterday"
+) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp)
     val receivedMiddleShape = RoundedCornerShape(5.dp, 18.dp, 18.dp, 5.dp)
     val receivedEndShape = RoundedCornerShape(5.dp, 18.dp, 18.dp, 18.dp)
 
     val shape = when(position) {
-        ConversationPositionTypes.NORMAL -> receivedShape
-        ConversationPositionTypes.START -> receivedStartShape
+        ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP ->
+            receivedShape
+        ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
+            receivedStartShape
         ConversationPositionTypes.MIDDLE -> receivedMiddleShape
         ConversationPositionTypes.END -> receivedEndShape
     }
 
     Row(modifier = Modifier
         .fillMaxWidth()
-        .padding(end=32.dp)
+        .padding(end=32.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .clip(shape=shape)
-                .background(colorResource(R.color.md_theme_outline))
-                .padding(16.dp)
-        ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .clip(shape=shape)
+                    .background(colorResource(R.color.md_theme_outline))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text=text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorResource(R.color.md_theme_outlineVariant)
+                )
+            }
+
             Text(
-                text=text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorResource(R.color.md_theme_outlineVariant)
+                text= date,
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.md_theme_outlineVariant),
             )
         }
     }
@@ -121,7 +135,8 @@ private fun ConversationReceived(
 private fun ConversationSent(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
-    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED
+    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
+    date: String = "yesterday",
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
@@ -129,8 +144,8 @@ private fun ConversationSent(
     val sentEndShape = RoundedCornerShape(18.dp, 5.dp, 18.dp, 18.dp)
 
     val shape = when(position) {
-        ConversationPositionTypes.NORMAL -> sentShape
-        ConversationPositionTypes.START -> sentStartShape
+        ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP -> sentShape
+        ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP -> sentStartShape
         ConversationPositionTypes.MIDDLE -> sentMiddleShape
         ConversationPositionTypes.END -> sentEndShape
     }
@@ -187,26 +202,32 @@ private fun ConversationSent(
 fun ConversationsCard(
     text: String = "Hello world",
     timestamp: String = "Yesterday",
+    date: String = "yesterday",
     type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
 ) {
     Column(modifier = Modifier.padding(start = 8.dp, end=8.dp)) {
-        Text(
-            text=timestamp,
-            style= MaterialTheme.typography.labelSmall,
-            color = colorResource(R.color.md_theme_outlineVariant),
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            textAlign = TextAlign.Center,
-        )
+        if(position == ConversationPositionTypes.START_TIMESTAMP ||
+            position == ConversationPositionTypes.NORMAL_TIMESTAMP) {
+            Text(
+                text=timestamp,
+                style= MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.md_theme_outlineVariant),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+        }
         when(type)  {
             ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(text, position)
+            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(
+                text=text, position=position, date=date)
             ConversationMessageTypes.MESSAGE_TYPE_SENT,
             ConversationMessageTypes.MESSAGE_TYPE_FAILED,
-            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(text, position, status)
+            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(
+                text=text, position=position, date=date, status=status)
             ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }
