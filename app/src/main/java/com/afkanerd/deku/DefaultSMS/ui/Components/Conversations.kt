@@ -140,8 +140,7 @@ private fun ConversationReceived(
                 Text(
                     text= date,
                     style = MaterialTheme.typography.labelSmall,
-                    color = if(isSelected) MaterialTheme.colorScheme.outlineVariant
-                    else MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
             }
         }
