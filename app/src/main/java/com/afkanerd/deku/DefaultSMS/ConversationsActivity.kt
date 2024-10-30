@@ -1,10 +1,14 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Telephony
 import android.telephony.TelephonyCallback
 import android.widget.Toast
+import android.window.OnBackInvokedCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -41,6 +45,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.TextFieldColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -170,6 +175,17 @@ class ConversationsActivity : CustomAppCompactActivity(){
         val items: List<Conversation> by viewModel
             .getLiveData(applicationContext, threadId).observeAsState(emptyList())
         return items
+    }
+
+    private fun copyItem(text: String) {
+        val clip = ClipData.newPlainText(text, text)
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(
+            applicationContext, getString(R.string.conversation_copied),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -302,24 +318,39 @@ class ConversationsActivity : CustomAppCompactActivity(){
 
     @Preview
     @Composable
-    private fun ConversationCrudBottomBar() {
+    private fun ConversationCrudBottomBar(
+        items: List<Conversation> = emptyList<Conversation>(),
+        onCompleted: (() -> Unit)? = null
+    ) {
         BottomAppBar (
             actions = {
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                if(items.size < 2) {
+                    IconButton(onClick = {
+                        copyItem(items.first().text!!)
+                        onCompleted?.let { it() }
+                    }) {
+                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                    }
+
+                    IconButton(onClick = {
+                        TODO("Implement forward message")
+                    }) {
+                        Icon(painter= painterResource(id=R.drawable.rounded_forward_24),
+                            stringResource(R.string.forward_message)
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        TODO("Implement share message")
+                    }) {
+                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
+                    }
                 }
 
-                IconButton(onClick = {}) {
+                IconButton(onClick = {
+                    TODO("Implement delete message")
+                }) {
                     Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
-                }
-
-                IconButton(onClick = {}) {
-                    Icon(painter= painterResource(id=R.drawable.rounded_forward_24),
-                        "share message")
-                }
-
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.Share, "share message")
                 }
             }
         )
@@ -346,6 +377,8 @@ class ConversationsActivity : CustomAppCompactActivity(){
             if(items.isNotEmpty()) listState.animateScrollToItem(0)
         }
 
+        val backHandler = BackHandler{}
+
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
@@ -355,6 +388,16 @@ class ConversationsActivity : CustomAppCompactActivity(){
                             text= contactName,
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            backHandler.run {
+                                if(selectedItems.isEmpty()) finish()
+                                else selectedItems.clear()
+                            }
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Go back")
+                        }
                     },
                     actions = {
                         IconButton(onClick = {
@@ -379,8 +422,9 @@ class ConversationsActivity : CustomAppCompactActivity(){
             },
             bottomBar = {
                 if(selectedItems.isEmpty()) ChatCompose()
-                else ConversationCrudBottomBar()
-
+                else ConversationCrudBottomBar(selectedItems) {
+                    selectedItems.clear()
+                }
             }
         ) { innerPadding ->
             LazyColumn(
@@ -409,13 +453,13 @@ class ConversationsActivity : CustomAppCompactActivity(){
                         else "1730062120",
                         showDate = index == 0,
                         modifier = Modifier
-                            .padding(start = 8.dp, end=8.dp)
+                            .padding(start = 8.dp, end = 8.dp)
                             .combinedClickable(
                                 onLongClick = {
                                     selectedItems.add(conversation)
                                 },
                                 onClick = {
-                                    if(!selectedItems.isEmpty()) {
+                                    if (!selectedItems.isEmpty()) {
                                         if (selectedItems.contains(conversation))
                                             selectedItems.remove(conversation)
                                         else
@@ -430,7 +474,6 @@ class ConversationsActivity : CustomAppCompactActivity(){
         }
 
     }
-
 
     private fun deriveMetaDate(conversation: Conversation): String{
         val dateFormat: DateFormat = SimpleDateFormat("h:mm a");

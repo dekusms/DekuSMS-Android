@@ -293,5 +293,7 @@
     <string name="send_message">Send message</string>
     <string name="copy_message">copy message</string>
     <string name="delete_message">delete message</string>
+    <string name="share_message">share message</string>
+    <string name="forward_message">forward message</string>
 
 </resources>
