@@ -2,6 +2,9 @@ package com.afkanerd.deku.DefaultSMS
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Telephony
@@ -341,7 +344,8 @@ class ConversationsActivity : CustomAppCompactActivity(){
                     }
 
                     IconButton(onClick = {
-                        TODO("Implement share message")
+                        shareItem(items.first().text!!)
+                        onCompleted?.let { it() }
                     }) {
                         Icon(Icons.Filled.Share, stringResource(R.string.share_message))
                     }
@@ -355,7 +359,35 @@ class ConversationsActivity : CustomAppCompactActivity(){
             }
         )
     }
-    
+
+
+    private fun shareItem(text: String) {
+        val sendIntent = Intent().apply {
+            setAction(Intent.ACTION_SEND)
+            putExtra(Intent.EXTRA_TEXT, text)
+            setType("text/plain")
+        }
+
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        // Only use for components you have control over
+        val excludedComponentNames = arrayOf(
+            ComponentName(
+                BuildConfig.APPLICATION_ID,
+                ThreadedConversationsActivity::class.java.name
+            )
+        )
+        shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
+        startActivity(shareIntent)
+    }
+
+    private fun call(address: String) {
+        val callIntent = Intent(Intent.ACTION_DIAL).apply {
+            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            setData(Uri.parse("tel:" + address));
+        }
+        startActivity(callIntent);
+    }
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     fun Conversations(items: List<Conversation>) {
@@ -401,7 +433,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                     },
                     actions = {
                         IconButton(onClick = {
-                            TODO("Implement call function")
+                            call(address)
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Call,
