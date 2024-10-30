@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -117,16 +118,18 @@ private fun ConversationReceived(
         .fillMaxWidth()
     ) {
         Column {
-            Box(
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outline
+                ),
                 modifier = Modifier
                     .clip(shape=shape)
-                    .background(colorResource(R.color.md_theme_outline))
-                    .padding(16.dp)
             ) {
                 Text(
                     text=text,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colorResource(R.color.md_theme_outlineVariant)
+                    modifier = Modifier.padding(16.dp),
+                    color = colorResource(R.color.md_theme_onPrimary)
                 )
             }
 
@@ -176,15 +179,17 @@ private fun ConversationSent(
         horizontalArrangement = Arrangement.End
     ) {
         Column {
-            Box(
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
                 modifier = Modifier
                     .clip(shape=shape)
-                    .background(colorResource(R.color.md_theme_primaryContainer))
-                    .padding(16.dp)
             ) {
                 Text(
                     text=text,
                     style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp),
                     color = colorResource(R.color.md_theme_onPrimaryContainer)
                 )
             }

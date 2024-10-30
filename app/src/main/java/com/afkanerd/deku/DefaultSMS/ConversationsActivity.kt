@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -38,13 +39,20 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.TextFieldColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Forward
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.rounded.TurnRight
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,6 +85,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
@@ -221,6 +230,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                         subscriptionId= subscriptionId,
                         threadId=threadId,
                         conversationsViewModel = viewModel)
+                    userInput = ""
                 },
                     modifier = Modifier
                         .clip(CircleShape)
@@ -286,6 +296,31 @@ class ConversationsActivity : CustomAppCompactActivity(){
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
 
+    @Preview
+    @Composable
+    private fun conversationCrudBottomBar() {
+        BottomAppBar (
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                }
+
+                IconButton(onClick = {}) {
+                    Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
+                }
+
+                IconButton(onClick = {}) {
+                    Icon(painter= painterResource(id=R.drawable.rounded_forward_24),
+                        "share message")
+                }
+
+                IconButton(onClick = {}) {
+                    Icon(Icons.Filled.Share, "share message")
+                }
+            }
+        )
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Conversations(items: List<Conversation>) {
@@ -299,15 +334,12 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 contactName = address
         }
 
-
-
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
         LaunchedEffect(items){
             if(items.isNotEmpty()) listState.animateScrollToItem(0)
         }
-
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -375,6 +407,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
         }
 
     }
+
 
     private fun deriveMetaDate(conversation: Conversation): String{
         val dateFormat: DateFormat = SimpleDateFormat("h:mm a");
