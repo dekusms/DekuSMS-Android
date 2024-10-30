@@ -352,7 +352,10 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 }
 
                 IconButton(onClick = {
-                    TODO("Implement delete message")
+                    CoroutineScope(Dispatchers.Default).launch {
+                        viewModel.deleteItems(applicationContext, items)
+                        onCompleted?.let { it() }
+                    }
                 }) {
                     Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
                 }
