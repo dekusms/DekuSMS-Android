@@ -271,7 +271,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                                 conversations[index + 1].date!!.toLong())) {
                             return ConversationPositionTypes.END
                         }
-//                        return ConversationPositionTypes.NORMAL
+                        return ConversationPositionTypes.NORMAL
                     }
                 }
             } else {
