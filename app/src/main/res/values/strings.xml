@@ -295,5 +295,6 @@
     <string name="delete_message">delete message</string>
     <string name="share_message">share message</string>
     <string name="forward_message">forward message</string>
+    <string name="request_secure_communication">Request secure communication</string>
 
 </resources>

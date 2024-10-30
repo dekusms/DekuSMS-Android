@@ -56,6 +56,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Forward
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -63,22 +64,29 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.rounded.TurnRight
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -90,7 +98,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -100,6 +111,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -117,6 +129,7 @@ import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
@@ -125,6 +138,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -136,6 +150,7 @@ import kotlin.getValue
 class ConversationsActivity : CustomAppCompactActivity(){
     private lateinit var threadId: String
     private lateinit var address: String
+    private var contactName: String = ""
 
     val viewModel: ConversationsViewModel by viewModels()
 
@@ -386,15 +401,61 @@ class ConversationsActivity : CustomAppCompactActivity(){
     private fun call(address: String) {
         val callIntent = Intent(Intent.ACTION_DIAL).apply {
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            setData(Uri.parse("tel:" + address));
+            setData(Uri.parse("tel:$address"));
         }
         startActivity(callIntent);
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Preview(showBackground = true)
+    @Composable
+    private fun SecureRequestModal(dismissCallback: (() -> Unit)? = null) {
+        var showSecureRequestModal by remember { mutableStateOf(true) }
+        val state = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Expanded,
+            skipHiddenState = false
+        )
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                dismissCallback?.let { it() }
+                showSecureRequestModal = false },
+            sheetState = state,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if(contactName.isNullOrBlank()) stringResource(R.string
+                        .conversation_secure_popup_request_menu_description)
+                    else stringResource(R.string
+                        .conversation_secure_popup_request_menu_description).apply {
+                        replace(oldValue="[contact name]", newValue=contactName)
+                    },
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = stringResource(R.string
+                        .conversation_secure_popup_request_menu_description_subtext),
+                    modifier = Modifier.padding(16.dp)
+                )
+
+                Button(onClick = {}) {
+                    Text(stringResource(R.string.request))
+                }
+            }
+        }
+
+    }
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
-    fun Conversations(items: List<Conversation>) {
-        var contactName by remember { mutableStateOf("Template Contact")}
+    fun Conversations(items: List<Conversation>, showIsSecured: Boolean? = false) {
+        var getContactName by remember { mutableStateOf("Template Contact")}
         var selectedItems = remember { mutableStateListOf<Conversation>() }
 
         LaunchedEffect("contact_name"){
@@ -403,6 +464,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 Helpers.getFormatCompleteNumber(address, defaultRegion) )
             if(contactName.isNullOrBlank())
                 contactName = address
+            getContactName = contactName
         }
 
         val listState = rememberLazyListState()
@@ -413,16 +475,34 @@ class ConversationsActivity : CustomAppCompactActivity(){
         }
 
         val backHandler = BackHandler{}
+        var showSecureRequestModal by remember { mutableStateOf(false) }
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = {
-                        Text(
-                            text= contactName,
-                            maxLines =1,
-                            overflow = TextOverflow.Ellipsis)
+                        Column {
+                            Text(
+                                text= getContactName,
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+
+                            if(showIsSecured != null && showIsSecured) {
+                                Text(
+                                    text= stringResource(R.string.secured),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    maxLines =1,
+                                    overflow = TextOverflow.Ellipsis)
+                            }
+                            else if(E2EEHandler.isSecured(applicationContext, address)) {
+                                Text(
+                                    text= stringResource(R.string.secured),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    maxLines =1,
+                                    overflow = TextOverflow.Ellipsis)
+                            }
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = {
@@ -443,6 +523,17 @@ class ConversationsActivity : CustomAppCompactActivity(){
                                 contentDescription = stringResource(R.string.call)
                             )
                         }
+
+                        IconButton(onClick = {
+                            showSecureRequestModal = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.EnhancedEncryption,
+                                contentDescription = stringResource(R.string
+                                    .request_secure_communication)
+                            )
+                        }
+
                         IconButton(onClick = {
                             TODO("Implement menu functionality")
                         }) {
@@ -462,6 +553,13 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 }
             }
         ) { innerPadding ->
+
+            if(showSecureRequestModal) {
+                SecureRequestModal{
+                    showSecureRequestModal = false
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -534,7 +632,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
                     conversations.add(conversation)
                     isSend = !isSend
                 }
-                Conversations(conversations)
+                Conversations(conversations, true)
             }
         }
     }
