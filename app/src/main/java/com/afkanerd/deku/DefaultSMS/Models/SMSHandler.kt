@@ -67,7 +67,7 @@ object SMSHandler {
             conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
             conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
             conversation.error_code = 1
-            conversationsViewModel.update(conversation)
+            conversationsViewModel.update(context, conversation)
         }
     }
 

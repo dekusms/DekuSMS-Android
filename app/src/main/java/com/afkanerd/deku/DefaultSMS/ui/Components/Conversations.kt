@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.provider.Telephony
+import androidx.compose.foundation.CombinedClickableNode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,6 +91,7 @@ private fun ConversationReceived(
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
     date: String = "yesterday",
     showDate: Boolean = true,
+    isSelected: Boolean = true,
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp)
@@ -120,7 +122,8 @@ private fun ConversationReceived(
         Column {
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.outline
+                    containerColor = if(isSelected) MaterialTheme.colorScheme.tertiaryContainer
+                    else MaterialTheme.colorScheme.outline
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
@@ -137,7 +140,8 @@ private fun ConversationReceived(
                 Text(
                     text= date,
                     style = MaterialTheme.typography.labelSmall,
-                    color = colorResource(R.color.md_theme_outlineVariant),
+                    color = if(isSelected) MaterialTheme.colorScheme.outlineVariant
+                    else MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
         }
@@ -151,6 +155,7 @@ private fun ConversationSent(
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     date: String = "yesterday",
+    isSelected: Boolean = true,
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
@@ -181,7 +186,8 @@ private fun ConversationSent(
         Column {
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = if(isSelected) MaterialTheme.colorScheme.tertiaryContainer
+                    else MaterialTheme.colorScheme.primaryContainer
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
@@ -190,17 +196,18 @@ private fun ConversationSent(
                     text=text,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
-                    color = colorResource(R.color.md_theme_onPrimaryContainer)
+                    color = if(isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             Text(
                 text= if(status == ConversationStatusTypes.STATUS_PENDING)
                     stringResource(R.string.sms_status_sending)
                 else if(status == ConversationStatusTypes.STATUS_COMPLETE)
-                    stringResource(R.string.sms_status_delivered)
+                    "$date " + stringResource(R.string.sms_status_delivered)
                 else if(status == ConversationStatusTypes.STATUS_FAILED)
-                    stringResource(R.string.sms_status_failed_only)
-                else stringResource(R.string.sms_status_sent),
+                    stringResource(R.string.sms_status_failed)
+                else "$date " + stringResource(R.string.sms_status_sent),
                 style = MaterialTheme.typography.labelSmall,
                 color = if(status == ConversationStatusTypes.STATUS_FAILED)
                     colorResource(R.color.md_theme_error)
@@ -231,8 +238,10 @@ fun ConversationsCard(
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     showDate: Boolean = false,
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
 ) {
-    Column(modifier = Modifier.padding(start = 8.dp, end=8.dp)) {
+    Column(modifier = modifier) {
         if(position == ConversationPositionTypes.START_TIMESTAMP ||
             position == ConversationPositionTypes.NORMAL_TIMESTAMP) {
             Text(
@@ -248,11 +257,19 @@ fun ConversationsCard(
         when(type)  {
             ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(
-                text=text, position=position, date=date, showDate = showDate)
+                text=text,
+                position=position,
+                date=date,
+                showDate = showDate,
+                isSelected = isSelected)
             ConversationMessageTypes.MESSAGE_TYPE_SENT,
             ConversationMessageTypes.MESSAGE_TYPE_FAILED,
             ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(
-                text=text, position=position, date=date, status=status)
+                text=text,
+                position=position,
+                date=date,
+                status=status,
+                isSelected = isSelected)
             ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }

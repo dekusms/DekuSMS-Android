@@ -10,7 +10,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -71,11 +73,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -298,7 +302,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
 
     @Preview
     @Composable
-    private fun conversationCrudBottomBar() {
+    private fun ConversationCrudBottomBar() {
         BottomAppBar (
             actions = {
                 IconButton(onClick = {}) {
@@ -320,11 +324,12 @@ class ConversationsActivity : CustomAppCompactActivity(){
             }
         )
     }
-
-    @OptIn(ExperimentalMaterial3Api::class)
+    
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     fun Conversations(items: List<Conversation>) {
         var contactName by remember { mutableStateOf("Template Contact")}
+        var selectedItems = remember { mutableStateListOf<Conversation>() }
 
         LaunchedEffect("contact_name"){
             val defaultRegion = Helpers.getUserCountry( applicationContext )
@@ -373,7 +378,9 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 )
             },
             bottomBar = {
-                ChatCompose()
+                if(selectedItems.isEmpty()) ChatCompose()
+                else ConversationCrudBottomBar()
+
             }
         ) { innerPadding ->
             LazyColumn(
@@ -401,6 +408,22 @@ class ConversationsActivity : CustomAppCompactActivity(){
                         if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
                         else "1730062120",
                         showDate = index == 0,
+                        modifier = Modifier
+                            .padding(start = 8.dp, end=8.dp)
+                            .combinedClickable(
+                                onLongClick = {
+                                    selectedItems.add(conversation)
+                                },
+                                onClick = {
+                                    if(!selectedItems.isEmpty()) {
+                                        if (selectedItems.contains(conversation))
+                                            selectedItems.remove(conversation)
+                                        else
+                                            selectedItems.add(conversation)
+                                    }
+                                }
+                            ),
+                        isSelected = selectedItems.contains(conversation)
                     )
                 }
             }
