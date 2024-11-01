@@ -74,6 +74,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -430,12 +431,8 @@ class ConversationsActivity : CustomAppCompactActivity(){
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if(contactName.isNullOrBlank()) stringResource(R.string
-                        .conversation_secure_popup_request_menu_description)
-                    else stringResource(R.string
-                        .conversation_secure_popup_request_menu_description).apply {
-                        replace(oldValue="[contact name]", newValue=contactName)
-                    },
+                    text = stringResource(R.string
+                        .conversation_secure_popup_request_menu_description),
                     fontSize = 16.sp
                 )
                 Text(
@@ -455,7 +452,7 @@ class ConversationsActivity : CustomAppCompactActivity(){
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     fun Conversations(items: List<Conversation>, showIsSecured: Boolean? = false) {
-        var getContactName by remember { mutableStateOf("Template Contact")}
+        var getContactName by remember { mutableStateOf("")}
         var selectedItems = remember { mutableStateListOf<Conversation>() }
 
         LaunchedEffect("contact_name"){
@@ -474,13 +471,13 @@ class ConversationsActivity : CustomAppCompactActivity(){
             if(items.isNotEmpty()) listState.animateScrollToItem(0)
         }
 
-        val backHandler = BackHandler{}
+        val backHandler = BackHandler(enabled = true){}
         var showSecureRequestModal by remember { mutableStateOf(false) }
 
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                LargeTopAppBar(
+                TopAppBar(
                     title = {
                         Column {
                             Text(
@@ -507,7 +504,10 @@ class ConversationsActivity : CustomAppCompactActivity(){
                     navigationIcon = {
                         IconButton(onClick = {
                             backHandler.run {
-                                if(selectedItems.isEmpty()) finish()
+                                if(selectedItems.isEmpty()) {
+                                    println("Back pressed")
+                                    finish()
+                                }
                                 else selectedItems.clear()
                             }
                         }) {

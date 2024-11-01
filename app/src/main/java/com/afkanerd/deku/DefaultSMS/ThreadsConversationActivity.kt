@@ -60,12 +60,19 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlin.concurrent.thread
 
 class ThreadsConversationActivity : AppCompatActivity() {
@@ -84,6 +91,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     private fun checkLoadNatives() {
@@ -98,7 +106,6 @@ class ThreadsConversationActivity : AppCompatActivity() {
 
     }
 
-
     @Composable
     private fun getThreads() : List<ThreadedConversations>{
         val items: List<ThreadedConversations> by viewModel
@@ -109,7 +116,6 @@ class ThreadsConversationActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ThreadConversationLayout(items: List<ThreadedConversations>) {
-
         val listState = rememberLazyListState()
         val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -221,13 +227,13 @@ class ThreadsConversationActivity : AppCompatActivity() {
                                 isRead = message.isIs_read,
                                 isContact = isContact,
                                 onItemClick = { selectedItem ->
-                                    startActivity(Intent(applicationContext,
-                                        ConversationsActivity::class.java).apply {
-                                        putExtra(ConversationsActivity
-                                            .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
-                                        putExtra(ConversationsActivity
-                                            .EXPECTED_INTENTS.ADDRESS.value, message.address)
-                                    })
+//                                    startActivity(Intent(applicationContext,
+//                                        ConversationsActivity::class.java).apply {
+//                                        putExtra(ConversationsActivity
+//                                            .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
+//                                        putExtra(ConversationsActivity
+//                                            .EXPECTED_INTENTS.ADDRESS.value, message.address)
+//                                    })
                                 }
                             )
                         }

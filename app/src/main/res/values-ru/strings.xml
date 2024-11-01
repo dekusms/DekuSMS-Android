@@ -174,7 +174,6 @@
     <string name="conversation_secure_popup_request_menu_yes">Отправить</string>
     <string name="conversation_secure_popup_request_menu_cancel">Отмена</string>
     <string name="conversation_secure_popup_request_menu_title">Запрос Защищённого Общения</string>
-    <string name="conversation_secure_popup_request_menu_description">Запрос на защищённое общение отправит SMS на [имя контакта]. \n\nЕму потребуется установить Deku SMS для получения этого запроса.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* стоимость SMS учитывается оператором</string>
 
     <string name="conversation_shortcode_description">Не могу ответить на этот короткий код</string>

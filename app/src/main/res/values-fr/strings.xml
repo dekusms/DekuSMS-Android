@@ -126,7 +126,6 @@
     <string name="conversation_secure_popup_request_menu_yes">Envoyer</string>
     <string name="conversation_secure_popup_request_menu_cancel">Annuler</string>
     <string name="conversation_secure_popup_request_menu_title">Demande de conversation sécurisée</string>
-    <string name="conversation_secure_popup_request_menu_description">Une demande de communication sécurisée enverra un SMS à [nom du contact].\n\nIls devront avoir installé Deku SMS pour recevoir cette demande.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* Le coût des SMS s\'applique toujours</string>
     <string name="conversation_shortcode_description">Je ne peux pas répondre à ce short code</string>
     <string name="conversation_shortcode_action_button">Apprendre encore plus</string>
