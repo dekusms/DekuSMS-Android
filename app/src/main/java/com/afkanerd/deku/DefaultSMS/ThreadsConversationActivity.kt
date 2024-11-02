@@ -122,7 +122,8 @@ class ThreadsConversationActivity : AppCompatActivity() {
                         composable<ConversationsScreen>{
                             Conversations(
                                 context = applicationContext,
-                                viewModel=conversationViewModel
+                                viewModel=conversationViewModel,
+                                navController=navController
                             )
                         }
                     }

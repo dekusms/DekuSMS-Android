@@ -77,6 +77,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
@@ -88,6 +89,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
+import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
@@ -401,6 +403,7 @@ private fun SecureRequestModal(dismissCallback: (() -> Unit)? = null) {
 fun Conversations(
     context: Context? = null,
     viewModel: ConversationsViewModel = ConversationsViewModel(),
+    navController: NavController,
     showIsSecured: Boolean? = false
 ) {
     var getContactName by remember { mutableStateOf("")}
@@ -416,6 +419,13 @@ fun Conversations(
         getContactName = contactName
     }
 
+    BackHandler {
+        if(selectedItems.isEmpty()) {
+            navController.popBackStack()
+        }
+        else selectedItems.clear()
+    }
+
     val items: List<Conversation> by viewModel
         .getLiveData(context!!).observeAsState(emptyList())
 
@@ -426,10 +436,7 @@ fun Conversations(
         listState.animateScrollToItem(0)
     }
 
-    val backHandler = BackHandler(enabled = true){}
     var showSecureRequestModal by remember { mutableStateOf(false) }
-
-    val navController = rememberNavController()
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -449,7 +456,7 @@ fun Conversations(
                                 maxLines =1,
                                 overflow = TextOverflow.Ellipsis)
                         }
-                        else if(E2EEHandler.isSecured(context!!, viewModel.address!!)) {
+                        else if(E2EEHandler.isSecured(context, viewModel.address!!)) {
                             Text(
                                 text= stringResource(R.string.secured),
                                 style = MaterialTheme.typography.labelLarge,
@@ -460,13 +467,10 @@ fun Conversations(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        backHandler.run {
-                            if(selectedItems.isEmpty()) {
-                                navController.popBackStack()
-//                                    finish()
-                            }
-                            else selectedItems.clear()
+                        if(selectedItems.isEmpty()) {
+                            navController.popBackStack()
                         }
+                        else selectedItems.clear()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Go back")
                     }
@@ -601,7 +605,7 @@ fun PreviewConversations() {
                 conversations.add(conversation)
                 isSend = !isSend
             }
-            Conversations(showIsSecured = true)
+            Conversations(navController = rememberNavController(), showIsSecured = true)
         }
     }
 }
