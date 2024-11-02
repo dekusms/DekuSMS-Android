@@ -65,6 +65,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,7 +92,6 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
-import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
@@ -363,16 +363,14 @@ private fun SecureRequestModal(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     dismissCallback: (() -> Unit)? = null
 ) {
-    var showSecureRequestModal by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     val state = rememberStandardBottomSheetState(
         initialValue = SheetValue.Expanded,
-        skipHiddenState = false
+        skipHiddenState = false,
     )
 
     ModalBottomSheet(
-        onDismissRequest = {
-            dismissCallback?.let { it() }
-            showSecureRequestModal = false },
+        onDismissRequest = { dismissCallback?.let { it() } },
         sheetState = state,
     ) {
         Column(
@@ -405,6 +403,7 @@ private fun SecureRequestModal(
                     viewModel=viewModel,
                     data=txPublicKey
                 )
+                scope.launch { state.hide() }
             }) {
                 Text(stringResource(R.string.request))
             }
@@ -568,7 +567,7 @@ fun Conversations(
                         Helpers.formatDateExtended(context,
                             conversation.date!!.toLong())
                     else "1730062120",
-                    type= ConversationMessageTypes.fromInt(conversation.type)!!,
+                    type= conversation.type,
                     status = ConversationStatusTypes.fromInt(conversation.status)!!,
                     position = getContentType(index, conversation, items),
                     date =
@@ -622,8 +621,8 @@ fun PreviewConversations() {
                 conversation.text = stringResource(
                     R.string
                         .settings_add_gateway_server_protocol_meta_description)
-                conversation.type = if(!isSend) ConversationMessageTypes.MESSAGE_TYPE_INBOX.value
-                else ConversationMessageTypes.MESSAGE_TYPE_SENT.value
+                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
                 conversations.add(conversation)
                 isSend = !isSend
             }

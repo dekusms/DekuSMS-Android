@@ -32,7 +32,7 @@ object SMSHandler {
                 conversation.message_id = messageId
                 conversation.data = Base64.encodeToString(data, Base64.DEFAULT)
                 conversation.subscription_id = subscriptionId
-                conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
                 conversation.date = System.currentTimeMillis().toString()
                 conversation.status = Telephony.Sms.STATUS_PENDING
 

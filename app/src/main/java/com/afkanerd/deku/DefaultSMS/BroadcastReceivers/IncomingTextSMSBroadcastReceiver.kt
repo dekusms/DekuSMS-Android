@@ -141,7 +141,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
 
                 if (resultCode == Activity.RESULT_OK) {
                     conversation.status = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
-                    conversation.type = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
+                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
                 } else {
                     conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
                     conversation.error_code = resultCode

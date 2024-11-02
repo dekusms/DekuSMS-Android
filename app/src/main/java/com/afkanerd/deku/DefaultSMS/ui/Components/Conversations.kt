@@ -47,22 +47,6 @@ import androidx.graphics.shapes.toPath
 import androidx.room.util.TableInfo
 import com.google.android.material.card.MaterialCardView
 
-enum class ConversationMessageTypes(val value: Int) {
-    MESSAGE_TYPE_ALL(0),
-    MESSAGE_TYPE_INBOX(1),
-    MESSAGE_TYPE_SENT(2),
-    MESSAGE_TYPE_DRAFT(3),
-    MESSAGE_TYPE_OUTBOX(4),
-    MESSAGE_TYPE_FAILED(5),
-    MESSAGE_TYPE_QUEUED(6);
-
-    companion object {
-        fun fromInt(value: Int): ConversationMessageTypes? {
-            return ConversationMessageTypes.entries.find { it.value == value }
-        }
-    }
-}
-
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
     START(1),
@@ -219,6 +203,7 @@ private fun ConversationSent(
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
+                    .align(alignment = Alignment.End)
             ) {
                 Text(
                     text=text,
@@ -240,7 +225,8 @@ private fun ConversationSent(
                 color = if(status == ConversationStatusTypes.STATUS_FAILED)
                     colorResource(R.color.md_theme_error)
                 else colorResource(R.color.md_theme_outlineVariant),
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
             )
         }
 
@@ -262,13 +248,13 @@ fun ConversationsCard(
     text: String = "Hello world",
     timestamp: String = "Yesterday",
     date: String = "yesterday",
-    type: ConversationMessageTypes = ConversationMessageTypes.MESSAGE_TYPE_SENT,
+    type: Int = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     showDate: Boolean = false,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
-    isKey: Boolean = true,
+    isKey: Boolean = false,
 ) {
     Column(modifier = modifier) {
         if(position == ConversationPositionTypes.START_TIMESTAMP ||
@@ -284,8 +270,8 @@ fun ConversationsCard(
             )
         }
         when(type)  {
-            ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> {
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX -> {
                 if(isKey) {
                     ConversationIsKey(isReceived = true)
                 } else {
@@ -298,9 +284,9 @@ fun ConversationsCard(
                     )
                 }
             }
-            ConversationMessageTypes.MESSAGE_TYPE_SENT,
-            ConversationMessageTypes.MESSAGE_TYPE_FAILED,
-            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> {
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, -> {
                 if(isKey) {
                     ConversationIsKey(isReceived = false)
                 } else {
@@ -313,8 +299,8 @@ fun ConversationsCard(
                     )
                 }
             }
-            ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, -> TODO()
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED, -> TODO()
         }
     }
 }

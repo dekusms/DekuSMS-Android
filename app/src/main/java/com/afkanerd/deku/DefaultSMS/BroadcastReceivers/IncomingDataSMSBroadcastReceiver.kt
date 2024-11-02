@@ -63,7 +63,7 @@ class IncomingDataSMSBroadcastReceiver : BroadcastReceiver() {
                     conversation.thread_id = threadId
                     conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
                     conversation.subscription_id = subscriptionId
-                    conversation.date = dateSent
+                    conversation.date_sent = dateSent
                     conversation.date = date
 
                     var isSelf = false
@@ -89,10 +89,6 @@ class IncomingDataSMSBroadcastReceiver : BroadcastReceiver() {
                         databaseConnector!!.threadedConversationsDao()
                             .update(context, threadedConversations)
 
-                        val broadcastIntent = Intent(DATA_DELIVER_ACTION)
-                        broadcastIntent.putExtra(Conversation.ID, messageId)
-                        broadcastIntent.putExtra(Conversation.THREAD_ID, threadId)
-                        context.sendBroadcast(broadcastIntent)
                         if (!threadedConversations.isIs_mute) NotificationsHandler.sendIncomingTextMessageNotification(
                             context,
                             conversation
