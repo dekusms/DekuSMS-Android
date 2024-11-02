@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Models
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.Telephony
+import android.util.Base64
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,35 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object SMSHandler {
+
+    fun sendDataMessage(
+        context: Context,
+        data: ByteArray,
+        viewModel: ConversationsViewModel
+    ) {
+        val subscriptionId = SIMHandler.getDefaultSimSubscription(context)
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val messageId = System.currentTimeMillis().toString()
+                val conversation = Conversation()
+                conversation.thread_id = viewModel.threadId
+                conversation.address = viewModel.address
+                conversation.isIs_key = true
+                conversation.message_id = messageId
+                conversation.data = Base64.encodeToString(data, Base64.DEFAULT)
+                conversation.subscription_id = subscriptionId
+                conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                conversation.date = System.currentTimeMillis().toString()
+                conversation.status = Telephony.Sms.STATUS_PENDING
+
+                val id = viewModel.insert(context, conversation)
+                SMSDatabaseWrapper.send_data(context, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun sendTextMessage(
         context: Context,
         text: String,

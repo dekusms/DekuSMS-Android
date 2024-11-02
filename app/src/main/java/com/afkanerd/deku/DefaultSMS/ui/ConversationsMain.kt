@@ -90,6 +90,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
+import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationMessageTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
@@ -357,7 +358,11 @@ private fun call(context: Context, address: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
-private fun SecureRequestModal(dismissCallback: (() -> Unit)? = null) {
+private fun SecureRequestModal(
+    context: Context? = null,
+    viewModel: ConversationsViewModel = ConversationsViewModel(),
+    dismissCallback: (() -> Unit)? = null
+) {
     var showSecureRequestModal by remember { mutableStateOf(true) }
     val state = rememberStandardBottomSheetState(
         initialValue = SheetValue.Expanded,
@@ -390,7 +395,17 @@ private fun SecureRequestModal(dismissCallback: (() -> Unit)? = null) {
                 modifier = Modifier.padding(16.dp)
             )
 
-            Button(onClick = {}) {
+            Button(onClick = {
+                E2EEHandler.clear(context!!, viewModel.address!!)
+                val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
+                val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                    E2EEHandler.MagicNumber.REQUEST)
+                sendDataMessage(
+                    context=context,
+                    viewModel=viewModel,
+                    data=txPublicKey
+                )
+            }) {
                 Text(stringResource(R.string.request))
             }
         }
