@@ -1,6 +1,8 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -60,23 +62,39 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.ui.Conversations
+import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.concurrent.thread
 
+@Serializable
+object HomeScreen
+@Serializable
+object ConversationsScreen
+
 class ThreadsConversationActivity : AppCompatActivity() {
     val viewModel: ThreadedConversationsViewModel by viewModels()
+    val conversationViewModel: ConversationsViewModel by viewModels()
+
+    lateinit var navController: NavHostController
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,12 +104,31 @@ class ThreadsConversationActivity : AppCompatActivity() {
 
         setContent {
             AppTheme {
+                navController = rememberNavController()
                 Surface(Modifier.safeDrawingPadding()) {
-                    ThreadConversationLayout(getThreads())
+                    NavHost(
+                        modifier = Modifier,
+                        navController = navController,
+                        startDestination = HomeScreen,
+                    ) {
+                        composable<HomeScreen>{
+                            ThreadConversationLayout(
+                                context=applicationContext,
+                                viewModel=viewModel,
+                                conversationsViewModel=conversationViewModel,
+                                navController)
+                        }
+
+                        composable<ConversationsScreen>{
+                            Conversations(
+                                context = applicationContext,
+                                viewModel=conversationViewModel
+                            )
+                        }
+                    }
                 }
             }
         }
-
     }
 
     private fun checkLoadNatives() {
@@ -105,166 +142,4 @@ class ThreadsConversationActivity : AppCompatActivity() {
         }
 
     }
-
-    @Composable
-    private fun getThreads() : List<ThreadedConversations>{
-        val items: List<ThreadedConversations> by viewModel
-            .getAllLiveData(applicationContext).observeAsState(emptyList())
-        return items
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ThreadConversationLayout(items: List<ThreadedConversations>) {
-        val listState = rememberLazyListState()
-        val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
-        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
-
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-                    Text("Inboxes", modifier = Modifier.padding(16.dp))
-                    HorizontalDivider()
-                    NavigationDrawerItem(
-                        label = { Text(text = "Drawer Item") },
-                        selected = false,
-                        onClick = { }
-                    )
-                }
-            }
-        ) {
-            Scaffold (
-                modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
-                topBar = {
-                    CenterAlignedTopAppBar(
-                        title = {
-                            Text(
-                                text= stringResource(R.string.app_name),
-                                maxLines =1,
-                                overflow = TextOverflow.Ellipsis)
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch {
-                                    drawerState.apply {
-                                        if(isClosed) open() else close()
-                                    }
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Menu,
-                                    contentDescription = stringResource(R.string.open_side_menu)
-                                )
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = {
-                                TODO("Implement search functions")
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Search,
-                                    contentDescription = stringResource(R.string.search_messages)
-                                )
-                            }
-                            IconButton(onClick = {
-                                TODO("Implement menu functionality")
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = stringResource(R.string.open_menu)
-                                )
-                            }
-                        },
-                        scrollBehavior = scrollBehaviour
-                    )
-                },
-                bottomBar = {
-
-                },
-                floatingActionButton = {
-                    ExtendedFloatingActionButton(
-                        onClick = { TODO("Implement compose new message method") },
-                        icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
-                        text = { Text(text = "Compose") },
-                        expanded = listState.isScrollingUp()
-                    )
-                }
-            ) { innerPadding ->
-                LazyColumn(
-                    modifier = Modifier.padding(innerPadding),
-                    state = listState
-                )  {
-                    items(
-                        items = items,
-                        key = { threadConversation ->
-                            threadConversation.thread_id
-                        }
-                    ) { message ->
-                        message.address?.let {
-                            var firstName = message.address
-                            var lastName = ""
-                            val isContact = !message.contact_name.isNullOrBlank()
-                            if(!message.contact_name.isNullOrBlank()) {
-                                message.contact_name.split(" ").let {
-                                    firstName = it[0]
-                                    if(it.size > 1)
-                                        lastName = it[1]
-                                }
-                            }
-
-                            ThreadConversationCard(
-                                id = message.thread_id,
-                                firstName = firstName,
-                                lastName = lastName,
-                                content = message.snippet,
-                                date =
-                                if(!message.date.isNullOrBlank())
-                                    Helpers.formatDate(applicationContext, message.date.toLong())
-                                else "Tues",
-                                isRead = message.isIs_read,
-                                isContact = isContact,
-                                onItemClick = { selectedItem ->
-//                                    startActivity(Intent(applicationContext,
-//                                        ConversationsActivity::class.java).apply {
-//                                        putExtra(ConversationsActivity
-//                                            .EXPECTED_INTENTS.THREAD_ID.value, message.thread_id)
-//                                        putExtra(ConversationsActivity
-//                                            .EXPECTED_INTENTS.ADDRESS.value, message.address)
-//                                    })
-                                }
-                            )
-                        }
-                    }
-                }
-
-            }
-
-        }
-
-    }
-
-    @Preview
-    @Composable
-    fun PreviewMessageCard() {
-        AppTheme(darkTheme = true) {
-            Surface(Modifier.safeDrawingPadding()) {
-                var messages: MutableList<ThreadedConversations> =
-                    remember { mutableListOf( ) }
-                for(i in 0..10) {
-                    val thread = ThreadedConversations()
-                    thread.thread_id = i.toString()
-                    thread.address = "$i"
-                    thread.contact_name = "Jane $i"
-                    thread.snippet = "Hello world: $i"
-                    thread.date = ""
-                    messages.add(thread)
-                }
-                ThreadConversationLayout(messages)
-            }
-        }
-    }
-
 }

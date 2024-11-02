@@ -333,4 +333,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
     public void unMuteAll() {
         databaseConnector.threadedConversationsDao().updateUnMuteAll();
     }
+
+    public String getAddress(String threadId) {
+        List<String> threads = new ArrayList<>();
+        threads.add(threadId);
+        List<String> addresses = databaseConnector.threadedConversationsDao().findAddresses(threads);
+        if(!addresses.isEmpty())
+            return addresses.get(0);
+        return "";
+    }
 }

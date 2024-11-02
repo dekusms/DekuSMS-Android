@@ -20,9 +20,11 @@ import java.util.Locale
 
 
 class ConversationsViewModel : ViewModel() {
+    var threadId: String? = null
+    var address: String? = null
 
     private var liveData: LiveData<MutableList<Conversation>>? = null
-    fun getLiveData(context: Context, threadId: String): LiveData<MutableList<Conversation>> {
+    fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
         if (liveData == null) {
             liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         }
@@ -41,7 +43,6 @@ class ConversationsViewModel : ViewModel() {
 
     fun updateInformation(
         context: Context,
-        threadId: String,
         contactName: String,
         subscriptionId: Int
     ) {
@@ -63,23 +64,23 @@ class ConversationsViewModel : ViewModel() {
         NativeSMSDB.deleteMultipleMessages(context, ids)
     }
 
-    fun fetchDraft(context: Context, threadId: String): Conversation? {
+    fun fetchDraft(context: Context): Conversation? {
         return Datastore.getDatastore(context).conversationDao().fetchTypedConversation(
             Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId
         )
     }
 
-    fun clearDraft(context: Context, threadId: String) {
+    fun clearDraft(context: Context) {
         Datastore.getDatastore(context).conversationDao()
             .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId)
         SMSDatabaseWrapper.deleteDraft(context, threadId)
     }
 
-    fun unMute(context: Context, threadId: String) {
+    fun unMute(context: Context) {
         Datastore.getDatastore(context).threadedConversationsDao().updateMuted(0, threadId)
     }
 
-    fun mute(context: Context, threadId: String) {
+    fun mute(context: Context) {
         Datastore.getDatastore(context).threadedConversationsDao().updateMuted(1, threadId)
     }
 }

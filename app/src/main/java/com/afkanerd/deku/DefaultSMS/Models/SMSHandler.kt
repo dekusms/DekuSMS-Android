@@ -17,24 +17,13 @@ object SMSHandler {
     fun sendTextMessage(
         context: Context,
         text: String,
-        subscriptionId: Int,
-        threadId: String,
         address: String,
+        conversation: Conversation,
         conversationsViewModel: ConversationsViewModel,
         messageId: String?) {
         var messageId = messageId
 
         if (messageId == null) messageId = System.currentTimeMillis().toString()
-
-        val conversation = Conversation()
-        conversation.text = text
-        conversation.message_id = messageId
-        conversation.thread_id = threadId
-        conversation.subscription_id = subscriptionId
-        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-        conversation.date = System.currentTimeMillis().toString()
-        conversation.address = address
-        conversation.status = Telephony.Sms.STATUS_PENDING
 
         CoroutineScope(Dispatchers.Default).launch{
             try {
@@ -46,7 +35,7 @@ object SMSHandler {
 
             val payload = encryptMessage(context, text, address)
             conversation.text = payload.first
-//            sendSMS(conversation)
+            sendTxt(context, conversation, conversationsViewModel)
 
             payload.second?.let {
                 E2EEHandler.storeState(context, payload.second!!.serializedStates, address)

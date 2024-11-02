@@ -13,7 +13,7 @@ import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
+import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager
 import java.util.concurrent.TimeUnit

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.DefaultSMS.Deprecated;
 
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.ARCHIVED_MESSAGE_TYPES;
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.BLOCKED_MESSAGE_TYPES;
@@ -26,11 +26,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.BuildConfig;
+import com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity;
+import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
+import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.badge.ExperimentalBadgeUtils;

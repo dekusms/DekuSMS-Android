@@ -86,11 +86,7 @@ class DefaultCheckActivity : AppCompatActivity() {
     private fun startUserActivities() {
 //        val intent = Intent(this, ThreadedConversationsActivity::class.java)
 
-//        val intent = Intent(this, ThreadsConversationActivity::class.java)
-//        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-//        startActivity(intent)
-
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, ThreadsConversationActivity::class.java)
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
 
