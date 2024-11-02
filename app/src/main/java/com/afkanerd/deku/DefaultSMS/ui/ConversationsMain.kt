@@ -541,7 +541,10 @@ fun Conversations(
     ) { innerPadding ->
 
         if(showSecureRequestModal) {
-            SecureRequestModal{
+            SecureRequestModal(
+                context=context,
+                viewModel=viewModel,
+            ){
                 showSecureRequestModal = false
             }
         }
@@ -558,7 +561,8 @@ fun Conversations(
                 key = { index, conversation -> conversation.id }
             ) { index, conversation ->
                 ConversationsCard(
-                    text= conversation.text!!,
+                    text= if(conversation.text.isNullOrBlank()) ""
+                    else conversation.text!!,
                     timestamp =
                     if(!conversation.date.isNullOrBlank())
                         Helpers.formatDateExtended(context,
@@ -571,7 +575,9 @@ fun Conversations(
                     if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
                     else "1730062120",
                     showDate = index == 0,
-                    modifier = Modifier
+                    modifier =
+                    if(conversation.isIs_key) Modifier
+                    else Modifier
                         .padding(start = 8.dp, end = 8.dp)
                         .combinedClickable(
                             onLongClick = {
@@ -586,7 +592,8 @@ fun Conversations(
                                 }
                             }
                         ),
-                    isSelected = selectedItems.contains(conversation)
+                    isSelected = selectedItems.contains(conversation),
+                    isKey = conversation.isIs_key,
                 )
             }
         }

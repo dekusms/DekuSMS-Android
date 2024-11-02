@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.provider.Telephony
+import android.text.Layout
 import androidx.compose.foundation.CombinedClickableNode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getString
 import androidx.core.content.res.ResourcesCompat.getColor
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
@@ -79,6 +81,33 @@ enum class ConversationStatusTypes(val value: Int) {
     companion object {
         fun fromInt(value: Int): ConversationStatusTypes? {
             return ConversationStatusTypes.entries.find { it.value == value }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ConversationIsKey(isReceived: Boolean = false) {
+    Column(
+        modifier = Modifier
+        .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if(isReceived) {
+            Text(
+                text=stringResource(R.string.secure_communications_request_received),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(24.dp),
+                color = colorResource(R.color.md_theme_secondary)
+            )
+        } else {
+            Text(
+                text=stringResource(R.string.secure_communication_requested),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(24.dp),
+                color = colorResource(R.color.md_theme_secondary)
+            )
         }
     }
 }
@@ -239,6 +268,7 @@ fun ConversationsCard(
     showDate: Boolean = false,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
+    isKey: Boolean = true,
 ) {
     Column(modifier = modifier) {
         if(position == ConversationPositionTypes.START_TIMESTAMP ||
@@ -255,20 +285,34 @@ fun ConversationsCard(
         }
         when(type)  {
             ConversationMessageTypes.MESSAGE_TYPE_ALL -> TODO()
-            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> ConversationReceived(
-                text=text,
-                position=position,
-                date=date,
-                showDate = showDate,
-                isSelected = isSelected)
+            ConversationMessageTypes.MESSAGE_TYPE_INBOX -> {
+                if(isKey) {
+                    ConversationIsKey(isReceived = true)
+                } else {
+                    ConversationReceived(
+                        text=text,
+                        position=position,
+                        date=date,
+                        showDate = showDate,
+                        isSelected = isSelected
+                    )
+                }
+            }
             ConversationMessageTypes.MESSAGE_TYPE_SENT,
             ConversationMessageTypes.MESSAGE_TYPE_FAILED,
-            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> ConversationSent(
-                text=text,
-                position=position,
-                date=date,
-                status=status,
-                isSelected = isSelected)
+            ConversationMessageTypes.MESSAGE_TYPE_OUTBOX -> {
+                if(isKey) {
+                    ConversationIsKey(isReceived = false)
+                } else {
+                    ConversationSent(
+                        text=text,
+                        position=position,
+                        date=date,
+                        status=status,
+                        isSelected = isSelected
+                    )
+                }
+            }
             ConversationMessageTypes.MESSAGE_TYPE_DRAFT -> TODO()
             ConversationMessageTypes.MESSAGE_TYPE_QUEUED -> TODO()
         }

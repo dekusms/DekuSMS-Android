@@ -168,7 +168,8 @@ fun ThreadConversationLayout(
                             id = message.thread_id,
                             firstName = firstName,
                             lastName = lastName,
-                            content = message.snippet,
+                            content = if(message.snippet.isNullOrBlank()) "<b>Secure Content</b>"
+                                else message.snippet,
                             date =
                             if(!message.date.isNullOrBlank())
                                 Helpers.formatDate(context, message.date.toLong())
