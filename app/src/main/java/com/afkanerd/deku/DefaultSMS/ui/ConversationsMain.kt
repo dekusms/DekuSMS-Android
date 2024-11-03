@@ -533,9 +533,6 @@ fun Conversations(
         else selectedItems.clear()
     }
 
-    LaunchedEffect(items){
-        listState.animateScrollToItem(0)
-    }
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -615,6 +612,9 @@ fun Conversations(
         }
     ) { innerPadding ->
 
+        LaunchedEffect(items){
+            listState.animateScrollToItem(0)
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxHeight()
@@ -662,13 +662,13 @@ fun Conversations(
                     isKey = conversation.isIs_key,
                 )
 
-                if(conversation.isIs_key &&
-                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-                    LaunchedEffect("check_encryption") {
-                        showSecureAgreeModal = E2EEHandler
-                            .hasPendingApproval(context, viewModel.address!!)
-                    }
-                }
+//                if(conversation.isIs_key &&
+//                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+//                    LaunchedEffect("check_encryption") {
+//                        showSecureAgreeModal = E2EEHandler
+//                            .hasPendingApproval(context, viewModel.address!!)
+//                    }
+//                }
             }
         }
 

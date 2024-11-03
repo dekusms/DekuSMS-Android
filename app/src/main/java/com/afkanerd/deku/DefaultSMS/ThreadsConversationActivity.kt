@@ -90,8 +90,6 @@ object HomeScreen
 object ConversationsScreen
 
 class ThreadsConversationActivity : AppCompatActivity() {
-    val viewModel: ThreadedConversationsViewModel by viewModels()
-    val conversationViewModel: ConversationsViewModel by viewModels()
 
     lateinit var navController: NavHostController
 
@@ -100,12 +98,15 @@ class ThreadsConversationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        checkLoadNatives()
 
         setContent {
             AppTheme {
                 navController = rememberNavController()
                 Surface(Modifier.safeDrawingPadding()) {
+                    val viewModel: ThreadedConversationsViewModel by viewModels()
+                    val conversationViewModel: ConversationsViewModel by viewModels()
+                    checkLoadNatives(viewModel)
+
                     NavHost(
                         modifier = Modifier,
                         navController = navController,
@@ -131,7 +132,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkLoadNatives() {
+    private fun checkLoadNatives(viewModel: ThreadedConversationsViewModel) {
         if(PreferenceManager.getDefaultSharedPreferences(applicationContext)
                 .getBoolean(getString(R.string.configs_load_natives), false)){
             CoroutineScope(Dispatchers.Default).launch {

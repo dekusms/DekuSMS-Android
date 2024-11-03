@@ -25,9 +25,11 @@ class ConversationsViewModel : ViewModel() {
 
     private var liveData: LiveData<MutableList<Conversation>>? = null
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
-        if (liveData == null) {
-            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
-        }
+//        if (liveData == null) {
+//            println("Thread View model: $threadId")
+//            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
+//        }
+        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         return liveData!!
     }
 
