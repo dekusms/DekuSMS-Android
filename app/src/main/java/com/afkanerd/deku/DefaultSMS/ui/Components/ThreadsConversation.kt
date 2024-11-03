@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import java.nio.file.WatchEvent
 
 @Composable
 private fun ThreadConversationsAvatar(
@@ -64,6 +68,7 @@ private fun ThreadConversationsContents(
     content: String,
     date: String,
     isRead: Boolean = false,
+    unreadCount: Int = 1
 ) {
 
     var color = MaterialTheme.colorScheme.onBackground
@@ -93,12 +98,33 @@ private fun ThreadConversationsContents(
         }
 //        Spacer(modifier = Modifier.weight(1f))
         Column {
-            Text(
-                text = date,
-                color = color,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = weight
-            )
+            if(unreadCount > 0) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(top=16.dp)
+                        ) {
+                            Text(unreadCount.toString())
+                        }
+                    },
+                ) {
+                    Text(
+                        text = date,
+                        color = color,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = weight
+                    )
+                }
+            } else {
+                Text(
+                    text = date,
+                    color = color,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = weight
+                )
+            }
         }
     }
 }
@@ -113,14 +139,9 @@ fun ThreadConversationCard(
     date: String = "Tues",
     isRead: Boolean = false,
     isContact: Boolean = true,
-    onItemClick: ((String) -> Unit)? = null
+    unreadCount: Int = 0,
 ) {
     Row(Modifier
-        .clickable {
-            onItemClick?.let {
-                it(id)
-            }
-        }
         .fillMaxWidth()
         .padding(all = 8.dp)
     ) {
@@ -136,6 +157,8 @@ fun ThreadConversationCard(
             lastName=lastName,
             content=content,
             date=date,
-            isRead=isRead)
+            isRead=isRead,
+            unreadCount = unreadCount,
+        )
     }
 }
