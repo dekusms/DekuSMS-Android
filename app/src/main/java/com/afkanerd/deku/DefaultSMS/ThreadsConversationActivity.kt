@@ -113,15 +113,14 @@ class ThreadsConversationActivity : AppCompatActivity() {
                     ) {
                         composable<HomeScreen>{
                             ThreadConversationLayout(
-                                context=applicationContext,
                                 viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
-                                navController)
+                                navController
+                            )
                         }
 
                         composable<ConversationsScreen>{
                             Conversations(
-                                context = applicationContext,
                                 viewModel=conversationViewModel,
                                 navController=navController
                             )

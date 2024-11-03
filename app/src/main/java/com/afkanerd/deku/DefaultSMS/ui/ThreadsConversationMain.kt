@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,10 +59,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThreadConversationLayout(
-    context: Context? = null,
     viewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
-    navController: NavController) {
+    navController: NavController
+) {
+    val context = LocalContext.current
 
     val items: List<ThreadedConversations> by viewModel
         .getAllLiveData(context).observeAsState(emptyList())

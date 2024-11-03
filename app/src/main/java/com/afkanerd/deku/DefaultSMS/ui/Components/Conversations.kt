@@ -104,7 +104,7 @@ private fun ConversationReceived(
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
     date: String = "yesterday",
     showDate: Boolean = true,
-    isSelected: Boolean = true,
+    isSelected: Boolean = false,
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp)
@@ -136,7 +136,7 @@ private fun ConversationReceived(
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = if(isSelected) MaterialTheme.colorScheme.tertiaryContainer
-                    else MaterialTheme.colorScheme.outline
+                    else MaterialTheme.colorScheme.outlineVariant
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
@@ -145,7 +145,7 @@ private fun ConversationReceived(
                     text=text,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
-                    color = colorResource(R.color.md_theme_onPrimary)
+                    color = colorResource(R.color.md_theme_onBackground)
                 )
             }
 
@@ -167,7 +167,7 @@ private fun ConversationSent(
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     date: String = "yesterday",
-    isSelected: Boolean = true,
+    isSelected: Boolean = false,
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
@@ -199,7 +199,7 @@ private fun ConversationSent(
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = if(isSelected) MaterialTheme.colorScheme.tertiaryContainer
-                    else MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
@@ -210,7 +210,7 @@ private fun ConversationSent(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
                     color = if(isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onPrimary
                 )
             }
             Text(

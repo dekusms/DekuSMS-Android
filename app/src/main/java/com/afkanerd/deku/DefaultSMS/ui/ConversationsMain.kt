@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -40,6 +42,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +58,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -66,14 +70,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -90,7 +102,6 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
-import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
@@ -152,11 +163,11 @@ private fun sendSMS(
 @Preview(showBackground = true)
 @Composable
 fun ChatCompose(
-    context: Context? = null,
     address: String = "",
     threadId: String = "",
     viewModel: ConversationsViewModel = ConversationsViewModel()
 ) {
+    val context = LocalContext.current
     val interactionsSource = remember { MutableInteractionSource() }
     var userInput by remember { mutableStateOf("") }
     Row(modifier = Modifier
@@ -174,9 +185,11 @@ fun ChatCompose(
                 },
                 maxLines = 7,
                 singleLine = false,
+                textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
-                    .background(MaterialTheme.colorScheme.outline)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
                     .fillMaxWidth()
             ) {
                 TextFieldDefaults.DecorationBox(
@@ -187,7 +200,10 @@ fun ChatCompose(
                     enabled = true,
                     interactionSource = interactionsSource,
                     placeholder = {
-                        Text(text= stringResource(R.string.text_message))
+                        Text(
+                            text= stringResource(R.string.text_message),
+                            color = MaterialTheme.colorScheme.outline
+                        )
                     },
                     shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -219,9 +235,13 @@ fun ChatCompose(
             },
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outline)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Icon(Icons.AutoMirrored.Default.Send, stringResource(R.string.send_message))
+                Icon(
+                    Icons.AutoMirrored.Default.Send,
+                    stringResource(R.string.send_message),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
     }
@@ -284,11 +304,12 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
 @Preview
 @Composable
 private fun ConversationCrudBottomBar(
-    context: Context?=null,
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     items: List<Conversation> = emptyList<Conversation>(),
     onCompleted: (() -> Unit)? = null
 ) {
+
+    val context = LocalContext.current
     BottomAppBar (
         actions = {
             if(items.size < 2) {
@@ -355,19 +376,21 @@ private fun call(context: Context, address: String) {
     context.startActivity(callIntent);
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Preview(showBackground = true)
 @Composable
-private fun SecureRequestModal(
-    context: Context? = null,
+private fun SecureRequestAcceptModal(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
+    isSecureRequest: Boolean = true,
     dismissCallback: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
+    val state = rememberModalBottomSheetState()
+
+    val url = stringResource(
+        R.string.conversations_secure_conversation_request_information_deku_encryption_link)
+    val intent = remember{ Intent(Intent.ACTION_VIEW, Uri.parse(url)) }
     val scope = rememberCoroutineScope()
-    val state = rememberStandardBottomSheetState(
-        initialValue = SheetValue.Expanded,
-        skipHiddenState = false,
-    )
 
     ModalBottomSheet(
         onDismissRequest = { dismissCallback?.let { it() } },
@@ -380,32 +403,84 @@ private fun SecureRequestModal(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = stringResource(
-                    R.string
-                        .conversation_secure_popup_request_menu_description),
-                fontSize = 16.sp
-            )
-            Text(
-                text = stringResource(
-                    R.string
-                        .conversation_secure_popup_request_menu_description_subtext),
-                modifier = Modifier.padding(16.dp)
-            )
-
-            Button(onClick = {
-                E2EEHandler.clear(context!!, viewModel.address!!)
-                val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
-                val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                    E2EEHandler.MagicNumber.REQUEST)
-                sendDataMessage(
-                    context=context,
-                    viewModel=viewModel,
-                    data=txPublicKey
+            if(isSecureRequest) {
+                Text(
+                    text = stringResource(
+                        R.string
+                            .conversation_secure_popup_request_menu_description),
+                    fontSize = 16.sp
                 )
-                scope.launch { state.hide() }
-            }) {
-                Text(stringResource(R.string.request))
+                Text(
+                    text = stringResource(
+                        R.string
+                            .conversation_secure_popup_request_menu_description_subtext),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(16.dp)
+                )
+
+                Button(onClick = {
+                    E2EEHandler.clear(context, viewModel.address!!)
+                    val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
+                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                        E2EEHandler.MagicNumber.REQUEST)
+                    sendDataMessage(
+                        context=context,
+                        viewModel=viewModel,
+                        data=txPublicKey
+                    )
+                    scope.launch { state.hide() }.invokeOnCompletion {
+                        if(!state.isVisible) {
+                            dismissCallback?.let { it() }
+                        }
+                    }
+                }, modifier = Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.request))
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.conversations_secure_conversation_request),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                Text(
+                    text = stringResource(R.string
+                        .conversations_secure_conversation_request_information),
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                Button(onClick = {
+                    val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
+                    val isSelf = E2EEHandler.isSelf(context, viewModel.address!!)
+                    if(!isSelf) {
+                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                            E2EEHandler.MagicNumber.ACCEPT)
+
+                        // TODO: put a pending intent here that makes save on message delivered
+                        sendDataMessage(context, txPublicKey, viewModel)
+                    } else {
+                        E2EEHandler.secureStorePeerPublicKey(
+                            context,
+                            viewModel.address!!,
+                            publicKey, true)
+                    }
+                    scope.launch { state.hide() }.invokeOnCompletion {
+                        if(!state.isVisible) {
+                            dismissCallback?.let { it() }
+                        }
+                    }
+                }) {
+                    Text(stringResource(R.string.conversations_secure_conversation_request_agree))
+                }
+
+                TextButton(onClick={
+                    context.startActivity(intent)
+                }) {
+                    Text(stringResource(R.string
+                        .conversations_secure_conversation_request_information_deku_encryption_read_more))
+                }
             }
         }
     }
@@ -415,13 +490,31 @@ private fun SecureRequestModal(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Conversations(
-    context: Context? = null,
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     navController: NavController,
-    showIsSecured: Boolean? = false
 ) {
+    val context = LocalContext.current
+    var isSecured by remember {
+        mutableStateOf(
+            E2EEHandler.isSecured(context, viewModel.address!!)
+        )
+    }
+
+    var showSecureRequestModal by rememberSaveable { mutableStateOf(false) }
+    var showSecureAgreeModal by rememberSaveable {
+        mutableStateOf(
+            E2EEHandler.hasPendingApproval(context, viewModel.address!!)
+        )
+    }
+
     var getContactName by remember { mutableStateOf("")}
     var selectedItems = remember { mutableStateListOf<Conversation>() }
+
+    val items: List<Conversation> by viewModel
+        .getLiveData(context).observeAsState(emptyList())
+
+    val listState = rememberLazyListState()
+    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect("contact_name"){
         val defaultRegion = Helpers.getUserCountry( context )
@@ -440,17 +533,9 @@ fun Conversations(
         else selectedItems.clear()
     }
 
-    val items: List<Conversation> by viewModel
-        .getLiveData(context!!).observeAsState(emptyList())
-
-    val listState = rememberLazyListState()
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-
     LaunchedEffect(items){
         listState.animateScrollToItem(0)
     }
-
-    var showSecureRequestModal by remember { mutableStateOf(false) }
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -463,14 +548,7 @@ fun Conversations(
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
 
-                        if(showIsSecured != null && showIsSecured) {
-                            Text(
-                                text= stringResource(R.string.secured),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines =1,
-                                overflow = TextOverflow.Ellipsis)
-                        }
-                        else if(E2EEHandler.isSecured(context, viewModel.address!!)) {
+                        if(isSecured) {
                             Text(
                                 text= stringResource(R.string.secured),
                                 style = MaterialTheme.typography.labelLarge,
@@ -524,13 +602,11 @@ fun Conversations(
         },
         bottomBar = {
             if(selectedItems.isEmpty()) ChatCompose(
-                context,
                 viewModel.address!!,
                 viewModel.threadId!!,
                 viewModel
             )
             else ConversationCrudBottomBar(
-                context,
                 viewModel,
                 selectedItems
             ) {
@@ -538,15 +614,6 @@ fun Conversations(
             }
         }
     ) { innerPadding ->
-
-        if(showSecureRequestModal) {
-            SecureRequestModal(
-                context=context,
-                viewModel=viewModel,
-            ){
-                showSecureRequestModal = false
-            }
-        }
 
         LazyColumn(
             modifier = Modifier
@@ -594,6 +661,33 @@ fun Conversations(
                     isSelected = selectedItems.contains(conversation),
                     isKey = conversation.isIs_key,
                 )
+
+                if(conversation.isIs_key &&
+                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+                    LaunchedEffect("check_encryption") {
+                        showSecureAgreeModal = E2EEHandler
+                            .hasPendingApproval(context, viewModel.address!!)
+                    }
+                }
+            }
+        }
+
+        if(showSecureRequestModal) {
+            SecureRequestAcceptModal(
+                viewModel=viewModel,
+                isSecureRequest = true,
+            ){
+                showSecureRequestModal = false
+            }
+        }
+
+        else if(showSecureAgreeModal) {
+            SecureRequestAcceptModal(
+                viewModel=viewModel,
+                isSecureRequest = false,
+            ){
+                showSecureAgreeModal = false
+                isSecured = E2EEHandler.isSecured(context, viewModel.address!!)
             }
         }
     }
@@ -626,7 +720,7 @@ fun PreviewConversations() {
                 conversations.add(conversation)
                 isSend = !isSend
             }
-            Conversations(navController = rememberNavController(), showIsSecured = true)
+            Conversations(navController = rememberNavController())
         }
     }
 }
