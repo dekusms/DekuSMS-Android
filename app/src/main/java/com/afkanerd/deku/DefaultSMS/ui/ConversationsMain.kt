@@ -225,7 +225,7 @@ fun ChatCompose(
         ) {
             IconButton(onClick = {
                 sendSMS(
-                    context=context!!,
+                    context=context,
                     text=userInput,
                     threadId=threadId,
                     messageId = System.currentTimeMillis().toString(),
@@ -662,13 +662,13 @@ fun Conversations(
                     isKey = conversation.isIs_key,
                 )
 
-//                if(conversation.isIs_key &&
-//                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-//                    LaunchedEffect("check_encryption") {
-//                        showSecureAgreeModal = E2EEHandler
-//                            .hasPendingApproval(context, viewModel.address!!)
-//                    }
-//                }
+                if(conversation.isIs_key &&
+                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+                    LaunchedEffect("check_encryption") {
+                        showSecureAgreeModal = E2EEHandler
+                            .hasPendingApproval(context, viewModel.address!!)
+                    }
+                }
             }
         }
 

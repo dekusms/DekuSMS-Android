@@ -101,15 +101,15 @@ private fun ConversationIsKey(isReceived: Boolean = false) {
 @Composable
 private fun ConversationReceived(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     date: String = "yesterday",
     showDate: Boolean = true,
     isSelected: Boolean = false,
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
-    val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp)
-    val receivedMiddleShape = RoundedCornerShape(5.dp, 18.dp, 18.dp, 5.dp)
-    val receivedEndShape = RoundedCornerShape(5.dp, 18.dp, 18.dp, 18.dp)
+    val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 1.dp)
+    val receivedMiddleShape = RoundedCornerShape(1.dp, 18.dp, 18.dp, 1.dp)
+    val receivedEndShape = RoundedCornerShape(1.dp, 18.dp, 18.dp, 18.dp)
 
     val shape = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP ->
@@ -125,8 +125,8 @@ private fun ConversationReceived(
             Modifier.padding(end=32.dp, top=16.dp, bottom=16.dp)
         ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
             Modifier.padding(end=32.dp, top=16.dp)
-        ConversationPositionTypes.MIDDLE -> Modifier.padding(end=32.dp, top=4.dp)
-        ConversationPositionTypes.END -> Modifier.padding(end=32.dp, top=4.dp, bottom=16.dp)
+        ConversationPositionTypes.MIDDLE -> Modifier.padding(end=32.dp, top=1.dp)
+        ConversationPositionTypes.END -> Modifier.padding(end=32.dp, top=1.dp, bottom=16.dp)
     }
 
     Row(modifier = modifier
@@ -164,15 +164,16 @@ private fun ConversationReceived(
 @Composable
 private fun ConversationSent(
     text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     date: String = "yesterday",
     isSelected: Boolean = false,
+    showDate: Boolean = true,
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
-    val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp)
-    val sentMiddleShape = RoundedCornerShape(18.dp, 5.dp, 5.dp, 18.dp)
-    val sentEndShape = RoundedCornerShape(18.dp, 5.dp, 18.dp, 18.dp)
+    val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 1.dp, 18.dp)
+    val sentMiddleShape = RoundedCornerShape(18.dp, 1.dp, 1.dp, 18.dp)
+    val sentEndShape = RoundedCornerShape(18.dp, 1.dp, 18.dp, 18.dp)
 
     val shape = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP -> sentShape
@@ -186,8 +187,8 @@ private fun ConversationSent(
             Modifier.padding(start=32.dp, top=16.dp, bottom=16.dp)
         ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
             Modifier.padding(start=32.dp, top=16.dp)
-        ConversationPositionTypes.MIDDLE -> Modifier.padding(start=32.dp, top=4.dp)
-        ConversationPositionTypes.END -> Modifier.padding(start=32.dp, top=4.dp, bottom=16.dp)
+        ConversationPositionTypes.MIDDLE -> Modifier.padding(start=32.dp, top=1.dp)
+        ConversationPositionTypes.END -> Modifier.padding(start=32.dp, top=1.dp, bottom=16.dp)
     }
 
     Row(
@@ -213,21 +214,24 @@ private fun ConversationSent(
                     else MaterialTheme.colorScheme.onPrimary
                 )
             }
-            Text(
-                text= if(status == ConversationStatusTypes.STATUS_PENDING)
-                    stringResource(R.string.sms_status_sending)
-                else if(status == ConversationStatusTypes.STATUS_COMPLETE)
-                    "$date " + stringResource(R.string.sms_status_delivered)
-                else if(status == ConversationStatusTypes.STATUS_FAILED)
-                    stringResource(R.string.sms_status_failed)
-                else "$date " + stringResource(R.string.sms_status_sent),
-                style = MaterialTheme.typography.labelSmall,
-                color = if(status == ConversationStatusTypes.STATUS_FAILED)
-                    colorResource(R.color.md_theme_error)
-                else colorResource(R.color.md_theme_outlineVariant),
-                modifier = Modifier
-                    .align(Alignment.End)
-            )
+
+            if(showDate) {
+                Text(
+                    text= if(status == ConversationStatusTypes.STATUS_PENDING)
+                        stringResource(R.string.sms_status_sending)
+                    else if(status == ConversationStatusTypes.STATUS_COMPLETE)
+                        "$date " + stringResource(R.string.sms_status_delivered)
+                    else if(status == ConversationStatusTypes.STATUS_FAILED)
+                        stringResource(R.string.sms_status_failed)
+                    else "$date " + stringResource(R.string.sms_status_sent),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
+                        colorResource(R.color.md_theme_error)
+                    else colorResource(R.color.md_theme_outlineVariant),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                )
+            }
         }
 
         if(status == ConversationStatusTypes.STATUS_FAILED) {
@@ -295,7 +299,8 @@ fun ConversationsCard(
                         position=position,
                         date=date,
                         status=status,
-                        isSelected = isSelected
+                        isSelected = isSelected,
+                        showDate = showDate
                     )
                 }
             }
