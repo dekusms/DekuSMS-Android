@@ -171,9 +171,9 @@ private fun ConversationSent(
     showDate: Boolean = true,
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
-    val sentStartShape = RoundedCornerShape(18.dp, 18.dp, 1.dp, 18.dp)
-    val sentMiddleShape = RoundedCornerShape(18.dp, 1.dp, 1.dp, 18.dp)
-    val sentEndShape = RoundedCornerShape(18.dp, 1.dp, 18.dp, 18.dp)
+    val sentStartShape = RoundedCornerShape(28.dp, 28.dp, 1.dp, 28.dp)
+    val sentMiddleShape = RoundedCornerShape(28.dp, 1.dp, 1.dp, 28.dp)
+    val sentEndShape = RoundedCornerShape(28.dp, 1.dp, 28.dp, 28.dp)
 
     val shape = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP -> sentShape
@@ -253,7 +253,7 @@ fun ConversationsCard(
     timestamp: String = "Yesterday",
     date: String = "yesterday",
     type: Int = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
-    position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
+    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     showDate: Boolean = false,
     modifier: Modifier = Modifier,

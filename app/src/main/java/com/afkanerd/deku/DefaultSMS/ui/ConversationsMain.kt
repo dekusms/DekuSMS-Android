@@ -249,8 +249,9 @@ fun ChatCompose(
 
 private fun getContentType(index: Int, conversation: Conversation, conversations: List<Conversation>):
         ConversationPositionTypes {
-    if(conversations.size < 2)
+    if(conversations.size < 2) {
         return ConversationPositionTypes.NORMAL_TIMESTAMP
+    }
     if(index == 0) {
         if(Helpers.isSameHour(conversation.date!!.toLong(),
                 conversations[index + 1].date!!.toLong())) {
@@ -262,7 +263,8 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
             }
             return ConversationPositionTypes.NORMAL
         }
-    } else if(index == conversations.size - 1) {
+    }
+    else if(index == conversations.size - 1) {
         if(conversation.type == conversations[index - 1].type) {
             if(Helpers.isSameMinute(conversation.date!!.toLong(),
                     conversations[index - 1].date!!.toLong())) {
@@ -298,7 +300,7 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
             }
         }
     }
-    return ConversationPositionTypes.NORMAL_TIMESTAMP
+    return ConversationPositionTypes.NORMAL
 }
 
 @Preview
@@ -640,7 +642,8 @@ fun Conversations(
                     date =
                     if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
                     else "1730062120",
-                    showDate = index == 0,
+                    showDate = index == 0 ||
+                            conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX,
                     modifier =
                     if(conversation.isIs_key) Modifier
                     else Modifier
