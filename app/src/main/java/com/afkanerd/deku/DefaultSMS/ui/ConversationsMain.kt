@@ -628,6 +628,14 @@ fun Conversations(
                 items = items,
                 key = { index, conversation -> conversation.id }
             ) { index, conversation ->
+
+                var showDate by remember {
+                    mutableStateOf(
+                        index == 0 ||
+                                conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
+                    )
+                }
+
                 ConversationsCard(
                     text= if(conversation.text.isNullOrBlank()) ""
                     else conversation.text!!,
@@ -642,8 +650,7 @@ fun Conversations(
                     date =
                     if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
                     else "1730062120",
-                    showDate = index == 0 ||
-                            conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX,
+                    showDate = showDate,
                     modifier =
                     if(conversation.isIs_key) Modifier
                     else Modifier
@@ -658,6 +665,8 @@ fun Conversations(
                                         selectedItems.remove(conversation)
                                     else
                                         selectedItems.add(conversation)
+                                } else {
+                                    showDate = !showDate
                                 }
                             }
                         ),

@@ -1,51 +1,33 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.provider.Telephony
-import android.text.Layout
-import androidx.compose.foundation.CombinedClickableNode
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.getString
-import androidx.core.content.res.ResourcesCompat.getColor
-import androidx.graphics.shapes.CornerRounding
-import androidx.graphics.shapes.RoundedPolygon
-import androidx.graphics.shapes.toPath
-import androidx.room.util.TableInfo
-import com.google.android.material.card.MaterialCardView
 
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
@@ -230,6 +212,7 @@ private fun ConversationSent(
                     else colorResource(R.color.md_theme_outlineVariant),
                     modifier = Modifier
                         .align(Alignment.End)
+                        .padding(bottom=4.dp)
                 )
             }
         }
@@ -253,9 +236,9 @@ fun ConversationsCard(
     timestamp: String = "Yesterday",
     date: String = "yesterday",
     type: Int = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
-    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL,
+    showDate: Boolean = true,
+    position: ConversationPositionTypes = ConversationPositionTypes.NORMAL_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
-    showDate: Boolean = false,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     isKey: Boolean = false,
@@ -280,9 +263,9 @@ fun ConversationsCard(
                     ConversationIsKey(isReceived = true)
                 } else {
                     ConversationReceived(
-                        text=text,
-                        position=position,
-                        date=date,
+                        text =text,
+                        position =position,
+                        date =date,
                         showDate = showDate,
                         isSelected = isSelected
                     )
@@ -295,10 +278,10 @@ fun ConversationsCard(
                     ConversationIsKey(isReceived = false)
                 } else {
                     ConversationSent(
-                        text=text,
-                        position=position,
-                        date=date,
-                        status=status,
+                        text =text,
+                        position =position,
+                        date =date,
+                        status =status,
                         isSelected = isSelected,
                         showDate = showDate
                     )
