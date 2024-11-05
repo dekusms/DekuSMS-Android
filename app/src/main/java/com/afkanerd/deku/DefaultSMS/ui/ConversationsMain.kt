@@ -563,7 +563,7 @@ fun Conversations(
                         }
                         else selectedItems.clear()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Go back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
                     }
                 },
                 actions = {
