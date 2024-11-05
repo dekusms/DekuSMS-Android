@@ -297,5 +297,6 @@
     <string name="forward_message">forward message</string>
     <string name="request_secure_communication">Request secure communication</string>
     <string name="go_back">Go back</string>
+    <string name="type_names_or_phone_numbers">Type names or phone numbers</string>
 
 </resources>

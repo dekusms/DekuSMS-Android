@@ -48,6 +48,11 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -55,7 +60,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.example.compose.backgroundDark
 
 @Preview
 @Composable
@@ -89,27 +96,48 @@ fun ComposeNewMessage(
         .getContacts(context).observeAsState(emptyList())
 
     val listState = rememberLazyListState()
+    var userInput by remember { mutableStateOf("") }
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
+            Column {
+
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text= stringResource(R.string.compose_new_message_title),
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
+                        }
+                    },
+                )
+                TextField(
+                    value=userInput,
+                    onValueChange = { userInput = it},
+                    placeholder = {
+                        Text(stringResource(R.string.type_names_or_phone_numbers))
+                    },
+                    prefix = {
                         Text(
-                            text= stringResource(R.string.compose_new_message_title),
-                            maxLines =1,
-                            overflow = TextOverflow.Ellipsis)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
-                    }
-                },
-            )
+                            "${stringResource(R.string.compose_new_message_to)}:",
+                            modifier = Modifier.padding(end=16.dp)
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         },
     ) { innerPadding ->
         LazyColumn(
@@ -119,9 +147,10 @@ fun ComposeNewMessage(
             state = listState,
         ){
             items(if(_items == null) items else _items) { contact ->
-                Row(Modifier
-                    .fillMaxWidth()
-                    .padding(all = 8.dp)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(all = 8.dp)
                 ) {
                     ContactAvatar(
                         id=contact.id.toString(),

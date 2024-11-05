@@ -51,6 +51,7 @@ import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
@@ -145,7 +146,9 @@ fun ThreadConversationLayout(
             },
             floatingActionButton = {
                 ExtendedFloatingActionButton(
-                    onClick = { TODO("Implement compose new message method") },
+                    onClick = {
+                        navController.navigate(ComposeNewMessageScreen)
+                    },
                     icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
                     text = { Text(text = "Compose") },
                     expanded = listState.isScrollingUp()

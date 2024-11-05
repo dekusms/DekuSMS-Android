@@ -27,7 +27,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;

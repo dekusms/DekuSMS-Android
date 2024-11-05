@@ -1,19 +1,18 @@
-package com.afkanerd.deku.DefaultSMS
+package com.afkanerd.deku.DefaultSMS.Deprecated
 
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.Toolbar
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsRecyclerAdapter
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
+import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.google.android.material.textfield.TextInputEditText
 import com.google.i18n.phonenumbers.NumberParseException

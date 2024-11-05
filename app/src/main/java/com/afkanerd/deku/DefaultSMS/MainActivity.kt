@@ -16,6 +16,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
+import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +29,8 @@ import kotlinx.serialization.Serializable
 object HomeScreen
 @Serializable
 object ConversationsScreen
+@Serializable
+object ComposeNewMessageScreen
 
 class ThreadsConversationActivity : AppCompatActivity() {
 
@@ -62,6 +66,12 @@ class ThreadsConversationActivity : AppCompatActivity() {
                         composable<ConversationsScreen>{
                             Conversations(
                                 viewModel=conversationViewModel,
+                                navController=navController
+                            )
+                        }
+
+                        composable<ComposeNewMessageScreen>{
+                            ComposeNewMessage(
                                 navController=navController
                             )
                         }
