@@ -55,6 +55,14 @@ public class NativeSMSDB {
                 null);
     }
 
+    public static Cursor countUnreadForThread(Context context, String threadId) {
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                null,
+                Telephony.Sms.THREAD_ID + "=? AND read=?",
+                new String[]{threadId, "0"},
+                null);
+    }
+
     public static Cursor fetchByAddress(Context context, String address) {
         return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
                 null,

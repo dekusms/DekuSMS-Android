@@ -614,9 +614,8 @@ fun Conversations(
         }
     ) { innerPadding ->
 
-        LaunchedEffect(items){
-            listState.animateScrollToItem(0)
-        }
+        LaunchedEffect(items){ listState.animateScrollToItem(0) }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxHeight()
@@ -628,7 +627,6 @@ fun Conversations(
                 items = items,
                 key = { index, conversation -> conversation.id }
             ) { index, conversation ->
-
                 var showDate by remember {
                     mutableStateOf(
                         index == 0 ||
@@ -681,6 +679,7 @@ fun Conversations(
                             .hasPendingApproval(context, viewModel.address!!)
                     }
                 }
+
             }
         }
 

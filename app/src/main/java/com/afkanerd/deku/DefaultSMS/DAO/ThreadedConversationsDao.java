@@ -56,9 +56,8 @@ public interface ThreadedConversationsDao {
             "is_archived = 0 AND read = 0")
     int getCountUnread();
 
-    @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
-            "Conversation.thread_id = ThreadedConversations.thread_id AND " +
-            "is_archived = 0 AND ThreadedConversations.is_read = 0 AND ThreadedConversations.thread_id IN(:ids)")
+    @Query("SELECT COUNT(Conversation.id) FROM Conversation WHERE " +
+            "Conversation.thread_id IN (:ids) AND read = 0")
     int getCountUnread(List<String> ids);
 
     @Query("SELECT COUNT(*) FROM ThreadedConversations WHERE is_secured = 1")
@@ -81,7 +80,7 @@ public interface ThreadedConversationsDao {
             "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
             "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
             "ThreadedConversations.isSelf, ThreadedConversations.subscription_id, " +
-            "ThreadedConversations.formatted_datetime " +
+            "ThreadedConversations.formatted_datetime, ThreadedConversations.unread_count " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -322,4 +321,14 @@ public interface ThreadedConversationsDao {
 
     @Update(entity = ThreadedConversations.class)
     void unarchive(List<Archive> archiveList);
+
+    @Transaction
+    default void updateAllRead(Context context, String threadId, Boolean isRead) {
+        ThreadedConversations threadedConversations =
+                Datastore.getDatastore(context).threadedConversationsDao().get(threadId);
+        threadedConversations.setIs_read(isRead);
+        Datastore.getDatastore(context).threadedConversationsDao()
+                .update(context, threadedConversations);
+        Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId);
+    }
 }

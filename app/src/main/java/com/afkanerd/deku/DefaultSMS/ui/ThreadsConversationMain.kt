@@ -33,8 +33,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -45,9 +48,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
@@ -73,6 +78,8 @@ fun ThreadConversationLayout(
     _items: List<ThreadedConversations>? = null
 ) {
     val context = LocalContext.current
+    
+    val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
     val items: List<ThreadedConversations> by viewModel
         .getAllLiveData(context).observeAsState(emptyList())
@@ -183,6 +190,7 @@ fun ThreadConversationLayout(
                             onClick = {
                                 conversationsViewModel.address = message.address
                                 conversationsViewModel.threadId = message.thread_id
+                                viewModel.updateRead(context, message.thread_id)
                                 navController.navigate(ConversationsScreen)
                             },
                             colors = CardDefaults.cardColors(
@@ -195,6 +203,7 @@ fun ThreadConversationLayout(
                                     threadId = message.thread_id,
                                     contactName =
                                     Contacts.retrieveContactName(context, message.address),
+                                    conversationsViewModel=conversationsViewModel,
                                 )
                             }
                             ThreadConversationCard(
@@ -210,7 +219,7 @@ fun ThreadConversationLayout(
                                 else "Tues",
                                 isRead = message.isIs_read,
                                 isContact = isContact,
-                                unreadCount = 0,
+                                unreadCount = message.unread_count,
                             )
                         }
                     }

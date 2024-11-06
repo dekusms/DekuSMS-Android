@@ -323,7 +323,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.mute(threadIds);
-                            threadedConversationsViewModel.getCount();
+                            threadedConversationsViewModel.getCount(requireContext());
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -345,7 +345,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unMute(threadIds);
-                            threadedConversationsViewModel.getCount();
+                            threadedConversationsViewModel.getCount(requireContext());
                         }
                     });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
@@ -774,7 +774,7 @@ public class ThreadedConversationsFragment extends Fragment {
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                threadedConversationsViewModel.getCount();
+                threadedConversationsViewModel.getCount(requireContext());
             }
         });
 

@@ -84,8 +84,6 @@ class DefaultCheckActivity : AppCompatActivity() {
     }
 
     private fun startUserActivities() {
-//        val intent = Intent(this, ThreadedConversationsActivity::class.java)
-
         val intent = Intent(this, ThreadsConversationActivity::class.java)
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
@@ -93,29 +91,4 @@ class DefaultCheckActivity : AppCompatActivity() {
         finish()
     }
 
-    public override fun onActivityResult(reqCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(reqCode, resultCode, data)
-
-        if (reqCode == 0) {
-            if (resultCode == RESULT_OK) {
-                val sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                sharedPreferences.edit()
-                    .putBoolean(getString(R.string.configs_load_natives), true)
-                    .apply()
-                startUserActivities()
-            }
-        }
-    }
-
-    fun checkPermissionToReadContacts(): Boolean {
-        val check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-
-        return (check == PackageManager.PERMISSION_GRANTED)
-    }
-
-    companion object {
-        const val READ_SMS_PERMISSION_REQUEST_CODE: Int = 1
-        const val READ_CONTACTS_PERMISSION_REQUEST_CODE: Int = 2
-    }
 }

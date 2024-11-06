@@ -18,7 +18,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
     : Worker(context, workerParams) {
     override fun doWork(): Result {
         val gatewayServerId = inputData.getLong(GATEWAY_SERVER_ID, -1)
-        val conversationId = inputData.getString(CONVERSATION_ID)
+        val conversationId = inputData.getString(CONVERSATION_ID)!!
 
         val datastore = Datastore.getDatastore(applicationContext)
         val gatewayServer = datastore.gatewayServerDAO()[gatewayServerId.toString()]

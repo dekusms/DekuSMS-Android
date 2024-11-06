@@ -29,7 +29,7 @@ class ConversationsViewModel : ViewModel() {
 //            println("Thread View model: $threadId")
 //            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
 //        }
-        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
+        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId!!)
         return liveData!!
     }
 
@@ -50,15 +50,20 @@ class ConversationsViewModel : ViewModel() {
         NativeSMSDB.deleteMultipleMessages(context, ids)
     }
 
+    fun getUnreadCount(context: Context, threadId: String) : Int {
+        return Datastore.getDatastore(context).conversationDao().getUnreadCount(threadId)
+    }
+
+
     fun fetchDraft(context: Context): Conversation? {
         return Datastore.getDatastore(context).conversationDao().fetchTypedConversation(
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId!!
         )
     }
 
     fun clearDraft(context: Context) {
         Datastore.getDatastore(context).conversationDao()
-            .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId)
+            .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId!!)
         SMSDatabaseWrapper.deleteDraft(context, threadId)
     }
 

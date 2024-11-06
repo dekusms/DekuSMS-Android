@@ -1,86 +1,83 @@
-package com.afkanerd.deku.DefaultSMS.DAO;
+package com.afkanerd.deku.DefaultSMS.DAO
 
-import android.content.Context;
-
-import androidx.lifecycle.LiveData;
-import androidx.paging.PagingSource;
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-import androidx.room.Transaction;
-import androidx.room.Update;
-
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.Datastore;
-
-import java.util.List;
+import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 
 @Dao
-public interface ConversationDao {
+interface ConversationDao {
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
+    fun get(thread_id: String): PagingSource<Int, Conversation>
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
-    PagingSource<Integer, Conversation> get(String thread_id);
+    fun getLiveData(thread_id: String): LiveData<MutableList<Conversation>>
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
-    LiveData<List<Conversation>> getLiveData(String thread_id);
-
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
-    List<Conversation> getDefault(String thread_id);
+    fun getDefault(thread_id: String): MutableList<Conversation?>?
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
-    List<Conversation> getAll(String thread_id);
+    fun getAll(thread_id: String): MutableList<Conversation?>?
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:threadId ORDER BY date DESC LIMIT 1")
-    Conversation fetchLatestForThread(String threadId);
+    fun fetchLatestForThread(threadId: String): Conversation?
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
-    List<Conversation> getComplete();
+    fun getComplete(): MutableList<Conversation>
 
     @Query("SELECT * FROM Conversation WHERE type = :type AND thread_id = :threadId ORDER BY date DESC")
-    Conversation fetchTypedConversation(int type, String threadId);
+    fun fetchTypedConversation(type: Int, threadId: String): Conversation?
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
-    Conversation getMessage(String message_id);
+    fun getMessage(message_id: String): Conversation
+
+    @Query("SELECT * FROM Conversation WHERE thread_id = :threadId AND read = 0")
+    fun getUnreadCount(threadId: String): Int
 
     @Insert
-    long _insert(Conversation conversation);
+    fun _insert(conversation: Conversation): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    List<Long> insertAll(List<Conversation> conversationList);
+    fun insertAll(conversationList: MutableList<Conversation>): MutableList<Long>
 
     @Update
-    int _update(Conversation conversation);
+    fun _update(conversation: Conversation): Int
 
     @Update
-    int update(List<Conversation> conversations);
+    fun update(conversations: MutableList<Conversation>): Int
 
     @Query("UPDATE Conversation SET read = :isRead WHERE thread_id = :threadId AND read = 0")
-    int updateRead(boolean isRead, String threadId);
+    fun updateRead(isRead: Boolean, threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
-    int delete(String threadId);
+    fun delete(threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id IN (:threadIds)")
-    void deleteAll(List<String> threadIds);
+    fun deleteAll(threadIds: MutableList<String>)
 
     @Query("DELETE FROM Conversation WHERE type = :type AND thread_id = :thread_id")
-    int _deleteAllType(int type, String thread_id);
+    fun _deleteAllType(type: Int, thread_id: String): Int
 
     @Transaction
-    default void deleteAllType(Context context, int type, String thread_id) {
-        _deleteAllType(type, thread_id);
-        Conversation conversation = fetchLatestForThread(thread_id);
-        if(conversation != null)
-            Datastore.getDatastore(context)
-                    .threadedConversationsDao()
-                    .insertThreadFromConversation(context, conversation);
+    fun deleteAllType(context: Context, type: Int, thread_id: String) {
+        _deleteAllType(type, thread_id)
+        val conversation = fetchLatestForThread(thread_id)
+        if (conversation != null) Datastore.getDatastore(context)
+            .threadedConversationsDao()
+            .insertThreadFromConversation(context, conversation)
     }
 
     @Delete
-    int delete(Conversation conversation);
+    fun delete(conversation: Conversation): Int
 
     @Delete
-    int delete(List<Conversation> conversation);
+    fun delete(conversation: List<Conversation>): Int
 }

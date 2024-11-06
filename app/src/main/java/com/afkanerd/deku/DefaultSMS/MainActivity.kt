@@ -36,7 +36,6 @@ class ThreadsConversationActivity : AppCompatActivity() {
 
     lateinit var navController: NavHostController
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -83,13 +82,14 @@ class ThreadsConversationActivity : AppCompatActivity() {
     }
 
     private fun checkLoadNatives(viewModel: ThreadedConversationsViewModel) {
-        if(PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                .getBoolean(getString(R.string.configs_load_natives), false)){
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), false)){
             CoroutineScope(Dispatchers.Default).launch {
                 viewModel.reset(applicationContext)
-                PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
-                    .putBoolean(getString(R.string.configs_load_natives), true).apply()
             }
+            sharedPreferences.edit()
+                .putBoolean(getString(R.string.configs_load_natives), false)
+                .apply()
         }
 
     }

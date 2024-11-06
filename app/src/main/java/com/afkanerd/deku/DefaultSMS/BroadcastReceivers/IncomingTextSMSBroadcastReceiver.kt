@@ -71,7 +71,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         } else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
             executorService.execute(object : Runnable {
                 override fun run() {
-                    val id = intent.getStringExtra(NativeSMSDB.ID)
+                    val id = intent.getStringExtra(NativeSMSDB.ID)!!
 
                     val conversation = Datastore.getDatastore(context).conversationDao()
                             .getMessage(id)
@@ -103,7 +103,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {
             executorService.execute(Runnable {
-                val id = intent.getStringExtra(NativeSMSDB.ID)
+                val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
                 if (resultCode == Activity.RESULT_OK) {
@@ -120,7 +120,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT) {
             executorService.execute {
-                val id = intent.getStringExtra(NativeSMSDB.ID)
+                val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
                 if (resultCode == Activity.RESULT_OK) {
@@ -136,7 +136,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
             executorService.execute {
-                val id = intent.getStringExtra(NativeSMSDB.ID)
+                val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
                 if (resultCode == Activity.RESULT_OK) {
