@@ -1,16 +1,32 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.ListItem
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
@@ -28,9 +44,13 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,10 +60,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,8 +90,33 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@Preview
+@Composable
+fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
+    val color = when(dismissState?.dismissDirection) {
+        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.primary
+        SwipeToDismissBoxValue.Settled -> Color.Transparent
+        else -> Color.Transparent
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color)
+            .padding(12.dp, 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End
+    ) {
+        Icon(
+            Icons.Default.Archive,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            contentDescription = stringResource(R.string.messages_threads_menu_archive)
+        )
+    }
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun ThreadConversationLayout(
     viewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
@@ -77,8 +124,8 @@ fun ThreadConversationLayout(
     navController: NavController,
     _items: List<ThreadedConversations>? = null
 ) {
+
     val context = LocalContext.current
-    
     val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
     val items: List<ThreadedConversations> by viewModel
@@ -183,17 +230,26 @@ fun ThreadConversationLayout(
                             }
                         }
 
-                        Card(
-                            modifier = Modifier.padding(8.dp),
-                            onClick = {
-                                conversationsViewModel.address = message.address
-                                conversationsViewModel.threadId = message.thread_id
-                                viewModel.updateRead(context, message.thread_id)
-                                navController.navigate(ConversationsScreen)
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                when(it) {
+                                    SwipeToDismissBoxValue.EndToStart -> {}
+                                    SwipeToDismissBoxValue.Settled ->
+                                        return@rememberSwipeToDismissBoxState false
+                                    else -> {}
+                                }
+                                Toast.makeText(context, "yep!", Toast.LENGTH_LONG)
+                                    .show()
+                                return@rememberSwipeToDismissBoxState true
                             },
-                            colors = CardDefaults.cardColors(
-                                Color.Transparent
-                            ),
+//                             positional threshold of 25%
+                            positionalThreshold = { it * .25f }
+                        )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = { SwipeToDeleteBackground(dismissState) }
                         ) {
                             ThreadConversationCard(
                                 id = message.thread_id,
@@ -209,6 +265,15 @@ fun ThreadConversationLayout(
                                 isRead = message.isIs_read,
                                 isContact = isContact,
                                 unreadCount = message.unread_count,
+                                modifier = Modifier.combinedClickable(
+                                    onClick = {
+                                        conversationsViewModel.address = message.address
+                                        conversationsViewModel.threadId = message.thread_id
+                                        viewModel.updateRead(context, message.thread_id)
+                                        navController.navigate(ConversationsScreen)
+                                    },
+                                    onLongClick = {}
+                                )
                             )
                         }
                     }

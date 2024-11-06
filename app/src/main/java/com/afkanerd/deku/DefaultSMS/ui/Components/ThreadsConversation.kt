@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,19 +14,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,10 +60,18 @@ private fun ThreadConversationsAvatar(
             Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
         }
         else {
-            Image(
-                painter = painterResource(R.drawable.baseline_account_circle_24),
-                contentDescription = "Avatar image",
-                modifier = Modifier.fillMaxSize()
+//            Image(
+//                painter = painterResource(R.drawable.baseline_account_circle_24ne_account_circle_24),
+//                contentDescription = "Avatar image",
+//                modifier = Modifier.fillMaxSize()
+//            )
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = "",
+                Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+                    .padding(10.dp)
             )
         }
     }
@@ -140,26 +156,66 @@ fun ThreadConversationCard(
     date: String = "Tues",
     isRead: Boolean = false,
     isContact: Boolean = true,
-    unreadCount: Int = 0,
+    unreadCount: Int = 1,
+    modifier: Modifier = Modifier
 ) {
-    Row(Modifier
-        .fillMaxWidth()
-        .padding(all = 8.dp)
-    ) {
-        ThreadConversationsAvatar(
-            id=id,
-            firstName=firstName,
-            lastName=lastName,
-            isContact=isContact
-        )
-        Spacer(Modifier.padding(start = 16.dp))
-        ThreadConversationsContents(
-            firstName=firstName,
-            lastName=lastName,
-            content=content,
-            date=date,
-            isRead=isRead,
-            unreadCount = unreadCount,
-        )
+    var color = MaterialTheme.colorScheme.onBackground
+    var weight = FontWeight.Bold
+
+    if(isRead) {
+        MaterialTheme.colorScheme.secondary
+        weight = FontWeight.Normal
     }
+    ListItem(
+        modifier = modifier,
+        headlineContent = {
+            Text(
+                text = "$firstName $lastName",
+                color = color,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = weight
+            )
+        },
+        supportingContent = {
+            Text(
+                text = content,
+                color = color,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = weight,
+                maxLines = if(isRead) 1 else 3
+            )
+        },
+        trailingContent = {
+            if(unreadCount > 0) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(bottom=16.dp)
+                        ) {
+                            Text(unreadCount.toString())
+                        }
+                    },
+                ) {
+                    Text(
+                        text = date,
+                        color = color,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = weight
+                    )
+                }
+            } else {
+                Text(
+                    text = date,
+                    color = color,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = weight
+                )
+            }
+        },
+        leadingContent = {
+            ThreadConversationsAvatar(id, firstName, lastName, isContact)
+        }
+    )
 }
