@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
@@ -36,13 +37,14 @@ class ThreadsConversationActivity : AppCompatActivity() {
 
     lateinit var navController: NavHostController
 
+    val viewModel: ThreadedConversationsViewModel by viewModels()
+    val conversationViewModel: ConversationsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val viewModel: ThreadedConversationsViewModel by viewModels()
-        val conversationViewModel: ConversationsViewModel by viewModels()
-        checkLoadNatives(viewModel)
+        checkLoadNatives()
 
         setContent {
             AppTheme {
@@ -81,7 +83,7 @@ class ThreadsConversationActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkLoadNatives(viewModel: ThreadedConversationsViewModel) {
+    private fun checkLoadNatives() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), false)){
             CoroutineScope(Dispatchers.Default).launch {
@@ -92,5 +94,20 @@ class ThreadsConversationActivity : AppCompatActivity() {
                 .apply()
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        CoroutineScope(Dispatchers.Default).launch {
+            val items = viewModel.getAll(applicationContext)
+            items.forEach {
+                viewModel.updateInformation(
+                    context=applicationContext,
+                    threadId = it.thread_id,
+                    contactName =
+                    Contacts.retrieveContactName(applicationContext, it.address),
+                )
+            }
+        }
     }
 }

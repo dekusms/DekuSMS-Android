@@ -32,6 +32,10 @@ class ThreadedConversationsViewModel : ViewModel() {
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null
 
+    fun getAll(context: Context): List<ThreadedConversations> {
+        return Datastore.getDatastore(context).threadedConversationsDao().all
+    }
+
     fun getAllLiveData(context: Context?): LiveData<MutableList<ThreadedConversations>> {
         if (threadsLiveData == null) {
             threadsLiveData = MutableLiveData<MutableList<ThreadedConversations>>()
@@ -279,24 +283,22 @@ class ThreadedConversationsViewModel : ViewModel() {
         threadId: String,
         contactName: String? = null,
         subscriptionId: Int? = null,
-        conversationsViewModel: ConversationsViewModel? = null,
+        conversationsViewModel: ConversationsViewModel? = null
     ){
-        contactName?.let {
-            val threadedConversations =
-                Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
-            if (threadedConversations != null) {
-                conversationsViewModel?.let {
-                    threadedConversations.unread_count = it.getUnreadCount(context, threadId)
+        CoroutineScope(Dispatchers.Default).launch {
+            contactName?.let {
+                val threadedConversations =
+                    Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
+                if (threadedConversations != null) {
+                    threadedConversations.contact_name = contactName
+
+                    subscriptionId?.let {
+                        threadedConversations.subscription_id = subscriptionId
+                    }
+
+                    Datastore.getDatastore(context).threadedConversationsDao()
+                        .update(context, threadedConversations)
                 }
-
-                threadedConversations.contact_name = contactName
-
-                subscriptionId?.let {
-                    threadedConversations.subscription_id = subscriptionId
-                }
-
-                Datastore.getDatastore(context).threadedConversationsDao()
-                    .update(context, threadedConversations)
             }
         }
     }

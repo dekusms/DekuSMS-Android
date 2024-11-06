@@ -33,7 +33,7 @@ class ConversationsViewModel : ViewModel() {
         return liveData!!
     }
 
-    fun insert(context: Context?, conversation: Conversation): Long {
+    fun insert(context: Context, conversation: Conversation): Long {
         Datastore.getDatastore(context).threadedConversationsDao()
             .insertThreadAndConversation(context, conversation)
         return 0

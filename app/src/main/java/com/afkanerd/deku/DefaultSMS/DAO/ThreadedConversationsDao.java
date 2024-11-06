@@ -237,6 +237,7 @@ public interface ThreadedConversationsDao {
         final boolean isSecured = conversation.isIs_encrypted();
 
         boolean insert = false;
+        int unreadCount = Datastore.getDatastore(context).conversationDao().getUnreadCount(threadId);
         ThreadedConversations threadedConversations = get(threadId);
         if(threadedConversations == null) {
             threadedConversations = new ThreadedConversations();
@@ -249,6 +250,7 @@ public interface ThreadedConversationsDao {
         threadedConversations.setIs_secured(isSecured);
         threadedConversations.setAddress(address);
         threadedConversations.setType(type);
+        threadedConversations.setUnread_count(unreadCount);
 
         long id = Datastore.getDatastore(context).conversationDao()._insert(conversation);
         if(insert)
@@ -324,11 +326,13 @@ public interface ThreadedConversationsDao {
 
     @Transaction
     default void updateAllRead(Context context, String threadId, Boolean isRead) {
+        Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId);
         ThreadedConversations threadedConversations =
                 Datastore.getDatastore(context).threadedConversationsDao().get(threadId);
         threadedConversations.setIs_read(isRead);
+        threadedConversations.setUnread_count(0);
+
         Datastore.getDatastore(context).threadedConversationsDao()
                 .update(context, threadedConversations);
-        Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId);
     }
 }

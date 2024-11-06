@@ -39,7 +39,8 @@ interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     fun getMessage(message_id: String): Conversation
 
-    @Query("SELECT * FROM Conversation WHERE thread_id = :threadId AND read = 0")
+    @Query("SELECT COUNT(thread_id) FROM Conversation " +
+            "WHERE thread_id = :threadId AND read = 0")
     fun getUnreadCount(threadId: String): Int
 
     @Insert

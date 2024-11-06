@@ -169,9 +169,7 @@ fun ThreadConversationLayout(
             )  {
                 items(
                     items = if(_items == null) items else _items,
-                    key = { threadConversation ->
-                        threadConversation.thread_id
-                    }
+                    key = { it.hashCode() }
                 ) { message ->
                     message.address?.let {
                         var firstName = message.address
@@ -197,15 +195,6 @@ fun ThreadConversationLayout(
                                 Color.Transparent
                             ),
                         ) {
-                            CoroutineScope(Dispatchers.Default).launch {
-                                viewModel.updateInformation(
-                                    context=context,
-                                    threadId = message.thread_id,
-                                    contactName =
-                                    Contacts.retrieveContactName(context, message.address),
-                                    conversationsViewModel=conversationsViewModel,
-                                )
-                            }
                             ThreadConversationCard(
                                 id = message.thread_id,
                                 firstName = firstName,
@@ -251,5 +240,7 @@ fun PreviewMessageCard() {
             ThreadConversationLayout(navController = rememberNavController(), _items = messages)
         }
     }
+
+
 }
 
