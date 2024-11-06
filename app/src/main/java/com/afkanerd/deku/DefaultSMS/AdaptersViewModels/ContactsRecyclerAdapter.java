@@ -82,7 +82,8 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
                     singleMessageThreadIntent.putExtra(Conversation.ADDRESS, contacts.number);
 
                     if(sharedConversation != null && !sharedConversation.isEmpty())
-                        singleMessageThreadIntent.putExtra(Conversation.SHARED_SMS_BODY, sharedConversation);
+                        singleMessageThreadIntent.putExtra(Conversation.SHARED_SMS_BODY,
+                                sharedConversation);
 
                     itemView.getContext().startActivity(singleMessageThreadIntent);
                 }

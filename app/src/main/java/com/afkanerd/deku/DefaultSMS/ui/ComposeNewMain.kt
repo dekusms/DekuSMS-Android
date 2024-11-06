@@ -48,6 +48,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -61,7 +63,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.util.TableInfo
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.example.compose.backgroundDark
 
 @Preview
@@ -87,6 +92,7 @@ fun ContactAvatar(
 @Composable
 fun ComposeNewMessage(
     navController: NavController,
+    conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
     _items: List<Contacts>? = null
 ) {
     val context = LocalContext.current
@@ -103,7 +109,6 @@ fun ComposeNewMessage(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             Column {
-
                 TopAppBar(
                     title = {
                         Column {
@@ -122,7 +127,11 @@ fun ComposeNewMessage(
                 )
                 TextField(
                     value=userInput,
-                    onValueChange = { userInput = it},
+                    onValueChange = {
+                        userInput = it
+                        if(!userInput.isBlank())
+                            viewModel.filterContact(context, userInput)
+                    },
                     placeholder = {
                         Text(stringResource(R.string.type_names_or_phone_numbers))
                     },
@@ -147,33 +156,43 @@ fun ComposeNewMessage(
             state = listState,
         ){
             items(if(_items == null) items else _items) { contact ->
-                Row(
+                Card(
+                    onClick = {
+                        conversationsViewModel.address = contact.number
+                        conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
+                            conversationsViewModel.address!!).thread_id
+                        conversationsViewModel.address = contact.number
+                        navController.navigate(ConversationsScreen)
+                    },
                     Modifier
                         .fillMaxWidth()
-                        .padding(all = 8.dp)
+                        .padding(8.dp),
+                    colors = CardDefaults.cardColors(Color.Transparent),
                 ) {
-                    ContactAvatar(
-                        id=contact.id.toString(),
-                        name=contact.contactName,
-                        phoneNumber = contact.number,
-                    )
-                    Spacer(Modifier.padding(start = 16.dp))
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        ContactAvatar(
+                            id=contact.id.toString(),
+                            name=contact.contactName,
+                            phoneNumber = contact.number,
+                        )
+                        Spacer(Modifier.padding(start = 16.dp))
 
-                    Row {
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                text = contact.contactName,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 16.sp
-                            )
+                        Row {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = contact.contactName,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 16.sp
+                                )
 
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = contact.number,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = contact.number,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
                         }
                     }
                 }
