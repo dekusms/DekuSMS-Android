@@ -54,6 +54,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
@@ -188,11 +189,20 @@ fun ThreadConversationLayout(
                                 Color.Transparent
                             ),
                         ) {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                viewModel.updateInformation(
+                                    context=context,
+                                    threadId = message.thread_id,
+                                    contactName =
+                                    Contacts.retrieveContactName(context, message.address),
+                                )
+                            }
                             ThreadConversationCard(
                                 id = message.thread_id,
                                 firstName = firstName,
                                 lastName = lastName,
-                                content = if(message.snippet.isNullOrBlank()) "<b>Secure Content</b>"
+                                content = if(message.snippet.isNullOrBlank())
+                                    stringResource(R.string.conversation_threads_secured_content)
                                 else message.snippet,
                                 date =
                                 if(!message.date.isNullOrBlank())

@@ -450,86 +450,86 @@ public class ThreadedConversationsFragment extends Fragment {
         });
 
         switch(Objects.requireNonNull(messageType)) {
-            case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
-                try {
-                    threadedConversationsViewModel.getEncrypted(requireContext())
-                            .observe(getViewLifecycleOwner(),
-                            new Observer<PagingData<ThreadedConversations>>() {
-                                @Override
-                                public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                    threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                    view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                                }
-                            });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case UNREAD_MESSAGE_TYPES:
-                threadedConversationsViewModel.getUnread(requireContext())
-                        .observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
-                break;
-            case ARCHIVED_MESSAGE_TYPES:
-                threadedConversationsViewModel.getArchived(requireContext())
-                        .observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
-                break;
-            case DRAFTS_MESSAGE_TYPES:
-                threadedConversationsViewModel.getDrafts(requireContext())
-                        .observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
-                break;
-            case BLOCKED_MESSAGE_TYPES:
-                threadedConversationsViewModel.getBlocked(requireContext())
-                        .observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
-                break;
-            case MUTED_MESSAGE_TYPE:
-                threadedConversationsViewModel.getMuted(requireContext())
-                        .observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
-                break;
-            case ALL_MESSAGES_THREAD_FRAGMENT:
-            default:
-                threadedConversationsViewModel.get(requireContext()).observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
+//            case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
+//                try {
+//                    threadedConversationsViewModel.getEncrypted(requireContext())
+//                            .observe(getViewLifecycleOwner(),
+//                            new Observer<PagingData<ThreadedConversations>>() {
+//                                @Override
+//                                public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                    threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                    view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                                }
+//                            });
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                break;
+//            case UNREAD_MESSAGE_TYPES:
+//                threadedConversationsViewModel.getUnread(requireContext())
+//                        .observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
+//                break;
+//            case ARCHIVED_MESSAGE_TYPES:
+//                threadedConversationsViewModel.getArchived(requireContext())
+//                        .observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
+//                break;
+//            case DRAFTS_MESSAGE_TYPES:
+//                threadedConversationsViewModel.getDrafts(requireContext())
+//                        .observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
+//                break;
+//            case BLOCKED_MESSAGE_TYPES:
+//                threadedConversationsViewModel.getBlocked(requireContext())
+//                        .observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
+//                break;
+//            case MUTED_MESSAGE_TYPE:
+//                threadedConversationsViewModel.getMuted(requireContext())
+//                        .observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
+//                break;
+//            case ALL_MESSAGES_THREAD_FRAGMENT:
+//            default:
+//                threadedConversationsViewModel.get(requireContext()).observe(getViewLifecycleOwner(),
+//                        new Observer<PagingData<ThreadedConversations>>() {
+//                            @Override
+//                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+//                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+//                            }
+//                        });
         }
         swipeActions();
     }

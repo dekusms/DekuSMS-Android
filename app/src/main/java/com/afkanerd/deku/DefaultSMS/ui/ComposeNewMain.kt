@@ -121,7 +121,8 @@ fun ComposeNewMessage(
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                                stringResource(R.string.go_back))
                         }
                     },
                 )

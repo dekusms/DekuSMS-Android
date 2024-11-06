@@ -43,22 +43,6 @@ class ConversationsViewModel : ViewModel() {
         Datastore.getDatastore(context).conversationDao()._update(conversation)
     }
 
-    fun updateInformation(
-        context: Context,
-        contactName: String,
-        subscriptionId: Int
-    ) {
-        Datastore.getDatastore(context).conversationDao().updateRead(true, threadId)
-        val threadedConversations =
-            Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
-        if (threadedConversations != null) {
-            threadedConversations.contact_name = contactName
-            threadedConversations.subscription_id = subscriptionId
-            Datastore.getDatastore(context).threadedConversationsDao()
-                .update(context, threadedConversations)
-        }
-    }
-
     fun deleteItems(context: Context, conversations: List<Conversation>) {
         Datastore.getDatastore(context).conversationDao().delete(conversations)
         val ids = arrayOfNulls<String>(conversations.size)
