@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -84,6 +85,7 @@ import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
@@ -115,6 +117,40 @@ fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
     }
 }
 
+fun processIntents(context: Context, intent: Intent): Pair<String?, String?>?{
+    val defaultRegion = Helpers.getUserCountry(context)
+    if(intent.action != null &&
+        ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
+        val sendToString = intent.dataString
+        if (sendToString != null &&
+            (sendToString.contains("smsto:") || sendToString.contains("sms:"))
+        ) {
+            val address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion)
+            val threadId =
+                ThreadedConversationsHandler.get(context, address)
+                    .thread_id
+
+            return Pair(address, threadId)
+        }
+    }
+    return null
+}
+
+fun navigateToConversation(
+    context: Context,
+    viewModel: ThreadedConversationsViewModel,
+    conversationsViewModel: ConversationsViewModel,
+    address: String,
+    threadId: String,
+    navController: NavController
+) {
+    conversationsViewModel.address = address
+    conversationsViewModel.threadId = threadId
+    viewModel.updateRead(context, threadId)
+    navController.navigate(ConversationsScreen)
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class
 )
@@ -125,8 +161,25 @@ fun ThreadConversationLayout(
     navController: NavController,
     _items: List<ThreadedConversations>? = null
 ) {
-
     val context = LocalContext.current
+    viewModel.intent?.let { intent ->
+        processIntents(context, intent)?.let {
+            viewModel.intent = null
+            it.first?.let{ address ->
+                it.second?.let { threadId ->
+                    navigateToConversation(
+                        context,
+                        viewModel,
+                        conversationsViewModel,
+                        address,
+                        threadId,
+                        navController
+                    )
+                }
+            }
+        }
+    }
+
     val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
     val items: List<ThreadedConversations> by viewModel
@@ -137,6 +190,20 @@ fun ThreadConversationLayout(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect("LOAD_CONTACTS") {
+        CoroutineScope(Dispatchers.Default).launch {
+            val items = viewModel.getAll(context)
+            items.forEach {
+                viewModel.updateInformation(
+                    context=context,
+                    threadId = it.thread_id,
+                    contactName =
+                    Contacts.retrieveContactName(context, it.address),
+                )
+            }
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -269,10 +336,14 @@ fun ThreadConversationLayout(
                                 unreadCount = message.unread_count,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
-                                        conversationsViewModel.address = message.address
-                                        conversationsViewModel.threadId = message.thread_id
-                                        viewModel.updateRead(context, message.thread_id)
-                                        navController.navigate(ConversationsScreen)
+                                        navigateToConversation(
+                                            context,
+                                            viewModel,
+                                            conversationsViewModel,
+                                            message.address,
+                                            message.thread_id,
+                                            navController
+                                        )
                                     },
                                     onLongClick = {}
                                 )

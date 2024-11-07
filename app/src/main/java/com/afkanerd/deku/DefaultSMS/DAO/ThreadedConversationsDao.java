@@ -330,10 +330,12 @@ public interface ThreadedConversationsDao {
         Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId);
         ThreadedConversations threadedConversations =
                 Datastore.getDatastore(context).threadedConversationsDao().get(threadId);
-        threadedConversations.setIs_read(isRead);
-        threadedConversations.setUnread_count(0);
+        if(threadedConversations != null) {
+            threadedConversations.setIs_read(isRead);
+            threadedConversations.setUnread_count(0);
 
-        Datastore.getDatastore(context).threadedConversationsDao()
-                .update(context, threadedConversations);
+            Datastore.getDatastore(context).threadedConversationsDao()
+                    .update(context, threadedConversations);
+        }
     }
 }

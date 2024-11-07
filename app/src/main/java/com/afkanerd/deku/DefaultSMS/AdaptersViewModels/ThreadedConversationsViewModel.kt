@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
+import android.content.Intent
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import android.util.Log
@@ -28,6 +29,8 @@ import java.lang.Exception
 import java.util.ArrayList
 
 class ThreadedConversationsViewModel : ViewModel() {
+    var intent:Intent? = Intent()
+
     private var databaseConnector: Datastore? = null
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null

@@ -306,7 +306,8 @@ class ConversationActivity() : CustomAppCompactActivity() {
 //            address = intent.getStringExtra(Conversation.ADDRESS)
 //        }
 //
-//        if (threadId == null) threadId =
+//        if (threadId == null)
+//        threadId =
 //            ThreadedConversationsHandler.get(applicationContext, address)
 //                .thread_id
 //        if (address == null) {

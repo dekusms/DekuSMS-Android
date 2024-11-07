@@ -57,10 +57,11 @@ class ThreadsConversationActivity : AppCompatActivity() {
                         startDestination = HomeScreen,
                     ) {
                         composable<HomeScreen>{
+                            viewModel.intent?.let { viewModel.intent = intent }
                             ThreadConversationLayout(
                                 viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
-                                navController
+                                navController,
                             )
                         }
 
@@ -84,17 +85,6 @@ class ThreadsConversationActivity : AppCompatActivity() {
     }
 
     private fun checkLoadNatives() {
-        CoroutineScope(Dispatchers.Default).launch {
-            val items = viewModel.getAll(applicationContext)
-            items.forEach {
-                viewModel.updateInformation(
-                    context=applicationContext,
-                    threadId = it.thread_id,
-                    contactName =
-                    Contacts.retrieveContactName(applicationContext, it.address),
-                )
-            }
-        }
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), false)){
             CoroutineScope(Dispatchers.Default).launch {
