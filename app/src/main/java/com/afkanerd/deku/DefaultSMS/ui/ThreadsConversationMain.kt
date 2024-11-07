@@ -77,6 +77,7 @@ import androidx.preference.PreferenceManager
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
@@ -233,17 +234,18 @@ fun ThreadConversationLayout(
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
                                 when(it) {
-                                    SwipeToDismissBoxValue.EndToStart -> {}
+                                    SwipeToDismissBoxValue.EndToStart -> {
+                                        CoroutineScope(Dispatchers.Default).launch {
+                                            viewModel.archive(message.thread_id)
+                                        }
+                                    }
                                     SwipeToDismissBoxValue.Settled ->
                                         return@rememberSwipeToDismissBoxState false
                                     else -> {}
                                 }
-                                Toast.makeText(context, "yep!", Toast.LENGTH_LONG)
-                                    .show()
                                 return@rememberSwipeToDismissBoxState true
                             },
-//                             positional threshold of 25%
-                            positionalThreshold = { it * .25f }
+                            positionalThreshold = { it * .75f }
                         )
 
                         SwipeToDismissBox(

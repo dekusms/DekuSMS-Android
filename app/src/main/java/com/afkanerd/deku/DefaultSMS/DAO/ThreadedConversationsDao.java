@@ -32,7 +32,8 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
     List<ThreadedConversations> getAll();
 
-    @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
+    @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
+            "ORDER BY date DESC")
     LiveData<List<ThreadedConversations>> getAllLiveData();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
