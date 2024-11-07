@@ -90,6 +90,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
@@ -349,7 +350,7 @@ fun ThreadConversationLayout(
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                if(selectedItems.isEmpty()) {
+                if(inboxType == InboxType.INBOX && selectedItems.isEmpty()) {
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
@@ -391,7 +392,8 @@ fun ThreadConversationLayout(
                         },
                         scrollBehavior = scrollBehaviour
                     )
-                } else {
+                }
+                else if(!selectedItems.isEmpty()) {
                     TopAppBar(
                         title = {
                             Text(
@@ -430,6 +432,41 @@ fun ThreadConversationLayout(
                                     tint = selectedIconColors,
                                     contentDescription =
                                     stringResource(R.string.message_threads_menu_delete)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehaviour
+                    )
+                } else {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text= when(inboxType) {
+                                    InboxType.ARCHIVED ->
+                                        stringResource(R.string
+                                            .conversations_navigation_view_archived)
+                                    InboxType.ENCRYPTED ->
+                                        stringResource(R.string
+                                            .conversations_navigation_view_encryption)
+                                    InboxType.BLOCKED ->
+                                        stringResource(R.string
+                                            .conversations_navigation_view_blocked)
+                                    else -> ""
+                                },
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if(isClosed) open() else close()
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = stringResource(R.string.open_side_menu)
                                 )
                             }
                         },
