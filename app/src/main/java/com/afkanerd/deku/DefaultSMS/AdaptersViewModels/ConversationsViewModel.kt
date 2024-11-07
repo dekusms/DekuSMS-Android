@@ -15,6 +15,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
+import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import java.util.ArrayList
 import java.util.Locale
 

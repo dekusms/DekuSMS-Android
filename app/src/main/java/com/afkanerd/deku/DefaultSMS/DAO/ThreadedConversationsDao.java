@@ -34,13 +34,16 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
             "ORDER BY date DESC")
-    LiveData<List<ThreadedConversations>> getAllLiveData();
+    LiveData<List<ThreadedConversations>> getInbox();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getArchived();
+    LiveData<List<ThreadedConversations>> getArchived();
+
+    @Query("SELECT * FROM ThreadedConversations WHERE is_secured = 1 ORDER BY date DESC")
+    LiveData<List<ThreadedConversations>> getEncrypted();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_blocked = 1 ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getBlocked();
+    LiveData<List<ThreadedConversations>> getBlocked();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
             "ORDER BY date DESC")

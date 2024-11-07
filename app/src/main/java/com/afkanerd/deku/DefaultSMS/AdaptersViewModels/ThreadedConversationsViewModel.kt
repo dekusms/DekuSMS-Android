@@ -21,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isSecured
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
+import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,20 +32,26 @@ import java.util.ArrayList
 class ThreadedConversationsViewModel : ViewModel() {
 
     var intent:Intent? = Intent()
+    var inboxType: InboxType = InboxType.INBOX
 
     private var databaseConnector: Datastore? = null
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null
+    var archivedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
+    var encryptedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
+    var blockedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
 
     fun getAll(context: Context): List<ThreadedConversations> {
         return Datastore.getDatastore(context).threadedConversationsDao().all
     }
 
-    fun getAllLiveData(context: Context?): LiveData<MutableList<ThreadedConversations>> {
+    fun getAllLiveData(context: Context):
+            LiveData<MutableList<ThreadedConversations>> {
         if (threadsLiveData == null) {
-            threadsLiveData = MutableLiveData<MutableList<ThreadedConversations>>()
-            threadsLiveData =
-                Datastore.getDatastore(context).threadedConversationsDao().getAllLiveData()
+            threadsLiveData = Datastore.getDatastore(context).threadedConversationsDao().inbox
+            archivedLiveData = Datastore.getDatastore(context).threadedConversationsDao().archived
+            encryptedLiveData = Datastore.getDatastore(context).threadedConversationsDao().encrypted
+            blockedLiveData = Datastore.getDatastore(context).threadedConversationsDao().blocked
         }
         return threadsLiveData!!
     }

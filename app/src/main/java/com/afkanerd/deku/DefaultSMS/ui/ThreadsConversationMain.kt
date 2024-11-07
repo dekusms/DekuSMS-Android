@@ -59,12 +59,14 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -92,13 +94,26 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Preview
+enum class InboxType(val value: Int) {
+    INBOX(0),
+    ARCHIVED(1),
+    ENCRYPTED(2),
+    BLOCKED(3);
+
+    companion object {
+        fun fromInt(value: Int): InboxType? {
+            return InboxType.entries.find { it.value == value }
+        }
+    }
+}
+
 @Composable
 fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
     val color = when(dismissState?.dismissDirection) {
@@ -147,7 +162,7 @@ fun navigateToConversation(
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
-    navController: NavController
+    navController: NavController,
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
@@ -155,6 +170,50 @@ fun navigateToConversation(
     navController.navigate(ConversationsScreen)
 }
 
+@Preview(showBackground = true)
+@Composable
+fun ModalDrawerSheetLayout(
+    inbox: (() -> Unit)? = null,
+    archive: (() -> Unit)? = null,
+    selectedItemIndex: Int = 0,
+) {
+
+    ModalDrawerSheet {
+        Text(stringResource(R.string.sms), modifier = Modifier.padding(16.dp))
+        HorizontalDivider()
+        NavigationDrawerItem(
+            label = { Text(text =
+            stringResource(R.string.conversations_navigation_view_inbox)) },
+            selected = selectedItemIndex == 0,
+            onClick = {
+                inbox?.let{ it() }
+            }
+        )
+        NavigationDrawerItem(
+            label = { Text(text =
+            stringResource(R.string.conversations_navigation_view_archived)) },
+            selected = selectedItemIndex == 1,
+            onClick = {
+                archive?.let{ it() }
+            }
+        )
+        HorizontalDivider()
+        NavigationDrawerItem(
+            label = { Text(text =
+            stringResource(R.string.conversations_navigation_view_encryption)) },
+            selected = false,
+            onClick = { TODO()}
+        )
+
+        NavigationDrawerItem(
+            label = { Text(text =
+            stringResource(R.string.conversations_navigation_view_blocked)) },
+            selected = false,
+            onClick = { TODO()}
+        )
+
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class
@@ -164,7 +223,7 @@ fun ThreadConversationLayout(
     viewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
     navController: NavController,
-    _items: List<ThreadedConversations>? = null
+    _items: List<ThreadedConversations>? = null,
 ) {
     val context = LocalContext.current
     viewModel.intent?.let { intent ->
@@ -178,7 +237,7 @@ fun ThreadConversationLayout(
                         conversationsViewModel,
                         address,
                         threadId,
-                        navController
+                        navController,
                     )
                 }
             }
@@ -187,8 +246,16 @@ fun ThreadConversationLayout(
 
     val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
+    var inboxType by remember { mutableIntStateOf(viewModel.inboxType.value) }
+
     val items: List<ThreadedConversations> by viewModel
         .getAllLiveData(context).observeAsState(emptyList())
+    val archivedItems: List<ThreadedConversations> by viewModel
+        .archivedLiveData!!.observeAsState(emptyList())
+    val encryptedItems: List<ThreadedConversations> by viewModel
+        .encryptedLiveData!!.observeAsState(emptyList())
+    val blockedItems: List<ThreadedConversations> by viewModel
+        .blockedLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -212,19 +279,34 @@ fun ThreadConversationLayout(
         }
     }
     val selectedIconColors = MaterialTheme.colorScheme.primary
+    var selectedItemIndex by remember { mutableIntStateOf(viewModel.inboxType.value) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                Text("Inboxes", modifier = Modifier.padding(16.dp))
-                HorizontalDivider()
-                NavigationDrawerItem(
-                    label = { Text(text = "Drawer Item") },
-                    selected = false,
-                    onClick = { }
-                )
-            }
+            ModalDrawerSheetLayout(
+                inbox = {
+                    inboxType = InboxType.INBOX.value
+                    selectedItemIndex = InboxType.INBOX.value
+                    scope.launch {
+                        drawerState.apply {
+                            if(isClosed) open() else close()
+                        }
+                    }
+                    viewModel.inboxType = InboxType.INBOX
+                },
+                archive = {
+                    inboxType = InboxType.ARCHIVED.value
+                    selectedItemIndex = InboxType.ARCHIVED.value
+                    scope.launch {
+                        drawerState.apply {
+                            if(isClosed) open() else close()
+                        }
+                    }
+                    viewModel.inboxType = InboxType.ARCHIVED
+                },
+                selectedItemIndex = selectedItemIndex
+            )
         }
     ) {
         Scaffold (
@@ -334,7 +416,13 @@ fun ThreadConversationLayout(
                 state = listState
             )  {
                 items(
-                    items = if(_items == null) items else _items,
+                    items = if(_items == null) when(InboxType.fromInt(inboxType)) {
+                        InboxType.INBOX -> items
+                        InboxType.ARCHIVED -> archivedItems
+                        InboxType.ENCRYPTED -> encryptedItems
+                        InboxType.BLOCKED -> blockedItems
+                        null -> TODO()
+                    } else _items,
                     key = { it.hashCode() }
                 ) { message ->
                     message.address?.let {
@@ -394,7 +482,7 @@ fun ThreadConversationLayout(
                                                 conversationsViewModel,
                                                 message.address,
                                                 message.thread_id,
-                                                navController
+                                                navController,
                                             )
                                         } else {
                                             if(selectedItems.contains(message))
