@@ -2,7 +2,9 @@ package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.Context
 import android.content.Intent
+import android.text.InputType
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -89,6 +91,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
+import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
@@ -173,9 +176,8 @@ fun navigateToConversation(
 @Preview(showBackground = true)
 @Composable
 fun ModalDrawerSheetLayout(
-    inbox: (() -> Unit)? = null,
-    archive: (() -> Unit)? = null,
-    selectedItemIndex: Int = 0,
+    callback: ((InboxType) -> Unit)? = null,
+    selectedItemIndex: InboxType = InboxType.INBOX,
 ) {
 
     ModalDrawerSheet {
@@ -184,18 +186,14 @@ fun ModalDrawerSheetLayout(
         NavigationDrawerItem(
             label = { Text(text =
             stringResource(R.string.conversations_navigation_view_inbox)) },
-            selected = selectedItemIndex == 0,
-            onClick = {
-                inbox?.let{ it() }
-            }
+            selected = selectedItemIndex == InboxType.INBOX,
+            onClick = { callback?.let{ it(InboxType.INBOX) } }
         )
         NavigationDrawerItem(
             label = { Text(text =
             stringResource(R.string.conversations_navigation_view_archived)) },
-            selected = selectedItemIndex == 1,
-            onClick = {
-                archive?.let{ it() }
-            }
+            selected = selectedItemIndex == InboxType.ARCHIVED,
+            onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
         )
         HorizontalDivider()
         NavigationDrawerItem(
@@ -246,7 +244,7 @@ fun ThreadConversationLayout(
 
     val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
-    var inboxType by remember { mutableIntStateOf(viewModel.inboxType.value) }
+    var inboxType by remember { mutableStateOf(viewModel.inboxType) }
 
     val items: List<ThreadedConversations> by viewModel
         .getAllLiveData(context).observeAsState(emptyList())
@@ -279,31 +277,34 @@ fun ThreadConversationLayout(
         }
     }
     val selectedIconColors = MaterialTheme.colorScheme.primary
-    var selectedItemIndex by remember { mutableIntStateOf(viewModel.inboxType.value) }
+    var selectedItemIndex by remember { mutableStateOf(viewModel.inboxType) }
+
+    BackHandler {
+        if(viewModel.inboxType != InboxType.INBOX) {
+            selectedItemIndex = InboxType.INBOX
+            inboxType = InboxType.INBOX
+        }
+        else {
+            navController.clearBackStack(HomeScreen)
+            navController.popBackStack()
+            println("Clearing")
+        }
+    }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheetLayout(
-                inbox = {
-                    inboxType = InboxType.INBOX.value
-                    selectedItemIndex = InboxType.INBOX.value
+                callback = { type ->
+                    inboxType = type
+                    selectedItemIndex = type
                     scope.launch {
                         drawerState.apply {
                             if(isClosed) open() else close()
                         }
                     }
-                    viewModel.inboxType = InboxType.INBOX
-                },
-                archive = {
-                    inboxType = InboxType.ARCHIVED.value
-                    selectedItemIndex = InboxType.ARCHIVED.value
-                    scope.launch {
-                        drawerState.apply {
-                            if(isClosed) open() else close()
-                        }
-                    }
-                    viewModel.inboxType = InboxType.ARCHIVED
+                    viewModel.inboxType = type
                 },
                 selectedItemIndex = selectedItemIndex
             )
@@ -416,12 +417,11 @@ fun ThreadConversationLayout(
                 state = listState
             )  {
                 items(
-                    items = if(_items == null) when(InboxType.fromInt(inboxType)) {
+                    items = if(_items == null) when(inboxType) {
                         InboxType.INBOX -> items
                         InboxType.ARCHIVED -> archivedItems
                         InboxType.ENCRYPTED -> encryptedItems
                         InboxType.BLOCKED -> blockedItems
-                        null -> TODO()
                     } else _items,
                     key = { it.hashCode() }
                 ) { message ->
