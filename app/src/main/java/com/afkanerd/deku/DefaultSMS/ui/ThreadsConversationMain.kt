@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,12 +26,16 @@ import androidx.compose.material.ListItem
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EnhancedEncryption
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -79,6 +84,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -179,37 +185,65 @@ fun ModalDrawerSheetLayout(
     callback: ((InboxType) -> Unit)? = null,
     selectedItemIndex: InboxType = InboxType.INBOX,
 ) {
-
     ModalDrawerSheet {
-        Text(stringResource(R.string.sms), modifier = Modifier.padding(16.dp))
+        Text(
+            stringResource(R.string.folders),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(16.dp))
         HorizontalDivider()
-        NavigationDrawerItem(
-            label = { Text(text =
-            stringResource(R.string.conversations_navigation_view_inbox)) },
-            selected = selectedItemIndex == InboxType.INBOX,
-            onClick = { callback?.let{ it(InboxType.INBOX) } }
-        )
-        NavigationDrawerItem(
-            label = { Text(text =
-            stringResource(R.string.conversations_navigation_view_archived)) },
-            selected = selectedItemIndex == InboxType.ARCHIVED,
-            onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
-        )
-        HorizontalDivider()
-        NavigationDrawerItem(
-            label = { Text(text =
-            stringResource(R.string.conversations_navigation_view_encryption)) },
-            selected = false,
-            onClick = { TODO()}
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Inbox,
+                        contentDescription = stringResource(R.string.inbox_folder)
+                    )
+                },
+                label = { Text(text =
+                stringResource(R.string.conversations_navigation_view_inbox)) },
+                selected = selectedItemIndex == InboxType.INBOX,
+                onClick = { callback?.let{ it(InboxType.INBOX) } }
+            )
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Archive,
+                        contentDescription = stringResource(R.string.archive_folder)
+                    )
+                },
+                label = { Text(text =
+                stringResource(R.string.conversations_navigation_view_archived)) },
+                selected = selectedItemIndex == InboxType.ARCHIVED,
+                onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
+            )
+            HorizontalDivider()
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Security,
+                        contentDescription = stringResource(R.string.encrypted_folder)
+                    )
+                },
+                label = { Text(text =
+                stringResource(R.string.conversations_navigation_view_encryption)) },
+                selected = selectedItemIndex == InboxType.ENCRYPTED,
+                onClick = { callback?.let{ it(InboxType.ENCRYPTED) } }
+            )
 
-        NavigationDrawerItem(
-            label = { Text(text =
-            stringResource(R.string.conversations_navigation_view_blocked)) },
-            selected = false,
-            onClick = { TODO()}
-        )
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Block,
+                        contentDescription = stringResource(R.string.blocked_folder)
+                    )
+                },
+                label = { Text(text =
+                stringResource(R.string.conversations_navigation_view_blocked)) },
+                selected = selectedItemIndex == InboxType.BLOCKED,
+                onClick = { callback?.let{ it(InboxType.BLOCKED) } }
+            )
 
+        }
     }
 }
 

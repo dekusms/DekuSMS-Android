@@ -301,5 +301,10 @@
     <string name="selected">selected</string>
     <string name="cancel_selection">Cancel selection</string>
     <string name="sms">SMS</string>
+    <string name="folders">Folders</string>
+    <string name="inbox_folder">Inbox Folder</string>
+    <string name="archive_folder">Archive folder</string>
+    <string name="encrypted_folder">Encrypted folder</string>
+    <string name="blocked_folder">Blocked Folder</string>
 
 </resources>
