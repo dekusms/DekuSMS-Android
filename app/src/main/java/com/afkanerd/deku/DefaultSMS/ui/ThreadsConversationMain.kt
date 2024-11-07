@@ -5,6 +5,7 @@ import android.content.Intent
 import android.text.InputType
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -315,13 +316,14 @@ fun ThreadConversationLayout(
 
     BackHandler {
         if(viewModel.inboxType != InboxType.INBOX) {
+            viewModel.inboxType = InboxType.INBOX
             selectedItemIndex = InboxType.INBOX
             inboxType = InboxType.INBOX
         }
         else {
-            navController.clearBackStack(HomeScreen)
-            navController.popBackStack()
-            println("Clearing")
+            if(context is AppCompatActivity) {
+                context.finish()
+            }
         }
     }
 
