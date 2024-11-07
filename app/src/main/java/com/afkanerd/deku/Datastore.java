@@ -14,6 +14,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.AutoMigrationSpec;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;

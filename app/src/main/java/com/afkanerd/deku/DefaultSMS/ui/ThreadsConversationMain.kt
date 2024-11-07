@@ -24,6 +24,8 @@ import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -49,6 +51,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -58,6 +61,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -84,6 +88,7 @@ import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.R
@@ -191,6 +196,8 @@ fun ThreadConversationLayout(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    var selectedItems = remember { mutableStateListOf<ThreadedConversations>() }
+
     LaunchedEffect("LOAD_CONTACTS") {
         CoroutineScope(Dispatchers.Default).launch {
             val items = viewModel.getAll(context)
@@ -204,6 +211,7 @@ fun ThreadConversationLayout(
             }
         }
     }
+    val selectedIconColors = MaterialTheme.colorScheme.primary
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -222,50 +230,93 @@ fun ThreadConversationLayout(
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text= stringResource(R.string.app_name),
-                            maxLines =1,
-                            overflow = TextOverflow.Ellipsis)
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.apply {
-                                    if(isClosed) open() else close()
+                if(selectedItems.isEmpty()) {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text= stringResource(R.string.app_name),
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if(isClosed) open() else close()
+                                    }
                                 }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = stringResource(R.string.open_side_menu)
+                                )
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.open_side_menu)
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            TODO("Implement search functions")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = stringResource(R.string.search_messages)
-                            )
-                        }
-                        IconButton(onClick = {
-                            TODO("Implement menu functionality")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.open_menu)
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehaviour
-                )
-            },
-            bottomBar = {
-
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                TODO("Implement search functions")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = stringResource(R.string.search_messages)
+                                )
+                            }
+                            IconButton(onClick = {
+                                TODO("Implement menu functionality")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = stringResource(R.string.open_menu)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehaviour
+                    )
+                } else {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text= "${selectedItems.size} ${stringResource(R.string.selected)}",
+                                maxLines =1,
+                                color = selectedIconColors,
+                                overflow = TextOverflow.Ellipsis)
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                selectedItems.clear()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    tint = selectedIconColors,
+                                    contentDescription = stringResource(R.string.cancel_selection)
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                TODO("Implement search functions")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Archive,
+                                    tint = selectedIconColors,
+                                    contentDescription =
+                                    stringResource(R.string.messages_threads_menu_archive)
+                                )
+                            }
+                            IconButton(onClick = {
+                                TODO("Implement menu functionality")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    tint = selectedIconColors,
+                                    contentDescription =
+                                    stringResource(R.string.message_threads_menu_delete)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehaviour
+                    )
+                }
             },
             floatingActionButton = {
                 ExtendedFloatingActionButton(
@@ -336,17 +387,27 @@ fun ThreadConversationLayout(
                                 unreadCount = message.unread_count,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
-                                        navigateToConversation(
-                                            context,
-                                            viewModel,
-                                            conversationsViewModel,
-                                            message.address,
-                                            message.thread_id,
-                                            navController
-                                        )
+                                        if(selectedItems.isEmpty()) {
+                                            navigateToConversation(
+                                                context,
+                                                viewModel,
+                                                conversationsViewModel,
+                                                message.address,
+                                                message.thread_id,
+                                                navController
+                                            )
+                                        } else {
+                                            if(selectedItems.contains(message))
+                                                selectedItems.remove(message)
+                                            else
+                                                selectedItems.add(message)
+                                        }
                                     },
-                                    onLongClick = {}
-                                )
+                                    onLongClick = {
+                                        selectedItems.add(message)
+                                    }
+                                ),
+                                isSelected = selectedItems.contains(message)
                             )
                         }
                     }

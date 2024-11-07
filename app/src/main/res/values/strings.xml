@@ -298,5 +298,7 @@
     <string name="request_secure_communication">Request secure communication</string>
     <string name="go_back">Go back</string>
     <string name="type_names_or_phone_numbers">Type names or phone numbers</string>
+    <string name="selected">selected</string>
+    <string name="cancel_selection">Cancel selection</string>
 
 </resources>

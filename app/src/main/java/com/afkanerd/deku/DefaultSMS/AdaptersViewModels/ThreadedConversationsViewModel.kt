@@ -29,6 +29,7 @@ import java.lang.Exception
 import java.util.ArrayList
 
 class ThreadedConversationsViewModel : ViewModel() {
+
     var intent:Intent? = Intent()
 
     private var databaseConnector: Datastore? = null

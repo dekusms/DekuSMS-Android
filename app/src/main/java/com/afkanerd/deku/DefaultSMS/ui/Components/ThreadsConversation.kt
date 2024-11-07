@@ -22,6 +22,8 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -157,7 +159,8 @@ fun ThreadConversationCard(
     isRead: Boolean = false,
     isContact: Boolean = true,
     unreadCount: Int = 1,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
 ) {
     var color = MaterialTheme.colorScheme.onBackground
     var weight = FontWeight.Bold
@@ -168,6 +171,10 @@ fun ThreadConversationCard(
     }
     ListItem(
         modifier = modifier,
+        colors = ListItemDefaults.colors(
+            containerColor = if(isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.background
+        ),
         headlineContent = {
             Text(
                 text = "$firstName $lastName",
