@@ -16,8 +16,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
@@ -33,7 +31,7 @@ object ConversationsScreen
 @Serializable
 object ComposeNewMessageScreen
 
-class ThreadsConversationActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     lateinit var navController: NavHostController
 

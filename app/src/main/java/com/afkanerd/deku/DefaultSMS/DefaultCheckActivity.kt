@@ -2,7 +2,6 @@ package com.afkanerd.deku.DefaultSMS
 
 import android.Manifest
 import android.app.role.RoleManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -11,10 +10,8 @@ import android.os.Bundle
 import android.provider.Telephony
 import android.util.Log
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
@@ -84,7 +81,7 @@ class DefaultCheckActivity : AppCompatActivity() {
     }
 
     private fun startUserActivities() {
-        val intent = Intent(this, ThreadsConversationActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
 
