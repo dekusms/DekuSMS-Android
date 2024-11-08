@@ -169,7 +169,9 @@ fun ChatCompose(
 ) {
     val context = LocalContext.current
     val interactionsSource = remember { MutableInteractionSource() }
-    var userInput by remember { mutableStateOf("") }
+    val text = viewModel.text
+    viewModel.text = ""
+    var userInput by remember { mutableStateOf(text) }
     Row(modifier = Modifier
         .height(IntrinsicSize.Min)
         .padding(top = 4.dp, bottom = 4.dp)
@@ -603,7 +605,7 @@ fun Conversations(
             if(selectedItems.isEmpty()) ChatCompose(
                 viewModel.address!!,
                 viewModel.threadId!!,
-                viewModel
+                viewModel,
             )
             else ConversationCrudBottomBar(
                 viewModel,

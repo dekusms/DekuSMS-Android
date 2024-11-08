@@ -148,11 +148,12 @@ fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
     }
 }
 
-fun processIntents(context: Context, intent: Intent): Pair<String?, String?>?{
+fun processIntents(context: Context, intent: Intent): Triple<String?, String?, String?>?{
     val defaultRegion = Helpers.getUserCountry(context)
     if(intent.action != null &&
         ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
         val sendToString = intent.dataString
+        val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body") else ""
         if (sendToString != null &&
             (sendToString.contains("smsto:") || sendToString.contains("sms:"))
         ) {
@@ -161,7 +162,7 @@ fun processIntents(context: Context, intent: Intent): Pair<String?, String?>?{
                 ThreadedConversationsHandler.get(context, address)
                     .thread_id
 
-            return Pair(address, threadId)
+            return Triple(address, threadId, text)
         }
     }
     return null
@@ -265,6 +266,9 @@ fun ThreadConversationLayout(
             viewModel.intent = null
             it.first?.let{ address ->
                 it.second?.let { threadId ->
+                    it.third?.let{ message ->
+                        conversationsViewModel.text = message
+                    }
                     navigateToConversation(
                         context,
                         viewModel,

@@ -23,6 +23,7 @@ import java.util.Locale
 class ConversationsViewModel : ViewModel() {
     var threadId: String? = null
     var address: String? = null
+    var text: String = ""
 
     private var liveData: LiveData<MutableList<Conversation>>? = null
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
