@@ -89,9 +89,9 @@ private fun ConversationReceived(
     isSelected: Boolean = false,
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
-    val receivedStartShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 1.dp)
-    val receivedMiddleShape = RoundedCornerShape(1.dp, 18.dp, 18.dp, 1.dp)
-    val receivedEndShape = RoundedCornerShape(1.dp, 18.dp, 18.dp, 18.dp)
+    val receivedStartShape = RoundedCornerShape(28.dp, 28.dp, 28.dp, 1.dp)
+    val receivedMiddleShape = RoundedCornerShape(1.dp, 28.dp, 28.dp, 1.dp)
+    val receivedEndShape = RoundedCornerShape(1.dp, 28.dp, 28.dp, 28.dp)
 
     val shape = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP ->

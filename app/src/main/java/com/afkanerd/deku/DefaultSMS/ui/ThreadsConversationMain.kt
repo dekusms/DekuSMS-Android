@@ -6,17 +6,22 @@ import android.text.InputType
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.expandIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,6 +49,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -79,6 +86,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -250,6 +258,36 @@ fun ModalDrawerSheetLayout(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun MainDropDownMenu(
+    expanded: Boolean = true,
+    gestureCallback: (() -> Unit)? = null
+) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.TopEnd)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                gestureCallback?.let{ it() }
+            },
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.about_deku),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {}
+            )
+        }
+
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class
 )
@@ -299,7 +337,6 @@ fun ThreadConversationLayout(
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
     var selectedItems = remember { mutableStateListOf<ThreadedConversations>() }
 
@@ -319,6 +356,10 @@ fun ThreadConversationLayout(
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(viewModel.inboxType) }
 
+    var rememberMenuExpanded by remember { mutableStateOf( false)}
+
+    val scope = rememberCoroutineScope()
+
     BackHandler {
         if(viewModel.inboxType != InboxType.INBOX) {
             viewModel.inboxType = InboxType.INBOX
@@ -332,6 +373,9 @@ fun ThreadConversationLayout(
         }
     }
 
+    MainDropDownMenu(rememberMenuExpanded) {
+        rememberMenuExpanded = !rememberMenuExpanded
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -349,7 +393,7 @@ fun ThreadConversationLayout(
                 },
                 selectedItemIndex = selectedItemIndex
             )
-        }
+        },
     ) {
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -366,7 +410,12 @@ fun ThreadConversationLayout(
                             IconButton(onClick = {
                                 scope.launch {
                                     drawerState.apply {
-                                        if(isClosed) open() else close()
+                                        if(isClosed) {
+                                            open()
+                                        }
+                                        else {
+                                            close()
+                                        }
                                     }
                                 }
                             }) {
@@ -386,7 +435,7 @@ fun ThreadConversationLayout(
                                 )
                             }
                             IconButton(onClick = {
-                                TODO("Implement menu functionality")
+                                rememberMenuExpanded = !rememberMenuExpanded
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
@@ -441,7 +490,8 @@ fun ThreadConversationLayout(
                         },
                         scrollBehavior = scrollBehaviour
                     )
-                } else {
+                }
+                else {
                     TopAppBar(
                         title = {
                             Text(
@@ -582,6 +632,7 @@ fun ThreadConversationLayout(
         }
 
     }
+
 
 }
 
