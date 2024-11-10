@@ -274,7 +274,8 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
             }
         }
         return ConversationPositionTypes.NORMAL_TIMESTAMP
-    } else {
+    }
+    else {
         if(Helpers.isSameHour(conversation.date!!.toLong(),
                 conversations[index + 1].date!!.toLong())) {
             if(conversation.type == conversations[index - 1].type) {
