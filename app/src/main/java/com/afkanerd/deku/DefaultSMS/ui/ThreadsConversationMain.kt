@@ -340,7 +340,14 @@ fun ThreadConversationLayout(
 
     var selectedItems = remember { mutableStateListOf<ThreadedConversations>() }
 
-    LaunchedEffect("LOAD_CONTACTS") {
+    val selectedIconColors = MaterialTheme.colorScheme.primary
+    var selectedItemIndex by remember { mutableStateOf(viewModel.inboxType) }
+
+    var rememberMenuExpanded by remember { mutableStateOf( false)}
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(items) {
         CoroutineScope(Dispatchers.Default).launch {
             val items = viewModel.getAll(context)
             items.forEach {
@@ -349,16 +356,11 @@ fun ThreadConversationLayout(
                     threadId = it.thread_id,
                     contactName =
                     Contacts.retrieveContactName(context, it.address),
+                    conversationsViewModel = conversationsViewModel
                 )
             }
         }
     }
-    val selectedIconColors = MaterialTheme.colorScheme.primary
-    var selectedItemIndex by remember { mutableStateOf(viewModel.inboxType) }
-
-    var rememberMenuExpanded by remember { mutableStateOf( false)}
-
-    val scope = rememberCoroutineScope()
 
     BackHandler {
         if(viewModel.inboxType != InboxType.INBOX) {
@@ -552,6 +554,7 @@ fun ThreadConversationLayout(
                     } else _items,
                     key = { it.hashCode() }
                 ) { message ->
+
                     message.address?.let {
                         var firstName = message.address
                         var lastName = ""

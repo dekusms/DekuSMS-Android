@@ -296,21 +296,27 @@ class ThreadedConversationsViewModel : ViewModel() {
         subscriptionId: Int? = null,
         conversationsViewModel: ConversationsViewModel? = null
     ){
-        CoroutineScope(Dispatchers.Default).launch {
-            contactName?.let {
-                val threadedConversations =
-                    Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
-                if (threadedConversations != null) {
-                    threadedConversations.contact_name = contactName
+        val threadedConversations =
+            Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
+        if(threadedConversations != null) {
+            val unread = conversationsViewModel?.getUnreadCount(context, threadId)
 
-                    subscriptionId?.let {
-                        threadedConversations.subscription_id = subscriptionId
-                    }
-
-                    Datastore.getDatastore(context).threadedConversationsDao()
-                        .update(context, threadedConversations)
-                }
+            unread?.let {
+                threadedConversations.unread_count = it
+                threadedConversations.isIs_read = it == 0
+                println("Is read: $it")
             }
+
+            contactName?.let {
+                threadedConversations.contact_name = contactName
+            }
+
+            subscriptionId?.let {
+                threadedConversations.subscription_id = subscriptionId
+            }
+
+            Datastore.getDatastore(context).threadedConversationsDao()
+                .update(context, threadedConversations)
         }
     }
 }

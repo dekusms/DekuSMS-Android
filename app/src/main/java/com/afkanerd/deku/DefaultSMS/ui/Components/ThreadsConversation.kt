@@ -193,31 +193,24 @@ fun ThreadConversationCard(
             )
         },
         trailingContent = {
-            if(unreadCount > 0) {
-                BadgedBox(
-                    badge = {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(bottom=16.dp)
-                        ) {
-                            Text(unreadCount.toString())
-                        }
-                    },
-                ) {
-                    Text(
-                        text = date,
-                        color = color,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = weight
-                    )
-                }
-            } else {
+            BadgedBox(
+                badge = {
+                    Badge(
+                        modifier = modifier.padding(top = 40.dp),
+                        containerColor = if(unreadCount> 0) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.background,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ) {
+                        if(unreadCount > 0) Text( text=unreadCount.toString())
+                    }
+                },
+            ) {
                 Text(
                     text = date,
                     color = color,
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = weight
+                    fontWeight = weight,
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
             }
         },
