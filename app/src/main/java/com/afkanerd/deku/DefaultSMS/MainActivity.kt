@@ -18,6 +18,7 @@ import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
+import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,8 @@ object HomeScreen
 object ConversationsScreen
 @Serializable
 object ComposeNewMessageScreen
+@Serializable
+object SearchThreadScreen
 
 class MainActivity : AppCompatActivity() {
 
@@ -75,6 +78,10 @@ class MainActivity : AppCompatActivity() {
                                 conversationsViewModel = conversationViewModel,
                                 navController=navController
                             )
+                        }
+
+                        composable<SearchThreadScreen>{
+                            SearchThreadsMain( )
                         }
                     }
                 }

@@ -61,6 +61,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
@@ -113,6 +114,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.example.compose.AppTheme
@@ -429,7 +431,7 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             IconButton(onClick = {
-                                TODO("Implement search functions")
+                                navController.navigate(SearchThreadScreen)
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Search,
