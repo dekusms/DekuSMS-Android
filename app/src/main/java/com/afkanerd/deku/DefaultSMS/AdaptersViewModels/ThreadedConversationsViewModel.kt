@@ -304,7 +304,6 @@ class ThreadedConversationsViewModel : ViewModel() {
             unread?.let {
                 threadedConversations.unread_count = it
                 threadedConversations.isIs_read = it == 0
-                println("Is read: $it")
             }
 
             contactName?.let {

@@ -55,10 +55,11 @@ class MainActivity : AppCompatActivity() {
                     NavHost(
                         modifier = Modifier,
                         navController = navController,
-                        startDestination = HomeScreen,
+                        startDestination = if(intent.hasExtra("address")) ConversationsScreen
+                        else HomeScreen,
                     ) {
+                        viewModel.intent?.let { viewModel.intent = intent }
                         composable<HomeScreen>{
-                            viewModel.intent?.let { viewModel.intent = intent }
                             ThreadConversationLayout(
                                 viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
@@ -67,6 +68,10 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable<ConversationsScreen>{
+                            if(intent.hasExtra("address"))
+                                conversationViewModel.address = intent.getStringExtra("address")
+                            if(intent.hasExtra("thread_id"))
+                                conversationViewModel.threadId = intent.getStringExtra("thread_id")
                             Conversations(
                                 viewModel=conversationViewModel,
                                 navController=navController

@@ -18,6 +18,7 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.MainActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -75,9 +76,9 @@ public class NotificationsHandler {
     }
 
     public static Intent getReceivedIntent(Context context, Conversation conversation) {
-        Intent receivedSmsIntent = new Intent(context, ConversationActivity.class);
-        receivedSmsIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
-        receivedSmsIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+        Intent receivedSmsIntent = new Intent(context, MainActivity.class);
+        receivedSmsIntent.putExtra("address", conversation.getAddress());
+        receivedSmsIntent.putExtra("thread_id", conversation.getThread_id());
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         return receivedSmsIntent;

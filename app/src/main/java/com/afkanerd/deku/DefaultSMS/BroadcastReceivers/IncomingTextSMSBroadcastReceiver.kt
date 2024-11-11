@@ -15,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity
+import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
@@ -231,9 +232,10 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     }
 
     private fun notifyMessageFailedToSend(context: Context, conversation: Conversation) {
-        val notificationIntent = Intent(context, ConversationActivity::class.java).apply {
-            putExtra(Conversation.THREAD_ID, conversation.thread_id)
-            putExtra(Conversation.SUBSCRIPTION_ID, conversation.subscription_id)
+        val notificationIntent = Intent(context, MainActivity::class.java).apply {
+            putExtra("thread_id", conversation.thread_id)
+            putExtra("address", conversation.address)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
         val pendingIntent =
