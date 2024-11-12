@@ -47,7 +47,7 @@ fun SearchThreadsMain() {
                 inputField = {
                     SearchBarDefaults.InputField(
                         query= searchInput,
-                        onQueryChange = {},
+                        onQueryChange = { searchInput = it },
                         onSearch = { expanded = false },
                         expanded = expanded,
                         onExpandedChange = { expanded = it },
@@ -63,7 +63,7 @@ fun SearchThreadsMain() {
                         },
                         trailingIcon = {
                             IconButton(onClick = {
-
+                                searchInput = ""
                             }) {
                                 Icon(Icons.Default.Cancel, contentDescription = null)
                             }

@@ -177,7 +177,8 @@ fun processIntents(context: Context, intent: Intent): Triple<String?, String?, S
     }
     else if(intent.hasExtra("address")) {
         val address = intent.getStringExtra("address")
-        val threadId = ThreadedConversationsHandler.get(context, address).thread_id
+//        val threadId = ThreadedConversationsHandler.get(context, address).thread_id
+        val threadId = intent.getStringExtra("thread_id")
         return Triple(address, threadId, "")
     }
     return null
