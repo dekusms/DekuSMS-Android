@@ -175,6 +175,11 @@ fun processIntents(context: Context, intent: Intent): Triple<String?, String?, S
             return Triple(address, threadId, text)
         }
     }
+    else if(intent.hasExtra("address")) {
+        val address = intent.getStringExtra("address")
+        val threadId = ThreadedConversationsHandler.get(context, address).thread_id
+        return Triple(address, threadId, "")
+    }
     return null
 }
 
