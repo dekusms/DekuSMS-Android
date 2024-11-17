@@ -70,10 +70,10 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun unMute(context: Context) {
-        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(0, threadId)
+        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(0, threadId!!)
     }
 
     fun mute(context: Context) {
-        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(1, threadId)
+        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(1, threadId!!)
     }
 }

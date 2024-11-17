@@ -1,195 +1,208 @@
-package com.afkanerd.deku.DefaultSMS.DAO;
+package com.afkanerd.deku.DefaultSMS.DAO
 
-import android.content.Context;
-import android.provider.Telephony;
-
-import androidx.lifecycle.LiveData;
-import androidx.paging.PagingSource;
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-import androidx.room.Transaction;
-import androidx.room.Update;
-
-import com.afkanerd.deku.DefaultSMS.Models.Archive;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.Datastore;
-import com.google.i18n.phonenumbers.NumberParseException;
-
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.Collections;
-import java.util.List;
+import android.content.Context
+import android.provider.Telephony
+import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.Models.Archive
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 
 @Dao
-public interface ThreadedConversationsDao {
-
+interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
-    List<ThreadedConversations> getAll();
+    fun getAll(): MutableList<ThreadedConversations>
 
-    @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
-            "ORDER BY date DESC")
-    LiveData<List<ThreadedConversations>> getInbox();
+    @Query(
+        "SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
+                "ORDER BY date DESC"
+    )
+    fun getInbox(): LiveData<MutableList<ThreadedConversations>>
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
-    LiveData<List<ThreadedConversations>> getArchived();
+    fun getArchived(): LiveData<MutableList<ThreadedConversations>>
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_secured = 1 ORDER BY date DESC")
-    LiveData<List<ThreadedConversations>> getEncrypted();
+    fun getEncrypted(): LiveData<MutableList<ThreadedConversations>>
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_blocked = 1 ORDER BY date DESC")
-    LiveData<List<ThreadedConversations>> getBlocked();
+    fun getBlocked(): LiveData<MutableList<ThreadedConversations>>
 
-    @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
-            "ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getAllWithoutArchived();
+    @Query(
+        "SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
+                "ORDER BY date DESC"
+    )
+    fun getAllWithoutArchived(): PagingSource<Int, ThreadedConversations>
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_read = 0 ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getAllUnreadWithoutArchived();
+    fun getAllUnreadWithoutArchived(): PagingSource<Int, ThreadedConversations>
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_mute = 1 ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getMuted();
+    fun getMuted(): PagingSource<Int, ThreadedConversations>
 
-    @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
-            "Conversation.thread_id = ThreadedConversations.thread_id AND " +
-            "is_archived = 0 AND read = 0")
-    int getCountUnread();
+    @Query(
+        ("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
+                "Conversation.thread_id = ThreadedConversations.thread_id AND " +
+                "is_archived = 0 AND read = 0")
+    )
+    fun getCountUnread(): Int
 
-    @Query("SELECT COUNT(Conversation.id) FROM Conversation WHERE " +
-            "Conversation.thread_id IN (:ids) AND read = 0")
-    int getCountUnread(List<String> ids);
+    @Query(
+        "SELECT COUNT(Conversation.id) FROM Conversation WHERE " +
+                "Conversation.thread_id IN (:ids) AND read = 0"
+    )
+    fun getCountUnread(ids: MutableList<String>): Int
 
     @Query("SELECT COUNT(*) FROM ThreadedConversations WHERE is_secured = 1")
-    int getCountEncrypted();
+    fun getCountEncrypted(): Int
 
-    @Query("SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +
-            "WHERE is_blocked = 1")
-    int getCountBlocked();
+    @Query(
+        "SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +
+                "WHERE is_blocked = 1"
+    )
+    fun getCountBlocked(): Int
 
-    @Query("SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +
-            "WHERE is_mute = 1")
-    int getCountMuted();
+    @Query(
+        "SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +
+                "WHERE is_mute = 1"
+    )
+    fun getCountMuted(): Int
 
-    @Query("SELECT Conversation.address, " +
-            "Conversation.text as snippet, " +
-            "Conversation.thread_id, " +
-            "Conversation.date, Conversation.type, " +
-            "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
-            "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
-            "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
-            "ThreadedConversations.isSelf, ThreadedConversations.subscription_id, " +
-            "ThreadedConversations.formatted_datetime, ThreadedConversations.unread_count " +
-            "FROM Conversation, ThreadedConversations WHERE " +
-            "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
-            "ORDER BY Conversation.date DESC")
-    PagingSource<Integer, ThreadedConversations> getThreadedDrafts(int type);
+    @Query(
+        ("SELECT Conversation.address, " +
+                "Conversation.text as snippet, " +
+                "Conversation.thread_id, " +
+                "Conversation.date, Conversation.type, " +
+                "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
+                "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
+                "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
+                "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
+                "ThreadedConversations.isSelf, ThreadedConversations.subscription_id, " +
+                "ThreadedConversations.formatted_datetime, ThreadedConversations.unread_count " +
+                "FROM Conversation, ThreadedConversations WHERE " +
+                "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
+                "ORDER BY Conversation.date DESC")
+    )
+    fun getThreadedDrafts(type: Int): PagingSource<Int, ThreadedConversations>
 
-    @Query("SELECT COUNT(ThreadedConversations.thread_id) " +
-            "FROM Conversation, ThreadedConversations WHERE " +
-            "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
-            "ORDER BY Conversation.date DESC")
-    int getThreadedDraftsListCount(int type);
+    @Query(
+        ("SELECT COUNT(ThreadedConversations.thread_id) " +
+                "FROM Conversation, ThreadedConversations WHERE " +
+                "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
+                "ORDER BY Conversation.date DESC")
+    )
+    fun getThreadedDraftsListCount(type: Int): Int
 
     @Query("DELETE FROM ThreadedConversations WHERE ThreadedConversations.type = :type")
-    int deleteForType(int type);
+    fun deleteForType(type: Int): Int
 
     @Query("DELETE FROM Conversation WHERE Conversation.type = :type")
-    int clearConversationType(int type);
+    fun clearConversationType(type: Int): Int
 
     @Transaction
-    default void clearDrafts(int type) {
-        clearConversationType(type);
-        deleteForType(type);
+    fun clearDrafts(type: Int) {
+        clearConversationType(type)
+        deleteForType(type)
     }
 
     @Query("UPDATE ThreadedConversations SET is_read = :read")
-    int updateAllRead(int read);
+    fun updateAllRead(read: Int): Int
 
     @Query("UPDATE Conversation SET read = :read")
-    int updateAllReadConversation(int read);
+    fun updateAllReadConversation(read: Int): Int
 
     @Query("UPDATE ThreadedConversations SET is_read = :read WHERE thread_id IN(:ids)")
-    int updateAllRead(int read, List<String> ids);
+    fun updateAllRead(read: Int, ids: MutableList<String>): Int
 
     @Query("UPDATE ThreadedConversations SET is_read = :read WHERE thread_id = :id")
-    int updateAllRead(int read, long id);
+    fun updateAllRead(read: Int, id: Long): Int
 
     @Query("UPDATE ThreadedConversations SET is_mute = :muted WHERE thread_id = :id")
-    int updateMuted(int muted, String id);
+    fun updateMuted(muted: Int, id: String): Int
 
     @Query("UPDATE ThreadedConversations SET is_mute = :muted WHERE thread_id IN(:ids)")
-    int updateMuted(int muted, List<String> ids);
+    fun updateMuted(muted: Int, ids: MutableList<String>): Int
 
     @Query("UPDATE ThreadedConversations SET is_mute = 0 WHERE is_mute = 1")
-    int updateUnMuteAll();
+    fun updateUnMuteAll(): Int
 
     @Query("UPDATE Conversation SET read = :read WHERE thread_id IN(:ids)")
-    int updateAllReadConversation(int read, List<String> ids);
+    fun updateAllReadConversation(read: Int, ids: MutableList<String>): Int
 
     @Query("UPDATE Conversation SET read = :read WHERE thread_id = :id")
-    int updateAllReadConversation(int read, long id);
+    fun updateAllReadConversation(read: Int, id: Long): Int
 
     @Transaction
-    default void updateRead(int read) {
-        updateAllRead(read);
-        updateAllReadConversation(read);
+    fun updateRead(read: Int) {
+        updateAllRead(read)
+        updateAllReadConversation(read)
     }
 
     @Transaction
-    default void updateRead(int read, List<String> ids) {
-        updateAllRead(read, ids);
-        updateAllReadConversation(read, ids);
+    fun updateRead(read: Int, ids: MutableList<String>) {
+        updateAllRead(read, ids)
+        updateAllReadConversation(read, ids)
     }
 
     @Transaction
-    default void updateRead(int read, long id) {
-        updateAllRead(read, id);
-        updateAllReadConversation(read, id);
+    fun updateRead(read: Int, id: Long) {
+        updateAllRead(read, id)
+        updateAllReadConversation(read, id)
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
+    fun insertAll(threadedConversationsList: MutableList<ThreadedConversations>): MutableList<Long>
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
-    ThreadedConversations get(String thread_id);
+    fun get(thread_id: String): ThreadedConversations
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadIds)")
-    List<ThreadedConversations> getList(List<String> threadIds);
+    fun getList(threadIds: MutableList<String>): MutableList<ThreadedConversations>
 
     @Query("SELECT * FROM ThreadedConversations WHERE address =:address")
-    ThreadedConversations getByAddress(String address);
+    fun getByAddress(address: String): ThreadedConversations
 
-    @Query("SELECT * FROM ThreadedConversations WHERE address IN(:addresses) AND is_archived = 0 " +
-            "ORDER BY date DESC")
-    PagingSource<Integer, ThreadedConversations> getByAddress(List<String> addresses);
+    @Query(
+        "SELECT * FROM ThreadedConversations WHERE address IN(:addresses) AND is_archived = 0 " +
+                "ORDER BY date DESC"
+    )
+    fun getByAddress(addresses: MutableList<String>): PagingSource<Int, ThreadedConversations>
 
     @Query("SELECT * FROM ThreadedConversations WHERE address NOT IN(:addresses)")
-    PagingSource<Integer, ThreadedConversations> getNotInAddress(List<String> addresses);
+    fun getNotInAddress(addresses: MutableList<String>): PagingSource<Int, ThreadedConversations>
 
     @Query("SELECT address FROM ThreadedConversations WHERE thread_id IN (:threadedConversationsList)")
-    List<String> findAddresses(List<String> threadedConversationsList);
+    fun findAddresses(threadedConversationsList: MutableList<String>): MutableList<String>
 
-    @Query("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
-            "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
-            "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
-    List<Conversation> findAddresses(String search_string );
+    @Query(
+        ("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
+                "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
+                "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
+    )
+    fun findAddresses(search_string: String): MutableList<Conversation>
 
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +
-            "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
-    List<Conversation> findByThread(String search_string, String thread_id);
+    @Query(
+        "SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +
+                "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC"
+    )
+    fun findByThread(search_string: String, thread_id: String): MutableList<Conversation>
 
     @Insert
-    long _insert(ThreadedConversations threadedConversations);
+    fun _insert(threadedConversations: ThreadedConversations): Long
 
     @Transaction
-    default ThreadedConversations insertThreadFromConversation(Context context,
-                                                               Conversation conversation) {
+    fun insertThreadFromConversation(
+        context: Context,
+        conversation: Conversation
+    ): ThreadedConversations {
         // TODO: Here is the culprit
 
         /* - Import things are:
@@ -197,97 +210,104 @@ public interface ThreadedConversationsDao {
         2. Snippet
         3. ThreadId
          */
-        final String dates = conversation.getDate();
-        final String snippet = conversation.getText();
-        final String threadId = conversation.getThread_id();
-        final String address = conversation.getAddress();
 
-        final int type = conversation.getType();
+        val dates = conversation.date
+        val snippet = conversation.text
+        val threadId = conversation.thread_id
+        val address = conversation.address
 
-        final boolean isRead = type == Telephony.Sms.MESSAGE_TYPE_OUTBOX || conversation.isRead();
-        final boolean isSecured = conversation.isIs_encrypted();
+        val type = conversation.type
 
-        ThreadedConversations threadedConversations = Datastore.getDatastore(context)
-                .threadedConversationsDao()
-                .get(conversation.getThread_id());
-        threadedConversations.setDate(dates);
-        threadedConversations.setSnippet(snippet);
-        threadedConversations.setIs_read(isRead);
-        threadedConversations.setIs_secured(isSecured);
-        threadedConversations.setAddress(address);
-        threadedConversations.setType(type);
+        val isRead = type == Telephony.Sms.MESSAGE_TYPE_OUTBOX || conversation.isRead
+        val isSecured = conversation.isIs_encrypted
 
-        update(context, threadedConversations);
+        var threadedConversations = Datastore.getDatastore(context)
+            .threadedConversationsDao()
+            .get(conversation.thread_id!!)
+        threadedConversations.setDate(dates)
+        threadedConversations.setSnippet(snippet)
+        threadedConversations.setIs_read(isRead)
+        threadedConversations.setIs_secured(isSecured)
+        threadedConversations.setAddress(address)
+        threadedConversations.setType(type)
+
+        update(context, threadedConversations)
         threadedConversations = Datastore.getDatastore(context).threadedConversationsDao()
-                .get(conversation.getThread_id());
-        return threadedConversations;
+            .get(conversation.thread_id!!)
+
+        return threadedConversations
     }
 
     @Transaction
-    default ThreadedConversations insertThreadAndConversation(Context context, Conversation conversation) {
+    fun insertThreadAndConversation(
+        context: Context,
+        conversation: Conversation
+    ): ThreadedConversations {
         /* - Import things are:
         1. Dates
         2. Snippet
         3. ThreadId
          */
 
-        long id = Datastore.getDatastore(context).conversationDao()._insert(conversation);
-        final String dates = conversation.getDate();
-        final String snippet = conversation.getText();
-        final String threadId = conversation.getThread_id();
-        final String address = conversation.getAddress();
+        val id = Datastore.getDatastore(context).conversationDao()._insert(conversation)
+        val dates = conversation.date
+        val snippet = conversation.text
+        val threadId = conversation.thread_id
+        val address = conversation.address
 
-        final int type = conversation.getType();
+        val type = conversation.type
 
-        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
-        final boolean isSecured = conversation.isIs_encrypted();
+        val isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead
+        val isSecured = conversation.isIs_encrypted
 
-        boolean insert = false;
-        int unreadCount = Datastore.getDatastore(context).conversationDao()
-                .getUnreadCount(threadId);
-        ThreadedConversations threadedConversations = get(threadId);
-        if(threadedConversations == null) {
-            threadedConversations = new ThreadedConversations();
-            threadedConversations.setThread_id(threadId);
-            insert = true;
+        var insert = false
+        val unreadCount = Datastore.getDatastore(context).conversationDao()
+            .getUnreadCount(threadId!!)
+        var threadedConversations: ThreadedConversations = get(threadId)
+        if (threadedConversations == null) {
+            threadedConversations = ThreadedConversations()
+            threadedConversations.setThread_id(threadId)
+            insert = true
         }
-        threadedConversations.setDate(dates);
-        threadedConversations.setSnippet(snippet);
-        threadedConversations.setIs_read(isRead);
-        threadedConversations.setIs_secured(isSecured);
-        threadedConversations.setAddress(address);
-        threadedConversations.setType(type);
-        threadedConversations.setUnread_count(unreadCount);
+        threadedConversations.setDate(dates)
+        threadedConversations.setSnippet(snippet)
+        threadedConversations.setIs_read(isRead)
+        threadedConversations.setIs_secured(isSecured)
+        threadedConversations.setAddress(address)
+        threadedConversations.setType(type)
+        threadedConversations.setUnread_count(unreadCount)
 
-        if(insert)
-            _insert(threadedConversations);
+        if (insert) _insert(threadedConversations)
         else {
-            update(context, threadedConversations);
+            update(context, threadedConversations)
         }
 
-        return threadedConversations;
+        return threadedConversations
     }
 
     @Update
-    int _update(ThreadedConversations threadedConversations);
+    fun _update(threadedConversations: ThreadedConversations): Int
 
     @Transaction
-    default long update(Context context, ThreadedConversations threadedConversations) {
-        if(threadedConversations.getDate() == null || threadedConversations.getDate().isEmpty())
-            threadedConversations.setDate(Datastore.getDatastore(context).conversationDao()
-                    .fetchLatestForThread(threadedConversations.getThread_id()).getDate());
-        return _update(threadedConversations);
+    fun update(context: Context, threadedConversations: ThreadedConversations): Int {
+        if (threadedConversations.getDate() == null || threadedConversations.getDate()
+                .isEmpty()
+        ) threadedConversations.setDate(
+            Datastore.getDatastore(context).conversationDao()
+                .fetchLatestForThread(threadedConversations.getThread_id())!!.date
+        )
+        return _update(threadedConversations)
     }
 
     @Delete
-    void _delete(ThreadedConversations threadedConversations);
+    fun _delete(threadedConversations: ThreadedConversations)
 
     @Query("DELETE FROM ThreadedConversations WHERE thread_id IN(:ids)")
-    void _delete(List<String> ids);
+    fun _delete(ids: MutableList<String>)
 
     @Transaction
-    default void delete(Context context, List<String> ids) {
-        for(ThreadedConversations threadedConversations : getList(ids)) {
+    fun delete(context: Context, ids: MutableList<String>) {
+        for (threadedConversations in getList(ids)) {
 //            try {
 //                String keystoreAlias =
 //                        E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
@@ -299,12 +319,12 @@ public interface ThreadedConversationsDao {
 //                e.printStackTrace();
 //            }
         }
-        _delete(ids);
-        Datastore.getDatastore(context).conversationDao().deleteAll(ids);
+        _delete(ids)
+        Datastore.getDatastore(context).conversationDao().deleteAll(ids)
     }
 
     @Transaction
-    default void delete(Context context, ThreadedConversations threadedConversations) {
+    fun delete(context: Context, threadedConversations: ThreadedConversations) {
 //        try {
 //            String keystoreAlias =
 //                    E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
@@ -316,31 +336,31 @@ public interface ThreadedConversationsDao {
 //            e.printStackTrace();
 //        }
 
-        _delete(threadedConversations);
-        Datastore.getDatastore(context).conversationDao().deleteAll(Collections
-                .singletonList(threadedConversations.getThread_id()));
+        _delete(threadedConversations)
+        Datastore.getDatastore(context).conversationDao()
+            .deleteAll(mutableListOf<String>(threadedConversations.getThread_id()))
     }
 
     @Query("DELETE FROM threadedconversations")
-    void deleteAll();
+    fun deleteAll()
 
-    @Update(entity = ThreadedConversations.class)
-    void archive(List<Archive> archiveList);
+    @Update(entity = ThreadedConversations::class)
+    fun archive(archiveList: MutableList<Archive>)
 
-    @Update(entity = ThreadedConversations.class)
-    void unarchive(List<Archive> archiveList);
+    @Update(entity = ThreadedConversations::class)
+    fun unarchive(archiveList: MutableList<Archive>)
 
     @Transaction
-    default void updateAllRead(Context context, String threadId, Boolean isRead) {
-        Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId);
-        ThreadedConversations threadedConversations =
-                Datastore.getDatastore(context).threadedConversationsDao().get(threadId);
-        if(threadedConversations != null) {
-            threadedConversations.setIs_read(isRead);
-            threadedConversations.setUnread_count(0);
+    fun updateAllRead(context: Context, threadId: String, isRead: Boolean) {
+        Datastore.getDatastore(context).conversationDao().updateRead(isRead, threadId)
+        val threadedConversations =
+            Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
+        if (threadedConversations != null) {
+            threadedConversations.setIs_read(isRead)
+            threadedConversations.setUnread_count(0)
 
             Datastore.getDatastore(context).threadedConversationsDao()
-                    .update(context, threadedConversations);
+                .update(context, threadedConversations)
         }
     }
 }

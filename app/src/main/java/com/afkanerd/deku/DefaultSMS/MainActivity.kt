@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable<SearchThreadScreen>{
-                            SearchThreadsMain( )
+//                            SearchThreadsMain( )
                         }
                     }
                 }

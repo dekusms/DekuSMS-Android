@@ -85,7 +85,7 @@ class IncomingDataSMSBroadcastReceiver : BroadcastReceiver() {
                         val threadedConversations =
                             databaseConnector!!.threadedConversationsDao()
                                 .insertThreadAndConversation(context, conversation)
-                        threadedConversations.isSelf = finalIsSelf
+                        threadedConversations!!.isSelf = finalIsSelf
                         databaseConnector!!.threadedConversationsDao()
                             .update(context, threadedConversations)
 

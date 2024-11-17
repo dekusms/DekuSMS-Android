@@ -42,16 +42,16 @@ class ThreadedConversationsViewModel : ViewModel() {
     var blockedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
 
     fun getAll(context: Context): List<ThreadedConversations> {
-        return Datastore.getDatastore(context).threadedConversationsDao().all
+        return Datastore.getDatastore(context).threadedConversationsDao().getAll()
     }
 
     fun getAllLiveData(context: Context):
             LiveData<MutableList<ThreadedConversations>> {
         if (threadsLiveData == null) {
-            threadsLiveData = Datastore.getDatastore(context).threadedConversationsDao().inbox
-            archivedLiveData = Datastore.getDatastore(context).threadedConversationsDao().archived
-            encryptedLiveData = Datastore.getDatastore(context).threadedConversationsDao().encrypted
-            blockedLiveData = Datastore.getDatastore(context).threadedConversationsDao().blocked
+            threadsLiveData = Datastore.getDatastore(context).threadedConversationsDao().getInbox()
+            archivedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getArchived()
+            encryptedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getEncrypted()
+            blockedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getBlocked()
         }
         return threadsLiveData!!
     }
@@ -66,7 +66,7 @@ class ThreadedConversationsViewModel : ViewModel() {
         return gson.toJson(conversations)
     }
 
-    fun insert(threadedConversations: ThreadedConversations?) {
+    fun insert(threadedConversations: ThreadedConversations) {
         databaseConnector!!.threadedConversationsDao()._insert(threadedConversations)
     }
 
@@ -85,7 +85,7 @@ class ThreadedConversationsViewModel : ViewModel() {
         refresh(context)
     }
 
-    fun archive(archiveList: MutableList<Archive?>?) {
+    fun archive(archiveList: MutableList<Archive>) {
         databaseConnector!!.threadedConversationsDao().archive(archiveList)
     }
 
@@ -94,11 +94,11 @@ class ThreadedConversationsViewModel : ViewModel() {
         archive.thread_id = id
         archive.is_archived = true
         databaseConnector!!.threadedConversationsDao()
-            .archive(ArrayList<Archive?>(mutableListOf<Archive?>(archive)))
+            .archive(ArrayList<Archive>(mutableListOf<Archive>(archive)))
     }
 
 
-    fun delete(context: Context, ids: MutableList<String?>) {
+    fun delete(context: Context, ids: MutableList<String>) {
         databaseConnector!!.threadedConversationsDao().delete(context, ids)
         NativeSMSDB.deleteThreads(context, ids.toTypedArray<String?>())
     }
@@ -119,8 +119,8 @@ class ThreadedConversationsViewModel : ViewModel() {
                 date_sent, read, ct_cls, m_size, rpt_a, address, sub_id, pri, tr_id, resp_txt, ct_l,
                 m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
                  */
-            val threadedConversationsList: MutableList<ThreadedConversations?> =
-                ArrayList<ThreadedConversations?>()
+            val threadedConversationsList: MutableList<ThreadedConversations> =
+                ArrayList<ThreadedConversations>()
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     val threadedConversations = ThreadedConversations()
@@ -188,11 +188,11 @@ class ThreadedConversationsViewModel : ViewModel() {
         }
     }
 
-    fun unarchive(archiveList: MutableList<Archive?>?) {
+    fun unarchive(archiveList: MutableList<Archive>) {
         databaseConnector!!.threadedConversationsDao().unarchive(archiveList)
     }
 
-    fun unblock(context: Context?, threadIds: MutableList<String?>?) {
+    fun unblock(context: Context, threadIds: MutableList<String>) {
         val threadedConversationsList =
             databaseConnector!!.threadedConversationsDao().getList(threadIds)
         for (threadedConversations in threadedConversationsList) {
@@ -208,16 +208,16 @@ class ThreadedConversationsViewModel : ViewModel() {
             .clearDrafts(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT)
     }
 
-    fun hasUnread(ids: MutableList<String?>?): Boolean {
+    fun hasUnread(ids: MutableList<String>): Boolean {
         return databaseConnector!!.threadedConversationsDao().getCountUnread(ids) > 0
     }
 
-    fun markUnRead(context: Context?, threadIds: MutableList<String?>) {
+    fun markUnRead(context: Context?, threadIds: MutableList<String>) {
         NativeSMSDB.Incoming.update_all_read(context, 0, threadIds.toTypedArray<String?>())
         databaseConnector!!.threadedConversationsDao().updateRead(0, threadIds)
     }
 
-    fun markRead(context: Context?, threadIds: MutableList<String?>) {
+    fun markRead(context: Context?, threadIds: MutableList<String>) {
         NativeSMSDB.Incoming.update_all_read(context, 1, threadIds.toTypedArray<String?>())
         databaseConnector!!.threadedConversationsDao().updateRead(1, threadIds)
     }
@@ -258,11 +258,11 @@ class ThreadedConversationsViewModel : ViewModel() {
         return folderMetrics
     }
 
-    fun unMute(threadIds: MutableList<String?>?) {
+    fun unMute(threadIds: MutableList<String>) {
         databaseConnector!!.threadedConversationsDao().updateMuted(0, threadIds)
     }
 
-    fun mute(threadIds: MutableList<String?>?) {
+    fun mute(threadIds: MutableList<String>) {
         databaseConnector!!.threadedConversationsDao().updateMuted(1, threadIds)
     }
 
@@ -270,8 +270,8 @@ class ThreadedConversationsViewModel : ViewModel() {
         databaseConnector!!.threadedConversationsDao().updateUnMuteAll()
     }
 
-    fun getAddress(threadId: String?): String? {
-        val threads: MutableList<String?> = ArrayList<String?>()
+    fun getAddress(threadId: String): String {
+        val threads: MutableList<String> = ArrayList<String>()
         threads.add(threadId)
         val addresses = databaseConnector!!.threadedConversationsDao().findAddresses(threads)
         if (!addresses.isEmpty()) return addresses[0]

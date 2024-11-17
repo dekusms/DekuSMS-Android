@@ -180,7 +180,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 val threadedConversations = Datastore.getDatastore(context)
                         .threadedConversationsDao()
                         .insertThreadAndConversation(context, conversation)
-                if (!threadedConversations.isIs_mute)
+                if (!threadedConversations!!.isIs_mute)
                     NotificationsHandler.sendIncomingTextMessageNotification(context, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
