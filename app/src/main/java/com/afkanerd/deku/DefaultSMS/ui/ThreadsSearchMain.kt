@@ -1,6 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import androidx.activity.viewModels
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,17 +40,22 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun SearchThreadsMain(viewModel: SearchViewModel) {
+fun SearchThreadsMain(viewModel: SearchViewModel = SearchViewModel()) {
+    val context = LocalContext.current
+
     var expanded by rememberSaveable { mutableStateOf(false) }
     var searchInput by remember { mutableStateOf("") }
 
     val listState = rememberLazyListState()
 
-//    val items: Pair<List<ThreadedConversations>, Int> by viewModel.get().observeAsState(Pair(emptyList(), 0)) as State<Pair<List<ThreadedConversations>, Int>>
+    val items: List<ThreadedConversations> by viewModel.get().observeAsState(emptyList())
 
     Scaffold(
         modifier = Modifier.padding(8.dp),
@@ -57,7 +64,10 @@ fun SearchThreadsMain(viewModel: SearchViewModel) {
                 inputField = {
                     SearchBarDefaults.InputField(
                         query= searchInput,
-                        onQueryChange = { searchInput = it },
+                        onQueryChange = {
+                            searchInput = it
+                            viewModel.search(context, searchInput)
+                        },
                         onSearch = { expanded = false },
                         expanded = expanded,
                         onExpandedChange = { /* expanded = it */ },
@@ -74,6 +84,7 @@ fun SearchThreadsMain(viewModel: SearchViewModel) {
                         trailingIcon = {
                             IconButton(onClick = {
                                 searchInput = ""
+                                viewModel.search(context, searchInput)
                             }) {
                                 Icon(Icons.Default.Cancel, contentDescription = null)
                             }
@@ -93,11 +104,42 @@ fun SearchThreadsMain(viewModel: SearchViewModel) {
             modifier = Modifier.padding(innerPadding),
             state = listState
         )  {
-//            items(
-//                items = items,
-//                key = { it.hashCode() }
-//            ) { message ->
-//            }
+            items(
+                items = items,
+                key = { it.hashCode() }
+            ) { message ->
+                message.address?.let {
+                    var firstName = message.address
+                    var lastName = ""
+                    val isContact = !message.contact_name.isNullOrBlank()
+                    if (!message.contact_name.isNullOrBlank()) {
+                        message.contact_name.split(" ").let {
+                            firstName = it[0]
+                            if (it.size > 1)
+                                lastName = it[1]
+                        }
+                    }
+
+                    ThreadConversationCard(
+                        id = message.thread_id,
+                        firstName = firstName,
+                        lastName = lastName,
+                        content = if(message.snippet.isNullOrBlank())
+                            stringResource(R.string.conversation_threads_secured_content)
+                        else message.snippet,
+                        date =
+                        if(!message.date.isNullOrBlank())
+                            Helpers.formatDate(context, message.date.toLong())
+                        else "Tues",
+                        isRead = message.isIs_read,
+                        isContact = isContact,
+                        unreadCount = message.unread_count,
+                        modifier = Modifier.combinedClickable(
+                            onClick = { },
+                        ),
+                    )
+                }
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.Archive
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsSearch
 
 @Dao
 interface ThreadedConversationsDao {
@@ -165,7 +166,7 @@ interface ThreadedConversationsDao {
     fun get(thread_id: String): ThreadedConversations
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadIds)")
-    fun getList(threadIds: MutableList<String>): MutableList<ThreadedConversations>
+    fun getList(threadIds: List<String>): MutableList<ThreadedConversations>
 
     @Query("SELECT * FROM ThreadedConversations WHERE address =:address")
     fun getByAddress(address: String): ThreadedConversations
@@ -183,11 +184,14 @@ interface ThreadedConversationsDao {
     fun findAddresses(threadedConversationsList: MutableList<String>): MutableList<String>
 
     @Query(
-        ("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
-                "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
-                "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
+        "SELECT COUNT(Conversation.id) as count, Conversation.thread_id as threadId, " +
+                "Conversation.text, Conversation.date " +
+                "FROM Conversation, ThreadedConversations " +
+                "where text like '%' || :searchString || '%' and " +
+                "Conversation.thread_id = ThreadedConversations.thread_id " +
+                "GROUP BY ThreadedConversations.thread_id ORDER BY Conversation.date DESC"
     )
-    fun findAddresses(search_string: String): MutableList<Conversation>
+    fun search(searchString: String): MutableList<ThreadsSearch>
 
     @Query(
         "SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +

@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
     val viewModel: ThreadedConversationsViewModel by viewModels()
     val conversationViewModel: ConversationsViewModel by viewModels()
+    val searchViewModel: SearchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +83,9 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable<SearchThreadScreen>{
-//                            SearchThreadsMain( )
+                            SearchThreadsMain(
+                                viewModel = searchViewModel
+                            )
                         }
                     }
                 }
