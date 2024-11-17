@@ -306,5 +306,8 @@
     <string name="archive_folder">Archive folder</string>
     <string name="encrypted_folder">Encrypted folder</string>
     <string name="blocked_folder">Blocked Folder</string>
+    <string name="move_search_backwards">Move search backwards</string>
+    <string name="move_search_forwards">Move search forwards</string>
+    <string name="results_found">results found</string>
 
 </resources>

@@ -35,7 +35,11 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -45,6 +49,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -159,6 +164,45 @@ private fun sendSMS(
     )
 }
 
+
+@Preview(showBackground = true)
+@Composable
+fun SearchCounterCompose(
+    index: String = "0",
+    total: String = "10"
+) {
+    Card(
+
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text("$index/$total ${stringResource(R.string.results_found)}")
+            }
+
+            IconButton(onClick = {
+
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBackIos,
+                    contentDescription = stringResource(R.string.move_search_backwards)
+                )
+            }
+
+            IconButton(onClick = {
+
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
+                    contentDescription = stringResource(R.string.move_search_forwards)
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
@@ -383,7 +427,6 @@ private fun call(context: Context, address: String) {
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-@Preview(showBackground = true)
 @Composable
 private fun SecureRequestAcceptModal(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
@@ -442,7 +485,8 @@ private fun SecureRequestAcceptModal(
                 }, modifier = Modifier.padding(16.dp)) {
                     Text(stringResource(R.string.request))
                 }
-            } else {
+            }
+            else {
                 Text(
                     text = stringResource(R.string.conversations_secure_conversation_request),
                     textAlign = TextAlign.Center,
@@ -497,19 +541,22 @@ private fun SecureRequestAcceptModal(
 @Composable
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
+    searchQuery: String? = null,
     navController: NavController,
 ) {
     val context = LocalContext.current
     var isSecured by remember {
         mutableStateOf(
-            E2EEHandler.isSecured(context, viewModel.address!!)
+            if(viewModel.address.isNullOrBlank()) false
+            else E2EEHandler.isSecured(context, viewModel.address!!)
         )
     }
 
     var showSecureRequestModal by rememberSaveable { mutableStateOf(false) }
     var showSecureAgreeModal by rememberSaveable {
         mutableStateOf(
-            E2EEHandler.hasPendingApproval(context, viewModel.address!!)
+            if(viewModel.address.isNullOrBlank()) false
+            else E2EEHandler.hasPendingApproval(context, viewModel.address!!)
         )
     }
 
@@ -538,7 +585,6 @@ fun Conversations(
         }
         else selectedItems.clear()
     }
-
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -714,28 +760,28 @@ private fun deriveMetaDate(conversation: Conversation): String{
     return dateFormat.format(Date(conversation.date!!.toLong()));
 }
 
-@Preview
-@Composable
-fun PreviewConversations() {
-    AppTheme(darkTheme = true) {
-        Surface(Modifier.safeDrawingPadding()) {
-            var conversations: MutableList<Conversation> =
-                remember { mutableListOf( ) }
-            var isSend = false
-            val address = "+123456789"
-            val threadId = "1"
-            for(i in 0..1) {
-                val conversation = Conversation()
-                conversation.id = i.toLong()
-                conversation.text = stringResource(
-                    R.string
-                        .settings_add_gateway_server_protocol_meta_description)
-                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                conversations.add(conversation)
-                isSend = !isSend
-            }
-            Conversations(navController = rememberNavController())
-        }
-    }
-}
+//@Preview
+//@Composable
+//fun PreviewConversations() {
+//    AppTheme(darkTheme = true) {
+//        Surface(Modifier.safeDrawingPadding()) {
+//            var conversations: MutableList<Conversation> =
+//                remember { mutableListOf( ) }
+//            var isSend = false
+//            val address = "+123456789"
+//            val threadId = "1"
+//            for(i in 0..1) {
+//                val conversation = Conversation()
+//                conversation.id = i.toLong()
+//                conversation.text = stringResource(
+//                    R.string
+//                        .settings_add_gateway_server_protocol_meta_description)
+//                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+//                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+//                conversations.add(conversation)
+//                isSend = !isSend
+//            }
+//            Conversations(navController = rememberNavController())
+//        }
+//    }
+//}

@@ -5,6 +5,7 @@ import android.provider.Telephony
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -25,14 +26,14 @@ class ConversationsViewModel : ViewModel() {
     var address: String? = null
     var text: String = ""
 
-    private var liveData: LiveData<MutableList<Conversation>>? = null
+    private var liveData: LiveData<MutableList<Conversation>> = MutableLiveData()
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
 //        if (liveData == null) {
 //            println("Thread View model: $threadId")
 //            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
 //        }
         liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId!!)
-        return liveData!!
+        return liveData
     }
 
     fun insert(context: Context, conversation: Conversation): Long {
