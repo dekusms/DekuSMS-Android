@@ -41,13 +41,18 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun SearchThreadsMain(viewModel: SearchViewModel = SearchViewModel()) {
+fun SearchThreadsMain(
+    viewModel: SearchViewModel = SearchViewModel(),
+    navController: NavController = rememberNavController()
+) {
     val context = LocalContext.current
 
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -76,7 +81,12 @@ fun SearchThreadsMain(viewModel: SearchViewModel = SearchViewModel()) {
                         },
                         leadingIcon = {
                             IconButton(onClick = {
-
+                                if(searchInput.isNotBlank()) {
+                                    searchInput = ""
+                                    viewModel.search(context, searchInput)
+                                } else {
+                                    navController.popBackStack()
+                                }
                             }) {
                                 Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null)
                             }
