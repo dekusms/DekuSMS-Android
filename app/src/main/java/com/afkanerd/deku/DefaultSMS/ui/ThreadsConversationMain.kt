@@ -186,7 +186,7 @@ fun processIntents(context: Context, intent: Intent): Triple<String?, String?, S
 
 fun navigateToConversation(
     context: Context,
-    viewModel: ThreadedConversationsViewModel,
+    viewModel: ThreadedConversationsViewModel? = null,
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
@@ -194,7 +194,7 @@ fun navigateToConversation(
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
-    viewModel.updateRead(context, threadId)
+    viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
 

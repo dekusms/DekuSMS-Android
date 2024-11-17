@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
                         composable<SearchThreadScreen>{
                             SearchThreadsMain(
                                 viewModel = searchViewModel,
+                                conversationsViewModel = conversationViewModel,
                                 navController = navController
                             )
                         }

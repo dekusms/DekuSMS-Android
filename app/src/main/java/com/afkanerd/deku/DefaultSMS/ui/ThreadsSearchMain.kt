@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 
@@ -51,6 +52,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 @Composable
 fun SearchThreadsMain(
     viewModel: SearchViewModel = SearchViewModel(),
+    conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
     navController: NavController = rememberNavController()
 ) {
     val context = LocalContext.current
@@ -145,7 +147,15 @@ fun SearchThreadsMain(
                         isContact = isContact,
                         unreadCount = message.unread_count,
                         modifier = Modifier.combinedClickable(
-                            onClick = { },
+                            onClick = {
+                                navigateToConversation(
+                                    context,
+                                    conversationsViewModel = conversationsViewModel,
+                                    address = message.address,
+                                    threadId = message.thread_id,
+                                    navController = navController,
+                                )
+                            },
                         ),
                     )
                 }
