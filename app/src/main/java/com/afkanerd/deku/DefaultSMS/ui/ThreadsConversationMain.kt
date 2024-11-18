@@ -268,7 +268,7 @@ fun ModalDrawerSheetLayout(
 
 @Preview(showBackground = true)
 @Composable
-fun MainDropDownMenu(
+private fun MainDropDownMenu(
     expanded: Boolean = true,
     gestureCallback: (() -> Unit)? = null
 ) {
@@ -292,7 +292,6 @@ fun MainDropDownMenu(
                 onClick = {}
             )
         }
-
     }
 }
 
@@ -420,12 +419,8 @@ fun ThreadConversationLayout(
                             IconButton(onClick = {
                                 scope.launch {
                                     drawerState.apply {
-                                        if(isClosed) {
-                                            open()
-                                        }
-                                        else {
-                                            close()
-                                        }
+                                        if(isClosed) { open() }
+                                        else { close() }
                                     }
                                 }
                             }) {

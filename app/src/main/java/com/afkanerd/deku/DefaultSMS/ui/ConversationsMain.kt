@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -50,10 +52,14 @@ import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -97,6 +103,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
@@ -171,18 +178,20 @@ fun SearchCounterCompose(
     index: String = "0",
     total: String = "10"
 ) {
-    Card(
-
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text("$index/$total ${stringResource(R.string.results_found)}")
-            }
+        Text(
+            "$index/$total ${stringResource(R.string.results_found)}",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 12.sp
+        )
 
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(Modifier.weight(4f))
             IconButton(onClick = {
 
             }) {
@@ -537,12 +546,43 @@ private fun SecureRequestAcceptModal(
 
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun MainDropDownMenu(
+    expanded: Boolean = true,
+    gestureCallback: (() -> Unit)? = null
+) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.TopEnd)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                gestureCallback?.let{ it() }
+            },
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.about_deku),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {}
+            )
+        }
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchQuery: String? = null,
     navController: NavController,
+    _items: List<Conversation>? = null
 ) {
     val context = LocalContext.current
     var isSecured by remember {
@@ -563,11 +603,24 @@ fun Conversations(
     var getContactName by remember { mutableStateOf("")}
     var selectedItems = remember { mutableStateListOf<Conversation>() }
 
+//    val items: List<Conversation> = _items ?: viewModel
+//        .getLiveData(context)
+//        .observeAsState(emptyList())
+//        .value
     val items: List<Conversation> by viewModel
-        .getLiveData(context).observeAsState(emptyList())
+        .getLiveData(context)
+        .observeAsState(emptyList())
+
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    var rememberMenuExpanded by remember { mutableStateOf( false) }
+    MainDropDownMenu(rememberMenuExpanded) {
+        rememberMenuExpanded = !rememberMenuExpanded
+    }
+
+    val searchIndexes: MutableList<Int> = arrayListOf()
 
     LaunchedEffect("contact_name"){
         val defaultRegion = Helpers.getUserCountry( context )
@@ -577,6 +630,15 @@ fun Conversations(
         if(contactName.isNullOrBlank())
             contactName = viewModel.address!!
         getContactName = contactName
+
+        searchQuery?.let {
+            CoroutineScope(Dispatchers.Default).launch {
+                items.forEachIndexed { index, it ->
+                    if(it.text!!.contains(other=searchQuery, ignoreCase=true))
+                        searchIndexes.add(index)
+                }
+            }
+        }
     }
 
     BackHandler {
@@ -586,25 +648,26 @@ fun Conversations(
         else selectedItems.clear()
     }
 
+//    LaunchedEffect(items){ listState.animateScrollToItem(0) }
+
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Text(
+                        text= getContactName,
+                        maxLines =1,
+                        overflow = TextOverflow.Ellipsis)
+
+                    if(isSecured) {
                         Text(
-                            text= getContactName,
+                            text= stringResource(R.string.secured),
+                            style = MaterialTheme.typography.labelLarge,
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
-
-                        if(isSecured) {
-                            Text(
-                                text= stringResource(R.string.secured),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines =1,
-                                overflow = TextOverflow.Ellipsis)
-                        }
                     }
+
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -638,7 +701,7 @@ fun Conversations(
                     }
 
                     IconButton(onClick = {
-                        TODO("Implement menu functionality")
+                        rememberMenuExpanded = !rememberMenuExpanded
                     }) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
@@ -663,26 +726,18 @@ fun Conversations(
             }
         }
     ) { innerPadding ->
-
-        LaunchedEffect(items){ listState.animateScrollToItem(0) }
-
         LazyColumn(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .fillMaxHeight(),
             state = listState,
             reverseLayout = true,
         ) {
             itemsIndexed(
                 items = items,
-                key = { index, conversation -> conversation.id }
+                key = { index, conversation -> conversation.hashCode() }
             ) { index, conversation ->
-                var showDate by remember {
-                    mutableStateOf(
-                        index == 0 ||
-                                conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
-                    )
-                }
+                var showDate by remember { mutableStateOf(index == 0) }
 
                 ConversationsCard(
                     text= if(conversation.text.isNullOrBlank()) ""
@@ -751,6 +806,7 @@ fun Conversations(
                 isSecured = E2EEHandler.isSecured(context, viewModel.address!!)
             }
         }
+
     }
 
 }
@@ -760,28 +816,28 @@ private fun deriveMetaDate(conversation: Conversation): String{
     return dateFormat.format(Date(conversation.date!!.toLong()));
 }
 
-//@Preview
-//@Composable
-//fun PreviewConversations() {
-//    AppTheme(darkTheme = true) {
-//        Surface(Modifier.safeDrawingPadding()) {
-//            var conversations: MutableList<Conversation> =
-//                remember { mutableListOf( ) }
-//            var isSend = false
-//            val address = "+123456789"
-//            val threadId = "1"
-//            for(i in 0..1) {
-//                val conversation = Conversation()
-//                conversation.id = i.toLong()
-//                conversation.text = stringResource(
-//                    R.string
-//                        .settings_add_gateway_server_protocol_meta_description)
-//                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-//                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-//                conversations.add(conversation)
-//                isSend = !isSend
-//            }
-//            Conversations(navController = rememberNavController())
-//        }
-//    }
-//}
+@Preview
+@Composable
+fun PreviewConversations() {
+    AppTheme(darkTheme = true) {
+        Surface(Modifier.safeDrawingPadding()) {
+            var conversations: MutableList<Conversation> =
+                remember { mutableListOf( ) }
+            var isSend = false
+            val address = "+123456789"
+            val threadId = "1"
+            for(i in 0..1) {
+                val conversation = Conversation()
+                conversation.id = i.toLong()
+                conversation.text = stringResource(
+                    R.string
+                        .settings_add_gateway_server_protocol_meta_description)
+                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                conversations.add(conversation)
+                isSend = !isSend
+            }
+            Conversations(navController = rememberNavController(), _items=conversations)
+        }
+    }
+}
