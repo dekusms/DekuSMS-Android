@@ -309,5 +309,6 @@
     <string name="move_search_backwards">Move search backwards</string>
     <string name="move_search_forwards">Move search forwards</string>
     <string name="results_found">results found</string>
+    <string name="down_to_latest_content">Down to latest content</string>
 
 </resources>

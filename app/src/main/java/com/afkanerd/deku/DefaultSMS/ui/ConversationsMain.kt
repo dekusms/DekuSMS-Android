@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -33,6 +35,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -46,6 +49,8 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EnhancedEncryption
+import androidx.compose.material.icons.filled.ExpandCircleDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.rememberBottomSheetState
@@ -87,6 +92,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -603,13 +609,10 @@ fun Conversations(
     var getContactName by remember { mutableStateOf("")}
     var selectedItems = remember { mutableStateListOf<Conversation>() }
 
-//    val items: List<Conversation> = _items ?: viewModel
-//        .getLiveData(context)
-//        .observeAsState(emptyList())
-//        .value
-    val items: List<Conversation> by viewModel
+    val items: List<Conversation> = _items ?: viewModel
         .getLiveData(context)
         .observeAsState(emptyList())
+        .value
 
 
     val listState = rememberLazyListState()
@@ -622,7 +625,8 @@ fun Conversations(
 
     val searchIndexes: MutableList<Int> = arrayListOf()
 
-    LaunchedEffect("contact_name"){
+    LaunchedEffect(true){
+        listState.animateScrollToItem(0)
         val defaultRegion = Helpers.getUserCountry( context )
 
         contactName = Contacts.retrieveContactName( context,
@@ -648,7 +652,7 @@ fun Conversations(
         else selectedItems.clear()
     }
 
-//    LaunchedEffect(items){ listState.animateScrollToItem(0) }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -726,65 +730,94 @@ fun Conversations(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxHeight(),
-            state = listState,
-            reverseLayout = true,
         ) {
-            itemsIndexed(
-                items = items,
-                key = { index, conversation -> conversation.hashCode() }
-            ) { index, conversation ->
-                var showDate by remember { mutableStateOf(index == 0) }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                state = listState,
+                reverseLayout = true,
+            ) {
+                itemsIndexed(
+                    items = items,
+                    key = { index, conversation -> conversation.hashCode() }
+                ) { index, conversation ->
+                    var showDate by remember { mutableStateOf(index == 0) }
 
-                ConversationsCard(
-                    text= if(conversation.text.isNullOrBlank()) ""
-                    else conversation.text!!,
-                    timestamp =
-                    if(!conversation.date.isNullOrBlank())
-                        Helpers.formatDateExtended(context,
-                            conversation.date!!.toLong())
-                    else "1730062120",
-                    type= conversation.type,
-                    status = ConversationStatusTypes.fromInt(conversation.status)!!,
-                    position = getContentType(index, conversation, items),
-                    date =
-                    if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
-                    else "1730062120",
-                    showDate = showDate,
-                    modifier =
-                    if(conversation.isIs_key) Modifier
-                    else Modifier
-                        .padding(start = 8.dp, end = 8.dp)
-                        .combinedClickable(
-                            onLongClick = {
-                                selectedItems.add(conversation)
-                            },
-                            onClick = {
-                                if (!selectedItems.isEmpty()) {
-                                    if (selectedItems.contains(conversation))
-                                        selectedItems.remove(conversation)
-                                    else
-                                        selectedItems.add(conversation)
-                                } else {
-                                    showDate = !showDate
+                    ConversationsCard(
+                        text= if(conversation.text.isNullOrBlank()) ""
+                        else conversation.text!!,
+                        timestamp =
+                        if(!conversation.date.isNullOrBlank())
+                            Helpers.formatDateExtended(context,
+                                conversation.date!!.toLong())
+                        else "1730062120",
+                        type= conversation.type,
+                        status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                        position = getContentType(index, conversation, items),
+                        date =
+                        if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
+                        else "1730062120",
+                        showDate = showDate,
+                        modifier =
+                        if(conversation.isIs_key) Modifier
+                        else Modifier
+                            .padding(start = 8.dp, end = 8.dp)
+                            .combinedClickable(
+                                onLongClick = {
+                                    selectedItems.add(conversation)
+                                },
+                                onClick = {
+                                    if (!selectedItems.isEmpty()) {
+                                        if (selectedItems.contains(conversation))
+                                            selectedItems.remove(conversation)
+                                        else
+                                            selectedItems.add(conversation)
+                                    } else {
+                                        showDate = !showDate
+                                    }
                                 }
-                            }
-                        ),
-                    isSelected = selectedItems.contains(conversation),
-                    isKey = conversation.isIs_key,
-                )
+                            ),
+                        isSelected = selectedItems.contains(conversation),
+                        isKey = conversation.isIs_key,
+                    )
 
-                if(conversation.isIs_key &&
-                    conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-                    LaunchedEffect("check_encryption") {
-                        showSecureAgreeModal = E2EEHandler
-                            .hasPendingApproval(context, viewModel.address!!)
+                    if(conversation.isIs_key &&
+                        conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+                        LaunchedEffect("check_encryption") {
+                            showSecureAgreeModal = E2EEHandler
+                                .hasPendingApproval(context, viewModel.address!!)
+                        }
                     }
-                }
 
+                }
+            }
+
+            if(listState.canScrollBackward) {
+                Button(
+                    onClick = {
+                        coroutineScope.launch { listState.animateScrollToItem(0) }
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.outline
+                    ),
+                    contentPadding = PaddingValues(8.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.BottomEnd)
+                        .clip(CircleShape)
+                        .size(50.dp)
+                    ) {
+                    Icon(
+                        modifier = Modifier.size(50.dp),
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.down_to_latest_content),
+                        tint= MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
             }
         }
 
