@@ -310,5 +310,6 @@
     <string name="move_search_forwards">Move search forwards</string>
     <string name="results_found">results found</string>
     <string name="down_to_latest_content">Down to latest content</string>
+    <string name="cancel_selected_messages">Cancel selected messages</string>
 
 </resources>

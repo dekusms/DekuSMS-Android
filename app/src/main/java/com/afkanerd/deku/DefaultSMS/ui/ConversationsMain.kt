@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -46,6 +47,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EnhancedEncryption
@@ -374,47 +377,67 @@ private fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     selectedItems: List<String> = emptyList(),
     items: List<Conversation> = emptyList(),
-    onCompleted: (() -> Unit)? = null
+    onCompleted: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null,
 ) {
 
     val context = LocalContext.current
     BottomAppBar (
         actions = {
-            if(selectedItems.size < 2) {
+            Row {
                 IconButton(onClick = {
-                    val conversation = items.firstOrNull { it.message_id in selectedItems }
-                    copyItem(context, conversation?.text!!)
-                    onCompleted?.let { it() }
+                    CoroutineScope(Dispatchers.Default).launch {
+                        onCancel?.let { it() }
+                    }
                 }) {
-                    Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                    Icon(Icons.Default.Close, stringResource(R.string.cancel_selected_messages))
+                }
+
+                Text(
+                    selectedItems.size.toString(),
+                    fontSize = 24.sp,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                if(selectedItems.size < 2) {
+                    IconButton(onClick = {
+                        val conversation = items.firstOrNull { it.message_id in selectedItems }
+                        copyItem(context, conversation?.text!!)
+                        onCompleted?.let { it() }
+                    }) {
+                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                    }
+
+                    IconButton(onClick = {
+                        TODO("Implement forward message")
+                    }) {
+                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
+                            stringResource(R.string.forward_message)
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        val conversation = items.firstOrNull { it.message_id in selectedItems }
+                        shareItem(context, conversation?.text!!)
+                        onCompleted?.let { it() }
+                    }) {
+                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
+                    }
                 }
 
                 IconButton(onClick = {
-                    TODO("Implement forward message")
+                    CoroutineScope(Dispatchers.Default).launch {
+                        val conversations = items.filter { it.message_id in selectedItems }
+                        viewModel.deleteItems(context, conversations)
+                        onCompleted?.let { it() }
+                    }
                 }) {
-                    Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
-                        stringResource(R.string.forward_message)
-                    )
-                }
-
-                IconButton(onClick = {
-                    val conversation = items.firstOrNull { it.message_id in selectedItems }
-                    shareItem(context, conversation?.text!!)
-                    onCompleted?.let { it() }
-                }) {
-                    Icon(Icons.Filled.Share, stringResource(R.string.share_message))
+                    Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
                 }
             }
 
-            IconButton(onClick = {
-                CoroutineScope(Dispatchers.Default).launch {
-                    val conversations = items.filter { it.message_id in selectedItems }
-                    viewModel.deleteItems(context, conversations)
-                    onCompleted?.let { it() }
-                }
-            }) {
-                Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
-            }
         }
     )
 }
@@ -731,7 +754,8 @@ fun Conversations(
             else ConversationCrudBottomBar(
                 viewModel,
                 selectedItems,
-                items
+                items,
+                onCompleted = { selectedItems.clear() }
             ) {
                 selectedItems.clear()
             }
