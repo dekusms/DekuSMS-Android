@@ -1,7 +1,10 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.provider.Telephony
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -79,6 +82,7 @@ private fun ConversationIsKey(isReceived: Boolean = false) {
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 private fun ConversationReceived(
@@ -87,6 +91,8 @@ private fun ConversationReceived(
     date: String = "yesterday",
     showDate: Boolean = true,
     isSelected: Boolean = false,
+    onClickCallback: (() -> Unit)? = null,
+    onLongClickCallback: (() -> Unit)? = null,
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(28.dp, 28.dp, 28.dp, 1.dp)
@@ -122,6 +128,10 @@ private fun ConversationReceived(
                 ),
                 modifier = Modifier
                     .clip(shape=shape)
+                    .combinedClickable(
+                        onClick = { onClickCallback?.let{ it() }},
+                        onLongClick = { onLongClickCallback?.let{ it() } }
+                    )
             ) {
                 Text(
                     text=text,
@@ -142,6 +152,7 @@ private fun ConversationReceived(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 private fun ConversationSent(
@@ -151,6 +162,8 @@ private fun ConversationSent(
     date: String = "yesterday",
     isSelected: Boolean = false,
     showDate: Boolean = true,
+    onClickCallback: (() -> Unit)? = null,
+    onLongClickCallback: (() -> Unit)? = null,
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(28.dp, 28.dp, 1.dp, 28.dp)
@@ -187,6 +200,14 @@ private fun ConversationSent(
                 modifier = Modifier
                     .clip(shape=shape)
                     .align(alignment = Alignment.End)
+                    .combinedClickable(
+                        onClick = {
+                            onClickCallback?.let { it() }
+                        },
+                        onLongClick ={
+                            onLongClickCallback?.let { it() }
+                        }
+                    )
             ) {
                 Text(
                     text=text,
@@ -239,11 +260,12 @@ fun ConversationsCard(
     showDate: Boolean = true,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
-    modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     isKey: Boolean = false,
+    onClickCallback: (() -> Unit)? = null,
+    onLongClickCallback: (() -> Unit)? = null,
 ) {
-    Column(modifier = modifier) {
+    Column {
         if(position == ConversationPositionTypes.START_TIMESTAMP ||
             position == ConversationPositionTypes.NORMAL_TIMESTAMP) {
             Text(
@@ -256,39 +278,45 @@ fun ConversationsCard(
                 textAlign = TextAlign.Center,
             )
         }
-        when(type)  {
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX -> {
-                if(isKey) {
-                    ConversationIsKey(isReceived = true)
-                } else {
-                    ConversationReceived(
-                        text =text,
-                        position =position,
-                        date =date,
-                        showDate = showDate,
-                        isSelected = isSelected
-                    )
+        Box(modifier = Modifier.padding(start=8.dp, end=8.dp)) {
+            when(type)  {
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX -> {
+                    if(isKey) {
+                        ConversationIsKey(isReceived = true)
+                    } else {
+                        ConversationReceived(
+                            text =text,
+                            position =position,
+                            date =date,
+                            showDate = showDate,
+                            isSelected = isSelected,
+                            onClickCallback = onClickCallback,
+                            onLongClickCallback = onLongClickCallback,
+                        )
+                    }
                 }
-            }
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, -> {
-                if(isKey) {
-                    ConversationIsKey(isReceived = false)
-                } else {
-                    ConversationSent(
-                        text =text,
-                        position =position,
-                        date =date,
-                        status =status,
-                        isSelected = isSelected,
-                        showDate = showDate
-                    )
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, -> {
+                    if(isKey) {
+                        ConversationIsKey(isReceived = false)
+                    } else {
+                        ConversationSent(
+                            text =text,
+                            position =position,
+                            date =date,
+                            status =status,
+                            isSelected = isSelected,
+                            showDate = showDate,
+                            onClickCallback = onClickCallback,
+                            onLongClickCallback = onLongClickCallback,
+                        )
+                    }
                 }
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, -> TODO()
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED, -> TODO()
             }
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, -> TODO()
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED, -> TODO()
         }
     }
 }

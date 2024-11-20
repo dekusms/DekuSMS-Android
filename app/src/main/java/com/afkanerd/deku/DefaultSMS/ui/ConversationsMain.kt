@@ -79,6 +79,7 @@ import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -295,6 +296,7 @@ fun ChatCompose(
                     conversationsViewModel = viewModel)
                 userInput = ""
             },
+                enabled = userInput.isNotBlank(),
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.outlineVariant)
@@ -370,16 +372,18 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
 @Composable
 private fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    items: List<Conversation> = emptyList<Conversation>(),
+    selectedItems: List<String> = emptyList(),
+    items: List<Conversation> = emptyList(),
     onCompleted: (() -> Unit)? = null
 ) {
 
     val context = LocalContext.current
     BottomAppBar (
         actions = {
-            if(items.size < 2) {
+            if(selectedItems.size < 2) {
                 IconButton(onClick = {
-                    copyItem(context!!, items.first().text!!)
+                    val conversation = items.firstOrNull { it.message_id in selectedItems }
+                    copyItem(context, conversation?.text!!)
                     onCompleted?.let { it() }
                 }) {
                     Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
@@ -394,7 +398,8 @@ private fun ConversationCrudBottomBar(
                 }
 
                 IconButton(onClick = {
-                    shareItem(context!!, items.first().text!!)
+                    val conversation = items.firstOrNull { it.message_id in selectedItems }
+                    shareItem(context, conversation?.text!!)
                     onCompleted?.let { it() }
                 }) {
                     Icon(Icons.Filled.Share, stringResource(R.string.share_message))
@@ -403,7 +408,8 @@ private fun ConversationCrudBottomBar(
 
             IconButton(onClick = {
                 CoroutineScope(Dispatchers.Default).launch {
-                    viewModel.deleteItems(context!!, items)
+                    val conversations = items.filter { it.message_id in selectedItems }
+                    viewModel.deleteItems(context, conversations)
                     onCompleted?.let { it() }
                 }
             }) {
@@ -607,7 +613,7 @@ fun Conversations(
     }
 
     var getContactName by remember { mutableStateOf("")}
-    var selectedItems = remember { mutableStateListOf<Conversation>() }
+    var selectedItems = remember { mutableStateListOf<String>() }
 
     val items: List<Conversation> = _items ?: viewModel
         .getLiveData(context)
@@ -625,7 +631,7 @@ fun Conversations(
 
     val searchIndexes: MutableList<Int> = arrayListOf()
 
-    LaunchedEffect(true){
+    LaunchedEffect(0){
         listState.animateScrollToItem(0)
         val defaultRegion = Helpers.getUserCountry( context )
 
@@ -724,7 +730,8 @@ fun Conversations(
             )
             else ConversationCrudBottomBar(
                 viewModel,
-                selectedItems
+                selectedItems,
+                items
             ) {
                 selectedItems.clear()
             }
@@ -733,17 +740,15 @@ fun Conversations(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxHeight(),
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxHeight(),
+                modifier = Modifier.fillMaxSize(),
                 state = listState,
                 reverseLayout = true,
             ) {
                 itemsIndexed(
                     items = items,
-                    key = { index, conversation -> conversation.hashCode() }
+                    key = { index, conversation -> conversation.id }
                 ) { index, conversation ->
                     var showDate by remember { mutableStateOf(index == 0) }
 
@@ -762,41 +767,51 @@ fun Conversations(
                         if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
                         else "1730062120",
                         showDate = showDate,
-                        modifier =
-                        if(conversation.isIs_key) Modifier
-                        else Modifier
-                            .padding(start = 8.dp, end = 8.dp)
-                            .combinedClickable(
-                                onLongClick = {
-                                    selectedItems.add(conversation)
-                                },
-                                onClick = {
-                                    if (!selectedItems.isEmpty()) {
-                                        if (selectedItems.contains(conversation))
-                                            selectedItems.remove(conversation)
-                                        else
-                                            selectedItems.add(conversation)
-                                    } else {
-                                        showDate = !showDate
-                                    }
-                                }
-                            ),
-                        isSelected = selectedItems.contains(conversation),
+                        onClickCallback = {
+                            if (!selectedItems.isEmpty()) {
+                                println(selectedItems)
+                                if (selectedItems.contains(conversation.message_id))
+                                    selectedItems.remove(conversation.message_id)
+                                else
+                                    selectedItems.add(conversation.message_id!!)
+                            } else {
+                                showDate = !showDate
+                            }
+                        },
+                        onLongClickCallback = {
+                            selectedItems.add(conversation.message_id!!)
+                        },
+                        isSelected = selectedItems.contains(conversation.message_id),
                         isKey = conversation.isIs_key,
                     )
 
-                    if(conversation.isIs_key &&
-                        conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-                        LaunchedEffect("check_encryption") {
-                            showSecureAgreeModal = E2EEHandler
-                                .hasPendingApproval(context, viewModel.address!!)
+
+                    val checkIsSecured by remember {
+                        derivedStateOf {
+                            conversation.isIs_key &&
+                                    conversation.type == Telephony.TextBasedSmsColumns
+                                        .MESSAGE_TYPE_INBOX
                         }
                     }
 
+                    if(checkIsSecured) {
+                        LaunchedEffect(true) {
+                            coroutineScope.launch{
+                                showSecureAgreeModal = E2EEHandler
+                                    .hasPendingApproval(context, viewModel.address!!)
+                            }
+                        }
+                    }
                 }
             }
 
-            if(listState.canScrollBackward) {
+            val showScrollBottom by remember {
+                derivedStateOf {
+                    listState.firstVisibleItemIndex > 0
+                }
+            }
+
+            if(showScrollBottom) {
                 Button(
                     onClick = {
                         coroutineScope.launch { listState.animateScrollToItem(0) }
@@ -807,7 +822,7 @@ fun Conversations(
                     contentPadding = PaddingValues(8.dp),
                     modifier = Modifier
                         .padding(16.dp)
-                        .align(Alignment.BottomEnd)
+                        .align(Alignment.BottomCenter)
                         .clip(CircleShape)
                         .size(50.dp)
                     ) {
