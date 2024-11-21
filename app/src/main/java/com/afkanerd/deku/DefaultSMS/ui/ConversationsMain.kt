@@ -86,6 +86,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -187,7 +188,9 @@ private fun sendSMS(
 @Composable
 fun SearchCounterCompose(
     index: String = "0",
-    total: String = "10"
+    total: String = "10",
+    forwardClick: (() -> Unit)? = null,
+    backwardClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -204,7 +207,7 @@ fun SearchCounterCompose(
         ) {
             Spacer(Modifier.weight(4f))
             IconButton(onClick = {
-
+                forwardClick?.let{ it() }
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBackIos,
@@ -213,7 +216,7 @@ fun SearchCounterCompose(
             }
 
             IconButton(onClick = {
-
+                backwardClick?.let{ it() }
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
@@ -719,6 +722,8 @@ fun Conversations(
     }
 
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
+    var searchIndex by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(items) {
         searchQuery?.let { query ->
             CoroutineScope(Dispatchers.Default).launch {
@@ -839,7 +844,26 @@ fun Conversations(
 
             }
             else if(!viewModel.searchQuery.isNullOrBlank()) {
-                SearchCounterCompose(total=searchIndexes.size.toString())
+                SearchCounterCompose(
+                    index = (searchIndex + 1).toString(),
+                    total=searchIndexes.size.toString(),
+                    forwardClick = {
+                        if(searchIndex + 1 >= searchIndexes.size)
+                            searchIndex = 0
+                        else searchIndex += 1
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(searchIndexes[searchIndex])
+                        }
+                    },
+                    backwardClick = {
+                        if(searchIndex - 1 < 0)
+                            searchIndex = searchIndexes.size - 1
+                        else searchIndex -= 1
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(searchIndexes[searchIndex])
+                        }
+                    }
+                )
             }
             else ChatCompose(
                 viewModel.address!!,
