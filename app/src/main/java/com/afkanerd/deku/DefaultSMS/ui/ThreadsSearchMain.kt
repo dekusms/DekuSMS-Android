@@ -154,6 +154,7 @@ fun SearchThreadsMain(
                                     address = message.address,
                                     threadId = message.thread_id,
                                     navController = navController,
+                                    searchQuery = searchInput
                                 )
                             },
                         ),

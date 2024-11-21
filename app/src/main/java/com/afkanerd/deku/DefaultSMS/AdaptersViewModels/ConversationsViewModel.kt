@@ -25,6 +25,7 @@ class ConversationsViewModel : ViewModel() {
     var threadId: String? = null
     var address: String? = null
     var text: String = ""
+    var searchQuery: String? = null
 
     private var liveData: LiveData<MutableList<Conversation>> = MutableLiveData()
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {

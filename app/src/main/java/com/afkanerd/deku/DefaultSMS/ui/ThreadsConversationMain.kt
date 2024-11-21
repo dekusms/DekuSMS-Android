@@ -191,9 +191,11 @@ fun navigateToConversation(
     address: String,
     threadId: String,
     navController: NavController,
+    searchQuery: String? = null
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
+    conversationsViewModel.searchQuery = searchQuery
     viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }

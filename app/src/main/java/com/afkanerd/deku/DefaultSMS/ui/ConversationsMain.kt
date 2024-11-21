@@ -91,6 +91,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -380,7 +381,6 @@ private fun ConversationCrudBottomBar(
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
 ) {
-
     val context = LocalContext.current
     BottomAppBar (
         actions = {
@@ -581,7 +581,6 @@ private fun SecureRequestAcceptModal(
 
 }
 
-@Preview(showBackground = true)
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = true,
@@ -615,7 +614,6 @@ private fun MainDropDownMenu(
 @Composable
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    searchQuery: String? = null,
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -652,7 +650,7 @@ fun Conversations(
         rememberMenuExpanded = !rememberMenuExpanded
     }
 
-    val searchIndexes: MutableList<Int> = arrayListOf()
+    val searchIndexes = remember { mutableStateListOf<Int>() }
 
     LaunchedEffect(0){
         listState.animateScrollToItem(0)
@@ -663,11 +661,14 @@ fun Conversations(
         if(contactName.isNullOrBlank())
             contactName = viewModel.address!!
         getContactName = contactName
+    }
 
-        searchQuery?.let {
+    LaunchedEffect(items) {
+        viewModel.searchQuery?.let { searchQuery ->
             CoroutineScope(Dispatchers.Default).launch {
                 items.forEachIndexed { index, it ->
-                    if(it.text!!.contains(other=searchQuery, ignoreCase=true))
+                    if(it.text!!.contains(other=searchQuery, ignoreCase=true)
+                        && !searchIndexes.contains(index))
                         searchIndexes.add(index)
                 }
             }
@@ -746,19 +747,25 @@ fun Conversations(
             )
         },
         bottomBar = {
-            if(selectedItems.isEmpty()) ChatCompose(
+            if(!viewModel.searchQuery.isNullOrBlank()) {
+                SearchCounterCompose(total=searchIndexes.size.toString())
+            }
+            else if(!selectedItems.isEmpty()) {
+                ConversationCrudBottomBar(
+                    viewModel,
+                    selectedItems,
+                    items,
+                    onCompleted = { selectedItems.clear() }
+                ) {
+                    selectedItems.clear()
+                }
+
+            }
+            else ChatCompose(
                 viewModel.address!!,
                 viewModel.threadId!!,
                 viewModel,
             )
-            else ConversationCrudBottomBar(
-                viewModel,
-                selectedItems,
-                items,
-                onCompleted = { selectedItems.clear() }
-            ) {
-                selectedItems.clear()
-            }
         }
     ) { innerPadding ->
         Box(
