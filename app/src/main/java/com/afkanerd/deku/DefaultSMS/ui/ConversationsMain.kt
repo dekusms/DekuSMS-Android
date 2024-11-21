@@ -195,11 +195,13 @@ fun SearchCounterCompose(
     Row(
         modifier = Modifier
             .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             "$index/$total ${stringResource(R.string.results_found)}",
             color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 12.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(8.dp)
         )
 
         Row(
