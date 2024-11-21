@@ -710,16 +710,6 @@ fun Conversations(
 
     val searchIndexes = remember { mutableStateListOf<Int>() }
 
-    LaunchedEffect(0){
-        listState.animateScrollToItem(0)
-        val defaultRegion = Helpers.getUserCountry( context )
-
-        contactName = Contacts.retrieveContactName( context,
-            Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion) )
-        if(contactName.isNullOrBlank())
-            contactName = viewModel.address!!
-        getContactName = contactName
-    }
 
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
@@ -736,6 +726,20 @@ fun Conversations(
                 }
             }
         }
+
+        if(searchIndexes.isNotEmpty() && searchIndex == 0)
+            listState.animateScrollToItem(searchIndexes.first())
+    }
+
+    LaunchedEffect(true){
+        if(viewModel.searchQuery.isNullOrBlank())
+            listState.animateScrollToItem(0)
+        val defaultRegion = Helpers.getUserCountry( context )
+        contactName = Contacts.retrieveContactName( context,
+            Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion) )
+        if(contactName.isNullOrBlank())
+            contactName = viewModel.address!!
+        getContactName = contactName
     }
 
     BackHandler {
