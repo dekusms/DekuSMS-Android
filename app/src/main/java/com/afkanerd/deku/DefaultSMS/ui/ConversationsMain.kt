@@ -929,7 +929,6 @@ fun Conversations(
                         isKey = conversation.isIs_key,
                     )
 
-
                     val checkIsSecured by remember {
                         derivedStateOf {
                             conversation.isIs_key &&
@@ -958,6 +957,11 @@ fun Conversations(
             if(showScrollBottom) {
                 Button(
                     onClick = {
+                        viewModel.searchQuery = null
+                        searchQuery = null
+                        searchIndexes.clear()
+                        searchIndex = 0
+
                         coroutineScope.launch { listState.animateScrollToItem(0) }
                     },
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
