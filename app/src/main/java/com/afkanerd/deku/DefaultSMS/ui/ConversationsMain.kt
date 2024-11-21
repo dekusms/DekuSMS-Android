@@ -746,7 +746,8 @@ fun Conversations(
             viewModel.searchQuery = null
             searchQuery = null
         }
-        else navController.popBackStack()
+//        else navController.popBackStack()
+        else navController.navigate(HomeScreen)
     }
 
     val coroutineScope = rememberCoroutineScope()

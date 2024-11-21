@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -41,6 +42,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
@@ -63,6 +65,11 @@ fun SearchThreadsMain(
     val listState = rememberLazyListState()
 
     val items: List<ThreadedConversations> by viewModel.get().observeAsState(emptyList())
+
+    BackHandler {
+        viewModel.liveData = MutableLiveData()
+        navController.popBackStack()
+    }
 
     Scaffold(
         modifier = Modifier.padding(8.dp),
@@ -148,6 +155,7 @@ fun SearchThreadsMain(
                         unreadCount = message.unread_count,
                         modifier = Modifier.combinedClickable(
                             onClick = {
+                                viewModel.liveData = MutableLiveData()
                                 navigateToConversation(
                                     context,
                                     conversationsViewModel = conversationsViewModel,

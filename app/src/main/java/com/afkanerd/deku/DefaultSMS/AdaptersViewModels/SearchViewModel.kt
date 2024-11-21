@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import java.util.ArrayList
 
 class SearchViewModel : ViewModel() {
-    private var liveData: MutableLiveData<MutableList<ThreadedConversations>> = MutableLiveData()
+    var liveData: MutableLiveData<MutableList<ThreadedConversations>> = MutableLiveData()
 
     var threadId: String? = null
     var databaseConnector: Datastore? = null
