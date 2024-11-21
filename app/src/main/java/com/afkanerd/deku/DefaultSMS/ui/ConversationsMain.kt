@@ -230,7 +230,8 @@ fun SearchCounterCompose(
 fun ChatCompose(
     address: String = "",
     threadId: String = "",
-    viewModel: ConversationsViewModel = ConversationsViewModel()
+    viewModel: ConversationsViewModel = ConversationsViewModel(),
+    sentCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val interactionsSource = remember { MutableInteractionSource() }
@@ -239,7 +240,9 @@ fun ChatCompose(
     var userInput by remember { mutableStateOf(text) }
     Row(modifier = Modifier
         .height(IntrinsicSize.Min)
-        .padding(top = 4.dp, bottom = 4.dp)
+        .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+        .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
+        .background(MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
@@ -254,10 +257,7 @@ fun ChatCompose(
                 singleLine = false,
                 textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier
-                    .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
-                    .background(MaterialTheme.colorScheme.outlineVariant)
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 TextFieldDefaults.DecorationBox(
                     value = userInput,
@@ -299,11 +299,9 @@ fun ChatCompose(
                     address=address,
                     conversationsViewModel = viewModel)
                 userInput = ""
+                sentCallback?.let { it() }
             },
                 enabled = userInput.isNotBlank(),
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Icon(
                     Icons.AutoMirrored.Default.Send,
@@ -609,6 +607,63 @@ private fun MainDropDownMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun SearchTopAppBarText(
+    searchQuery: String = "",
+    cancelCallback: (() -> Unit)? = null,
+    searchCallback: ((String) -> Unit)? = null,
+) {
+    var searchQuery by remember { mutableStateOf(searchQuery) }
+    val interactionsSource = remember { MutableInteractionSource() }
+
+    BasicTextField(
+        value = searchQuery,
+        onValueChange = {
+            searchQuery = it
+            if(it.isEmpty())
+                cancelCallback?.let{ it() }
+            else searchCallback?.let{ it(searchQuery)}
+        },
+        maxLines = 7,
+        singleLine = false,
+        textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextFieldDefaults.DecorationBox(
+            value = searchQuery,
+            visualTransformation = VisualTransformation.None,
+            innerTextField = it,
+            singleLine = false,
+            enabled = true,
+            interactionSource = interactionsSource,
+            trailingIcon = {
+                IconButton(onClick = {
+                    searchQuery = ""
+                    cancelCallback?.let{ it() }
+                }) {
+                    Icon(Icons.Default.Close, stringResource(R.string.cancel_search))
+                }
+            },
+            placeholder = {
+                Text(
+                    text= stringResource(R.string.text_message),
+                    color = MaterialTheme.colorScheme.outline
+                )
+            },
+            shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+            ),
+        )
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -663,45 +718,66 @@ fun Conversations(
         getContactName = contactName
     }
 
+    var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     LaunchedEffect(items) {
-        viewModel.searchQuery?.let { searchQuery ->
+        searchQuery?.let { query ->
             CoroutineScope(Dispatchers.Default).launch {
                 items.forEachIndexed { index, it ->
-                    if(it.text!!.contains(other=searchQuery, ignoreCase=true)
-                        && !searchIndexes.contains(index))
-                        searchIndexes.add(index)
+                    it.text?.let { text ->
+                        if(it.text!!.contains(other=query, ignoreCase=true)
+                            && !searchIndexes.contains(index))
+                            searchIndexes.add(index)
+                    }
                 }
             }
         }
     }
 
     BackHandler {
-        if(selectedItems.isEmpty()) {
-            navController.popBackStack()
+        if(!selectedItems.isEmpty()) {
+            selectedItems.clear()
         }
-        else selectedItems.clear()
+        else if(!viewModel.searchQuery.isNullOrBlank()) {
+            viewModel.searchQuery = null
+            searchQuery = null
+        }
+        else navController.popBackStack()
     }
 
     val coroutineScope = rememberCoroutineScope()
+
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text= getContactName,
-                        maxLines =1,
-                        overflow = TextOverflow.Ellipsis)
-
-                    if(isSecured) {
+                    if(viewModel.searchQuery.isNullOrBlank()) {
                         Text(
-                            text= stringResource(R.string.secured),
-                            style = MaterialTheme.typography.labelLarge,
+                            text= getContactName,
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
-                    }
 
+                        if(isSecured) {
+                            Text(
+                                text= stringResource(R.string.secured),
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines =1,
+                                overflow = TextOverflow.Ellipsis)
+                        }
+
+                    } else {
+                        SearchTopAppBarText(
+                            searchQuery!!,
+                            cancelCallback = {
+                                viewModel.searchQuery = null
+                                searchQuery = null
+                            }
+                        ) {
+                            searchIndexes.clear()
+                            searchQuery = it
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -712,45 +788,46 @@ fun Conversations(
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
                     }
+
                 },
                 actions = {
-                    IconButton(onClick = {
-                        call(context, viewModel.address!!)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Call,
-                            contentDescription = stringResource(R.string.call)
-                        )
-                    }
+                    if(viewModel.searchQuery.isNullOrBlank()) {
+                        IconButton(onClick = {
+                            call(context, viewModel.address!!)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Call,
+                                contentDescription = stringResource(R.string.call)
+                            )
+                        }
 
-                    IconButton(onClick = {
-                        showSecureRequestModal = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.EnhancedEncryption,
-                            contentDescription = stringResource(
-                                R.string
-                                    .request_secure_communication)
-                        )
-                    }
+                        IconButton(onClick = {
+                            showSecureRequestModal = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.EnhancedEncryption,
+                                contentDescription = stringResource(
+                                    R.string
+                                        .request_secure_communication)
+                            )
+                        }
 
-                    IconButton(onClick = {
-                        rememberMenuExpanded = !rememberMenuExpanded
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = stringResource(R.string.open_menu)
-                        )
+                        IconButton(onClick = {
+                            rememberMenuExpanded = !rememberMenuExpanded
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.open_menu)
+                            )
+                        }
+
                     }
                 },
                 scrollBehavior = scrollBehaviour
             )
         },
         bottomBar = {
-            if(!viewModel.searchQuery.isNullOrBlank()) {
-                SearchCounterCompose(total=searchIndexes.size.toString())
-            }
-            else if(!selectedItems.isEmpty()) {
+            if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
                     selectedItems,
@@ -761,11 +838,16 @@ fun Conversations(
                 }
 
             }
+            else if(!viewModel.searchQuery.isNullOrBlank()) {
+                SearchCounterCompose(total=searchIndexes.size.toString())
+            }
             else ChatCompose(
                 viewModel.address!!,
                 viewModel.threadId!!,
                 viewModel,
-            )
+            ) {
+                coroutineScope.launch { listState.animateScrollToItem(0) }
+            }
         }
     ) { innerPadding ->
         Box(
