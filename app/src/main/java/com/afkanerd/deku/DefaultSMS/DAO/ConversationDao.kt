@@ -62,7 +62,7 @@ interface ConversationDao {
     fun delete(threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id IN (:threadIds)")
-    fun deleteAll(threadIds: MutableList<String>)
+    fun deleteAll(threadIds: List<String>)
 
     @Query("DELETE FROM Conversation WHERE type = :type AND thread_id = :thread_id")
     fun _deleteAllType(type: Int, thread_id: String): Int

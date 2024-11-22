@@ -100,6 +100,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -118,6 +119,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -593,6 +595,7 @@ private fun MainDropDownMenu(
     expanded: Boolean = true,
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
+    deleteCallback: (() -> Unit)? = null,
     gestureCallback: (() -> Unit)? = null
 ) {
     var expanded = expanded
@@ -641,7 +644,12 @@ private fun MainDropDownMenu(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
-                onClick = { TODO() }
+                onClick = {
+                    deleteCallback?.let {
+                        gestureCallback?.let{ it() }
+                        it()
+                    }
+                }
             )
 
             DropdownMenuItem(
@@ -720,6 +728,7 @@ private fun SearchTopAppBarText(
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
+    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -752,19 +761,6 @@ fun Conversations(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     var rememberMenuExpanded by remember { mutableStateOf( false) }
-    MainDropDownMenu(
-        rememberMenuExpanded,
-        searchCallback = {
-            searchViewModel.threadId = viewModel.threadId
-            navController.navigate(SearchThreadScreen)
-        },
-        blockCallback = {
-            ConvenientMethods.blockContact(context, viewModel.threadId!!, viewModel.address!!)
-        }
-    ) {
-        rememberMenuExpanded = !rememberMenuExpanded
-    }
-
     val searchIndexes = remember { mutableStateListOf<Int>() }
 
 
@@ -807,7 +803,6 @@ fun Conversations(
             viewModel.searchQuery = null
             searchQuery = null
         }
-//        else navController.popBackStack()
         else navController.navigate(HomeScreen)
     }
 
@@ -815,6 +810,25 @@ fun Conversations(
 
     val coroutineScope = rememberCoroutineScope()
 
+    MainDropDownMenu(
+        rememberMenuExpanded,
+        searchCallback = {
+            searchViewModel.threadId = viewModel.threadId
+            navController.navigate(SearchThreadScreen)
+        },
+        blockCallback = {
+            ConvenientMethods.blockContact(context, viewModel.threadId!!, viewModel.address!!)
+        },
+        deleteCallback = {
+            val ids = listOf(viewModel.threadId!!)
+            CoroutineScope(Dispatchers.Default).launch{
+                threadConversationsViewModel.delete(context, ids)
+            }
+            backHandler()
+        }
+    ) {
+        rememberMenuExpanded = !rememberMenuExpanded
+    }
 
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),

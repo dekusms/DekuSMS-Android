@@ -98,8 +98,8 @@ class ThreadedConversationsViewModel : ViewModel() {
     }
 
 
-    fun delete(context: Context, ids: MutableList<String>) {
-        databaseConnector!!.threadedConversationsDao().delete(context, ids)
+    fun delete(context: Context, ids: List<String>) {
+        Datastore.getDatastore(context).threadedConversationsDao().delete(context, ids)
         NativeSMSDB.deleteThreads(context, ids.toTypedArray<String?>())
     }
 

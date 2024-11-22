@@ -310,10 +310,10 @@ interface ThreadedConversationsDao {
     fun _delete(threadedConversations: ThreadedConversations)
 
     @Query("DELETE FROM ThreadedConversations WHERE thread_id IN(:ids)")
-    fun _delete(ids: MutableList<String>)
+    fun _delete(ids: List<String>)
 
     @Transaction
-    fun delete(context: Context, ids: MutableList<String>) {
+    fun delete(context: Context, ids: List<String>) {
         for (threadedConversations in getList(ids)) {
 //            try {
 //                String keystoreAlias =
