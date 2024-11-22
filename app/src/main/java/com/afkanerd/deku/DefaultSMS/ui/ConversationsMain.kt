@@ -117,6 +117,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -128,6 +129,7 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
+import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
@@ -138,6 +140,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.exp
 
 private var contactName: String = ""
 
@@ -587,26 +590,61 @@ private fun SecureRequestAcceptModal(
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = true,
+    searchCallback: (() -> Unit)? = null,
     gestureCallback: (() -> Unit)? = null
 ) {
+    var expanded = expanded
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                gestureCallback?.let{ it() }
-            },
+            onDismissRequest = { },
         ) {
             DropdownMenuItem(
                 text = {
                     Text(
-                        text=stringResource(R.string.about_deku),
+                        text=stringResource(R.string.conversations_menu_search_title),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
-                onClick = {}
+                onClick = {
+                    searchCallback?.let{
+                        gestureCallback?.let{ it() }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversation_menu_block),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = { TODO() }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversation_menu_delete),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = { TODO() }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversation_menu_mute),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = { TODO() }
             )
         }
     }
@@ -674,6 +712,7 @@ private fun SearchTopAppBarText(
 @Composable
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
+    searchViewModel: SearchViewModel = SearchViewModel(),
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -706,7 +745,13 @@ fun Conversations(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     var rememberMenuExpanded by remember { mutableStateOf( false) }
-    MainDropDownMenu(rememberMenuExpanded) {
+    MainDropDownMenu(
+        rememberMenuExpanded,
+        searchCallback = {
+            searchViewModel.threadId = viewModel.threadId
+            navController.navigate(SearchThreadScreen)
+        }
+    ) {
         rememberMenuExpanded = !rememberMenuExpanded
     }
 
@@ -744,7 +789,7 @@ fun Conversations(
         getContactName = contactName
     }
 
-    BackHandler {
+    fun backHandler() {
         if(!selectedItems.isEmpty()) {
             selectedItems.clear()
         }
@@ -755,6 +800,8 @@ fun Conversations(
 //        else navController.popBackStack()
         else navController.navigate(HomeScreen)
     }
+
+    BackHandler { backHandler() }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -792,12 +839,7 @@ fun Conversations(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if(selectedItems.isEmpty()) {
-                            navController.popBackStack()
-                        }
-                        else selectedItems.clear()
-                    }) {
+                    IconButton(onClick = { backHandler() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
                     }
 

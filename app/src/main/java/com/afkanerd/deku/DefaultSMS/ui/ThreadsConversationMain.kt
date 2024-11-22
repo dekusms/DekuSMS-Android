@@ -393,14 +393,14 @@ fun ThreadConversationLayout(
         drawerContent = {
             ModalDrawerSheetLayout(
                 callback = { type ->
-                    inboxType = type
-                    selectedItemIndex = type
                     scope.launch {
                         drawerState.apply {
                             if(isClosed) open() else close()
+                            inboxType = type
+                            selectedItemIndex = type
+                            viewModel.inboxType = type
                         }
                     }
-                    viewModel.inboxType = type
                 },
                 selectedItemIndex = selectedItemIndex
             )

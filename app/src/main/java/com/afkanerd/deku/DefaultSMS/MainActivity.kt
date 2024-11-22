@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                         composable<ConversationsScreen>{
                             Conversations(
                                 viewModel=conversationViewModel,
+                                searchViewModel=searchViewModel,
                                 navController=navController
                             )
                         }

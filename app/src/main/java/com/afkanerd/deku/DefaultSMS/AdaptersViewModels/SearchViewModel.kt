@@ -30,7 +30,9 @@ class SearchViewModel : ViewModel() {
         else {
             CoroutineScope(Dispatchers.Default).launch {
                 val datastore = Datastore.getDatastore(context).threadedConversationsDao()
-                val results = datastore.search(input)
+                val results = if(!threadId.isNullOrBlank())
+                    datastore.searchThreadId(input, threadId!!)
+                else datastore.search(input)
                 val ids: List<String> = results.flatMap { listOf(it.threadId) }
                 val threads = datastore.getList(ids).apply {
                     forEachIndexed { index, it ->

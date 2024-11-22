@@ -25,6 +25,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
@@ -82,7 +83,25 @@ fun SearchThreadsMain(
                             searchInput = it
                             viewModel.search(context, searchInput)
                         },
-                        onSearch = { expanded = false },
+                        onSearch = {
+                            expanded = false
+
+                            if(items.isNotEmpty()) {
+                                val message = items.first()
+                                if(viewModel.threadId != null) {
+                                    viewModel.liveData = MutableLiveData()
+                                    viewModel.threadId = null
+                                    navigateToConversation(
+                                        context,
+                                        conversationsViewModel = conversationsViewModel,
+                                        address = message.address,
+                                        threadId = message.thread_id,
+                                        navController = navController,
+                                        searchQuery = searchInput
+                                    )
+                                }
+                            }
+                        },
                         expanded = expanded,
                         onExpandedChange = { /* expanded = it */ },
                         placeholder = {

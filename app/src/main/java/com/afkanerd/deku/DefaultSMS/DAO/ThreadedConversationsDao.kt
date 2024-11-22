@@ -194,10 +194,13 @@ interface ThreadedConversationsDao {
     fun search(searchString: String): MutableList<ThreadsSearch>
 
     @Query(
-        "SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +
-                "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC"
+        "SELECT COUNT(Conversation.id) as count, Conversation.thread_id as threadId, " +
+                "Conversation.text, Conversation.date " +
+                "FROM Conversation " +
+                "where thread_id = :threadId and text like '%' || :searchString || '%' " +
+                "GROUP BY thread_id ORDER BY Conversation.date DESC"
     )
-    fun findByThread(search_string: String, thread_id: String): MutableList<Conversation>
+    fun searchThreadId(searchString: String, threadId: String): MutableList<ThreadsSearch>
 
     @Insert
     fun _insert(threadedConversations: ThreadedConversations): Long
