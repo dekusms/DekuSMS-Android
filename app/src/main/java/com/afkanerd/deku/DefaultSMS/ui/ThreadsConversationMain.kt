@@ -101,6 +101,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
@@ -272,17 +273,17 @@ fun ModalDrawerSheetLayout(
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = true,
+    aboutCallback: (() -> Unit)? = null,
     gestureCallback: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                gestureCallback?.let{ it() }
-            },
+            onDismissRequest = { },
         ) {
             DropdownMenuItem(
                 text = {
@@ -291,7 +292,14 @@ private fun MainDropDownMenu(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
-                onClick = {}
+                onClick = {
+                    context.startActivity(
+                        Intent(context, AboutActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                    gestureCallback?.let{ it() }
+                }
             )
         }
     }
