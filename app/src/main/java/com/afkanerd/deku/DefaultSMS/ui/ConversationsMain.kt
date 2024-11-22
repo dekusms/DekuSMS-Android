@@ -130,6 +130,7 @@ import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
@@ -591,6 +592,7 @@ private fun SecureRequestAcceptModal(
 private fun MainDropDownMenu(
     expanded: Boolean = true,
     searchCallback: (() -> Unit)? = null,
+    blockCallback: (() -> Unit)? = null,
     gestureCallback: (() -> Unit)? = null
 ) {
     var expanded = expanded
@@ -624,7 +626,12 @@ private fun MainDropDownMenu(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
-                onClick = { TODO() }
+                onClick = {
+                    blockCallback?.let {
+                        gestureCallback?.let{ it() }
+                        it()
+                    }
+                }
             )
 
             DropdownMenuItem(
@@ -750,6 +757,9 @@ fun Conversations(
         searchCallback = {
             searchViewModel.threadId = viewModel.threadId
             navController.navigate(SearchThreadScreen)
+        },
+        blockCallback = {
+            ConvenientMethods.blockContact(context, viewModel.threadId!!, viewModel.address!!)
         }
     ) {
         rememberMenuExpanded = !rememberMenuExpanded
