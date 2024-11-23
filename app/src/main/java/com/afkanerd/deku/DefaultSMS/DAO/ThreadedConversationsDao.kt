@@ -352,10 +352,10 @@ interface ThreadedConversationsDao {
     fun deleteAll()
 
     @Update(entity = ThreadedConversations::class)
-    fun archive(archiveList: MutableList<Archive>)
+    fun archive(archiveList: List<Archive>)
 
     @Update(entity = ThreadedConversations::class)
-    fun unarchive(archiveList: MutableList<Archive>)
+    fun unarchive(archiveList: List<Archive>)
 
     @Transaction
     fun updateAllRead(context: Context, threadId: String, isRead: Boolean) {

@@ -596,7 +596,8 @@ private fun MainDropDownMenu(
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
     deleteCallback: (() -> Unit)? = null,
-    gestureCallback: (() -> Unit)? = null
+    gestureCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
 ) {
     var expanded = expanded
     Box(modifier = Modifier
@@ -605,7 +606,7 @@ private fun MainDropDownMenu(
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { },
+            onDismissRequest = { dismissCallback?.let{ it() }},
         ) {
             DropdownMenuItem(
                 text = {
@@ -827,7 +828,7 @@ fun Conversations(
             backHandler()
         }
     ) {
-        rememberMenuExpanded = !rememberMenuExpanded
+        rememberMenuExpanded = false
     }
 
     Scaffold (

@@ -85,7 +85,7 @@ class ThreadedConversationsViewModel : ViewModel() {
         refresh(context)
     }
 
-    fun archive(archiveList: MutableList<Archive>) {
+    fun archive(archiveList: List<Archive>) {
         databaseConnector!!.threadedConversationsDao().archive(archiveList)
     }
 

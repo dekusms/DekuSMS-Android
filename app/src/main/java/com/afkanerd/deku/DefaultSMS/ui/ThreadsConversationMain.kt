@@ -110,6 +110,7 @@ import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.HomeScreen
+import com.afkanerd.deku.DefaultSMS.Models.Archive
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
@@ -273,8 +274,8 @@ fun ModalDrawerSheetLayout(
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = true,
-    aboutCallback: (() -> Unit)? = null,
-    gestureCallback: (() -> Unit)? = null
+    gestureCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     Box(modifier = Modifier
@@ -283,7 +284,7 @@ private fun MainDropDownMenu(
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { },
+            onDismissRequest = { dismissCallback?.let { it() }},
         ) {
             DropdownMenuItem(
                 text = {
@@ -393,7 +394,7 @@ fun ThreadConversationLayout(
     }
 
     MainDropDownMenu(rememberMenuExpanded) {
-        rememberMenuExpanded = !rememberMenuExpanded
+        rememberMenuExpanded = false
     }
 
     ModalNavigationDrawer(
@@ -483,7 +484,16 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             IconButton(onClick = {
-                                TODO("Implement search functions")
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    val threads: List<Archive> = selectedItems.map{
+                                        Archive().apply {
+                                            thread_id = it.thread_id
+                                            is_archived = true
+                                        }
+                                    }
+                                    viewModel.archive(threads)
+                                    selectedItems.clear()
+                                }
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Archive,
@@ -492,6 +502,7 @@ fun ThreadConversationLayout(
                                     stringResource(R.string.messages_threads_menu_archive)
                                 )
                             }
+
                             IconButton(onClick = {
                                 TODO("Implement menu functionality")
                             }) {
