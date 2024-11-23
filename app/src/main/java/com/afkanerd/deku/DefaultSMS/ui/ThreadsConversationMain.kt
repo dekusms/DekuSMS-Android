@@ -504,7 +504,11 @@ fun ThreadConversationLayout(
                             }
 
                             IconButton(onClick = {
-                                TODO("Implement menu functionality")
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    val threads: List<String> = selectedItems.map{ it.thread_id }
+                                    viewModel.delete(context, threads)
+                                    selectedItems.clear()
+                                }
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Delete,
