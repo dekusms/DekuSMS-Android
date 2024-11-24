@@ -188,7 +188,7 @@ class ThreadedConversationsViewModel : ViewModel() {
         }
     }
 
-    fun unarchive(archiveList: MutableList<Archive>) {
+    fun unarchive(archiveList: List<Archive>) {
         databaseConnector!!.threadedConversationsDao().unarchive(archiveList)
     }
 

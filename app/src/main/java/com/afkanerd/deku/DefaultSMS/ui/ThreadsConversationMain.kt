@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -484,23 +485,45 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             IconButton(onClick = {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    val threads: List<Archive> = selectedItems.map{
-                                        Archive().apply {
-                                            thread_id = it.thread_id
-                                            is_archived = true
+                                if(inboxType == InboxType.ARCHIVED) {
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        val threads: List<Archive> = selectedItems.map{
+                                            Archive().apply {
+                                                thread_id = it.thread_id
+                                                is_archived = false
+                                            }
                                         }
+                                        viewModel.unarchive(threads)
+                                        selectedItems.clear()
                                     }
-                                    viewModel.archive(threads)
-                                    selectedItems.clear()
+                                } else {
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        val threads: List<Archive> = selectedItems.map{
+                                            Archive().apply {
+                                                thread_id = it.thread_id
+                                                is_archived = true
+                                            }
+                                        }
+                                        viewModel.archive(threads)
+                                        selectedItems.clear()
+                                    }
                                 }
                             }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Archive,
-                                    tint = selectedIconColors,
-                                    contentDescription =
-                                    stringResource(R.string.messages_threads_menu_archive)
-                                )
+                                if(inboxType == InboxType.ARCHIVED) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Unarchive,
+                                        tint = selectedIconColors,
+                                        contentDescription =
+                                        stringResource(R.string.unarchive_messages)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Filled.Archive,
+                                        tint = selectedIconColors,
+                                        contentDescription =
+                                        stringResource(R.string.messages_threads_menu_archive)
+                                    )
+                                }
                             }
 
                             IconButton(onClick = {
