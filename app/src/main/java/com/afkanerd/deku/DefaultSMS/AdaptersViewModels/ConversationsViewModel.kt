@@ -36,7 +36,7 @@ class ConversationsViewModel : ViewModel() {
     var address by mutableStateOf("")
     var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
-    var contactName: String? by mutableStateOf(null)
+    var contactName: String? by mutableStateOf("")
 
     var selectedItems = mutableStateListOf<String>()
 
