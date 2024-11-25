@@ -747,7 +747,6 @@ fun Conversations(
         .value
 
     val selectedItems = remember { viewModel.selectedItems }
-    var userInput = remember { viewModel.text }
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -760,6 +759,8 @@ fun Conversations(
 
     var isMute by remember { mutableStateOf(false) }
     var isBlocked by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -790,12 +791,10 @@ fun Conversations(
         if(searchQuery.isBlank())
             listState.animateScrollToItem(0)
 
-        if(viewModel.text.isBlank()) {
-            CoroutineScope(Dispatchers.Default).launch {
-                viewModel.fetchDraft(context)?.let {
-                    viewModel.clearDraft(context)
-                    viewModel.text = it.text!!
-                }
+        CoroutineScope(Dispatchers.Default).launch {
+            viewModel.fetchDraft(context)?.let {
+                viewModel.clearDraft(context)
+                viewModel.text = it.text!!
             }
         }
     }
@@ -810,7 +809,6 @@ fun Conversations(
         )
     }
 
-    val coroutineScope = rememberCoroutineScope()
 
     MainDropDownMenu(
         rememberMenuExpanded,
@@ -968,20 +966,27 @@ fun Conversations(
                 )
             }
             else ChatCompose(
-                value=userInput,
-                valueChanged = { userInput = it }
+                value=viewModel.text,
+                valueChanged = {
+                    viewModel.text = it
+
+                    CoroutineScope(Dispatchers.Default).launch {
+                        if(it.isEmpty()) viewModel.clearDraft(context)
+                        else viewModel.insertDraft(context)
+                    }
+                }
             ) {
                 coroutineScope.launch { listState.animateScrollToItem(0) }
                 sendSMS(
                     context=context,
-                    text=userInput,
+                    text=viewModel.text,
                     threadId= viewModel.threadId,
                     messageId = System.currentTimeMillis().toString(),
                     address= viewModel.address,
                     conversationsViewModel = viewModel
                 )
                 viewModel.clearDraft(context)
-                userInput = ""
+                viewModel.text = ""
             }
         }
     ) { innerPadding ->

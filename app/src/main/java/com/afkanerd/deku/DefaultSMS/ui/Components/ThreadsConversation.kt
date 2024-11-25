@@ -159,11 +159,12 @@ fun ThreadConversationCard(
     content: String = "Text Template",
     date: String = "Tues",
     isRead: Boolean = false,
-    isContact: Boolean = true,
+    isContact: Boolean = false,
     unreadCount: Int = 1,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
-    isMuted: Boolean = true,
+    isMuted: Boolean = false,
+    isDraft: Boolean = false,
 ) {
     var color = MaterialTheme.colorScheme.onBackground
     var weight = FontWeight.Bold
@@ -194,11 +195,14 @@ fun ThreadConversationCard(
         },
         supportingContent = {
             Text(
-                text = content,
+                text = if(isDraft)
+                    stringResource(R.string.thread_conversation_type_draft) + ": $content"
+                else content,
                 color = color,
                 style = MaterialTheme.typography.bodySmall,
+                fontStyle = if(isDraft) FontStyle.Italic else null,
                 fontWeight = weight,
-                maxLines = if(isRead) 1 else 3
+                maxLines = if(isRead) 1 else 3,
             )
         },
         trailingContent = {

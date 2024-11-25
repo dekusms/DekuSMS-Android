@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Telephony
 import android.text.InputType
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -726,7 +727,8 @@ fun ThreadConversationLayout(
                                     onLongClick = { selectedItems.add(message) }
                                 ),
                                 isSelected = selectedItems.contains(message),
-                                isMuted = message.isIs_mute
+                                isMuted = message.isIs_mute,
+                                isDraft = message.type == Telephony.Sms.MESSAGE_TYPE_DRAFT,
                             )
                         }
                     }

@@ -96,15 +96,14 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun insertDraft(context: Context) {
-        val id = System.currentTimeMillis().toString()
 
         val conversation = Conversation();
-        conversation.message_id = id
+        conversation.message_id = "1"
         conversation.thread_id = threadId
         conversation.text = text
         conversation.isRead = true
         conversation.type = Telephony.Sms.MESSAGE_TYPE_DRAFT
-        conversation.date = id
+        conversation.date = System.currentTimeMillis().toString()
         conversation.address = address
         conversation.status = Telephony.Sms.STATUS_PENDING
 
