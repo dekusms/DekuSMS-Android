@@ -114,6 +114,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.room.util.TableInfo
@@ -596,6 +597,8 @@ private fun MainDropDownMenu(
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
     deleteCallback: (() -> Unit)? = null,
+    muteCallback: (() -> Unit)? = null,
+    isMute: Boolean = false,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     var expanded = expanded
@@ -655,11 +658,17 @@ private fun MainDropDownMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text=stringResource(R.string.conversation_menu_mute),
+                        text= if(isMute) stringResource(R.string.conversation_menu_unmute)
+                        else stringResource(R.string.conversation_menu_mute),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
-                onClick = { TODO() }
+                onClick = {
+                    muteCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
             )
         }
     }
@@ -767,6 +776,8 @@ fun Conversations(
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
 
+    var isMute by remember { mutableStateOf(false) }
+
     LaunchedEffect(items) {
         searchQuery?.let { query ->
             CoroutineScope(Dispatchers.Default).launch {
@@ -782,6 +793,12 @@ fun Conversations(
 
         if(searchIndexes.isNotEmpty() && searchIndex == 0)
             listState.animateScrollToItem(searchIndexes.first())
+
+        CoroutineScope(Dispatchers.Default).launch {
+            threadConversationsViewModel.get(context, viewModel.threadId!!).let {
+                isMute = it.isIs_mute
+            }
+        }
     }
 
     LaunchedEffect(true){
@@ -812,6 +829,7 @@ fun Conversations(
 
     MainDropDownMenu(
         rememberMenuExpanded,
+        isMute = isMute,
         searchCallback = {
             searchViewModel.threadId = viewModel.threadId
             navController.navigate(SearchThreadScreen)
@@ -825,6 +843,16 @@ fun Conversations(
                 threadConversationsViewModel.delete(context, ids)
             }
             backHandler()
+        },
+        muteCallback = {
+            CoroutineScope(Dispatchers.Default).launch {
+                threadConversationsViewModel.get(context, viewModel.threadId!!).let {
+                    if(it.isIs_mute)
+                        viewModel.unMute(context)
+                    else
+                        viewModel.mute(context)
+                }
+            }
         }
     ) {
         rememberMenuExpanded = false

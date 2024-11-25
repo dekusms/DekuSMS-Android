@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import java.util.ArrayList
+import kotlin.concurrent.thread
 
 class ThreadedConversationsViewModel : ViewModel() {
 
@@ -43,6 +44,10 @@ class ThreadedConversationsViewModel : ViewModel() {
 
     fun getAll(context: Context): List<ThreadedConversations> {
         return Datastore.getDatastore(context).threadedConversationsDao().getAll()
+    }
+
+    fun get(context: Context, threadId: String): ThreadedConversations {
+        return Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
     }
 
     fun getAllLiveData(context: Context):

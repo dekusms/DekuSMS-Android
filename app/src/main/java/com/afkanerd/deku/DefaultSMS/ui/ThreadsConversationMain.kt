@@ -141,8 +141,6 @@ enum class InboxType(val value: Int) {
     }
 }
 
-var showMenuBar = false
-
 @Composable
 fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
     val color = when(dismissState?.dismissDirection) {
