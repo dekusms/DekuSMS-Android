@@ -161,8 +161,7 @@ fun ComposeNewMessage(
                     onClick = {
                         conversationsViewModel.address = contact.number
                         conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
-                            conversationsViewModel.address!!).thread_id
-                        conversationsViewModel.address = contact.number
+                            conversationsViewModel.address).thread_id
                         navController.navigate(ConversationsScreen)
                     },
                     Modifier

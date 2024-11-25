@@ -48,7 +48,7 @@ class ThreadedConversationsViewModel : ViewModel() {
         return Datastore.getDatastore(context).threadedConversationsDao().getAll()
     }
 
-    fun get(context: Context, threadId: String): ThreadedConversations {
+    fun get(context: Context, threadId: String): ThreadedConversations? {
         return Datastore.getDatastore(context).threadedConversationsDao().get(threadId)
     }
 

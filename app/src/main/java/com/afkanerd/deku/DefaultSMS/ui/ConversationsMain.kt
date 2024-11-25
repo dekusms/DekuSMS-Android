@@ -779,7 +779,7 @@ fun Conversations(
             listState.animateScrollToItem(searchIndexes.first())
 
         CoroutineScope(Dispatchers.Default).launch {
-            threadConversationsViewModel.get(context, viewModel.threadId).let {
+            threadConversationsViewModel.get(context, viewModel.threadId)?.let {
                 isMute = it.isIs_mute
                 isBlocked = it.isIs_blocked
             }
@@ -841,11 +841,9 @@ fun Conversations(
         },
         muteCallback = {
             CoroutineScope(Dispatchers.Default).launch {
-                threadConversationsViewModel.get(context, viewModel.threadId).let {
-                    if(it.isIs_mute)
-                        viewModel.unMute(context)
-                    else
-                        viewModel.mute(context)
+                threadConversationsViewModel.get(context, viewModel.threadId)?.let {
+                    if(it.isIs_mute) viewModel.unMute(context)
+                    else viewModel.mute(context)
                 }
             }
         }
