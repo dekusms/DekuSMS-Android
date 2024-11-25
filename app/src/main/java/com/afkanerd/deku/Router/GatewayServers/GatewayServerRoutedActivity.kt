@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.Models.RouterHandler
@@ -102,8 +103,17 @@ class GatewayServerRoutedActivity : CustomAppCompactActivity() {
                 startActivity(Intent(this, GatewayServerSettingsActivity::class.java))
                 return true
             }
+            android.R.id.home -> {
+                startActivity(
+                    Intent(applicationContext, MainActivity::class.java).apply {
+                        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                    }
+                )
+                finish()
+            }
         }
-        return false
+
+        return super.onOptionsItemSelected(item)
     }
 
     private val actionModeCallback: ActionMode.Callback = object : ActionMode.Callback {

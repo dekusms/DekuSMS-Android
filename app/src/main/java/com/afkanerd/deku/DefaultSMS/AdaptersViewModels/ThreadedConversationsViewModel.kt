@@ -97,8 +97,8 @@ class ThreadedConversationsViewModel : ViewModel() {
             .archive(ArrayList<Archive>(mutableListOf<Archive>(archive)))
     }
 
-
     fun delete(context: Context, ids: List<String>) {
+        TODO("Do something about encryption keys")
         Datastore.getDatastore(context).threadedConversationsDao().delete(context, ids)
         NativeSMSDB.deleteThreads(context, ids.toTypedArray<String?>())
     }

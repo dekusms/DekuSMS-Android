@@ -596,8 +596,7 @@ private fun MainDropDownMenu(
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
     deleteCallback: (() -> Unit)? = null,
-    gestureCallback: (() -> Unit)? = null,
-    dismissCallback: (() -> Unit)? = null,
+    dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     var expanded = expanded
     Box(modifier = Modifier
@@ -606,7 +605,7 @@ private fun MainDropDownMenu(
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { dismissCallback?.let{ it() }},
+            onDismissRequest = { dismissCallback?.let{ it(false) }},
         ) {
             DropdownMenuItem(
                 text = {
@@ -617,7 +616,7 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     searchCallback?.let{
-                        gestureCallback?.let{ it() }
+                        dismissCallback?.let { it(false) }
                         it()
                     }
                 }
@@ -632,7 +631,7 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     blockCallback?.let {
-                        gestureCallback?.let{ it() }
+                        dismissCallback?.let { it(false) }
                         it()
                     }
                 }
@@ -647,7 +646,7 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     deleteCallback?.let {
-                        gestureCallback?.let{ it() }
+                        dismissCallback?.let { it(false) }
                         it()
                     }
                 }

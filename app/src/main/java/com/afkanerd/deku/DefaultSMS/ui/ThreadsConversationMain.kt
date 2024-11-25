@@ -118,12 +118,15 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
+import com.afkanerd.deku.DefaultSMS.SettingsActivity
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.exp
 
 enum class InboxType(val value: Int) {
     INBOX(0),
@@ -137,6 +140,8 @@ enum class InboxType(val value: Int) {
         }
     }
 }
+
+var showMenuBar = false
 
 @Composable
 fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
@@ -274,19 +279,53 @@ fun ModalDrawerSheetLayout(
 @Preview(showBackground = true)
 @Composable
 private fun MainDropDownMenu(
-    expanded: Boolean = true,
-    gestureCallback: (() -> Unit)? = null,
-    dismissCallback: (() -> Unit)? = null,
+    expanded: Boolean = false,
+    dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { dismissCallback?.let { it() }},
+            onDismissRequest = { dismissCallback?.let{ it(false) } },
         ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.homepage_menu_routed),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.settings_title),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, SettingsActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+
             DropdownMenuItem(
                 text = {
                     Text(
@@ -295,12 +334,12 @@ private fun MainDropDownMenu(
                     )
                 },
                 onClick = {
+                    dismissCallback?.let { it(false) }
                     context.startActivity(
                         Intent(context, AboutActivity::class.java).apply {
                             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
                         }
                     )
-                    gestureCallback?.let{ it() }
                 }
             )
         }
@@ -395,7 +434,7 @@ fun ThreadConversationLayout(
     }
 
     MainDropDownMenu(rememberMenuExpanded) {
-        rememberMenuExpanded = false
+        rememberMenuExpanded = it
     }
 
     ModalNavigationDrawer(
