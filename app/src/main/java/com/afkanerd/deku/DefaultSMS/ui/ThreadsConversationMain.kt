@@ -713,7 +713,8 @@ fun ThreadConversationLayout(
                                         selectedItems.add(message)
                                     }
                                 ),
-                                isSelected = selectedItems.contains(message)
+                                isSelected = selectedItems.contains(message),
+                                isMuted = message.isIs_mute
                             )
                         }
                     }

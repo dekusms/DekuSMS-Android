@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -161,6 +163,7 @@ fun ThreadConversationCard(
     unreadCount: Int = 1,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
+    isMuted: Boolean = true,
 ) {
     var color = MaterialTheme.colorScheme.onBackground
     var weight = FontWeight.Bold
@@ -176,12 +179,18 @@ fun ThreadConversationCard(
             else MaterialTheme.colorScheme.background
         ),
         headlineContent = {
-            Text(
-                text = "$firstName $lastName",
-                color = color,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = weight
-            )
+            Row {
+                Text(
+                    text = "$firstName $lastName",
+                    color = color,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = weight
+                )
+
+                if(isMuted)
+                    Icon(Icons.AutoMirrored.Default.VolumeOff,
+                        stringResource(R.string.thread_muted))
+            }
         },
         supportingContent = {
             Text(

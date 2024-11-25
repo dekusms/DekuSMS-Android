@@ -313,5 +313,6 @@
     <string name="cancel_selected_messages">Cancel selected messages</string>
     <string name="cancel_search">Cancel search</string>
     <string name="unarchive_messages">Unarchive messages</string>
+    <string name="thread_muted">Thread muted</string>
 
 </resources>
