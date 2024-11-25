@@ -180,7 +180,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 val threadedConversations = Datastore.getDatastore(context)
                         .threadedConversationsDao()
                         .insertThreadAndConversation(context, conversation)
-                if (!threadedConversations!!.isIs_mute)
+                if (!threadedConversations.isIs_mute)
                     NotificationsHandler.sendIncomingTextMessageNotification(context, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -249,14 +249,14 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         val notification =
                 NotificationCompat.Builder(context,
                         context.getString(R.string.message_failed_channel_id))
-                        .setContentTitle(context
-                                .getString(R.string.message_failed_channel_name))
-                        .setSmallIcon(R.drawable.ic_stat_name)
-                        .setPriority(NotificationCompat.DEFAULT_ALL)
-                        .setAutoCancel(true)
-                        .setContentText(content)
-                        .setContentIntent(pendingIntent)
-                        .build()
+                    .setContentTitle(context
+                            .getString(R.string.message_failed_channel_name))
+                    .setSmallIcon(R.drawable.ic_stat_name)
+                    .setPriority(NotificationCompat.DEFAULT_ALL)
+                    .setAutoCancel(true)
+                    .setContentText(content)
+                    .setContentIntent(pendingIntent)
+                    .build()
 
 
         val notificationId = context.getString(R.string.message_failed_notification_id).toInt()
