@@ -197,11 +197,11 @@ fun navigateToConversation(
     address: String,
     threadId: String,
     navController: NavController,
-    searchQuery: String? = null
+    searchQuery: String? = ""
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
-    conversationsViewModel.searchQuery = searchQuery
+    conversationsViewModel.searchQuery = searchQuery ?: ""
     viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
@@ -327,6 +327,19 @@ private fun MainDropDownMenu(
             DropdownMenuItem(
                 text = {
                     Text(
+                        text=stringResource(R.string.conversation_menu_export),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    TODO()
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
                         text=stringResource(R.string.about_deku),
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -375,6 +388,7 @@ fun ThreadConversationLayout(
             }
         }
     }
+    conversationsViewModel.text = ""
 
     val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
 
@@ -530,7 +544,7 @@ fun ThreadConversationLayout(
                                                 is_archived = false
                                             }
                                         }
-                                        viewModel.unarchive(threads)
+                                        viewModel.unarchive(context, threads)
                                         selectedItems.clear()
                                     }
                                 } else {
@@ -541,7 +555,7 @@ fun ThreadConversationLayout(
                                                 is_archived = true
                                             }
                                         }
-                                        viewModel.archive(threads)
+                                        viewModel.archive(context, threads)
                                         selectedItems.clear()
                                     }
                                 }
@@ -660,7 +674,7 @@ fun ThreadConversationLayout(
                                 when(it) {
                                     SwipeToDismissBoxValue.EndToStart -> {
                                         CoroutineScope(Dispatchers.Default).launch {
-                                            viewModel.archive(message.thread_id)
+                                            viewModel.archive(context, message.thread_id)
                                         }
                                     }
                                     SwipeToDismissBoxValue.Settled ->
@@ -709,9 +723,7 @@ fun ThreadConversationLayout(
                                                 selectedItems.add(message)
                                         }
                                     },
-                                    onLongClick = {
-                                        selectedItems.add(message)
-                                    }
+                                    onLongClick = { selectedItems.add(message) }
                                 ),
                                 isSelected = selectedItems.contains(message),
                                 isMuted = message.isIs_mute

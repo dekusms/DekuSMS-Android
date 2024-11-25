@@ -43,7 +43,7 @@ interface ConversationDao {
             "WHERE thread_id = :threadId AND read = 0")
     fun getUnreadCount(threadId: String): Int
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun _insert(conversation: Conversation): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

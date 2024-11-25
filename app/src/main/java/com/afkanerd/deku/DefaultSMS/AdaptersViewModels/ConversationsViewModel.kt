@@ -4,6 +4,8 @@ import android.content.Context
 import android.provider.Telephony
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -19,21 +21,35 @@ import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import java.util.ArrayList
 import java.util.Locale
+import kotlin.concurrent.thread
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 
 
 class ConversationsViewModel : ViewModel() {
-    var threadId: String? = null
-    var address: String? = null
-    var text: String = ""
-    var searchQuery: String? = null
+    var threadId by mutableStateOf("")
+    var address by mutableStateOf("")
+    var text by mutableStateOf("")
+    var searchQuery by mutableStateOf("")
+    var contactName: String? by mutableStateOf(null)
+
+    var selectedItems = mutableStateListOf<String>()
 
     private var liveData: LiveData<MutableList<Conversation>> = MutableLiveData()
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
-//        if (liveData == null) {
-//            println("Thread View model: $threadId")
-//            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
-//        }
-        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId!!)
+        val defaultRegion = Helpers.getUserCountry( context )
+
+        contactName = Contacts.retrieveContactName(
+            context,
+            Helpers.getFormatCompleteNumber(address, defaultRegion)
+        )
+
+        if(contactName.isNullOrBlank())
+            contactName = address
+
+        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         return liveData
     }
 
@@ -77,5 +93,22 @@ class ConversationsViewModel : ViewModel() {
 
     fun mute(context: Context) {
         Datastore.getDatastore(context).threadedConversationsDao().updateMuted(1, threadId!!)
+    }
+
+    fun insertDraft(context: Context) {
+        val id = System.currentTimeMillis().toString()
+
+        val conversation = Conversation();
+        conversation.message_id = id
+        conversation.thread_id = threadId
+        conversation.text = text
+        conversation.isRead = true
+        conversation.type = Telephony.Sms.MESSAGE_TYPE_DRAFT
+        conversation.date = id
+        conversation.address = address
+        conversation.status = Telephony.Sms.STATUS_PENDING
+
+        insert(context, conversation);
+        SMSDatabaseWrapper.saveDraft(context, conversation);
     }
 }

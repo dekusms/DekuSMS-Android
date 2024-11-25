@@ -273,7 +273,7 @@ interface ThreadedConversationsDao {
         var threadedConversations: ThreadedConversations = get(threadId)
         if (threadedConversations == null) {
             threadedConversations = ThreadedConversations()
-            threadedConversations.setThread_id(threadId)
+            threadedConversations.thread_id = threadId
             insert = true
         }
         threadedConversations.setDate(dates)

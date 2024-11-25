@@ -34,4 +34,9 @@ object ConvenientMethods {
         startActivity(context, telecomManager.createManageBlockedNumbersIntent(), null);
     }
 
+    fun unblockContact(context: Context) {
+        val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+        startActivity(context, telecomManager.createManageBlockedNumbersIntent(), null);
+    }
+
 }

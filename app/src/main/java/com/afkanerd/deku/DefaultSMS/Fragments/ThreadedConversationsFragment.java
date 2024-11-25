@@ -178,7 +178,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
+                        boolean hasUnread = threadedConversationsViewModel.hasUnread(requireContext(), threadsIds);
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -233,7 +233,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.archive(archiveList);
+                            threadedConversationsViewModel.archive(requireContext(), archiveList);
                         }
                     });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
@@ -254,7 +254,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.unarchive(archiveList);
+                            threadedConversationsViewModel.unarchive(requireContext(), archiveList);
                         }
                     });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
@@ -322,7 +322,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.mute(threadIds);
+                            threadedConversationsViewModel.mute(requireContext(), threadIds);
                             threadedConversationsViewModel.getCount(requireContext());
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -344,7 +344,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.unMute(threadIds);
+                            threadedConversationsViewModel.unMute(requireContext(), threadIds);
                             threadedConversationsViewModel.getCount(requireContext());
                         }
                     });
@@ -554,7 +554,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                     threadedConversationRecyclerAdapter
                                             .getItemByPosition(viewHolder.getLayoutPosition());
                             threadedConversationsViewModel
-                                    .archive(threadedConversations.getThread_id());
+                                    .archive(requireContext(), threadedConversations.getThread_id());
                         }
                     });
                 } else if(direction == ItemTouchHelper.RIGHT) {
@@ -675,7 +675,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                     openFileDescriptor(uri, "w");
                             FileOutputStream fileOutputStream =
                                     new FileOutputStream(pfd.getFileDescriptor());
-                            fileOutputStream.write(threadedConversationsViewModel.getAllExport()
+                            fileOutputStream.write(threadedConversationsViewModel.getAllExport(requireContext())
                                     .getBytes());
                             // Let the document provider know you're done by closing the stream.
                             fileOutputStream.close();
@@ -758,7 +758,7 @@ public class ThreadedConversationsFragment extends Fragment {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    threadedConversationsViewModel.unMuteAll();
+                    threadedConversationsViewModel.unMuteAll(requireContext());
                 }
             });
         }

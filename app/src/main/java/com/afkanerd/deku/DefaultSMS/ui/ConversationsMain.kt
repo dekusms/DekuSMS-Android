@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -36,55 +34,43 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EnhancedEncryption
-import androidx.compose.material.icons.filled.ExpandCircleDown
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -98,40 +84,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
+import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
-import com.afkanerd.deku.DefaultSMS.HomeScreen
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
@@ -144,10 +123,6 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.math.exp
-
-private var contactName: String = ""
-
 
 private fun copyItem(context: Context, text: String) {
     val clip = ClipData.newPlainText(text, text)
@@ -240,16 +215,12 @@ fun SearchCounterCompose(
 @Preview(showBackground = true)
 @Composable
 fun ChatCompose(
-    address: String = "",
-    threadId: String = "",
-    viewModel: ConversationsViewModel = ConversationsViewModel(),
+    value: String = "",
+    valueChanged: ((String) -> Unit)? = null,
     sentCallback: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
     val interactionsSource = remember { MutableInteractionSource() }
-    val text = viewModel.text
-    viewModel.text = ""
-    var userInput by remember { mutableStateOf(text) }
+
     Row(modifier = Modifier
         .height(IntrinsicSize.Min)
         .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
@@ -261,10 +232,8 @@ fun ChatCompose(
             .weight(1f)
             .fillMaxSize()) {
             BasicTextField(
-                value = userInput,
-                onValueChange = {
-                    userInput = it
-                },
+                value = value,
+                onValueChange = { valueChanged?.invoke(it) },
                 maxLines = 7,
                 singleLine = false,
                 textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
@@ -272,7 +241,7 @@ fun ChatCompose(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextFieldDefaults.DecorationBox(
-                    value = userInput,
+                    value = value,
                     visualTransformation = VisualTransformation.None,
                     innerTextField = it,
                     singleLine = false,
@@ -302,18 +271,8 @@ fun ChatCompose(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Bottom
         ) {
-            IconButton(onClick = {
-                sendSMS(
-                    context=context,
-                    text=userInput,
-                    threadId=threadId,
-                    messageId = System.currentTimeMillis().toString(),
-                    address=address,
-                    conversationsViewModel = viewModel)
-                userInput = ""
-                sentCallback?.let { it() }
-            },
-                enabled = userInput.isNotBlank(),
+            IconButton(onClick = { sentCallback?.invoke() },
+                enabled = value.isNotBlank(),
             ) {
                 Icon(
                     Icons.AutoMirrored.Default.Send,
@@ -386,7 +345,6 @@ private fun getContentType(index: Int, conversation: Conversation, conversations
 @Composable
 private fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    selectedItems: List<String> = emptyList(),
     items: List<Conversation> = emptyList(),
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
@@ -404,18 +362,20 @@ private fun ConversationCrudBottomBar(
                 }
 
                 Text(
-                    selectedItems.size.toString(),
+                    viewModel.selectedItems.size.toString(),
                     fontSize = 24.sp,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
 
                 Spacer(Modifier.weight(1f))
 
-                if(selectedItems.size < 2) {
+                if(viewModel.selectedItems.size < 2) {
                     IconButton(onClick = {
-                        val conversation = items.firstOrNull { it.message_id in selectedItems }
+                        val conversation = items.firstOrNull {
+                            it.message_id in viewModel.selectedItems
+                        }
                         copyItem(context, conversation?.text!!)
-                        onCompleted?.let { it() }
+                        onCompleted?.invoke()
                     }) {
                         Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
                     }
@@ -429,7 +389,9 @@ private fun ConversationCrudBottomBar(
                     }
 
                     IconButton(onClick = {
-                        val conversation = items.firstOrNull { it.message_id in selectedItems }
+                        val conversation = items.firstOrNull {
+                            it.message_id in viewModel.selectedItems
+                        }
                         shareItem(context, conversation?.text!!)
                         onCompleted?.let { it() }
                     }) {
@@ -439,7 +401,9 @@ private fun ConversationCrudBottomBar(
 
                 IconButton(onClick = {
                     CoroutineScope(Dispatchers.Default).launch {
-                        val conversations = items.filter { it.message_id in selectedItems }
+                        val conversations = items.filter {
+                            it.message_id in viewModel.selectedItems
+                        }
                         viewModel.deleteItems(context, conversations)
                         onCompleted?.let { it() }
                     }
@@ -522,8 +486,8 @@ private fun SecureRequestAcceptModal(
                 )
 
                 Button(onClick = {
-                    E2EEHandler.clear(context, viewModel.address!!)
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
+                    E2EEHandler.clear(context, viewModel.address)
+                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
                     val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                         E2EEHandler.MagicNumber.REQUEST)
                     sendDataMessage(
@@ -556,8 +520,8 @@ private fun SecureRequestAcceptModal(
                 )
 
                 Button(onClick = {
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address!!)
-                    val isSelf = E2EEHandler.isSelf(context, viewModel.address!!)
+                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
+                    val isSelf = E2EEHandler.isSelf(context, viewModel.address)
                     if(!isSelf) {
                         val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                             E2EEHandler.MagicNumber.ACCEPT)
@@ -567,7 +531,7 @@ private fun SecureRequestAcceptModal(
                     } else {
                         E2EEHandler.secureStorePeerPublicKey(
                             context,
-                            viewModel.address!!,
+                            viewModel.address,
                             publicKey, true)
                     }
                     scope.launch { state.hide() }.invokeOnCompletion {
@@ -599,6 +563,7 @@ private fun MainDropDownMenu(
     deleteCallback: (() -> Unit)? = null,
     muteCallback: (() -> Unit)? = null,
     isMute: Boolean = false,
+    isBlocked: Boolean = false,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     var expanded = expanded
@@ -628,7 +593,8 @@ private fun MainDropDownMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text=stringResource(R.string.conversation_menu_block),
+                        text=if(isBlocked) stringResource(R.string.conversations_menu_unblock)
+                        else stringResource(R.string.conversation_menu_block),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
@@ -731,6 +697,24 @@ private fun SearchTopAppBarText(
     }
 }
 
+fun backHandler(
+    context: Context,
+    viewModel: ConversationsViewModel,
+    navController: NavController
+) {
+    if(viewModel.text.isNotBlank()) {
+        CoroutineScope(Dispatchers.Default).launch {
+            viewModel.insertDraft(context)
+        }
+    }
+
+    if(!viewModel.selectedItems.isEmpty()) {
+        viewModel.selectedItems.clear()
+    }
+    else navController.navigate(HomeScreen)
+}
+
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -744,27 +728,26 @@ fun Conversations(
     val context = LocalContext.current
     var isSecured by remember {
         mutableStateOf(
-            if(viewModel.address.isNullOrBlank()) false
-            else E2EEHandler.isSecured(context, viewModel.address!!)
+            if(viewModel.address.isBlank()) false
+            else E2EEHandler.isSecured(context, viewModel.address)
         )
     }
 
     var showSecureRequestModal by rememberSaveable { mutableStateOf(false) }
     var showSecureAgreeModal by rememberSaveable {
         mutableStateOf(
-            if(viewModel.address.isNullOrBlank()) false
-            else E2EEHandler.hasPendingApproval(context, viewModel.address!!)
+            if(viewModel.address.isBlank()) false
+            else E2EEHandler.hasPendingApproval(context, viewModel.address)
         )
     }
-
-    var getContactName by remember { mutableStateOf("")}
-    var selectedItems = remember { mutableStateListOf<String>() }
 
     val items: List<Conversation> = _items ?: viewModel
         .getLiveData(context)
         .observeAsState(emptyList())
         .value
 
+    val selectedItems = remember { viewModel.selectedItems }
+    var userInput = remember { viewModel.text }
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -772,18 +755,18 @@ fun Conversations(
     var rememberMenuExpanded by remember { mutableStateOf( false) }
     val searchIndexes = remember { mutableStateListOf<Int>() }
 
-
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
 
     var isMute by remember { mutableStateOf(false) }
+    var isBlocked by remember { mutableStateOf(false) }
 
     LaunchedEffect(items) {
-        searchQuery?.let { query ->
+        if(searchQuery.isNotBlank()) {
             CoroutineScope(Dispatchers.Default).launch {
                 items.forEachIndexed { index, it ->
                     it.text?.let { text ->
-                        if(it.text!!.contains(other=query, ignoreCase=true)
+                        if(it.text!!.contains(other=searchQuery, ignoreCase=true)
                             && !searchIndexes.contains(index))
                             searchIndexes.add(index)
                     }
@@ -795,58 +778,72 @@ fun Conversations(
             listState.animateScrollToItem(searchIndexes.first())
 
         CoroutineScope(Dispatchers.Default).launch {
-            threadConversationsViewModel.get(context, viewModel.threadId!!).let {
+            threadConversationsViewModel.get(context, viewModel.threadId).let {
                 isMute = it.isIs_mute
+                isBlocked = it.isIs_blocked
             }
+
         }
     }
 
     LaunchedEffect(true){
-        if(viewModel.searchQuery.isNullOrBlank())
+        if(searchQuery.isBlank())
             listState.animateScrollToItem(0)
-        val defaultRegion = Helpers.getUserCountry( context )
-        contactName = Contacts.retrieveContactName( context,
-            Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion) )
-        if(contactName.isNullOrBlank())
-            contactName = viewModel.address!!
-        getContactName = contactName
+
+        if(viewModel.text.isBlank()) {
+            CoroutineScope(Dispatchers.Default).launch {
+                viewModel.fetchDraft(context)?.let {
+                    viewModel.clearDraft(context)
+                    viewModel.text = it.text!!
+                }
+            }
+        }
     }
 
-    fun backHandler() {
-        if(!selectedItems.isEmpty()) {
-            selectedItems.clear()
-        }
-        else if(!viewModel.searchQuery.isNullOrBlank()) {
-            viewModel.searchQuery = null
-            searchQuery = null
-        }
-        else navController.navigate(HomeScreen)
+    BackHandler {
+        if(searchQuery.isNotBlank()) searchQuery = ""
+        else
+        backHandler(
+            context = context,
+            viewModel = viewModel,
+            navController = navController,
+        )
     }
-
-    BackHandler { backHandler() }
 
     val coroutineScope = rememberCoroutineScope()
 
     MainDropDownMenu(
         rememberMenuExpanded,
         isMute = isMute,
+        isBlocked = isBlocked,
         searchCallback = {
             searchViewModel.threadId = viewModel.threadId
             navController.navigate(SearchThreadScreen)
         },
         blockCallback = {
-            ConvenientMethods.blockContact(context, viewModel.threadId!!, viewModel.address!!)
+            if(isBlocked) {
+                val ids = listOf(viewModel.threadId)
+                CoroutineScope(Dispatchers.Default).launch {
+                    threadConversationsViewModel.unblock(context, ids)
+                }
+            }
+            else
+                ConvenientMethods.blockContact(context, viewModel.threadId, viewModel.address)
         },
         deleteCallback = {
-            val ids = listOf(viewModel.threadId!!)
+            val ids = listOf(viewModel.threadId)
             CoroutineScope(Dispatchers.Default).launch{
                 threadConversationsViewModel.delete(context, ids)
             }
-            backHandler()
+            backHandler(
+                context = context,
+                viewModel = viewModel,
+                navController = navController,
+            )
         },
         muteCallback = {
             CoroutineScope(Dispatchers.Default).launch {
-                threadConversationsViewModel.get(context, viewModel.threadId!!).let {
+                threadConversationsViewModel.get(context, viewModel.threadId).let {
                     if(it.isIs_mute)
                         viewModel.unMute(context)
                     else
@@ -863,9 +860,9 @@ fun Conversations(
         topBar = {
             TopAppBar(
                 title = {
-                    if(viewModel.searchQuery.isNullOrBlank()) {
+                    if(searchQuery.isBlank()) {
                         Text(
-                            text= getContactName,
+                            text= viewModel.contactName!!,
                             maxLines =1,
                             overflow = TextOverflow.Ellipsis)
 
@@ -879,11 +876,8 @@ fun Conversations(
 
                     } else {
                         SearchTopAppBarText(
-                            searchQuery!!,
-                            cancelCallback = {
-                                viewModel.searchQuery = null
-                                searchQuery = null
-                            }
+                            searchQuery,
+                            cancelCallback = { searchQuery = "" }
                         ) {
                             searchIndexes.clear()
                             searchQuery = it
@@ -891,15 +885,23 @@ fun Conversations(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { backHandler() }) {
+                    IconButton(onClick = {
+                        if(searchQuery.isNotBlank()) searchQuery = ""
+                        else
+                        backHandler(
+                            context = context,
+                            viewModel = viewModel,
+                            navController = navController,
+                        )
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
                     }
 
                 },
                 actions = {
-                    if(viewModel.searchQuery.isNullOrBlank()) {
+                    if(searchQuery.isBlank()) {
                         IconButton(onClick = {
-                            call(context, viewModel.address!!)
+                            call(context, viewModel.address)
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Call,
@@ -936,7 +938,6 @@ fun Conversations(
             if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
-                    selectedItems,
                     items,
                     onCompleted = { selectedItems.clear() }
                 ) {
@@ -944,7 +945,7 @@ fun Conversations(
                 }
 
             }
-            else if(!viewModel.searchQuery.isNullOrBlank()) {
+            else if(searchQuery.isNotBlank()) {
                 SearchCounterCompose(
                     index = (searchIndex + 1).toString(),
                     total=searchIndexes.size.toString(),
@@ -967,11 +968,20 @@ fun Conversations(
                 )
             }
             else ChatCompose(
-                viewModel.address!!,
-                viewModel.threadId!!,
-                viewModel,
+                value=userInput,
+                valueChanged = { userInput = it }
             ) {
                 coroutineScope.launch { listState.animateScrollToItem(0) }
+                sendSMS(
+                    context=context,
+                    text=userInput,
+                    threadId= viewModel.threadId,
+                    messageId = System.currentTimeMillis().toString(),
+                    address= viewModel.address,
+                    conversationsViewModel = viewModel
+                )
+                viewModel.clearDraft(context)
+                userInput = ""
             }
         }
     ) { innerPadding ->
@@ -1035,7 +1045,7 @@ fun Conversations(
                         LaunchedEffect(true) {
                             coroutineScope.launch{
                                 showSecureAgreeModal = E2EEHandler
-                                    .hasPendingApproval(context, viewModel.address!!)
+                                    .hasPendingApproval(context, viewModel.address)
                             }
                         }
                     }
@@ -1051,8 +1061,7 @@ fun Conversations(
             if(showScrollBottom) {
                 Button(
                     onClick = {
-                        viewModel.searchQuery = null
-                        searchQuery = null
+                        searchQuery = ""
                         searchIndexes.clear()
                         searchIndex = 0
 
@@ -1093,7 +1102,7 @@ fun Conversations(
                 isSecureRequest = false,
             ){
                 showSecureAgreeModal = false
-                isSecured = E2EEHandler.isSecured(context, viewModel.address!!)
+                isSecured = E2EEHandler.isSecured(context, viewModel.address)
             }
         }
 
