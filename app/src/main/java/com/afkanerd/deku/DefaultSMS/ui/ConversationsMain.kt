@@ -974,7 +974,6 @@ fun Conversations(
                     }
                 }
             ) {
-                coroutineScope.launch { listState.animateScrollToItem(0) }
                 sendSMS(
                     context=context,
                     text=viewModel.text,
@@ -983,8 +982,11 @@ fun Conversations(
                     address= viewModel.address,
                     conversationsViewModel = viewModel
                 )
-                viewModel.clearDraft(context)
                 viewModel.text = ""
+                CoroutineScope(Dispatchers.Default).launch {
+                    viewModel.clearDraft(context)
+                }
+                coroutineScope.launch { listState.animateScrollToItem(0) }
             }
         }
     ) { innerPadding ->
