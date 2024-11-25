@@ -42,6 +42,7 @@ class ThreadedConversationsViewModel : ViewModel() {
     var encryptedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
     var blockedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
     var mutedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
+    var draftsLiveData: LiveData<MutableList<ThreadedConversations>>? = null
 
     fun getAll(context: Context): List<ThreadedConversations> {
         return Datastore.getDatastore(context).threadedConversationsDao().getAll()
@@ -59,6 +60,8 @@ class ThreadedConversationsViewModel : ViewModel() {
             encryptedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getEncrypted()
             blockedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getBlocked()
             mutedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getMuted()
+            draftsLiveData = Datastore.getDatastore(context).threadedConversationsDao()
+                .getThreadedDrafts(Telephony.Sms.MESSAGE_TYPE_DRAFT)
         }
         return threadsLiveData!!
     }

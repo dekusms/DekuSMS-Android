@@ -139,7 +139,8 @@ enum class InboxType(val value: Int) {
     ARCHIVED(1),
     ENCRYPTED(2),
     BLOCKED(3),
-    DRAFTS(4);
+    DRAFTS(4),
+    MUTED(5);
 
     companion object {
         fun fromInt(value: Int): InboxType? {
@@ -337,8 +338,8 @@ fun ModalDrawerSheetLayout(
                             Text(counts.mutedCount.toString(), fontSize = 14.sp)
                     }
                 },
-                selected = selectedItemIndex == InboxType.BLOCKED,
-                onClick = { callback?.let{ it(InboxType.BLOCKED) } }
+                selected = selectedItemIndex == InboxType.MUTED,
+                onClick = { callback?.let{ it(InboxType.MUTED) } }
             )
 
             NavigationDrawerItem(
@@ -496,6 +497,10 @@ fun ThreadConversationLayout(
         .encryptedLiveData!!.observeAsState(emptyList())
     val blockedItems: List<ThreadedConversations> by viewModel
         .blockedLiveData!!.observeAsState(emptyList())
+    val draftsItems: List<ThreadedConversations> by viewModel
+        .draftsLiveData!!.observeAsState(emptyList())
+    val mutedItems: List<ThreadedConversations> by viewModel
+        .mutedLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -705,6 +710,12 @@ fun ThreadConversationLayout(
                                     InboxType.BLOCKED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_blocked)
+                                    InboxType.MUTED ->
+                                        stringResource(R.string
+                                            .conversation_menu_muted_label)
+                                    InboxType.DRAFTS ->
+                                        stringResource(R.string
+                                            .conversations_navigation_view_drafts)
                                     else -> ""
                                 },
                                 maxLines =1,
@@ -749,7 +760,8 @@ fun ThreadConversationLayout(
                         InboxType.ARCHIVED -> archivedItems
                         InboxType.ENCRYPTED -> encryptedItems
                         InboxType.BLOCKED -> blockedItems
-                        InboxType.DRAFTS -> TODO()
+                        InboxType.DRAFTS -> draftsItems
+                        InboxType.MUTED -> mutedItems
                     } else _items,
                     key = { it.hashCode() }
                 ) { message ->

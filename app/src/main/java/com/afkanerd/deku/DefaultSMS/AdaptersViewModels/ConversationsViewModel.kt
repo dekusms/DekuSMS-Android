@@ -26,6 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class ConversationsViewModel : ViewModel() {
@@ -41,13 +44,16 @@ class ConversationsViewModel : ViewModel() {
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
         val defaultRegion = Helpers.getUserCountry( context )
 
-        contactName = Contacts.retrieveContactName(
-            context,
-            Helpers.getFormatCompleteNumber(address, defaultRegion)
-        )
+        CoroutineScope(Dispatchers.Default).launch {
+            contactName = Contacts.retrieveContactName(
+                context,
+                Helpers.getFormatCompleteNumber(address, defaultRegion)
+            )
 
-        if(contactName.isNullOrBlank())
-            contactName = address
+            if(contactName.isNullOrBlank())
+                contactName = address
+
+        }
 
         liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         return liveData

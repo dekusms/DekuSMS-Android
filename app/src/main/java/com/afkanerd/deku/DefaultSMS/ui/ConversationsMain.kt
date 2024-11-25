@@ -711,7 +711,7 @@ fun backHandler(
     if(!viewModel.selectedItems.isEmpty()) {
         viewModel.selectedItems.clear()
     }
-    else navController.navigate(HomeScreen)
+    else navController.popBackStack()
 }
 
 

@@ -95,8 +95,7 @@ interface ThreadedConversationsDao {
             "FROM ThreadedConversations ")
     fun getFullCounts(): ThreadsCount
 
-    @Query(
-        ("SELECT Conversation.address, " +
+    @Query( "SELECT Conversation.address, " +
                 "Conversation.text as snippet, " +
                 "Conversation.thread_id, " +
                 "Conversation.date, Conversation.type, " +
@@ -108,9 +107,9 @@ interface ThreadedConversationsDao {
                 "ThreadedConversations.formatted_datetime, ThreadedConversations.unread_count " +
                 "FROM Conversation, ThreadedConversations WHERE " +
                 "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
-                "ORDER BY Conversation.date DESC")
+                "ORDER BY Conversation.date DESC"
     )
-    fun getThreadedDrafts(type: Int): PagingSource<Int, ThreadedConversations>
+    fun getThreadedDrafts(type: Int): LiveData<MutableList<ThreadedConversations>>
 
     @Query(
         ("SELECT COUNT(ThreadedConversations.thread_id) " +
