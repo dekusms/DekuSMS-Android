@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.Context
 import android.content.Intent
+import android.provider.ContactsContract
 import android.provider.Telephony
 import android.text.InputType
 import android.widget.Toast
@@ -32,11 +33,13 @@ import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.ListItem
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Menu
@@ -76,6 +79,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -117,6 +121,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
@@ -133,7 +138,8 @@ enum class InboxType(val value: Int) {
     INBOX(0),
     ARCHIVED(1),
     ENCRYPTED(2),
-    BLOCKED(3);
+    BLOCKED(3),
+    DRAFTS(4);
 
     companion object {
         fun fromInt(value: Int): InboxType? {
@@ -212,6 +218,7 @@ fun navigateToConversation(
 fun ModalDrawerSheetLayout(
     callback: ((InboxType) -> Unit)? = null,
     selectedItemIndex: InboxType = InboxType.INBOX,
+    counts: ThreadsCount? = null,
 ) {
     ModalDrawerSheet {
         Text(
@@ -227,8 +234,18 @@ fun ModalDrawerSheetLayout(
                         contentDescription = stringResource(R.string.inbox_folder)
                     )
                 },
-                label = { Text(text =
-                stringResource(R.string.conversations_navigation_view_inbox)) },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_inbox ),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.unreadCount > 0)
+                            Text(counts.unreadCount.toString(), fontSize = 14.sp)
+                    }
+                },
                 selected = selectedItemIndex == InboxType.INBOX,
                 onClick = { callback?.let{ it(InboxType.INBOX) } }
             )
@@ -239,8 +256,18 @@ fun ModalDrawerSheetLayout(
                         contentDescription = stringResource(R.string.archive_folder)
                     )
                 },
-                label = { Text(text =
-                stringResource(R.string.conversations_navigation_view_archived)) },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_archived ),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.archivedCount > 0)
+                            Text(counts.archivedCount.toString(), fontSize = 14.sp)
+                    }
+                },
                 selected = selectedItemIndex == InboxType.ARCHIVED,
                 onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
             )
@@ -248,14 +275,70 @@ fun ModalDrawerSheetLayout(
             NavigationDrawerItem(
                 icon = {
                     Icon(
+                        Icons.Filled.Drafts,
+                        contentDescription = stringResource(R.string.thread_conversation_type_draft)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_drafts),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.draftsCount > 0)
+                            Text(counts.draftsCount.toString(), fontSize = 14.sp)
+                    }
+                },
+                selected = selectedItemIndex == InboxType.DRAFTS,
+                onClick = { callback?.let{ it(InboxType.DRAFTS) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
                         Icons.Filled.Security,
                         contentDescription = stringResource(R.string.encrypted_folder)
                     )
                 },
-                label = { Text(text =
-                stringResource(R.string.conversations_navigation_view_encryption)) },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_encryption),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.encryptedCount > 0)
+                            Text(counts.encryptedCount.toString(), fontSize = 14.sp)
+                    }
+                },
                 selected = selectedItemIndex == InboxType.ENCRYPTED,
                 onClick = { callback?.let{ it(InboxType.ENCRYPTED) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.AutoMirrored.Default.VolumeOff,
+                        contentDescription = stringResource(R.string.conversation_menu_muted_label)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversation_menu_muted_label),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.mutedCount > 0)
+                            Text(counts.mutedCount.toString(), fontSize = 14.sp)
+                    }
+                },
+                selected = selectedItemIndex == InboxType.BLOCKED,
+                onClick = { callback?.let{ it(InboxType.BLOCKED) } }
             )
 
             NavigationDrawerItem(
@@ -265,8 +348,18 @@ fun ModalDrawerSheetLayout(
                         contentDescription = stringResource(R.string.blocked_folder)
                     )
                 },
-                label = { Text(text =
-                stringResource(R.string.conversations_navigation_view_blocked)) },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_blocked),
+                        fontSize = 14.sp
+                    )
+                },
+                 badge = {
+                    counts?.let {
+                        if(counts.blockedCount > 0)
+                            Text(counts.blockedCount.toString(), fontSize = 14.sp)
+                    }
+                },
                 selected = selectedItemIndex == InboxType.BLOCKED,
                 onClick = { callback?.let{ it(InboxType.BLOCKED) } }
             )
@@ -391,7 +484,7 @@ fun ThreadConversationLayout(
     }
     conversationsViewModel.text = ""
 
-    val counts: List<Int> by viewModel.getCount(context).observeAsState(emptyList())
+    val counts by viewModel.getCount(context).observeAsState(null)
 
     var inboxType by remember { mutableStateOf(viewModel.inboxType) }
 
@@ -430,6 +523,7 @@ fun ThreadConversationLayout(
                     conversationsViewModel = conversationsViewModel
                 )
             }
+            viewModel.refreshCount(context)
         }
     }
 
@@ -464,7 +558,8 @@ fun ThreadConversationLayout(
                         }
                     }
                 },
-                selectedItemIndex = selectedItemIndex
+                selectedItemIndex = selectedItemIndex,
+                counts = counts,
             )
         },
     ) {
@@ -654,6 +749,7 @@ fun ThreadConversationLayout(
                         InboxType.ARCHIVED -> archivedItems
                         InboxType.ENCRYPTED -> encryptedItems
                         InboxType.BLOCKED -> blockedItems
+                        InboxType.DRAFTS -> TODO()
                     } else _items,
                     key = { it.hashCode() }
                 ) { message ->

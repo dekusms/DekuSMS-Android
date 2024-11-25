@@ -22,6 +22,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isSecured
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,7 @@ class ThreadedConversationsViewModel : ViewModel() {
     var archivedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
     var encryptedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
     var blockedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
+    var mutedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
 
     fun getAll(context: Context): List<ThreadedConversations> {
         return Datastore.getDatastore(context).threadedConversationsDao().getAll()
@@ -56,6 +58,7 @@ class ThreadedConversationsViewModel : ViewModel() {
             archivedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getArchived()
             encryptedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getEncrypted()
             blockedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getBlocked()
+            mutedLiveData = Datastore.getDatastore(context).threadedConversationsDao().getMuted()
         }
         return threadsLiveData!!
     }
@@ -243,35 +246,20 @@ class ThreadedConversationsViewModel : ViewModel() {
         databaseConnector!!.threadedConversationsDao().updateRead(1)
     }
 
-    private var folderMetrics: MutableLiveData<MutableList<Int>> =
-        MutableLiveData<MutableList<Int>>()
-    fun getCount(context: Context) : LiveData<MutableList<Int>> {
+    private var folderMetrics: MutableLiveData<ThreadsCount> = MutableLiveData()
+    fun getCount(context: Context) : MutableLiveData<ThreadsCount> {
         val databaseConnector = Datastore.getDatastore(context)
         CoroutineScope(Dispatchers.Default).launch {
-            val draftsListCount = databaseConnector!!.threadedConversationsDao()
-                .getThreadedDraftsListCount(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT)
-            val encryptedCount = databaseConnector!!.threadedConversationsDao().getCountEncrypted()
-            val unreadCount = databaseConnector!!.threadedConversationsDao().getCountUnread()
-            val blockedCount = databaseConnector!!.threadedConversationsDao().getCountBlocked()
-            val mutedCount = databaseConnector!!.threadedConversationsDao().getCountMuted()
-            val list: MutableList<Int> = ArrayList<Int>()
-            // 0
-            list.add(draftsListCount)
-
-            // 1
-            list.add(encryptedCount)
-
-            // 2
-            list.add(unreadCount)
-
-            // 3
-            list.add(blockedCount)
-
-            // 4
-            list.add(mutedCount)
-            folderMetrics.postValue(list)
+            folderMetrics.postValue(databaseConnector.threadedConversationsDao().getFullCounts())
         }
         return folderMetrics
+    }
+
+    fun refreshCount(context: Context) {
+        val databaseConnector = Datastore.getDatastore(context)
+        CoroutineScope(Dispatchers.Default).launch {
+            folderMetrics.postValue(databaseConnector.threadedConversationsDao().getFullCounts())
+        }
     }
 
     fun unMute(context: Context, threadIds: MutableList<String>) {
