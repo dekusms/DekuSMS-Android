@@ -121,6 +121,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
@@ -204,12 +205,15 @@ fun navigateToConversation(
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
+    subscriptionId: Int,
     navController: NavController,
     searchQuery: String? = ""
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
+    conversationsViewModel.contactName = ""
     conversationsViewModel.searchQuery = searchQuery ?: ""
+    conversationsViewModel.subscriptionId = subscriptionId
     viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
@@ -472,12 +476,13 @@ fun ThreadConversationLayout(
                         conversationsViewModel.text = message
                     }
                     navigateToConversation(
-                        context,
-                        viewModel,
-                        conversationsViewModel,
-                        address,
-                        threadId,
-                        navController,
+                        context = context,
+                        viewModel = viewModel,
+                        conversationsViewModel = conversationsViewModel,
+                        address = address,
+                        threadId = threadId,
+                        subscriptionId = SIMHandler.getDefaultSimSubscription(context),
+                        navController = navController,
                     )
                 }
             }
@@ -818,12 +823,14 @@ fun ThreadConversationLayout(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {
                                             navigateToConversation(
-                                                context,
-                                                viewModel,
-                                                conversationsViewModel,
-                                                message.address,
-                                                message.thread_id,
-                                                navController,
+                                                context = context,
+                                                viewModel = viewModel,
+                                                conversationsViewModel = conversationsViewModel,
+                                                address = message.address,
+                                                threadId = message.thread_id,
+                                                subscriptionId =
+                                                SIMHandler.getDefaultSimSubscription(context),
+                                                navController = navController,
                                             )
                                         } else {
                                             if(selectedItems.contains(message))

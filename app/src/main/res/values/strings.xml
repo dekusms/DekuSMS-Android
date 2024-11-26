@@ -318,5 +318,6 @@
     <string name="resend_message">Resend message</string>
     <string name="delete_message1">Delete message</string>
     <string name="send_to">"Send to "</string>
+    <string name="choose_sim_card">Choose sim card</string>
 
 </resources>

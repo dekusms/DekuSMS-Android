@@ -97,6 +97,7 @@ fun SearchThreadsMain(
                                         address = message.address,
                                         threadId = message.thread_id,
                                         navController = navController,
+                                        subscriptionId = message.subscription_id,
                                         searchQuery = searchInput
                                     )
                                 }
@@ -181,6 +182,7 @@ fun SearchThreadsMain(
                                     address = message.address,
                                     threadId = message.thread_id,
                                     navController = navController,
+                                    subscriptionId = message.subscription_id,
                                     searchQuery = searchInput
                                 )
                             },

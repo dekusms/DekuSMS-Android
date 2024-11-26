@@ -35,6 +35,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -60,6 +62,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -122,6 +126,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.FailedMessageOptionsModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchCounterCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
 import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
+import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -494,9 +499,11 @@ fun Conversations(
 
     var isMute by remember { mutableStateOf(false) }
     var isBlocked by remember { mutableStateOf(false) }
+    var openAlertDialog by remember { mutableStateOf(false)}
 
     val coroutineScope = rememberCoroutineScope()
     val defaultRegion = Helpers.getUserCountry( context )
+    val isShortCode = Helpers.isShortCode(viewModel.address)
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -527,17 +534,13 @@ fun Conversations(
         if(searchQuery.isBlank())
             listState.animateScrollToItem(0)
 
+        Contacts.retrieveContactName(
+            context,
+            Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
+        )?.let { viewModel.contactName = it }
 
-        CoroutineScope(Dispatchers.Default).launch {
-            Contacts.retrieveContactName(
-                context,
-                Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
-            )?.let { viewModel.contactName = it }
-
-            if(viewModel.contactName.isNullOrBlank())
-                viewModel.contactName = viewModel.address
-
-        }
+        if(viewModel.contactName.isBlank())
+            viewModel.contactName = viewModel.address
 
         CoroutineScope(Dispatchers.Default).launch {
             viewModel.fetchDraft(context)?.let {
@@ -643,26 +646,28 @@ fun Conversations(
                 },
                 actions = {
                     if(searchQuery.isBlank()) {
-                        IconButton(onClick = {
-                            call(context, viewModel.address)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Call,
-                                contentDescription = stringResource(R.string.call)
-                            )
-                        }
+                        if(!isShortCode) {
+                            IconButton(onClick = {
+                                call(context, viewModel.address)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Call,
+                                    contentDescription = stringResource(R.string.call)
+                                )
+                            }
 
-                        IconButton(onClick = {
-                            showSecureRequestModal = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.EnhancedEncryption,
-                                contentDescription = stringResource(
-                                    R.string
-                                        .request_secure_communication)
-                            )
-                        }
+                            IconButton(onClick = {
+                                showSecureRequestModal = true
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.EnhancedEncryption,
+                                    contentDescription = stringResource(
+                                        R.string
+                                            .request_secure_communication)
+                                )
+                            }
 
+                        }
                         IconButton(onClick = {
                             rememberMenuExpanded = !rememberMenuExpanded
                         }) {
@@ -710,8 +715,29 @@ fun Conversations(
                     }
                 )
             }
+            else if(isShortCode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.conversation_shortcode_description),
+                        textAlign = TextAlign.Center
+                    )
+                    TextButton(onClick = {
+                        openAlertDialog = true
+                    }) {
+                        Text(
+                            stringResource(R.string.conversation_shortcode_action_button),
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+            }
             else ChatCompose(
                 value=viewModel.text,
+                subscriptionId = viewModel.subscriptionId,
                 valueChanged = {
                     viewModel.text = it
 
@@ -735,7 +761,7 @@ fun Conversations(
                 }
                 coroutineScope.launch { listState.animateScrollToItem(0) }
             }
-        }
+        },
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -832,13 +858,19 @@ fun Conversations(
                         .align(Alignment.BottomCenter)
                         .clip(CircleShape)
                         .size(50.dp)
-                    ) {
+                ) {
                     Icon(
                         modifier = Modifier.size(50.dp),
                         imageVector = Icons.Filled.KeyboardArrowDown,
                         contentDescription = stringResource(R.string.down_to_latest_content),
                         tint= MaterialTheme.colorScheme.outlineVariant
                     )
+                }
+            }
+
+            if(openAlertDialog) {
+                ShortCodeAlert() {
+                    openAlertDialog = false
                 }
             }
         }
@@ -888,7 +920,7 @@ fun Conversations(
             }
         }
 
-        else if(showSecureAgreeModal) {
+        if(showSecureAgreeModal) {
             SecureRequestAcceptModal(
                 viewModel=viewModel,
                 isSecureRequest = false,
@@ -897,7 +929,6 @@ fun Conversations(
                 isSecured = E2EEHandler.isSecured(context, viewModel.address)
             }
         }
-
     }
 
 }

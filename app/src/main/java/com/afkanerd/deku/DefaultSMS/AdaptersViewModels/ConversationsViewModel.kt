@@ -23,6 +23,7 @@ import java.util.ArrayList
 import java.util.Locale
 import kotlin.concurrent.thread
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -36,10 +37,10 @@ class ConversationsViewModel : ViewModel() {
     var address by mutableStateOf("")
     var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
-    var contactName: String? by mutableStateOf("")
+    var contactName: String by mutableStateOf("")
+    var subscriptionId: Int by mutableIntStateOf(-1)
 
     var selectedItems = mutableStateListOf<String>()
-
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
     private var liveData: LiveData<MutableList<Conversation>>? = null

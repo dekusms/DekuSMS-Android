@@ -1,5 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -22,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,8 +48,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -52,8 +61,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.jakewharton.rxbinding.view.RxMenuItem.icon
 import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
@@ -166,8 +178,10 @@ fun SearchTopAppBarText(
 fun ChatCompose(
     value: String = "",
     valueChanged: ((String) -> Unit)? = null,
+    subscriptionId: Int = -1,
     sentCallback: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val interactionsSource = remember { MutableInteractionSource() }
 
     Row(modifier = Modifier
@@ -220,14 +234,32 @@ fun ChatCompose(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Bottom
         ) {
-            IconButton(onClick = { sentCallback?.invoke() },
-                enabled = value.isNotBlank(),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Default.Send,
-                    stringResource(R.string.send_message),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
+            Row {
+                IconButton(onClick = { TODO() },
+                    enabled = true,
+                ) {
+                    if(subscriptionId == -1) {
+                        Icon(
+                            Icons.Outlined.SimCard,
+                            stringResource(R.string.send_message),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    } else {
+                        val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
+                            .asImageBitmap()
+                        Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                    }
+                }
+
+                IconButton(onClick = { sentCallback?.invoke() },
+                    enabled = value.isNotBlank(),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Default.Send,
+                        stringResource(R.string.send_message),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }
@@ -302,4 +334,33 @@ fun FailedMessageOptionsModal(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun ShortCodeAlert(
+    dismissCallback: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        text = {
+            Text(
+                context.getString(R.string.conversation_shortcode_learn_more_text),
+                color = MaterialTheme.colorScheme.onSecondary
+            )
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    context.getString(R.string.conversation_shortcode_learn_more_ok),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
 }

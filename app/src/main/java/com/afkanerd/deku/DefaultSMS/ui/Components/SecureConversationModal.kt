@@ -13,8 +13,10 @@ import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.R
@@ -42,7 +45,10 @@ fun SecureRequestAcceptModal(
     dismissCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val state = rememberModalBottomSheetState()
+    val state = rememberStandardBottomSheetState(
+        initialValue = if(BuildConfig.DEBUG) SheetValue.Expanded else SheetValue.Hidden,
+        skipHiddenState = false
+    )
 
     val url = stringResource(
         R.string.conversations_secure_conversation_request_information_deku_encryption_link)
