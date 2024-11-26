@@ -45,10 +45,10 @@ class ConversationsViewModel : ViewModel() {
         val defaultRegion = Helpers.getUserCountry( context )
 
         CoroutineScope(Dispatchers.Default).launch {
-            contactName = Contacts.retrieveContactName(
+            Contacts.retrieveContactName(
                 context,
                 Helpers.getFormatCompleteNumber(address, defaultRegion)
-            )
+            )?.let { contactName = it }
 
             if(contactName.isNullOrBlank())
                 contactName = address

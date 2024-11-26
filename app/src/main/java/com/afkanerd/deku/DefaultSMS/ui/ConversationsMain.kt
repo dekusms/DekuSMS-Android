@@ -112,10 +112,14 @@ import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
+import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
+import com.afkanerd.deku.DefaultSMS.ui.Components.SearchCounterCompose
+import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
+import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -166,126 +170,11 @@ private fun sendSMS(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun SearchCounterCompose(
-    index: String = "0",
-    total: String = "10",
-    forwardClick: (() -> Unit)? = null,
-    backwardClick: (() -> Unit)? = null,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            "$index/$total ${stringResource(R.string.results_found)}",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(8.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Spacer(Modifier.weight(4f))
-            IconButton(onClick = {
-                forwardClick?.let{ it() }
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBackIos,
-                    contentDescription = stringResource(R.string.move_search_backwards)
-                )
-            }
-
-            IconButton(onClick = {
-                backwardClick?.let{ it() }
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
-                    contentDescription = stringResource(R.string.move_search_forwards)
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-fun ChatCompose(
-    value: String = "",
-    valueChanged: ((String) -> Unit)? = null,
-    sentCallback: (() -> Unit)? = null
-) {
-    val interactionsSource = remember { MutableInteractionSource() }
-
-    Row(modifier = Modifier
-        .height(IntrinsicSize.Min)
-        .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-        .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
-        .background(MaterialTheme.colorScheme.outlineVariant)
-    ) {
-        Column(modifier = Modifier
-            .padding(start = 8.dp, end = 8.dp)
-            .weight(1f)
-            .fillMaxSize()) {
-            BasicTextField(
-                value = value,
-                onValueChange = { valueChanged?.invoke(it) },
-                maxLines = 7,
-                singleLine = false,
-                textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextFieldDefaults.DecorationBox(
-                    value = value,
-                    visualTransformation = VisualTransformation.None,
-                    innerTextField = it,
-                    singleLine = false,
-                    enabled = true,
-                    interactionSource = interactionsSource,
-                    placeholder = {
-                        Text(
-                            text= stringResource(R.string.text_message),
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    },
-                    shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                    ),
-                )
-            }
-
-        }
-
-        Column(
-            modifier = Modifier
-                .padding(end = 8.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            IconButton(onClick = { sentCallback?.invoke() },
-                enabled = value.isNotBlank(),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Default.Send,
-                    stringResource(R.string.send_message),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-    }
-}
-
-private fun getContentType(index: Int, conversation: Conversation, conversations: List<Conversation>):
-        ConversationPositionTypes {
+private fun getContentType(
+    index: Int,
+    conversation: Conversation,
+    conversations: List<Conversation>
+): ConversationPositionTypes {
     if(conversations.size < 2) {
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
@@ -444,117 +333,6 @@ private fun call(context: Context, address: String) {
     context.startActivity(callIntent);
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-@Composable
-private fun SecureRequestAcceptModal(
-    viewModel: ConversationsViewModel = ConversationsViewModel(),
-    isSecureRequest: Boolean = true,
-    dismissCallback: (() -> Unit)? = null
-) {
-    val context = LocalContext.current
-    val state = rememberModalBottomSheetState()
-
-    val url = stringResource(
-        R.string.conversations_secure_conversation_request_information_deku_encryption_link)
-    val intent = remember{ Intent(Intent.ACTION_VIEW, Uri.parse(url)) }
-    val scope = rememberCoroutineScope()
-
-    ModalBottomSheet(
-        onDismissRequest = { dismissCallback?.let { it() } },
-        sheetState = state,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if(isSecureRequest) {
-                Text(
-                    text = stringResource(
-                        R.string
-                            .conversation_secure_popup_request_menu_description),
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = stringResource(
-                        R.string
-                            .conversation_secure_popup_request_menu_description_subtext),
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(16.dp)
-                )
-
-                Button(onClick = {
-                    E2EEHandler.clear(context, viewModel.address)
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
-                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                        E2EEHandler.MagicNumber.REQUEST)
-                    sendDataMessage(
-                        context=context,
-                        viewModel=viewModel,
-                        data=txPublicKey
-                    )
-                    scope.launch { state.hide() }.invokeOnCompletion {
-                        if(!state.isVisible) {
-                            dismissCallback?.let { it() }
-                        }
-                    }
-                }, modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.request))
-                }
-            }
-            else {
-                Text(
-                    text = stringResource(R.string.conversations_secure_conversation_request),
-                    textAlign = TextAlign.Center,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                Text(
-                    text = stringResource(R.string
-                        .conversations_secure_conversation_request_information),
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                Button(onClick = {
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
-                    val isSelf = E2EEHandler.isSelf(context, viewModel.address)
-                    if(!isSelf) {
-                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                            E2EEHandler.MagicNumber.ACCEPT)
-
-                        // TODO: put a pending intent here that makes save on message delivered
-                        sendDataMessage(context, txPublicKey, viewModel)
-                    } else {
-                        E2EEHandler.secureStorePeerPublicKey(
-                            context,
-                            viewModel.address,
-                            publicKey, true)
-                    }
-                    scope.launch { state.hide() }.invokeOnCompletion {
-                        if(!state.isVisible) {
-                            dismissCallback?.let { it() }
-                        }
-                    }
-                }) {
-                    Text(stringResource(R.string.conversations_secure_conversation_request_agree))
-                }
-
-                TextButton(onClick={
-                    context.startActivity(intent)
-                }) {
-                    Text(stringResource(R.string
-                        .conversations_secure_conversation_request_information_deku_encryption_read_more))
-                }
-            }
-        }
-    }
-
-}
-
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = true,
@@ -637,63 +415,6 @@ private fun MainDropDownMenu(
                 }
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-private fun SearchTopAppBarText(
-    searchQuery: String = "",
-    cancelCallback: (() -> Unit)? = null,
-    searchCallback: ((String) -> Unit)? = null,
-) {
-    var searchQuery by remember { mutableStateOf(searchQuery) }
-    val interactionsSource = remember { MutableInteractionSource() }
-
-    BasicTextField(
-        value = searchQuery,
-        onValueChange = {
-            searchQuery = it
-            if(it.isEmpty())
-                cancelCallback?.let{ it() }
-            else searchCallback?.let{ it(searchQuery)}
-        },
-        maxLines = 7,
-        singleLine = false,
-        textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        TextFieldDefaults.DecorationBox(
-            value = searchQuery,
-            visualTransformation = VisualTransformation.None,
-            innerTextField = it,
-            singleLine = false,
-            enabled = true,
-            interactionSource = interactionsSource,
-            trailingIcon = {
-                IconButton(onClick = {
-                    searchQuery = ""
-                    cancelCallback?.let{ it() }
-                }) {
-                    Icon(Icons.Default.Close, stringResource(R.string.cancel_search))
-                }
-            },
-            placeholder = {
-                Text(
-                    text= stringResource(R.string.text_message),
-                    color = MaterialTheme.colorScheme.outline
-                )
-            },
-            shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-            ),
-        )
     }
 }
 

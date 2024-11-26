@@ -46,8 +46,8 @@ class ContactsViewModel : ViewModel() {
 
                 contactsList.add(Contacts(context, id, displayName, number))
             } while (cursor.moveToNext())
+            cursor.close()
         }
-        cursor.close()
 
         if (contactsList.isEmpty() && PhoneNumberUtils.isWellFormedSmsAddress(details)) {
             val contacts = Contacts()
