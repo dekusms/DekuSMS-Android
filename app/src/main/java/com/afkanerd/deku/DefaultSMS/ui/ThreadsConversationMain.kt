@@ -818,7 +818,7 @@ fun ThreadConversationLayout(
                                 else "Tues",
                                 isRead = message.isIs_read,
                                 isContact = isContact,
-                                unreadCount = message.unread_count,
+//                                unreadCount = message.unread_count,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {

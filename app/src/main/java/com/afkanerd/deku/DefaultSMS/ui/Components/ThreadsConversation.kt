@@ -160,7 +160,7 @@ fun ThreadConversationCard(
     date: String = "Tues",
     isRead: Boolean = false,
     isContact: Boolean = false,
-    unreadCount: Int = 1,
+    unreadCount: Int = 0,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     isMuted: Boolean = false,
