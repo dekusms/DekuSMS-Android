@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.R
 import com.google.i18n.phonenumbers.NumberParseException
 import java.util.ArrayList
 
@@ -22,7 +23,6 @@ class ContactsViewModel : ViewModel() {
         return contactsMutableLiveData!!
     }
 
-    @Throws(NumberParseException::class)
     fun filterContact(context: Context, details: String) {
         val contactsList: MutableList<Contacts> = ArrayList<Contacts>()
         if (details.isEmpty()) {
@@ -31,7 +31,7 @@ class ContactsViewModel : ViewModel() {
         }
 
         val cursor = Contacts.filterContacts(context, details)
-        if (cursor!!.moveToFirst()) {
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 val idIndex =
                     cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone._ID)
@@ -51,7 +51,7 @@ class ContactsViewModel : ViewModel() {
 
         if (contactsList.isEmpty() && PhoneNumberUtils.isWellFormedSmsAddress(details)) {
             val contacts = Contacts()
-            contacts.contactName = "Send to " + details
+            contacts.contactName = "${context.getString(R.string.send_to)} $details"
             contacts.number = details
             contacts.type = Contacts.TYPE_NEW_CONTACT
             contactsList.add(contacts)

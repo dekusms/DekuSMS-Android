@@ -314,5 +314,9 @@
     <string name="cancel_search">Cancel search</string>
     <string name="unarchive_messages">Unarchive messages</string>
     <string name="thread_muted">Thread muted</string>
+    <string name="secure_request">Secure request</string>
+    <string name="resend_message">Resend message</string>
+    <string name="delete_message1">Delete message</string>
+    <string name="send_to">"Send to "</string>
 
 </resources>

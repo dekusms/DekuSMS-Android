@@ -117,6 +117,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
+import com.afkanerd.deku.DefaultSMS.ui.Components.FailedMessageOptionsModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchCounterCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
 import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
@@ -158,6 +159,7 @@ private fun sendSMS(
     conversation.date = System.currentTimeMillis().toString()
     conversation.address = address
     conversation.status = Telephony.Sms.STATUS_PENDING
+    conversation.isRead = true
 
     sendTextMessage(
         context = context,
@@ -461,11 +463,12 @@ fun Conversations(
             else E2EEHandler.hasPendingApproval(context, viewModel.address)
         )
     }
+    var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
-    val items: List<Conversation> = _items ?: viewModel
+    val items: List<Conversation>? = _items ?: viewModel
         .getLiveData(context)
-        .observeAsState(emptyList())
-        .value
+        ?.observeAsState(emptyList())
+        ?.value
 
     val selectedItems = remember { viewModel.selectedItems }
 
@@ -482,11 +485,12 @@ fun Conversations(
     var isBlocked by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val defaultRegion = Helpers.getUserCountry( context )
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
             CoroutineScope(Dispatchers.Default).launch {
-                items.forEachIndexed { index, it ->
+                items?.forEachIndexed { index, it ->
                     it.text?.let { text ->
                         if(it.text!!.contains(other=searchQuery, ignoreCase=true)
                             && !searchIndexes.contains(index))
@@ -512,6 +516,18 @@ fun Conversations(
         if(searchQuery.isBlank())
             listState.animateScrollToItem(0)
 
+
+        CoroutineScope(Dispatchers.Default).launch {
+            Contacts.retrieveContactName(
+                context,
+                Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
+            )?.let { viewModel.contactName = it }
+
+            if(viewModel.contactName.isNullOrBlank())
+                viewModel.contactName = viewModel.address
+
+        }
+
         CoroutineScope(Dispatchers.Default).launch {
             viewModel.fetchDraft(context)?.let {
                 viewModel.clearDraft(context)
@@ -529,7 +545,6 @@ fun Conversations(
             navController = navController,
         )
     }
-
 
     MainDropDownMenu(
         rememberMenuExpanded,
@@ -655,12 +670,11 @@ fun Conversations(
             if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
-                    items,
+                    items!!,
                     onCompleted = { selectedItems.clear() }
                 ) {
                     selectedItems.clear()
                 }
-
             }
             else if(searchQuery.isNotBlank()) {
                 SearchCounterCompose(
@@ -721,7 +735,7 @@ fun Conversations(
                 reverseLayout = true,
             ) {
                 itemsIndexed(
-                    items = items,
+                    items = items!!,
                     key = { index, conversation -> conversation.id }
                 ) { index, conversation ->
                     var showDate by remember { mutableStateOf(index == 0) }
@@ -742,13 +756,17 @@ fun Conversations(
                         else "1730062120",
                         showDate = showDate,
                         onClickCallback = {
-                            if (!selectedItems.isEmpty()) {
-                                println(selectedItems)
+                            if (selectedItems.isNotEmpty()) {
                                 if (selectedItems.contains(conversation.message_id))
                                     selectedItems.remove(conversation.message_id)
                                 else
                                     selectedItems.add(conversation.message_id!!)
-                            } else {
+                            }
+                            else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                viewModel.retryDeleteItem.add(conversation)
+                                showFailedRetryModal = true
+                            }
+                            else {
                                 showDate = !showDate
                             }
                         },
@@ -810,6 +828,33 @@ fun Conversations(
                         tint= MaterialTheme.colorScheme.outlineVariant
                     )
                 }
+            }
+        }
+
+        if(showFailedRetryModal) {
+            FailedMessageOptionsModal(
+                retryCallback = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        viewModel.deleteItems(context, viewModel.retryDeleteItem)
+                        sendSMS(
+                            context=context,
+                            text=viewModel.retryDeleteItem.first().text!!,
+                            threadId= viewModel.threadId,
+                            messageId = System.currentTimeMillis().toString(),
+                            address= viewModel.address,
+                            conversationsViewModel = viewModel
+                        )
+                        viewModel.retryDeleteItem = arrayListOf()
+                    }
+                },
+                deleteCallback = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        viewModel.deleteItems(context, viewModel.retryDeleteItem)
+                        viewModel.retryDeleteItem = arrayListOf()
+                    }
+                },
+            ){
+                showFailedRetryModal = false
             }
         }
 

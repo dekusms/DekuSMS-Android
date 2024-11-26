@@ -40,22 +40,15 @@ class ConversationsViewModel : ViewModel() {
 
     var selectedItems = mutableStateListOf<String>()
 
-    private var liveData: LiveData<MutableList<Conversation>> = MutableLiveData()
-    fun getLiveData(context: Context): LiveData<MutableList<Conversation>> {
-        val defaultRegion = Helpers.getUserCountry( context )
+    var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
-        CoroutineScope(Dispatchers.Default).launch {
-            Contacts.retrieveContactName(
-                context,
-                Helpers.getFormatCompleteNumber(address, defaultRegion)
-            )?.let { contactName = it }
+    private var liveData: LiveData<MutableList<Conversation>>? = null
 
-            if(contactName.isNullOrBlank())
-                contactName = address
-
+    fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
+        if(liveData == null) {
+            liveData = MutableLiveData()
+            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         }
-
-        liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
         return liveData
     }
 
