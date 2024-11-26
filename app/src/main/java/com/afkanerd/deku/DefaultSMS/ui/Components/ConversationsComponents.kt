@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.AlertDialog
@@ -27,6 +29,8 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.SimCard
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +59,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
@@ -62,11 +67,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.jakewharton.rxbinding.view.RxMenuItem.icon
 import kotlinx.coroutines.launch
+import java.nio.file.WatchEvent
 
 @Preview(showBackground = true)
 @Composable
@@ -179,6 +184,7 @@ fun ChatCompose(
     value: String = "",
     valueChanged: ((String) -> Unit)? = null,
     subscriptionId: Int = -1,
+    simCardChooserCallback: (() -> Unit)? = null,
     sentCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -235,10 +241,12 @@ fun ChatCompose(
             verticalArrangement = Arrangement.Bottom
         ) {
             Row {
-                IconButton(onClick = { TODO() },
-                    enabled = true,
+                IconButton(
+                    onClick = {
+                        simCardChooserCallback?.invoke()
+                    },
                 ) {
-                    if(subscriptionId == -1) {
+                    if(LocalInspectionMode.current) {
                         Icon(
                             Icons.Outlined.SimCard,
                             stringResource(R.string.send_message),
@@ -251,14 +259,16 @@ fun ChatCompose(
                     }
                 }
 
-                IconButton(onClick = { sentCallback?.invoke() },
-                    enabled = value.isNotBlank(),
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Default.Send,
-                        stringResource(R.string.send_message),
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
+                if(value.isNotBlank() || LocalInspectionMode.current) {
+                    IconButton(
+                        onClick = { sentCallback?.invoke() },
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Default.Send,
+                            stringResource(R.string.send_message),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
             }
         }
@@ -273,10 +283,9 @@ fun FailedMessageOptionsModal(
     deleteCallback: (() -> Unit)? = null,
     dismissCallback: (() -> Unit)? = null
 ) {
-//    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val state = rememberStandardBottomSheetState(
-        initialValue = if(BuildConfig.DEBUG) SheetValue.Expanded else SheetValue.Hidden,
+        initialValue = if(LocalInspectionMode.current) SheetValue.Expanded else SheetValue.Hidden,
         skipHiddenState = false
     )
 
@@ -363,4 +372,54 @@ fun ShortCodeAlert(
             }
         }
     )
+}
+
+
+@Preview
+@Composable
+fun SimChooser(
+    expanded: Boolean = LocalInspectionMode.current,
+    onClickCallback: ((Int) -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.BottomCenter)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { dismissCallback?.invoke() },
+        ) {
+            SIMHandler.getSimCardInformation(context).forEach {
+                DropdownMenuItem(
+                    leadingIcon = {
+                        if(LocalInspectionMode.current) {
+                            Icon(
+                                Icons.Outlined.SimCard,
+                                stringResource(R.string.send_message),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        } else {
+                            val iconBitmap = SIMHandler
+                                .getSubscriptionBitmap(context, it.subscriptionId)
+                                .asImageBitmap()
+                            Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = it.carrierName.toString(),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    onClick = {
+                        onClickCallback?.invoke(it.subscriptionId)
+                        dismissCallback?.invoke()
+                    }
+                )
+            }
+        }
+    }
 }

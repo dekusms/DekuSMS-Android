@@ -11,6 +11,7 @@ import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +65,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
+import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -88,8 +90,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -127,6 +131,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SearchCounterCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
 import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
+import com.afkanerd.deku.DefaultSMS.ui.Components.SimChooser
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -156,13 +161,11 @@ private fun sendSMS(
     address: String,
     conversationsViewModel: ConversationsViewModel
 ) {
-    val subscriptionId = SIMHandler.getDefaultSimSubscription(context)
-
     val conversation = Conversation()
     conversation.text = text
     conversation.message_id = messageId
     conversation.thread_id = threadId
-    conversation.subscription_id = subscriptionId
+    conversation.subscription_id = conversationsViewModel.subscriptionId
     conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
     conversation.date = System.currentTimeMillis().toString()
     conversation.address = address
@@ -465,6 +468,9 @@ fun Conversations(
     _items: List<Conversation>? = null
 ) {
     val context = LocalContext.current
+    val inPreviewMode = LocalInspectionMode.current
+    val dualSim = SIMHandler.isDualSim(context)
+
     var isSecured by remember {
         mutableStateOf(
             if(viewModel.address.isBlank()) false
@@ -481,10 +487,8 @@ fun Conversations(
     }
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
-    val items: List<Conversation>? = _items ?: viewModel
-        .getLiveData(context)
-        ?.observeAsState(emptyList())
-        ?.value
+    val items: List<Conversation>? = if(inPreviewMode) _items
+    else viewModel.getLiveData(context)?.observeAsState(emptyList())?.value
 
     val selectedItems = remember { viewModel.selectedItems }
 
@@ -492,6 +496,7 @@ fun Conversations(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     var rememberMenuExpanded by remember { mutableStateOf( false) }
+    var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
     val searchIndexes = remember { mutableStateListOf<Int>() }
 
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
@@ -502,8 +507,8 @@ fun Conversations(
     var openAlertDialog by remember { mutableStateOf(false)}
 
     val coroutineScope = rememberCoroutineScope()
-    val defaultRegion = Helpers.getUserCountry( context )
-    val isShortCode = Helpers.isShortCode(viewModel.address)
+    val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
+    val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -735,31 +740,51 @@ fun Conversations(
                     }
                 }
             }
-            else ChatCompose(
-                value=viewModel.text,
-                subscriptionId = viewModel.subscriptionId,
-                valueChanged = {
-                    viewModel.text = it
+            else {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    ChatCompose(
+                        value = viewModel.text,
+                        subscriptionId = viewModel.subscriptionId,
+                        simCardChooserCallback = {
+                            openSimCardChooser = true
+                        },
+                        valueChanged = {
+                            viewModel.text = it
 
-                    CoroutineScope(Dispatchers.Default).launch {
-                        if(it.isEmpty()) viewModel.clearDraft(context)
-                        else viewModel.insertDraft(context)
+                            CoroutineScope(Dispatchers.Default).launch {
+                                if (it.isEmpty()) viewModel.clearDraft(context)
+                                else viewModel.insertDraft(context)
+                            }
+                        }
+                    ) {
+                        sendSMS(
+                            context = context,
+                            text = viewModel.text,
+                            threadId = viewModel.threadId,
+                            messageId = System.currentTimeMillis().toString(),
+                            address = viewModel.address,
+                            conversationsViewModel = viewModel
+                        )
+                        viewModel.text = ""
+                        CoroutineScope(Dispatchers.Default).launch {
+                            viewModel.clearDraft(context)
+                        }
+                        coroutineScope.launch { listState.animateScrollToItem(0) }
+                    }
+
+                    if(openSimCardChooser || BuildConfig.DEBUG || dualSim) {
+                        SimChooser(
+                            expanded = openSimCardChooser,
+                            onClickCallback = {
+                                viewModel.subscriptionId = it
+                            }
+                        ) {
+                            openSimCardChooser = false
+                        }
                     }
                 }
-            ) {
-                sendSMS(
-                    context=context,
-                    text=viewModel.text,
-                    threadId= viewModel.threadId,
-                    messageId = System.currentTimeMillis().toString(),
-                    address= viewModel.address,
-                    conversationsViewModel = viewModel
-                )
-                viewModel.text = ""
-                CoroutineScope(Dispatchers.Default).launch {
-                    viewModel.clearDraft(context)
-                }
-                coroutineScope.launch { listState.animateScrollToItem(0) }
             }
         },
     ) { innerPadding ->

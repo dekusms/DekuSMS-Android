@@ -33,9 +33,9 @@ import kotlinx.coroutines.launch
 
 
 class ConversationsViewModel : ViewModel() {
-    var threadId by mutableStateOf("")
-    var address by mutableStateOf("")
-    var text by mutableStateOf("")
+    var threadId = ""
+    var address = ""
+    var text = ""
     var searchQuery by mutableStateOf("")
     var contactName: String by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
