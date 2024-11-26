@@ -33,9 +33,9 @@ import kotlinx.coroutines.launch
 
 
 class ConversationsViewModel : ViewModel() {
-    var threadId = ""
-    var address = ""
-    var text = ""
+    var threadId by mutableStateOf("")
+    var address by mutableStateOf("")
+    var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
     var contactName: String by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
@@ -43,7 +43,7 @@ class ConversationsViewModel : ViewModel() {
     var selectedItems = mutableStateListOf<String>()
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
-    private var liveData: LiveData<MutableList<Conversation>>? = null
+    var liveData: LiveData<MutableList<Conversation>>? = null
 
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
         if(liveData == null) {

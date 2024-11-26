@@ -241,22 +241,23 @@ fun ChatCompose(
             verticalArrangement = Arrangement.Bottom
         ) {
             Row {
-                IconButton(
-                    onClick = {
-                        simCardChooserCallback?.invoke()
-                    },
-                ) {
-                    if(LocalInspectionMode.current) {
-                        Icon(
-                            Icons.Outlined.SimCard,
-                            stringResource(R.string.send_message),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    } else {
-                        val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
-                            .asImageBitmap()
-                        Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                simCardChooserCallback?.let {
+                    IconButton(
+                        onClick = { it() },
+                    ) {
+                        if(LocalInspectionMode.current) {
+                            Icon(
+                                Icons.Outlined.SimCard,
+                                stringResource(R.string.send_message),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        } else {
+                            val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
+                                .asImageBitmap()
+                            Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                        }
                     }
+
                 }
 
                 if(value.isNotBlank() || LocalInspectionMode.current) {

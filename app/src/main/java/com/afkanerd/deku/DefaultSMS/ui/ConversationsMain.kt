@@ -469,7 +469,7 @@ fun Conversations(
 ) {
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
-    val dualSim = SIMHandler.isDualSim(context)
+    val dualSim = if(inPreviewMode) true else SIMHandler.isDualSim(context)
 
     var isSecured by remember {
         mutableStateOf(
@@ -747,9 +747,9 @@ fun Conversations(
                     ChatCompose(
                         value = viewModel.text,
                         subscriptionId = viewModel.subscriptionId,
-                        simCardChooserCallback = {
-                            openSimCardChooser = true
-                        },
+                        simCardChooserCallback = if(dualSim) {
+                            { openSimCardChooser = true}
+                        } else null,
                         valueChanged = {
                             viewModel.text = it
 
@@ -774,7 +774,7 @@ fun Conversations(
                         coroutineScope.launch { listState.animateScrollToItem(0) }
                     }
 
-                    if(openSimCardChooser || BuildConfig.DEBUG || dualSim) {
+                    if(openSimCardChooser) {
                         SimChooser(
                             expanded = openSimCardChooser,
                             onClickCallback = {

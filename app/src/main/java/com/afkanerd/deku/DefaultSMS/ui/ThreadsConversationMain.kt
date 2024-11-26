@@ -214,6 +214,7 @@ fun navigateToConversation(
     conversationsViewModel.contactName = ""
     conversationsViewModel.searchQuery = searchQuery ?: ""
     conversationsViewModel.subscriptionId = subscriptionId
+    conversationsViewModel.liveData = null
     viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
