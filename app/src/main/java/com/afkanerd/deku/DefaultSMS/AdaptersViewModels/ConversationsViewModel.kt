@@ -63,7 +63,8 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun deleteItems(context: Context, conversations: List<Conversation>) {
-        Datastore.getDatastore(context).conversationDao().delete(conversations)
+        val datastore = Datastore.getDatastore(context)
+        datastore.conversationDao().delete(conversations)
         val ids = arrayOfNulls<String>(conversations.size)
         for (i in conversations.indices) ids[i] = conversations[i].message_id
         NativeSMSDB.deleteMultipleMessages(context, ids)

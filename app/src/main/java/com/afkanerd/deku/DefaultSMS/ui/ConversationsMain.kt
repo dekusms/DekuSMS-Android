@@ -97,6 +97,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
@@ -127,6 +128,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Arrays
+import java.util.Collections
 import java.util.Date
 
 private fun copyItem(context: Context, text: String) {
@@ -236,6 +239,7 @@ private fun getContentType(
 @Composable
 private fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
+    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     items: List<Conversation> = emptyList(),
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
@@ -296,6 +300,13 @@ private fun ConversationCrudBottomBar(
                             it.message_id in viewModel.selectedItems
                         }
                         viewModel.deleteItems(context, conversations)
+                        Datastore.getDatastore(context).conversationDao()
+                            .getAll(viewModel.threadId).let {
+                                if(it.isNullOrEmpty()) {
+                                    threadConversationsViewModel.delete(context,
+                                        listOf(viewModel.retryDeleteItem.first().thread_id!!))
+                                }
+                            }
                         onCompleted?.let { it() }
                     }
                 }) {
@@ -670,6 +681,7 @@ fun Conversations(
             if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
+                    threadConversationsViewModel,
                     items!!,
                     onCompleted = { selectedItems.clear() }
                 ) {
@@ -845,11 +857,20 @@ fun Conversations(
                             conversationsViewModel = viewModel
                         )
                         viewModel.retryDeleteItem = arrayListOf()
+                        viewModel.clearDraft(context)
                     }
+                    coroutineScope.launch { listState.animateScrollToItem(0) }
                 },
                 deleteCallback = {
                     CoroutineScope(Dispatchers.Default).launch {
                         viewModel.deleteItems(context, viewModel.retryDeleteItem)
+                        Datastore.getDatastore(context).conversationDao()
+                            .getAll(viewModel.threadId).let {
+                                if(it.isNullOrEmpty()) {
+                                    threadConversationsViewModel.delete(context,
+                                        listOf(viewModel.retryDeleteItem.first().thread_id!!))
+                                }
+                            }
                         viewModel.retryDeleteItem = arrayListOf()
                     }
                 },
