@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.telephony.SmsManager
+import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +21,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -67,6 +71,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -185,7 +190,9 @@ fun SearchTopAppBarText(
 @Composable
 fun ChatCompose(
     value: String = "",
-    encryptedValue: String = if(LocalInspectionMode.current) "Hello world encrypted" else "",
+    encryptedValue: String = if(LocalInspectionMode.current)
+        Base64.encodeToString(LoremIpsum().values.first().encodeToByteArray(), Base64.DEFAULT)
+    else "",
     valueChanged: ((String) -> Unit)? = null,
     subscriptionId: Int = -1,
     simCardChooserCallback: (() -> Unit)? = null,
@@ -208,9 +215,11 @@ fun ChatCompose(
             if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
                 Text(
                     encryptedValue,
-                    modifier = Modifier.padding(16.dp),
-                    maxLines = 7,
-                    color = MaterialTheme.colorScheme.secondary
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(16.dp),
+                    maxLines = 4,
+                    color = MaterialTheme.colorScheme.secondary,
                 )
                 Divider()
             }
