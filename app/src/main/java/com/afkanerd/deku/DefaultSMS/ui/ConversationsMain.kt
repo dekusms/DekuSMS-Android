@@ -803,20 +803,23 @@ fun Conversations(
                 ) { index, conversation ->
                     var showDate by remember { mutableStateOf(index == 0) }
 
+                    var timestamp = Helpers.formatDateExtended(context,
+                        conversation.date!!.toLong())
+
+                    var date = deriveMetaDate(conversation)
+                    if(dualSim) {
+                        date += " • " + SIMHandler.getSubscriptionName(context,
+                                conversation.subscription_id)
+                    }
+
                     ConversationsCard(
                         text= if(conversation.text.isNullOrBlank()) ""
                         else conversation.text!!,
-                        timestamp =
-                        if(!conversation.date.isNullOrBlank())
-                            Helpers.formatDateExtended(context,
-                                conversation.date!!.toLong())
-                        else "1730062120",
+                        timestamp = if(!inPreviewMode) timestamp else "1730062120",
                         type= conversation.type,
                         status = ConversationStatusTypes.fromInt(conversation.status)!!,
                         position = getContentType(index, conversation, items),
-                        date =
-                        if(!conversation.date.isNullOrBlank()) deriveMetaDate(conversation)
-                        else "1730062120",
+                        date = if(!inPreviewMode) date else "1730062120",
                         showDate = showDate,
                         onClickCallback = {
                             if (selectedItems.isNotEmpty()) {
