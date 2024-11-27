@@ -514,6 +514,7 @@ fun Conversations(
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
+    var encryptedText by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -560,6 +561,11 @@ fun Conversations(
             viewModel.fetchDraft(context)?.let {
                 viewModel.clearDraft(context)
                 viewModel.text = it.text!!
+                encryptedText = E2EEHandler.encryptMessage(
+                    context = context,
+                    text = viewModel.text,
+                    address = viewModel.address
+                ).first
             }
         }
     }
@@ -771,6 +777,7 @@ fun Conversations(
                 ) {
                     ChatCompose(
                         value = viewModel.text,
+                        encryptedValue = encryptedText,
                         subscriptionId = viewModel.subscriptionId,
                         simCardChooserCallback = if(dualSim) {
                             { openSimCardChooser = true}
@@ -779,8 +786,19 @@ fun Conversations(
                             viewModel.text = it
 
                             CoroutineScope(Dispatchers.Default).launch {
-                                if (it.isEmpty()) viewModel.clearDraft(context)
-                                else viewModel.insertDraft(context)
+                                if (it.isEmpty()) {
+                                    viewModel.clearDraft(context)
+                                    encryptedText = ""
+                                }
+                                else {
+                                    viewModel.insertDraft(context)
+                                    if(isSecured)
+                                        encryptedText = E2EEHandler.encryptMessage(
+                                            context = context,
+                                            text = it,
+                                            address = viewModel.address
+                                        ).first
+                                }
                             }
                         }
                     ) {

@@ -1,30 +1,24 @@
-package com.afkanerd.deku.DefaultSMS
+package com.afkanerd.deku.DefaultSMS.Deprecated
 
-import android.content.Context
-import android.content.Intent
+import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Telephony
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.DualSIMConversationActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.spongycastle.jcajce.provider.symmetric.ARC4.Base
 
 open class CustomAppCompactActivity : DualSIMConversationActivity() {
 //    protected var address: String? = null
@@ -104,28 +98,28 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                 return@launch
             }
 
-            val payload = encryptMessage(applicationContext, text, address)
-            conversation.text = payload.first
-            sendSMS(conversation, conversationsViewModel)
-
-            payload.second?.let {
-                E2EEHandler.storeState(applicationContext, payload.second!!.serializedStates,
-                    address)
-            }
+//            val payload = encryptMessage(applicationContext, text, address)
+//            conversation.text = payload.first
+//            sendSMS(conversation, conversationsViewModel)
+//
+//            payload.second?.let {
+//                E2EEHandler.storeState(applicationContext, payload.second!!.serializedStates,
+//                    address)
+//            }
         }
     }
 
     private fun sendSMS(conversation: Conversation, conversationsViewModel: ConversationsViewModel) {
         when {
             ContextCompat.checkSelfPermission( applicationContext,
-                android.Manifest.permission.SEND_SMS
+                Manifest.permission.SEND_SMS
             ) == PackageManager.PERMISSION_GRANTED -> {
                 sendTxt(conversation, conversationsViewModel)
             }
             else -> {
                 // You can directly ask for the permission.
                 // The registered ActivityResultCallback gets the result of this request.
-                requestPermissionLauncher?.launch(android.Manifest.permission.SEND_SMS)
+                requestPermissionLauncher?.launch(Manifest.permission.SEND_SMS)
             }
         }
     }
@@ -168,31 +162,6 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    companion object {
-        fun encryptMessage(context: Context, text: String, address: String) : Pair<String, States?> {
-            var sendingState: States? = null
-            var text = text
-            val isSelf = E2EEHandler.isSelf(context, address)
-            if(E2EEHandler.isSecured(context, address)) {
-                val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey( context,
-                    address, isSelf), Base64.DEFAULT)
-                var states = E2EEHandler.fetchStates(context, address)
-                if(states.isBlank()) {
-                    val aliceState = States()
-                    val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
-                    Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
-                    states = aliceState.serializedStates
-                }
-                sendingState = States(states)
-                val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
-                    text.encodeToByteArray(), peerPublicKey)
-                val msg = E2EEHandler.formatMessage(headerCipherText.first, headerCipherText.second)
-                text = Base64.encodeToString(msg, Base64.DEFAULT)
-            }
-            return Pair(text, sendingState)
         }
     }
 

@@ -14,7 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
-import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
+import com.afkanerd.deku.DefaultSMS.Deprecated.CustomAppCompactActivity
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor

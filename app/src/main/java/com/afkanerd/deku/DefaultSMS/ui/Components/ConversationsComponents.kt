@@ -1,7 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.content.Context
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.telephony.SmsManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -182,6 +185,7 @@ fun SearchTopAppBarText(
 @Composable
 fun ChatCompose(
     value: String = "",
+    encryptedValue: String = if(LocalInspectionMode.current) "Hello world encrypted" else "",
     valueChanged: ((String) -> Unit)? = null,
     subscriptionId: Int = -1,
     simCardChooserCallback: (() -> Unit)? = null,
@@ -200,6 +204,17 @@ fun ChatCompose(
             .padding(start = 8.dp, end = 8.dp)
             .weight(1f)
             .fillMaxSize()) {
+
+            if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
+                Text(
+                    encryptedValue,
+                    modifier = Modifier.padding(16.dp),
+                    maxLines = 7,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Divider()
+            }
+
             BasicTextField(
                 value = value,
                 onValueChange = { valueChanged?.invoke(it) },
@@ -232,6 +247,19 @@ fun ChatCompose(
                 )
             }
 
+            if(encryptedValue.isNotBlank() || value.isNotBlank()) {
+                val length = if(LocalInspectionMode.current) "10/140"
+                else getSMSCount(context,
+                    if(encryptedValue.isNotBlank()) encryptedValue else value)
+                Text(
+                    length,
+                    color= MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(end=8.dp)
+                )
+            }
         }
 
         Column(
@@ -274,6 +302,13 @@ fun ChatCompose(
             }
         }
     }
+}
+
+fun getSMSCount(context: Context, text: String): String {
+    val smsManager = context.getSystemService(SmsManager::class.java)
+    val messages: List<String> = smsManager.divideMessage(text)
+    val segmentCount = messages[messages.size - 1].length
+    return segmentCount.toString() + "/" + messages.size
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

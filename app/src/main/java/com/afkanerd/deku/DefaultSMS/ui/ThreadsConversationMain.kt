@@ -33,7 +33,10 @@ import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.ListItem
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.outlined.InsertComment
+import androidx.compose.material.icons.automirrored.twotone.InsertComment
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ChatBubbleOutline
@@ -47,6 +50,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -95,6 +99,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -173,8 +178,11 @@ fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
     }
 }
 
-fun processIntents(context: Context, intent: Intent): Triple<String?, String?, String?>?{
-    val defaultRegion = Helpers.getUserCountry(context)
+fun processIntents(
+    context: Context,
+    intent: Intent,
+    defaultRegion: String,
+): Triple<String?, String?, String?>?{
     if(intent.action != null &&
         ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
         val sendToString = intent.dataString
@@ -467,9 +475,11 @@ fun ThreadConversationLayout(
     navController: NavController,
     _items: List<ThreadedConversations>? = null,
 ) {
+    val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
     viewModel.intent?.let { intent ->
-        processIntents(context, intent)?.let {
+        val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
+        processIntents(context, intent, defaultRegion)?.let {
             viewModel.intent = null
             it.first?.let{ address ->
                 it.second?.let { threadId ->
@@ -750,8 +760,9 @@ fun ThreadConversationLayout(
                     onClick = {
                         navController.navigate(ComposeNewMessageScreen)
                     },
-                    icon = { Icon( Icons.Default.ChatBubbleOutline, "Compose new message" ) },
-                    text = { Text(text = "Compose") },
+                    icon = { Icon( Icons.AutoMirrored.Default.Message,
+                        stringResource(R.string.compose_new_message)) },
+                    text = { Text(text = stringResource(R.string.compose)) },
                     expanded = listState.isScrollingUp()
                 )
             }

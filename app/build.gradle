@@ -278,6 +278,6 @@ dependencies {
     // Testing Navigation
     androidTestImplementation(libs.androidx.navigation.testing)
 
-
+    implementation libs.material.icons.extended
 }
 

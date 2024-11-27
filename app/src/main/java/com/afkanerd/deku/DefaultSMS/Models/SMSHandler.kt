@@ -1,14 +1,10 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.provider.Telephony
+import android.telephony.SmsManager
 import android.util.Base64
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity.Companion.encryptMessage
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +61,7 @@ object SMSHandler {
                 return@launch
             }
 
-            val payload = encryptMessage(context, text, address)
+            val payload = E2EEHandler.encryptMessage(context, text, address)
             conversation.text = payload.first
             sendTxt(context, conversation, conversationsViewModel)
 
@@ -93,6 +89,5 @@ object SMSHandler {
             conversationsViewModel.update(context, conversation)
         }
     }
-
 
 }

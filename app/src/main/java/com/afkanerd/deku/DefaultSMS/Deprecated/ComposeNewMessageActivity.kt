@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsRecyclerAdapter
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
-import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.google.android.material.textfield.TextInputEditText

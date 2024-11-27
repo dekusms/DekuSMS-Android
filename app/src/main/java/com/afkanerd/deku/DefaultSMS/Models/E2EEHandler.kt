@@ -11,6 +11,8 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityCurve25519
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -514,5 +516,28 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         ).contains(deriveSecureRequestKeystoreAlias(address))
+    }
+
+    fun encryptMessage(context: Context, text: String, address: String) : Pair<String, States?> {
+        var sendingState: States? = null
+        var text = text
+        val isSelf = E2EEHandler.isSelf(context, address)
+        if(E2EEHandler.isSecured(context, address)) {
+            val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey( context,
+                address, isSelf), Base64.DEFAULT)
+            var states = E2EEHandler.fetchStates(context, address)
+            if(states.isBlank()) {
+                val aliceState = States()
+                val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
+                Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
+                states = aliceState.serializedStates
+            }
+            sendingState = States(states)
+            val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
+                text.encodeToByteArray(), peerPublicKey)
+            val msg = E2EEHandler.formatMessage(headerCipherText.first, headerCipherText.second)
+            text = Base64.encodeToString(msg, Base64.DEFAULT)
+        }
+        return Pair(text, sendingState)
     }
 }

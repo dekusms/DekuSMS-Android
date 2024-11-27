@@ -26,6 +26,7 @@ lifecycleViewmodelCompose = "2.8.6"
 lz4 = "1.3.0"
 material = "1.12.0"
 material3 = "1.3.0"
+materialIconsExtended = "1.7.5"
 navigationCompose = "2.8.3"
 navigationDynamicFeaturesFragment = "2.8.3"
 navigationFragment = "2.8.3"
@@ -103,6 +104,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 lz4 = { module = "net.jpountz.lz4:lz4", version.ref = "lz4" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 material3 = { module = "androidx.compose.material3:material3" }
 prov = { module = "com.madgag.spongycastle:prov", version.ref = "prov" }
 rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxbinding" }

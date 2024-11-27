@@ -1,7 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.Deprecated
 
-import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
-
 class ConversationActivity() : CustomAppCompactActivity() {
 //    var isContact: Boolean = false
 //    var actionMode: ActionMode? = null
