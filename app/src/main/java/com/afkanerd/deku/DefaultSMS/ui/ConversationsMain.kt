@@ -802,16 +802,18 @@ fun Conversations(
                             }
                         }
                     ) {
+                        val text = viewModel.text
+                        encryptedText = ""
+                        viewModel.text = ""
                         sendSMS(
                             context = context,
-                            text = viewModel.text,
+                            text = text,
                             threadId = viewModel.threadId,
                             messageId = System.currentTimeMillis().toString(),
                             address = viewModel.address,
                             conversationsViewModel = viewModel
                         ) {
                             viewModel.text = ""
-                            encryptedText = ""
                             viewModel.clearDraft(context)
                         }
                     }
