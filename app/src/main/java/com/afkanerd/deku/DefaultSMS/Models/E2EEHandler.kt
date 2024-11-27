@@ -424,9 +424,13 @@ object E2EEHandler {
         )
 
         sharedPreferences.edit().clear().apply()
-        if(BuildConfig.DEBUG)
-            Toast.makeText(context, "Cleared Artifacts for: $address", Toast.LENGTH_SHORT)
-                .show()
+
+        if(isSelf(context, address)) {
+            KeystoreHelpers.removeFromKeystore(context,
+                deriveSelfSecureRequestKeystoreAlias(address))
+        } else {
+            KeystoreHelpers.removeFromKeystore(context, address)
+        }
     }
 
     fun storeState(context: Context, state: String, address: String, isSelf: Boolean = false) {

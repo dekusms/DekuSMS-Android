@@ -19,6 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation.Companion.build
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isSecured
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
@@ -112,8 +113,14 @@ class ThreadedConversationsViewModel : ViewModel() {
     }
 
     fun delete(context: Context, ids: List<String>) {
-        TODO("Do something about encryption keys")
-        Datastore.getDatastore(context).threadedConversationsDao().delete(context, ids)
+        val datastore = Datastore.getDatastore(context)
+
+        datastore.threadedConversationsDao().getList(ids).forEach {
+            if(isSecured(context, it.address))
+                E2EEHandler.clear(context, it.address)
+        }
+
+        datastore.threadedConversationsDao().delete(context, ids)
         NativeSMSDB.deleteThreads(context, ids.toTypedArray<String?>())
     }
 
