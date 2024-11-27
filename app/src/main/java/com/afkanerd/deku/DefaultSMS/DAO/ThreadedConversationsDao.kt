@@ -331,18 +331,6 @@ interface ThreadedConversationsDao {
 
     @Transaction
     fun delete(context: Context, ids: List<String>) {
-        for (threadedConversations in getList(ids)) {
-//            try {
-//                String keystoreAlias =
-//                        E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
-//                E2EEHandler.clear(context, keystoreAlias);
-//            } catch (KeyStoreException | NumberParseException |
-//                     InterruptedException |
-//                     NoSuchAlgorithmException | IOException |
-//                     CertificateException e) {
-//                e.printStackTrace();
-//            }
-        }
         _delete(ids)
         Datastore.getDatastore(context).conversationDao().deleteAll(ids)
     }

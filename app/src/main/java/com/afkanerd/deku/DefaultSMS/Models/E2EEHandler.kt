@@ -355,6 +355,7 @@ object E2EEHandler {
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
+        val keystoreAlias = deriveSecureRequestKeystoreAlias(address) + "_public_key"
         val sharedPreferences =  EncryptedSharedPreferences.create(
             context,
             getSharedPreferenceFilename(address),
@@ -363,10 +364,11 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        return sharedPreferences.contains(deriveSecureRequestKeystoreAlias(address) + "_public_key")
-                && Base64.decode(sharedPreferences
-                    .getString(deriveSecureRequestKeystoreAlias(address) + "_public_key",
-                        ""), Base64.DEFAULT).contentEquals(publicKey)
+        val contains = sharedPreferences.contains(keystoreAlias)
+        val pubKey = sharedPreferences.getString(keystoreAlias, "")
+        val equals = contains && Base64.decode(pubKey, Base64.DEFAULT).contentEquals(publicKey)
+
+        return equals
     }
 
     fun hasPendingApproval(context: Context, address: String): Boolean {

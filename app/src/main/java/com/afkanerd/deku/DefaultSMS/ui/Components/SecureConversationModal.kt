@@ -93,6 +93,7 @@ fun SecureRequestAcceptModal(
                     val publicKey = E2EEHandler.generateKey(context, viewModel.address)
                     val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                         E2EEHandler.MagicNumber.REQUEST)
+                    // TODO: Add support for dual sim here
                     sendDataMessage(
                         context=context,
                         viewModel=viewModel,

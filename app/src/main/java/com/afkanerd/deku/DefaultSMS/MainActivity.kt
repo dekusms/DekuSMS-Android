@@ -79,6 +79,7 @@ class MainActivity : AppCompatActivity() {
                         composable<ComposeNewMessageScreen>{
                             ComposeNewMessage(
                                 conversationsViewModel = conversationViewModel,
+                                threadsViewModel = viewModel,
                                 navController=navController
                             )
                         }

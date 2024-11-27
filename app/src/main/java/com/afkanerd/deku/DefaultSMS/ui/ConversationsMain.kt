@@ -119,7 +119,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
@@ -556,6 +555,7 @@ fun Conversations(
 
         if(viewModel.contactName.isBlank())
             viewModel.contactName = viewModel.address
+        viewModel.address = viewModel.address.replace(Regex("[\\s-]"), "")
 
         CoroutineScope(Dispatchers.Default).launch {
             viewModel.fetchDraft(context)?.let {
@@ -981,22 +981,18 @@ fun Conversations(
             }
         }
 
-        if(showSecureRequestModal) {
+        if(showSecureRequestModal || showSecureAgreeModal) {
             SecureRequestAcceptModal(
                 viewModel=viewModel,
-                isSecureRequest = true,
+                isSecureRequest = showSecureRequestModal,
             ){
-                showSecureRequestModal = false
-            }
-        }
+                if(showSecureAgreeModal) {
+                    isSecured = E2EEHandler.isSecured(context, viewModel.address)
+                    showSecureAgreeModal = false
+                }
 
-        if(showSecureAgreeModal) {
-            SecureRequestAcceptModal(
-                viewModel=viewModel,
-                isSecureRequest = false,
-            ){
-                showSecureAgreeModal = false
-                isSecured = E2EEHandler.isSecured(context, viewModel.address)
+                if(showSecureRequestModal)
+                    showSecureRequestModal = false
             }
         }
     }
