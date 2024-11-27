@@ -50,7 +50,9 @@ object SMSHandler {
         address: String,
         conversation: Conversation,
         conversationsViewModel: ConversationsViewModel,
-        messageId: String?) {
+        messageId: String?,
+        onCompleteCallback: (() -> Unit)? = null,
+    ) {
         var messageId = messageId
 
         if (messageId == null) messageId = System.currentTimeMillis().toString()
@@ -70,6 +72,8 @@ object SMSHandler {
             payload.second?.let {
                 E2EEHandler.storeState(context, payload.second!!.serializedStates, address)
             }
+
+            onCompleteCallback?.invoke()
         }
     }
 

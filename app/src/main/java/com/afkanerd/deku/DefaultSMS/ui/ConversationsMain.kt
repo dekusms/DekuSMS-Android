@@ -65,7 +65,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.outlined.SimCard
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -133,8 +135,10 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.SimChooser
 import com.example.compose.AppTheme
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -159,7 +163,8 @@ private fun sendSMS(
     messageId: String,
     threadId: String,
     address: String,
-    conversationsViewModel: ConversationsViewModel
+    conversationsViewModel: ConversationsViewModel,
+    onCompleteCallback: () -> Unit
 ) {
     val conversation = Conversation()
     conversation.text = text
@@ -179,6 +184,7 @@ private fun sendSMS(
         conversation = conversation,
         conversationsViewModel = conversationsViewModel,
         messageId = null,
+        onCompleteCallback = onCompleteCallback
     )
 }
 
@@ -506,9 +512,10 @@ fun Conversations(
     var isBlocked by remember { mutableStateOf(false) }
     var openAlertDialog by remember { mutableStateOf(false)}
 
-    val coroutineScope = rememberCoroutineScope()
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
+
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -523,22 +530,24 @@ fun Conversations(
             }
         }
 
-        if(searchIndexes.isNotEmpty() && searchIndex == 0)
-            listState.animateScrollToItem(searchIndexes.first())
-
         CoroutineScope(Dispatchers.Default).launch {
+            if(viewModel.fetchDraft(context) == null)
+                coroutineScope.launch{
+                    listState.animateScrollToItem(0)
+                }
             threadConversationsViewModel.get(context, viewModel.threadId)?.let {
                 isMute = it.isIs_mute
                 isBlocked = it.isIs_blocked
             }
 
         }
+
+        if(searchIndexes.isNotEmpty() && searchIndex == 0)
+            listState.animateScrollToItem(searchIndexes.first())
+
     }
 
     LaunchedEffect(true){
-        if(searchQuery.isBlank())
-            listState.animateScrollToItem(0)
-
         Contacts.retrieveContactName(
             context,
             Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
@@ -612,20 +621,34 @@ fun Conversations(
             TopAppBar(
                 title = {
                     if(searchQuery.isBlank()) {
-                        Text(
-                            text= viewModel.contactName!!,
-                            maxLines =1,
-                            overflow = TextOverflow.Ellipsis)
+                        TextButton(onClick = {
 
-                        if(isSecured) {
-                            Text(
-                                text= stringResource(R.string.secured),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines =1,
-                                overflow = TextOverflow.Ellipsis)
+                        }) {
+                            Column {
+                                Row {
+                                    Text(
+                                        text= if(LocalInspectionMode.current) "Template"
+                                        else viewModel.contactName,
+                                        maxLines =1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.padding(end=8.dp),
+                                    )
+                                    if(isSecured || LocalInspectionMode.current) {
+                                        Icon(Icons.Default.Security,
+                                            stringResource(R.string.conversation_is_secured)
+                                        )
+                                    }
+                                }
+                                if(isSecured || LocalInspectionMode.current) {
+                                    Text(
+                                        stringResource(R.string.secured),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
                         }
-
-                    } else {
+                    }
+                    else {
                         SearchTopAppBarText(
                             searchQuery,
                             cancelCallback = { searchQuery = "" }
@@ -661,17 +684,19 @@ fun Conversations(
                                 )
                             }
 
-                            IconButton(onClick = {
-                                showSecureRequestModal = true
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.EnhancedEncryption,
-                                    contentDescription = stringResource(
-                                        R.string
-                                            .request_secure_communication)
-                                )
-                            }
+                            if(!isSecured || LocalInspectionMode.current) {
+                                IconButton(onClick = {
+                                    showSecureRequestModal = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.EnhancedEncryption,
+                                        contentDescription = stringResource(
+                                            R.string
+                                                .request_secure_communication)
+                                    )
+                                }
 
+                            }
                         }
                         IconButton(onClick = {
                             rememberMenuExpanded = !rememberMenuExpanded
@@ -766,12 +791,10 @@ fun Conversations(
                             messageId = System.currentTimeMillis().toString(),
                             address = viewModel.address,
                             conversationsViewModel = viewModel
-                        )
-                        viewModel.text = ""
-                        CoroutineScope(Dispatchers.Default).launch {
+                        ) {
+                            viewModel.text = ""
                             viewModel.clearDraft(context)
                         }
-                        coroutineScope.launch { listState.animateScrollToItem(0) }
                     }
 
                     if(openSimCardChooser) {
@@ -803,11 +826,11 @@ fun Conversations(
                 ) { index, conversation ->
                     var showDate by remember { mutableStateOf(index == 0) }
 
-                    var timestamp = Helpers.formatDateExtended(context,
-                        conversation.date!!.toLong())
+                    var timestamp = if(inPreviewMode) "1234567"
+                    else Helpers.formatDateExtended(context, conversation.date!!.toLong())
 
-                    var date = deriveMetaDate(conversation)
-                    if(dualSim) {
+                    var date = if(inPreviewMode) "1234567" else deriveMetaDate(conversation)
+                    if(dualSim && !inPreviewMode) {
                         date += " • " + SIMHandler.getSubscriptionName(context,
                                 conversation.subscription_id)
                     }
@@ -815,11 +838,11 @@ fun Conversations(
                     ConversationsCard(
                         text= if(conversation.text.isNullOrBlank()) ""
                         else conversation.text!!,
-                        timestamp = if(!inPreviewMode) timestamp else "1730062120",
+                        timestamp = timestamp,
                         type= conversation.type,
                         status = ConversationStatusTypes.fromInt(conversation.status)!!,
                         position = getContentType(index, conversation, items),
-                        date = if(!inPreviewMode) date else "1730062120",
+                        date = date,
                         showDate = showDate,
                         onClickCallback = {
                             if (selectedItems.isNotEmpty()) {
@@ -915,11 +938,11 @@ fun Conversations(
                             messageId = System.currentTimeMillis().toString(),
                             address= viewModel.address,
                             conversationsViewModel = viewModel
-                        )
-                        viewModel.retryDeleteItem = arrayListOf()
-                        viewModel.clearDraft(context)
+                        ) {
+                            viewModel.retryDeleteItem = arrayListOf()
+                            viewModel.clearDraft(context)
+                        }
                     }
-                    coroutineScope.launch { listState.animateScrollToItem(0) }
                 },
                 deleteCallback = {
                     CoroutineScope(Dispatchers.Default).launch {

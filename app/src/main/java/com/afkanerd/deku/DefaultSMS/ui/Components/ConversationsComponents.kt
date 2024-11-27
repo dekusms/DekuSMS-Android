@@ -393,6 +393,7 @@ fun SimChooser(
             expanded = expanded,
             onDismissRequest = { dismissCallback?.invoke() },
         ) {
+            if(!LocalInspectionMode.current)
             SIMHandler.getSimCardInformation(context).forEach {
                 DropdownMenuItem(
                     leadingIcon = {
