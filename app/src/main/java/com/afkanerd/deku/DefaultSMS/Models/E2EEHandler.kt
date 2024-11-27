@@ -425,12 +425,12 @@ object E2EEHandler {
 
         sharedPreferences.edit().clear().apply()
 
-        if(isSelf(context, address)) {
-            KeystoreHelpers.removeFromKeystore(context,
-                deriveSelfSecureRequestKeystoreAlias(address))
-        } else {
-            KeystoreHelpers.removeFromKeystore(context, address)
-        }
+//        if(isSelf(context, address)) {
+//            KeystoreHelpers.removeFromKeystore(context,
+//                deriveSelfSecureRequestKeystoreAlias(address))
+//        } else {
+//            KeystoreHelpers.removeFromKeystore(context, address)
+//        }
     }
 
     fun storeState(context: Context, state: String, address: String, isSelf: Boolean = false) {

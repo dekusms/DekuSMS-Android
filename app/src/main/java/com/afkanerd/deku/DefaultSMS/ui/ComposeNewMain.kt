@@ -59,14 +59,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.example.compose.backgroundDark
 
 @Preview
@@ -93,6 +96,7 @@ fun ContactAvatar(
 fun ComposeNewMessage(
     navController: NavController,
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
+    threadsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     _items: List<Contacts>? = null
 ) {
     val context = LocalContext.current
@@ -162,7 +166,17 @@ fun ComposeNewMessage(
                         conversationsViewModel.address = contact.number
                         conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
                             conversationsViewModel.address).thread_id
-                        navController.navigate(ConversationsScreen)
+
+                        navigateToConversation(
+                            context = context,
+                            viewModel = threadsViewModel,
+                            conversationsViewModel = conversationsViewModel,
+                            address = conversationsViewModel.address,
+                            threadId = conversationsViewModel.threadId,
+                            subscriptionId =
+                            SIMHandler.getDefaultSimSubscription(context),
+                            navController = navController,
+                        )
                     },
                     Modifier
                         .fillMaxWidth()

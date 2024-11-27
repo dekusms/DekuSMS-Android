@@ -811,6 +811,7 @@ fun Conversations(
                             conversationsViewModel = viewModel
                         ) {
                             viewModel.text = ""
+                            encryptedText = ""
                             viewModel.clearDraft(context)
                         }
                     }
