@@ -5,12 +5,23 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
+import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat.getString
+import androidx.core.graphics.drawable.IconCompat
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.R
 
@@ -21,6 +32,7 @@ object Notifications {
         context: Context,
         title: String,
         text: String,
+        address: String,
         requestCode: Int,
         contentIntent: Intent,
         replyIntent: Intent? = null
@@ -59,15 +71,44 @@ object Notifications {
             .addRemoteInput(remoteInput)
             .build()
 
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(R.drawable.ic_stat_name)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setAutoCancel(true)
+                .setStyle(NotificationCompat.MessagingStyle(title)
+                    .addMessage(text, System.currentTimeMillis(), address)
+                )
+                .addAction(action)
+        }
+
+        val bitmap = Contacts.getContactBitmapPhoto(context, address)
+        val icon = if(bitmap != null) IconCompat.createWithBitmap(bitmap) else null
+
+        val user = Person.Builder()
+            .setIcon(icon)
+            .setName(title)
+            .setKey(address)
+            .build()
+
         return NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_name)
-            .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
+            .setStyle(NotificationCompat.MessagingStyle(user)
+                .addMessage(text, System.currentTimeMillis(), user)
+            )
             .addAction(action)
+
     }
 
     fun notify(

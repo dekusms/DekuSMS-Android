@@ -64,11 +64,6 @@ private fun ThreadConversationsAvatar(
             Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
         }
         else {
-//            Image(
-//                painter = painterResource(R.drawable.baseline_account_circle_24ne_account_circle_24),
-//                contentDescription = "Avatar image",
-//                modifier = Modifier.fillMaxSize()
-//            )
             Icon(
                 Icons.Filled.Person,
                 contentDescription = "",

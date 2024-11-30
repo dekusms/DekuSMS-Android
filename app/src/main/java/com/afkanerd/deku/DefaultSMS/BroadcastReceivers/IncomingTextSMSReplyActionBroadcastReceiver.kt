@@ -66,6 +66,7 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
                                 title = conversation.address!!,
                                 text = conversation.text!!,
                                 requestCode = 0,
+                                address = conversation.address!!,
                                 contentIntent = Intent(
                                     context,
                                     MainActivity::class.java

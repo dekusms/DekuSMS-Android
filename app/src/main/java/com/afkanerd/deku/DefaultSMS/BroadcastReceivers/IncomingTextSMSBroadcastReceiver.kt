@@ -184,10 +184,11 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 if (!threadedConversations.isIs_mute) {
 
                     val builder = Notifications.createNotification(
-                        context,
-                        conversation.address!!,
-                        conversation.text!!,
-                        0,
+                        context=context,
+                        title=conversation.address!!,
+                        text=conversation.text!!,
+                        requestCode = 0,
+                        address=conversation.address!!,
                         contentIntent = Intent(
                             context,
                             MainActivity::class.java
