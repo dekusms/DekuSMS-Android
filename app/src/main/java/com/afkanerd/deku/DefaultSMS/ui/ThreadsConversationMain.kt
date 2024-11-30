@@ -106,6 +106,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.RemoteInput
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -126,6 +127,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
@@ -198,18 +200,16 @@ fun processIntents(
             return Triple(address, threadId, text)
         }
     }
-    else if(intent.hasExtra("address")) {
+    if(intent.hasExtra("address")) {
+        var text = ""
         val address = intent.getStringExtra("address")
-//        val threadId = ThreadedConversationsHandler.get(context, address).thread_id
         val threadId = intent.getStringExtra("thread_id")
-        return Triple(address, threadId, "")
+        return Triple(address, threadId, text)
     }
     return null
 }
 
 fun navigateToConversation(
-    context: Context,
-    viewModel: ThreadedConversationsViewModel? = null,
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
@@ -223,7 +223,6 @@ fun navigateToConversation(
     conversationsViewModel.searchQuery = searchQuery ?: ""
     conversationsViewModel.subscriptionId = subscriptionId
     conversationsViewModel.liveData = null
-    viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
 
@@ -487,8 +486,6 @@ fun ThreadConversationLayout(
                         conversationsViewModel.text = message
                     }
                     navigateToConversation(
-                        context = context,
-                        viewModel = viewModel,
                         conversationsViewModel = conversationsViewModel,
                         address = address,
                         threadId = threadId,
@@ -835,8 +832,6 @@ fun ThreadConversationLayout(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {
                                             navigateToConversation(
-                                                context = context,
-                                                viewModel = viewModel,
                                                 conversationsViewModel = conversationsViewModel,
                                                 address = message.address,
                                                 threadId = message.thread_id,

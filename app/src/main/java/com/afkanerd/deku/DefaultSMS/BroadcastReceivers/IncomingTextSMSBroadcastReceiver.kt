@@ -19,6 +19,7 @@ import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
@@ -180,8 +181,40 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 val threadedConversations = Datastore.getDatastore(context)
                         .threadedConversationsDao()
                         .insertThreadAndConversation(context, conversation)
-                if (!threadedConversations.isIs_mute)
-                    NotificationsHandler.sendIncomingTextMessageNotification(context, conversation)
+                if (!threadedConversations.isIs_mute) {
+
+                    val builder = Notifications.createNotification(
+                        context,
+                        conversation.address!!,
+                        conversation.text!!,
+                        0,
+                        contentIntent = Intent(
+                            context,
+                            MainActivity::class.java
+                        ).apply {
+                            putExtra("address", conversation.address)
+                            putExtra("thread_id", conversation.thread_id)
+                        },
+                        replyIntent = Intent(
+                            context,
+                            IncomingTextSMSReplyActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyActionBroadcastReceiver
+                                .REPLY_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
+                        },
+                    )
+                    Notifications.notify(
+                        context,
+                        builder,
+                        conversation.thread_id!!.toInt()
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }

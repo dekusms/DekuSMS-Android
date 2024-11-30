@@ -168,8 +168,6 @@ fun ComposeNewMessage(
                             conversationsViewModel.address).thread_id
 
                         navigateToConversation(
-                            context = context,
-                            viewModel = threadsViewModel,
                             conversationsViewModel = conversationsViewModel,
                             address = conversationsViewModel.address,
                             threadId = conversationsViewModel.threadId,

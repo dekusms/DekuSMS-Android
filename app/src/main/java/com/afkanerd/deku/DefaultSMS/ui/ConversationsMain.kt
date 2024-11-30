@@ -539,7 +539,10 @@ fun Conversations(
                 isMute = it.isIs_mute
                 isBlocked = it.isIs_blocked
             }
-
+            threadConversationsViewModel.updateRead(
+                context,
+                viewModel.threadId,
+            )
         }
 
         if(searchIndexes.isNotEmpty() && searchIndex == 0)

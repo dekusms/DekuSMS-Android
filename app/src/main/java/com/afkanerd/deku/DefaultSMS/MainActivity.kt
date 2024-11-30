@@ -35,7 +35,7 @@ object ComposeNewMessageScreen
 @Serializable
 object SearchThreadScreen
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
 
     lateinit var navController: NavHostController
 

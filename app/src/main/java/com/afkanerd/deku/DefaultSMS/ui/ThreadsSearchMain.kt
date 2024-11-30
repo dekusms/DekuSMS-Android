@@ -92,7 +92,6 @@ fun SearchThreadsMain(
                                     viewModel.liveData = MutableLiveData()
                                     viewModel.threadId = null
                                     navigateToConversation(
-                                        context,
                                         conversationsViewModel = conversationsViewModel,
                                         address = message.address,
                                         threadId = message.thread_id,
@@ -177,7 +176,6 @@ fun SearchThreadsMain(
                             onClick = {
                                 viewModel.liveData = MutableLiveData()
                                 navigateToConversation(
-                                    context,
                                     conversationsViewModel = conversationsViewModel,
                                     address = message.address,
                                     threadId = message.thread_id,
