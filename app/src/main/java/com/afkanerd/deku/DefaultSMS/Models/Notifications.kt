@@ -1,13 +1,17 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
 import android.app.Activity.RESULT_OK
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.LocusId
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutInfo
 import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +25,11 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat.getString
+import androidx.core.content.LocusIdCompat
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.R
 
@@ -50,7 +58,7 @@ object Notifications {
                 context,
                 0,
                 contentIntent,
-                PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_MUTABLE
             )
 
         // Build a PendingIntent for the reply action to trigger.
@@ -71,44 +79,69 @@ object Notifications {
             .addRemoteInput(remoteInput)
             .build()
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            return NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(R.drawable.ic_stat_name)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                .setAutoCancel(true)
-                .setStyle(NotificationCompat.MessagingStyle(title)
-                    .addMessage(text, System.currentTimeMillis(), address)
-                )
-                .addAction(action)
-        }
-
         val bitmap = Contacts.getContactBitmapPhoto(context, address)
-        val icon = if(bitmap != null) IconCompat.createWithBitmap(bitmap) else null
+        val icon = if(bitmap != null) IconCompat.createWithBitmap(bitmap) else {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+                IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24)
+            else null
+        }
 
         val user = Person.Builder()
             .setIcon(icon)
             .setName(title)
             .setKey(address)
+            .setImportant(true)
             .build()
+
+        val bubbleMetadata = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            NotificationCompat.BubbleMetadata.Builder(
+                pendingIntent,
+                icon ?:
+                IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24)
+            )
+                .setDesiredHeight(600)
+                .build()
+        else null
+
+        val shortcut = ShortcutInfoCompat.Builder(context, address)
+            .setIntent(contentIntent.apply {
+                setAction(Intent.ACTION_DEFAULT)
+            })
+            .setShortLabel(user.name!!)
+            .setLongLived(true)
+            .setPerson(user)
+            .build()
+
+        ShortcutManagerCompat.pushDynamicShortcut(context, shortcut);
 
         return NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_name)
-            .setContentText(text)
+            .setContentTitle(title)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
-            .setStyle(NotificationCompat.MessagingStyle(user)
-                .addMessage(text, System.currentTimeMillis(), user)
-            )
+            .setAllowSystemGeneratedContextualActions(true)
             .addAction(action)
-
+            .setShortcutId(address)
+            .setBubbleMetadata(bubbleMetadata)
+            .setLocusId(
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    LocusIdCompat.toLocusIdCompat(LocusId(address))
+                else null
+            )
+            .setStyle(
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    NotificationCompat.MessagingStyle(title)
+                        .addMessage(text, System.currentTimeMillis(), address)
+                } else {
+                    NotificationCompat.MessagingStyle(user)
+                        .setConversationTitle(title)
+                        .addMessage(text, System.currentTimeMillis(), user)
+                }
+            )
     }
 
     fun notify(

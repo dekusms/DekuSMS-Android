@@ -16,6 +16,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity
 import com.afkanerd.deku.DefaultSMS.MainActivity
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
@@ -185,9 +186,10 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
 
                     val builder = Notifications.createNotification(
                         context=context,
-                        title=conversation.address!!,
+                        title=Contacts.retrieveContactName(context, conversation.address) ?:
+                        conversation.address!!,
                         text=conversation.text!!,
-                        requestCode = 0,
+                        requestCode = conversation.thread_id!!.toInt(),
                         address=conversation.address!!,
                         contentIntent = Intent(
                             context,

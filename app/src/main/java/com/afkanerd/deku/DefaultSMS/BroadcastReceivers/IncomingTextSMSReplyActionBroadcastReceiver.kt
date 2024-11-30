@@ -65,7 +65,7 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
                                 context = context,
                                 title = conversation.address!!,
                                 text = conversation.text!!,
-                                requestCode = 0,
+                                requestCode = conversation.thread_id!!.toInt(),
                                 address = conversation.address!!,
                                 contentIntent = Intent(
                                     context,
