@@ -2,7 +2,9 @@ package com.afkanerd.deku.DefaultSMS.Models
 
 import android.app.PendingIntent
 import android.content.Context
+import android.os.Build
 import android.telephony.SmsManager
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 
 object Transmissions {
     private const val DATA_TRANSMISSION_PORT: Short = 8200
@@ -19,8 +21,10 @@ object Transmissions {
 //            subscriptionId!!
 //        )
 
-        val smsManager = context.getSystemService(SmsManager::class.java)
-            .createForSubscriptionId(subscriptionId)
+        val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            context.getSystemService(SmsManager::class.java)
+                .createForSubscriptionId(subscriptionId)
+        else SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
 
         try {
             val dividedMessage = smsManager.divideMessage(text)

@@ -61,18 +61,6 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
                                     reply.toString()
                                 )
 
-                            val replyIntent = NotificationsHandler
-                                .getReplyIntent(context, conversation)
-
-                            val pendingIntent = NotificationsHandler
-                                .getPendingIntent(context, conversation)
-
-//                            val builder =
-//                                NotificationsHandler.getNotificationBuilder(
-//                                    context, replyIntent,
-//                                    conversation, pendingIntent
-//                                )
-
                             val builder = Notifications.createNotification(
                                 context = context,
                                 title = conversation.address!!,
@@ -88,15 +76,6 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
                             )
 
                             builder.setStyle(messagingStyle)
-                            val notificationManagerCompat =
-                                NotificationManagerCompat.from(context)
-
-//                            notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
-//                            Notifications.INSTANCE.createNotification(
-//                                    context,
-//                                    conversation.getAddress(),
-//                                    conversation.getText()
-//                            );
 
                             Notifications.notify(
                                 context = context,

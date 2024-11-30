@@ -34,7 +34,12 @@ object Notifications {
         }
 
         var pendingIntent = PendingIntent
-            .getActivity(context, 0, contentIntent, PendingIntent.FLAG_IMMUTABLE)
+            .getActivity(
+                context,
+                0,
+                contentIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
 
         // Build a PendingIntent for the reply action to trigger.
         var replyPendingIntent = if(replyIntent == null) null else
@@ -61,6 +66,7 @@ object Notifications {
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
             .addAction(action)
     }
 
