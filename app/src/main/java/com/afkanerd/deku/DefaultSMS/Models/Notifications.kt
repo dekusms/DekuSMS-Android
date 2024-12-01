@@ -31,6 +31,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.R
 
 object Notifications {
@@ -88,7 +89,7 @@ object Notifications {
                 PendingIntent.FLAG_MUTABLE
             )
 
-        var replyAction = if(replyPendingIntent == null) null else
+        var replyAction = if(replyPendingIntent == null || Helpers.isShortCode(address)) null else
             NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.notifications_reply_label),
