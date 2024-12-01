@@ -16,16 +16,19 @@ import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 
-class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
+class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
     var databaseConnector: Datastore? = null
 
     override fun onReceive(context: Context, intent: Intent) {
         databaseConnector = Datastore.getDatastore(context)
 
-        if (intent.getAction() != null && intent.getAction() == REPLY_BROADCAST_INTENT) {
+        if (intent.action != null && intent.action == REPLY_BROADCAST_INTENT) {
             val remoteInput = RemoteInput.getResultsFromIntent(intent)
             if (remoteInput != null) {
                 val address = intent.getStringExtra(REPLY_ADDRESS)
@@ -48,48 +51,47 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
                 conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
                 conversation.status = Telephony.TextBasedSmsColumns.STATUS_PENDING
 
-                ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                    override fun run() {
-                        try {
-                            databaseConnector!!.threadedConversationsDao()
-                                .insertThreadAndConversation(context, conversation)
+                CoroutineScope(Dispatchers.Default).launch {
+                    try {
+                        databaseConnector!!.threadedConversationsDao()
+                            .insertThreadAndConversation(context, conversation)
 
-                            SMSDatabaseWrapper.send_text(context, conversation, null)
-                            val messagingStyle =
-                                NotificationsHandler.getMessagingStyle(
-                                    context, conversation,
-                                    reply.toString()
-                                )
-
-                            val builder = Notifications.createNotification(
-                                context = context,
-                                title = conversation.address!!,
-                                text = conversation.text!!,
-                                requestCode = conversation.thread_id!!.toInt(),
-                                address = conversation.address!!,
-                                contentIntent = Intent(
-                                    context,
-                                    MainActivity::class.java
-                                ).apply {
-                                    putExtra("address", conversation.address)
-                                    putExtra("thread_id", conversation.thread_id)
-                                },
+                        SMSDatabaseWrapper.send_text(context, conversation, null)
+                        val messagingStyle =
+                            NotificationsHandler.getMessagingStyle(
+                                context, conversation,
+                                reply.toString()
                             )
 
-                            builder.setStyle(messagingStyle)
+                        val builder = Notifications.createNotification(
+                            context = context,
+                            title = conversation.address!!,
+                            text = conversation.text!!,
+                            requestCode = conversation.thread_id!!.toInt(),
+                            address = conversation.address!!,
+                            contentIntent = Intent(
+                                context,
+                                MainActivity::class.java
+                            ).apply {
+                                putExtra("address", conversation.address)
+                                putExtra("thread_id", conversation.thread_id)
+                            },
+                        )
 
-                            Notifications.notify(
-                                context = context,
-                                builder = builder,
-                                notificationId = conversation.thread_id!!.toInt()
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                        builder.setStyle(messagingStyle)
+
+                        Notifications.notify(
+                            context = context,
+                            builder = builder,
+                            notificationId = conversation.thread_id!!.toInt()
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                })
+                }
             }
-        } else if (intent.getAction() != null && intent.getAction() == MARK_AS_READ_BROADCAST_INTENT) {
+        }
+        else if (intent.action != null && intent.action == MARK_AS_READ_BROADCAST_INTENT) {
             val threadId = intent.getStringExtra(Conversation.THREAD_ID)
             val messageId = intent.getStringExtra(Conversation.ID)
             try {
@@ -108,13 +110,16 @@ class IncomingTextSMSReplyActionBroadcastReceiver : BroadcastReceiver() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        } else if (intent.getAction() != null && intent.getAction() == MUTE_BROADCAST_INTENT) {
-            val threadId = intent.getStringExtra(Conversation.THREAD_ID)
+        }
+        else if (intent.action != null && intent.action == MUTE_BROADCAST_INTENT) {
+            val threadId = intent.getStringExtra(REPLY_THREAD_ID)
 
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.cancel(threadId!!.toInt())
+            CoroutineScope(Dispatchers.Default).launch {
+                databaseConnector!!.threadedConversationsDao().updateMuted(1, threadId!!)
 
-            databaseConnector!!.threadedConversationsDao().updateMuted(1, threadId)
+                val notificationManager = NotificationManagerCompat.from(context)
+                notificationManager.cancel(threadId.toInt())
+            }
         }
     }
 

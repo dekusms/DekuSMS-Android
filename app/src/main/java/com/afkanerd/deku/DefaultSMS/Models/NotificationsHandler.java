@@ -15,9 +15,8 @@ import androidx.core.app.RemoteInput;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.MainActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -64,18 +63,18 @@ public class NotificationsHandler {
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
         if(conversation != null && !Helpers.isShortCode(conversation.getAddress())) {
-            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.Companion
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
                             .getREPLY_BROADCAST_INTENT(), conversation.getAddress());
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.Companion
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
                             .getREPLY_THREAD_ID(), conversation.getThread_id());
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.Companion
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
                             .getREPLY_SUBSCRIPTION_ID(), conversation.getSubscription_id());
 
-            replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.
+            replyBroadcastIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.
                     Companion.getREPLY_BROADCAST_INTENT());
             return replyBroadcastIntent;
         }
@@ -226,10 +225,10 @@ public class NotificationsHandler {
 
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
-        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
         markAsReadIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
         markAsReadIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-        markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.Companion
+        markAsReadIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
                 .getMARK_AS_READ_BROADCAST_INTENT());
 
         PendingIntent markAsReadPendingIntent =
@@ -251,7 +250,7 @@ public class NotificationsHandler {
 
             String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
             RemoteInput remoteInput = new RemoteInput.Builder(
-                    IncomingTextSMSReplyActionBroadcastReceiver.KEY_TEXT_REPLY)
+                    IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
                     .setLabel(replyLabel)
                     .build();
 
@@ -263,11 +262,11 @@ public class NotificationsHandler {
             builder.addAction(replyAction);
         }
         else if(conversation.getThread_id() != null){
-            Intent muteIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+            Intent muteIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
             muteIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
             muteIntent.putExtra(Conversation.ID, conversation.getMessage_id());
             muteIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-            muteIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.Companion
+            muteIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
                     .getMUTE_BROADCAST_INTENT());
 
             PendingIntent mutePendingIntent =

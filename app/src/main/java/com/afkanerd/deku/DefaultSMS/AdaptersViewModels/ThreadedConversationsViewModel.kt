@@ -35,7 +35,6 @@ import kotlin.concurrent.thread
 
 class ThreadedConversationsViewModel : ViewModel() {
 
-    var intent:Intent? = Intent()
     var inboxType: InboxType = InboxType.INBOX
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null

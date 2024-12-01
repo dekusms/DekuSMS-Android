@@ -43,7 +43,8 @@ object Notifications {
         address: String,
         requestCode: Int,
         contentIntent: Intent,
-        replyIntent: Intent? = null
+        replyIntent: Intent? = null,
+        muteIntent: Intent? = null,
     ) : NotificationCompat.Builder {
         val channelId = getString(context, R.string.incoming_messages_channel_id)
 
@@ -56,7 +57,7 @@ object Notifications {
         var pendingIntent = PendingIntent
             .getActivity(
                 context,
-                0,
+                requestCode,
                 contentIntent,
                 PendingIntent.FLAG_MUTABLE
             )
@@ -70,13 +71,29 @@ object Notifications {
                 PendingIntent.FLAG_MUTABLE
             )
 
-        var action = if(replyPendingIntent == null) null else
+        var mutePendingIntent = if(muteIntent == null) null else
+            PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                muteIntent,
+                PendingIntent.FLAG_MUTABLE
+            )
+
+        var replyAction = if(replyPendingIntent == null) null else
             NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.notifications_reply_label),
                 replyPendingIntent
             )
-            .addRemoteInput(remoteInput)
+                .addRemoteInput(remoteInput)
+                .build()
+
+        var muteAction = if(muteIntent == null) null else
+            NotificationCompat.Action.Builder(
+                null,
+                getString(context, R.string.conversation_menu_mute),
+                mutePendingIntent
+            )
             .build()
 
         val bitmap = Contacts.getContactBitmapPhoto(context, address)
@@ -124,7 +141,8 @@ object Notifications {
             .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
             .setAllowSystemGeneratedContextualActions(true)
-            .addAction(action)
+            .addAction(replyAction)
+            .addAction(muteAction)
             .setShortcutId(address)
             .setBubbleMetadata(bubbleMetadata)
             .setLocusId(

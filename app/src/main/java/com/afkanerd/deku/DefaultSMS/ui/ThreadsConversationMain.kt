@@ -200,7 +200,7 @@ fun processIntents(
             return Triple(address, threadId, text)
         }
     }
-    if(intent.hasExtra("address")) {
+    else if(intent.hasExtra("address")) {
         var text = ""
         val address = intent.getStringExtra("address")
         val threadId = intent.getStringExtra("thread_id")
@@ -471,15 +471,19 @@ private fun MainDropDownMenu(
 fun ThreadConversationLayout(
     viewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
+    intent: Intent? = null,
     navController: NavController,
     _items: List<ThreadedConversations>? = null,
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
-    viewModel.intent?.let { intent ->
+    intent?.let {
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
         processIntents(context, intent, defaultRegion)?.let {
-            viewModel.intent = null
+            intent.apply {
+                removeExtra("address")
+                removeExtra("thread_id")
+            }
             it.first?.let{ address ->
                 it.second?.let { threadId ->
                     it.third?.let{ message ->

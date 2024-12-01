@@ -181,7 +181,7 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:name=".BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

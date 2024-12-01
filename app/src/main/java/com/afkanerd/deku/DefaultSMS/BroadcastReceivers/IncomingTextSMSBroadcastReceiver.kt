@@ -14,14 +14,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
@@ -197,18 +195,35 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                         ).apply {
                             putExtra("address", conversation.address)
                             putExtra("thread_id", conversation.thread_id)
+                            println("ThreadID: ${conversation.thread_id}")
+                            setFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            )
+                        },
+                        muteIntent = Intent(
+                            context,
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                                .MUTE_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
                         },
                         replyIntent = Intent(
                             context,
-                            IncomingTextSMSReplyActionBroadcastReceiver::class.java
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
                         ).apply {
-                            action = IncomingTextSMSReplyActionBroadcastReceiver
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
                                 .REPLY_BROADCAST_INTENT
                             putExtra(
-                                IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
                                 conversation.address)
                             putExtra(
-                                IncomingTextSMSReplyActionBroadcastReceiver.REPLY_THREAD_ID,
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
                                 conversation.thread_id)
                         },
                     )

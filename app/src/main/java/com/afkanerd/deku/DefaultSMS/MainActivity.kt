@@ -6,9 +6,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
@@ -53,19 +55,22 @@ class MainActivity : AppCompatActivity(){
         setContent {
             AppTheme {
                 navController = rememberNavController()
-                Surface(Modifier.fillMaxSize()) {
+                Surface(Modifier
+                    .padding(bottom=16.dp)
+                    .fillMaxSize()
+                ) {
 
                     NavHost(
                         modifier = Modifier,
                         navController = navController,
                         startDestination = HomeScreen,
                     ) {
-                        viewModel.intent?.let { viewModel.intent = intent }
                         composable<HomeScreen>{
                             ThreadConversationLayout(
                                 viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
-                                navController,
+                                intent=intent,
+                                navController = navController,
                             )
                         }
 
