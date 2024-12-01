@@ -45,6 +45,7 @@ object Notifications {
         contentIntent: Intent,
         replyIntent: Intent? = null,
         muteIntent: Intent? = null,
+        markAsRead: Intent? = null,
     ) : NotificationCompat.Builder {
         val channelId = getString(context, R.string.incoming_messages_channel_id)
 
@@ -79,6 +80,14 @@ object Notifications {
                 PendingIntent.FLAG_MUTABLE
             )
 
+        var markAsReadPendingIntent = if(markAsRead == null) null else
+            PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                markAsRead,
+                PendingIntent.FLAG_MUTABLE
+            )
+
         var replyAction = if(replyPendingIntent == null) null else
             NotificationCompat.Action.Builder(
                 null,
@@ -88,11 +97,19 @@ object Notifications {
                 .addRemoteInput(remoteInput)
                 .build()
 
-        var muteAction = if(muteIntent == null) null else
+        var muteAction = if(mutePendingIntent == null) null else
             NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.conversation_menu_mute),
                 mutePendingIntent
+            )
+                .build()
+
+        var markAsReadAction = if(markAsReadPendingIntent == null) null else
+            NotificationCompat.Action.Builder(
+                null,
+                getString(context, R.string.notifications_mark_as_read_label),
+                markAsReadPendingIntent
             )
             .build()
 
@@ -143,6 +160,7 @@ object Notifications {
             .setAllowSystemGeneratedContextualActions(true)
             .addAction(replyAction)
             .addAction(muteAction)
+            .addAction(markAsReadAction)
             .setShortcutId(address)
             .setBubbleMetadata(bubbleMetadata)
             .setLocusId(

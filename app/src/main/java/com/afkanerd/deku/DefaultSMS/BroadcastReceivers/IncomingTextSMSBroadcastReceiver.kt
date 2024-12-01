@@ -226,6 +226,19 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                                 IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
                                 conversation.thread_id)
                         },
+                        markAsRead = Intent(
+                            context,
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                                .MARK_AS_READ_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
+                        },
                     )
                     Notifications.notify(
                         context,

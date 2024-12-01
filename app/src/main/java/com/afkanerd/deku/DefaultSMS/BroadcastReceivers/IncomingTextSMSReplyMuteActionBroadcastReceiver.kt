@@ -92,21 +92,18 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
             }
         }
         else if (intent.action != null && intent.action == MARK_AS_READ_BROADCAST_INTENT) {
-            val threadId = intent.getStringExtra(Conversation.THREAD_ID)
+            val threadId = intent.getStringExtra(REPLY_THREAD_ID)
             val messageId = intent.getStringExtra(Conversation.ID)
             try {
-                ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                    override fun run() {
-                        NativeSMSDB.Incoming.update_read(context, 1, threadId, null)
-                        databaseConnector!!.threadedConversationsDao().updateRead(
-                            1,
-                            threadId!!.toLong()
-                        )
-                    }
-                })
-
-                val notificationManager = NotificationManagerCompat.from(context)
-                notificationManager.cancel(threadId!!.toInt())
+                CoroutineScope(Dispatchers.Default).launch {
+                    NativeSMSDB.Incoming.update_read(context, 1, threadId, null)
+                    databaseConnector!!.threadedConversationsDao().updateRead(
+                        1,
+                        threadId!!.toLong()
+                    )
+                    val notificationManager = NotificationManagerCompat.from(context)
+                    notificationManager.cancel(threadId.toInt())
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
