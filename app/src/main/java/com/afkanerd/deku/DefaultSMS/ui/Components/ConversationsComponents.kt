@@ -203,6 +203,7 @@ fun ChatCompose(
     val interactionsSource = remember { MutableInteractionSource() }
 
     Row(modifier = Modifier
+        .imePadding()
         .height(IntrinsicSize.Min)
         .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
         .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
@@ -233,7 +234,6 @@ fun ChatCompose(
                 textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
-                    .imePadding()
                     .fillMaxWidth(),
             ) {
                 TextFieldDefaults.DecorationBox(
