@@ -4,7 +4,9 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 
@@ -14,6 +16,7 @@ import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
@@ -55,7 +58,15 @@ public class NotificationsHandler {
 
     public static Person getPerson(Context context, Conversation conversation) {
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
+        IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
+
+        if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+        }
+
         Person.Builder personBuilder = new Person.Builder()
+                .setIcon(icon)
                 .setName(contactName == null ? conversation.getAddress() : contactName)
                 .setKey(contactName == null ? conversation.getAddress() : contactName);
         return personBuilder.build();
@@ -101,7 +112,15 @@ public class NotificationsHandler {
                                                                       String reply) {
         Person person = getPerson(context, conversation);
 
+        Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
+        IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
+
+        if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+        }
+
         Person.Builder personBuilder = new Person.Builder()
+                .setIcon(icon)
                 .setName(context.getString(R.string.notification_title_reply_you))
                 .setKey(context.getString(R.string.notification_title_reply_you));
         Person replyPerson = personBuilder.build();

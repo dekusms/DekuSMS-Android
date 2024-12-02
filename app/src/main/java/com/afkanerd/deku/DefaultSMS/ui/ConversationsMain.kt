@@ -625,7 +625,9 @@ fun Conversations(
     }
 
     Scaffold (
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        modifier = Modifier
+            .padding(bottom=16.dp)
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {

@@ -96,6 +96,7 @@ object Notifications {
                 replyPendingIntent
             )
                 .addRemoteInput(remoteInput)
+                .setAllowGeneratedReplies(true)
                 .build()
 
         var muteAction = if(mutePendingIntent == null) null else
@@ -153,7 +154,7 @@ object Notifications {
             .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle(title)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setDefaults(Notification.DEFAULT_ALL)
@@ -175,7 +176,7 @@ object Notifications {
                         .addMessage(text, System.currentTimeMillis(), address)
                 } else {
                     NotificationCompat.MessagingStyle(user)
-                        .setConversationTitle(title)
+//                        .setConversationTitle(title)
                         .addMessage(text, System.currentTimeMillis(), user)
                 }
             )

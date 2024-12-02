@@ -76,9 +76,10 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
                                 putExtra("address", conversation.address)
                                 putExtra("thread_id", conversation.thread_id)
                             },
-                        )
-
-                        builder.setStyle(messagingStyle)
+                        ).apply {
+                            setStyle(messagingStyle)
+                            setSilent(true)
+                        }
 
                         Notifications.notify(
                             context = context,

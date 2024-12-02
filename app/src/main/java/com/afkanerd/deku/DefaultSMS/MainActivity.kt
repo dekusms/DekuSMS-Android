@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity(){
             AppTheme {
                 navController = rememberNavController()
                 Surface(Modifier
-                    .padding(bottom=16.dp)
                     .fillMaxSize()
                 ) {
 
