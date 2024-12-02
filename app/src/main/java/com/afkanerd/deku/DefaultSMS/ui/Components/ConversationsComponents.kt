@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
@@ -231,7 +232,9 @@ fun ChatCompose(
                 singleLine = false,
                 textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .imePadding()
+                    .fillMaxWidth(),
             ) {
                 TextFieldDefaults.DecorationBox(
                     value = value,

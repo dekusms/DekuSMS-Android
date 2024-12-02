@@ -40,6 +40,7 @@
         android:theme="@style/Theme.main">
         <activity
             android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleInstance"
             android:exported="true" >
             <intent-filter>
