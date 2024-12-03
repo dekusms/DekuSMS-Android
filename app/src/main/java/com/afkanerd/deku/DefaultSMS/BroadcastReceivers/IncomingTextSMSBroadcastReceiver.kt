@@ -76,8 +76,8 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
 
-                val conversation = Datastore.getDatastore(context).conversationDao()
-                    .getMessage(id)
+                val datastore = Datastore.getDatastore(context)
+                val conversation = datastore.conversationDao().getMessage(id)
 
                 if (resultCode == Activity.RESULT_OK) {
                     NativeSMSDB.Outgoing.register_sent(context, id)
@@ -99,8 +99,13 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                         }
                     }
                 }
-                Datastore.getDatastore(context).conversationDao()
-                    ._update(conversation)
+                datastore.conversationDao()._update(conversation)
+                val threadedConversation = datastore.threadedConversationsDao()
+                    .get(conversation.thread_id!!)
+                threadedConversation?.let {
+                    it.type = conversation.type
+                    datastore.threadedConversationsDao().update(context, it)
+                }
             }
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {
@@ -304,30 +309,21 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val pendingIntent =
-                PendingIntent.getActivity(context, 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE)
-
         val content = context
                 .getString(R.string
                         .message_failed_send_notification_description_a_message_failed_to_send_to) +
                 " ${conversation.address}"
-        val notification =
-                NotificationCompat.Builder(context,
-                        context.getString(R.string.message_failed_channel_id))
-                    .setContentTitle(context
-                            .getString(R.string.message_failed_channel_name))
-                    .setSmallIcon(R.drawable.ic_stat_name)
-                    .setPriority(NotificationCompat.DEFAULT_ALL)
-                    .setAutoCancel(true)
-                    .setContentText(content)
-                    .setContentIntent(pendingIntent)
-                    .build()
 
+        val builder = Notifications.createNotification(
+            context = context,
+            title = conversation.address!!,
+            text = content,
+            address = conversation.address!!,
+            requestCode = conversation.thread_id!!.toInt(),
+            contentIntent = notificationIntent,
+        )
 
-        val notificationId = context.getString(R.string.message_failed_notification_id).toInt()
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(notificationId, notification)
+        Notifications.notify(context, builder, conversation.thread_id!!.toInt())
     }
 
 }

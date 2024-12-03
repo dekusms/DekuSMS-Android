@@ -831,7 +831,6 @@ fun ThreadConversationLayout(
                                 else "Tues",
                                 isRead = message.isIs_read,
                                 isContact = isContact,
-//                                unreadCount = message.unread_count,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {
@@ -854,7 +853,7 @@ fun ThreadConversationLayout(
                                 ),
                                 isSelected = selectedItems.contains(message),
                                 isMuted = message.isIs_mute,
-                                isDraft = message.type == Telephony.Sms.MESSAGE_TYPE_DRAFT,
+                                type = message.type
                             )
                         }
                     }

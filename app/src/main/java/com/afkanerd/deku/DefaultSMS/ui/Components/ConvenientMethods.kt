@@ -19,8 +19,8 @@ object ConvenientMethods {
         CoroutineScope(Dispatchers.Default).launch {
             val datastore = Datastore.getDatastore(context)
             val threadedConversations = datastore.threadedConversationsDao().get(threadId);
-            threadedConversations.isIs_blocked = true;
-            datastore.threadedConversationsDao().update(context, threadedConversations);
+            threadedConversations!!.isIs_blocked = true;
+            datastore.threadedConversationsDao().update(context, threadedConversations!!);
         }
 
         val contentValues = ContentValues();
