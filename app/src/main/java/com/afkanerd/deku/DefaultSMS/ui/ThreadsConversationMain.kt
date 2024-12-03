@@ -158,7 +158,10 @@ enum class InboxType(val value: Int) {
 }
 
 @Composable
-fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
+fun SwipeToDeleteBackground(
+    dismissState: SwipeToDismissBoxState? = null,
+    inArchive: Boolean = false
+) {
     val color = when(dismissState?.dismissDirection) {
         SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.primary
         SwipeToDismissBoxValue.Settled -> Color.Transparent
@@ -173,7 +176,10 @@ fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
         horizontalArrangement = Arrangement.End
     ) {
         Icon(
-            Icons.Default.Archive,
+            when {
+                inArchive -> Icons.Default.Unarchive
+                else -> Icons.Default.Archive
+            },
             tint = MaterialTheme.colorScheme.onPrimary,
             contentDescription = stringResource(R.string.messages_threads_menu_archive)
         )
@@ -801,8 +807,18 @@ fun ThreadConversationLayout(
                                 when(it) {
                                     SwipeToDismissBoxValue.EndToStart -> {
                                         CoroutineScope(Dispatchers.Default).launch {
-                                            viewModel.archive(context, message.thread_id)
+                                            when(inboxType) {
+                                                InboxType.ARCHIVED ->
+                                                    viewModel.unarchive(context,
+                                                        listOf(Archive().apply {
+                                                            this.thread_id = message.thread_id
+                                                            this.is_archived = false
+                                                        })
+                                                    )
+                                                else -> viewModel.archive(context, message.thread_id)
+                                            }
                                         }
+                                        return@rememberSwipeToDismissBoxState true
                                     }
                                     SwipeToDismissBoxValue.Settled ->
                                         return@rememberSwipeToDismissBoxState false
@@ -816,7 +832,12 @@ fun ThreadConversationLayout(
                         SwipeToDismissBox(
                             state = dismissState,
                             enableDismissFromStartToEnd = false,
-                            backgroundContent = { SwipeToDeleteBackground(dismissState) }
+                            backgroundContent = {
+                                SwipeToDeleteBackground(
+                                    dismissState,
+                                    inboxType == InboxType.ARCHIVED
+                                )
+                            }
                         ) {
                             ThreadConversationCard(
                                 id = message.thread_id,
