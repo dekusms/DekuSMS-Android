@@ -9,12 +9,12 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
-import com.afkanerd.deku.DefaultSMS.Deprecated.CustomAppCompactActivity
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
@@ -23,7 +23,7 @@ import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
 import com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity
 
-class GatewayServerRoutedActivity : CustomAppCompactActivity() {
+class GatewayServerRoutedActivity : AppCompatActivity() {
     private val gatewayServerRouterViewModel: GatewayServerRouterViewModel by viewModels()
     private lateinit var routedMessageRecyclerView: RecyclerView
     private lateinit var gatewayServerRouterRecyclerAdapter: GatewayServerRouterRecyclerAdapter

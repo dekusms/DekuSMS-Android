@@ -113,8 +113,8 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
+import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
@@ -344,7 +344,7 @@ private fun shareItem(context: Context, text: String) {
     val excludedComponentNames = arrayOf(
         ComponentName(
             BuildConfig.APPLICATION_ID,
-            ThreadedConversationsActivity::class.java.name
+            MainActivity::class.java.name
         )
     )
     shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)

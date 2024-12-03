@@ -11,9 +11,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager
 import java.util.concurrent.TimeUnit
@@ -104,6 +104,8 @@ class GatewayClientHandler(context: Context?) {
             })
         }
 
+        val UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID
+
         fun startWorkManager(context: Context, gatewayClient: GatewayClient) : WorkManager {
             val constraints : Constraints = Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -125,7 +127,7 @@ class GatewayClientHandler(context: Context?) {
                     .build();
 
             workManager.enqueueUniqueWork(
-                    ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
+                    UNIQUE_WORK_MANAGER_NAME,
                     ExistingWorkPolicy.KEEP,
                     gatewayClientListenerWorker
             )

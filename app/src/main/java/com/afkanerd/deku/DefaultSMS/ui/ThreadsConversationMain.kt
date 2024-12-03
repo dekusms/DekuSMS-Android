@@ -561,6 +561,9 @@ fun ThreadConversationLayout(
             selectedItemIndex = InboxType.INBOX
             inboxType = InboxType.INBOX
         }
+        else if(!selectedItems.isEmpty()) {
+            selectedItems.clear()
+        }
         else {
             if(context is AppCompatActivity) {
                 context.finish()
