@@ -20,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
@@ -40,7 +41,8 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     - service providers do send in country code.
     - How is matched to users stored without country code?
      */
-    var executorService: ExecutorService = Executors.newFixedThreadPool(4)
+    
+    val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Telephony.Sms.Intents.SMS_DELIVER_ACTION) {
@@ -69,41 +71,40 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     Log.e(javaClass.name, "Exception Incoming message broadcast", e)
                 }
             }
-        } else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
-            executorService.execute(object : Runnable {
-                override fun run() {
-                    val id = intent.getStringExtra(NativeSMSDB.ID)!!
+        }
+        else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
+            coroutineScope.launch{
+                val id = intent.getStringExtra(NativeSMSDB.ID)!!
 
-                    val conversation = Datastore.getDatastore(context).conversationDao()
-                            .getMessage(id)
+                val conversation = Datastore.getDatastore(context).conversationDao()
+                    .getMessage(id)
 
-                    if (resultCode == Activity.RESULT_OK) {
-                        NativeSMSDB.Outgoing.register_sent(context, id)
-                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
-                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                    } else {
-                        try {
-                            NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
-                            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                            conversation.error_code = resultCode
+                if (resultCode == Activity.RESULT_OK) {
+                    NativeSMSDB.Outgoing.register_sent(context, id)
+                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
+                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                } else {
+                    try {
+                        NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
+                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+                        conversation.error_code = resultCode
 
-                        } catch (e: Exception) {
-                            Log.e(javaClass.name,
-                                    "Exception with sent message broadcast", e)
-                        } finally {
-                            conversation.thread_id?.let {
-                                notifyMessageFailedToSend(context, conversation)
-                            }
+                    } catch (e: Exception) {
+                        Log.e(javaClass.name,
+                            "Exception with sent message broadcast", e)
+                    } finally {
+                        conversation.thread_id?.let {
+                            notifyMessageFailedToSend(context, conversation)
                         }
                     }
-                    Datastore.getDatastore(context).conversationDao()
-                        ._update(conversation)
                 }
-            })
+                Datastore.getDatastore(context).conversationDao()
+                    ._update(conversation)
+            }
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {
-            executorService.execute(Runnable {
+            coroutineScope.launch {
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -117,10 +118,10 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     conversation.error_code = resultCode
                 }
                 Datastore.getDatastore(context).conversationDao()._update(conversation)
-            })
+            }
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT) {
-            executorService.execute {
+            coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -136,7 +137,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             }
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
-            executorService.execute {
+            coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -240,6 +241,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                                 conversation.thread_id)
                         },
                     )
+
                     Notifications.notify(
                         context,
                         builder,

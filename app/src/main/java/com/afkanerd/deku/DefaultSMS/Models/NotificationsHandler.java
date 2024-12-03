@@ -53,20 +53,24 @@ public class NotificationsHandler {
     public static PendingIntent getPendingIntent(Context context, Conversation conversation) {
         Intent receivedIntent = getReceivedIntent(context, conversation);
         return PendingIntent.getActivity(context, Integer.parseInt(conversation.getThread_id()),
-                receivedIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                receivedIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public static Person getPerson(Context context, Conversation conversation) {
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
-        IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
+        try {
+            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
+            IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
 
-        if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+            if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+            }
+        } catch(Exception e) {
+
         }
 
         Person.Builder personBuilder = new Person.Builder()
-                .setIcon(icon)
+//                .setIcon(icon)
                 .setName(contactName == null ? conversation.getAddress() : contactName)
                 .setKey(contactName == null ? conversation.getAddress() : contactName);
         return personBuilder.build();

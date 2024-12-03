@@ -3,8 +3,11 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Telephony
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
@@ -20,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import com.afkanerd.deku.DefaultSMS.R
 
 
 class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
@@ -57,11 +61,25 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
                             .insertThreadAndConversation(context, conversation)
 
                         SMSDatabaseWrapper.send_text(context, conversation, null)
-                        val messagingStyle =
-                            NotificationsHandler.getMessagingStyle(
-                                context, conversation,
-                                reply.toString()
+                        val messagingStyle: NotificationCompat.MessagingStyle? =
+                            Notifications.getPreviousNotifications(context)
+
+                        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                            messagingStyle?.addMessage(
+                                conversation.text,
+                                System.currentTimeMillis(),
+                                ""
                             )
+                        } else {
+                            val person = Person.Builder()
+                                .setName(context.getString(R.string.notification_title_reply_you))
+                                .build()
+                            messagingStyle?.addMessage(
+                                conversation.text!!,
+                                System.currentTimeMillis(),
+                                person
+                            )
+                        }
 
                         val builder = Notifications.createNotification(
                             context = context,

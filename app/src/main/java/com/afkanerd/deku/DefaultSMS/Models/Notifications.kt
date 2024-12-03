@@ -89,31 +89,36 @@ object Notifications {
                 PendingIntent.FLAG_MUTABLE
             )
 
-        var replyAction = if(replyPendingIntent == null || Helpers.isShortCode(address)) null else
-            NotificationCompat.Action.Builder(
-                null,
-                getString(context, R.string.notifications_reply_label),
-                replyPendingIntent
-            )
-                .addRemoteInput(remoteInput)
-                .setAllowGeneratedReplies(true)
-                .build()
+        var replyAction: NotificationCompat.Action? =
+            if(replyPendingIntent == null || Helpers.isShortCode(address)) null else
+                NotificationCompat.Action.Builder(
+                    null,
+                    getString(context, R.string.notifications_reply_label),
+                    replyPendingIntent
+                )
+                    .addRemoteInput(remoteInput)
+                    .setAllowGeneratedReplies(true)
+                    .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+                    .setShowsUserInterface(false)
+                    .build()
 
-        var muteAction = if(mutePendingIntent == null) null else
+        var muteAction: NotificationCompat.Action? = if(mutePendingIntent == null) null else
             NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.conversation_menu_mute),
                 mutePendingIntent
             )
+                .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MUTE)
                 .build()
 
-        var markAsReadAction = if(markAsReadPendingIntent == null) null else
+        var markAsReadAction: NotificationCompat.Action? = if(markAsReadPendingIntent == null) null else
             NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.notifications_mark_as_read_label),
                 markAsReadPendingIntent
             )
-            .build()
+                .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+                .build()
 
         val bitmap = Contacts.getContactBitmapPhoto(context, address)
         val icon = if(bitmap != null) IconCompat.createWithBitmap(bitmap) else {
@@ -126,7 +131,7 @@ object Notifications {
             .setIcon(icon)
             .setName(title)
             .setKey(address)
-            .setImportant(true)
+            .setBot(false)
             .build()
 
         val bubbleMetadata = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
@@ -143,6 +148,7 @@ object Notifications {
             .setIntent(contentIntent.apply {
                 setAction(Intent.ACTION_DEFAULT)
             })
+            .setCategories(setOf(ShortcutInfo.SHORTCUT_CATEGORY_CONVERSATION))
             .setShortLabel(user.name!!)
             .setLongLived(true)
             .setPerson(user)
@@ -206,5 +212,21 @@ object Notifications {
             // notificationId is a unique int for each notification that you must define.
             notify(notificationId, builder.build())
         }
+    }
+
+    fun getPreviousNotifications(context: Context):
+            NotificationCompat.MessagingStyle? {
+        var messagingStyle: NotificationCompat.MessagingStyle? = null
+        with(NotificationManagerCompat.from(context)) {
+            val title = activeNotifications.first().notification.extras
+                .getCharSequence(Notification.EXTRA_TITLE)
+            val text = activeNotifications.first().notification.extras
+                .getCharSequence(Notification.EXTRA_TEXT)
+            val person = Person.Builder().setName(title).build()
+            messagingStyle = NotificationCompat.MessagingStyle(person)
+                .setConversationTitle(title)
+                .addMessage(text, System.currentTimeMillis(), person)
+        }
+        return messagingStyle
     }
 }
