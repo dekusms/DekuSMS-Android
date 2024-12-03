@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.provider.ContactsContract
@@ -7,6 +8,7 @@ import android.provider.Telephony
 import android.text.InputType
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.expandIn
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -127,6 +129,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.ExportImportHandlers
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
@@ -156,6 +159,8 @@ enum class InboxType(val value: Int) {
         }
     }
 }
+
+
 
 @Composable
 fun SwipeToDeleteBackground(
@@ -446,7 +451,7 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-                    TODO()
+                    ExportImportHandlers.exportInbox(context)
                 }
             )
 
@@ -481,8 +486,10 @@ fun ThreadConversationLayout(
     navController: NavController,
     _items: List<ThreadedConversations>? = null,
 ) {
+
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
+
     intent?.let {
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
         processIntents(context, intent, defaultRegion)?.let {

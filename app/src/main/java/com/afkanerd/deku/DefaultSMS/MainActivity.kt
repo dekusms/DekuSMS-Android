@@ -1,8 +1,14 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.io.FileOutputStream
 
 @Serializable
 object HomeScreen
@@ -117,6 +124,40 @@ class MainActivity : AppCompatActivity(){
 
     override fun onResume() {
         super.onResume()
-//        checkLoadNatives()
     }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == 777 && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            resultData?.let {
+                val uri: Uri? = resultData.data
+                // Perform operations on the document using its URI.
+
+                uri?.let {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        with(contentResolver.openFileDescriptor(uri, "w")) {
+                            this?.fileDescriptor.let { fd ->
+                                val fileOutputStream = FileOutputStream(fd);
+                                fileOutputStream.write(viewModel
+                                    .getAllExport(applicationContext).encodeToByteArray());
+                                // Let the document provider know you're done by closing the stream.
+                                fileOutputStream.close();
+                            }
+                            this?.close();
+
+                            runOnUiThread {
+                                Toast.makeText(applicationContext,
+                                    getString(R.string.conversations_exported_complete),
+                                    Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
