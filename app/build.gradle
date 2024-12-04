@@ -279,5 +279,9 @@ dependencies {
     androidTestImplementation(libs.androidx.navigation.testing)
 
     implementation libs.material.icons.extended
+
+    // Coil Image Library
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
 
