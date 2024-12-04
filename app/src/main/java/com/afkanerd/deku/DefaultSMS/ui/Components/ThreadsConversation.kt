@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.content.Context
 import android.provider.Telephony
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -44,28 +46,44 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import java.nio.file.WatchEvent
 
 @Composable
 private fun ThreadConversationsAvatar(
+    context: Context,
     id: String,
     firstName: String,
     lastName: String,
+    phoneNumber: String,
     isContact: Boolean = true) {
+
+    val contactPhotoUri = remember(phoneNumber) { Contacts.retrieveContactPhoto(context, phoneNumber) }
+
     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-        if(isContact) {
-            val color = remember(id, firstName, lastName) {
-                Color("$id / $firstName".toHslColor())
+        if (isContact) {
+            if (contactPhotoUri.isNotEmpty() && contactPhotoUri != "null") {
+                AsyncImage(
+                    model = contactPhotoUri,
+                    contentDescription = "Contact Image",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                )
+            } else {
+                val color = remember(id, firstName, lastName) {
+                    Color("$id / $firstName".toHslColor())
+                }
+                val initials = (firstName.take(1) + lastName.take(1)).uppercase()
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(SolidColor(color))
+                }
+                Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
             }
-            val initials = (firstName.take(1) + lastName.take(1)).uppercase()
-            androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCircle(SolidColor(color))
-            }
-            Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
-        }
-        else {
+        } else {
             Icon(
                 Icons.Filled.Person,
                 contentDescription = "",
@@ -81,6 +99,7 @@ private fun ThreadConversationsAvatar(
 @Preview(showBackground = true)
 @Composable
 fun ThreadConversationCard(
+    phoneNumber: String = "0612345678",
     id: String = "id",
     firstName: String = "Jane",
     lastName: String = "",
@@ -160,7 +179,7 @@ fun ThreadConversationCard(
             )
         },
         leadingContent = {
-            ThreadConversationsAvatar(id, firstName, lastName, isContact)
+            ThreadConversationsAvatar(LocalContext.current, id, firstName, lastName, phoneNumber, isContact)
         }
     )
 }

@@ -790,14 +790,14 @@ fun ThreadConversationLayout(
                     key = { it.hashCode() }
                 ) { message ->
 
-                    message.address?.let {
+                    message.address?.let { address ->
                         var firstName = message.address
                         var lastName = ""
                         val isContact = !message.contact_name.isNullOrBlank()
-                        if(!message.contact_name.isNullOrBlank()) {
+                        if (isContact) {
                             message.contact_name.split(" ").let {
                                 firstName = it[0]
-                                if(it.size > 1)
+                                if (it.size > 1)
                                     lastName = it[1]
                             }
                         }
@@ -843,6 +843,7 @@ fun ThreadConversationLayout(
                                 id = message.thread_id,
                                 firstName = firstName,
                                 lastName = lastName,
+                                phoneNumber = address,
                                 content = if(message.snippet.isNullOrBlank())
                                     stringResource(R.string.conversation_threads_secured_content)
                                 else message.snippet,
