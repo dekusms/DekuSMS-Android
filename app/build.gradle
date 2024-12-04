@@ -145,6 +145,7 @@ dependencies {
 
     implementation libs.androidx.room.testing
     implementation libs.androidx.activity
+    implementation libs.androidx.espresso.core
     def paging_version = "3.3.0"
 
     testImplementation libs.junit

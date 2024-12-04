@@ -106,6 +106,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.RemoteInput
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -126,6 +127,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
@@ -156,7 +158,10 @@ enum class InboxType(val value: Int) {
 }
 
 @Composable
-fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
+fun SwipeToDeleteBackground(
+    dismissState: SwipeToDismissBoxState? = null,
+    inArchive: Boolean = false
+) {
     val color = when(dismissState?.dismissDirection) {
         SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.primary
         SwipeToDismissBoxValue.Settled -> Color.Transparent
@@ -171,7 +176,10 @@ fun SwipeToDeleteBackground(dismissState: SwipeToDismissBoxState? = null) {
         horizontalArrangement = Arrangement.End
     ) {
         Icon(
-            Icons.Default.Archive,
+            when {
+                inArchive -> Icons.Default.Unarchive
+                else -> Icons.Default.Archive
+            },
             tint = MaterialTheme.colorScheme.onPrimary,
             contentDescription = stringResource(R.string.messages_threads_menu_archive)
         )
@@ -199,17 +207,15 @@ fun processIntents(
         }
     }
     else if(intent.hasExtra("address")) {
+        var text = ""
         val address = intent.getStringExtra("address")
-//        val threadId = ThreadedConversationsHandler.get(context, address).thread_id
         val threadId = intent.getStringExtra("thread_id")
-        return Triple(address, threadId, "")
+        return Triple(address, threadId, text)
     }
     return null
 }
 
 fun navigateToConversation(
-    context: Context,
-    viewModel: ThreadedConversationsViewModel? = null,
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
@@ -223,7 +229,6 @@ fun navigateToConversation(
     conversationsViewModel.searchQuery = searchQuery ?: ""
     conversationsViewModel.subscriptionId = subscriptionId
     conversationsViewModel.liveData = null
-    viewModel?.updateRead(context, threadId)
     navController.navigate(ConversationsScreen)
 }
 
@@ -472,23 +477,25 @@ private fun MainDropDownMenu(
 fun ThreadConversationLayout(
     viewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
+    intent: Intent? = null,
     navController: NavController,
     _items: List<ThreadedConversations>? = null,
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
-    viewModel.intent?.let { intent ->
+    intent?.let {
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
         processIntents(context, intent, defaultRegion)?.let {
-            viewModel.intent = null
+            intent.apply {
+                removeExtra("address")
+                removeExtra("thread_id")
+            }
             it.first?.let{ address ->
                 it.second?.let { threadId ->
                     it.third?.let{ message ->
                         conversationsViewModel.text = message
                     }
                     navigateToConversation(
-                        context = context,
-                        viewModel = viewModel,
                         conversationsViewModel = conversationsViewModel,
                         address = address,
                         threadId = threadId,
@@ -800,8 +807,18 @@ fun ThreadConversationLayout(
                                 when(it) {
                                     SwipeToDismissBoxValue.EndToStart -> {
                                         CoroutineScope(Dispatchers.Default).launch {
-                                            viewModel.archive(context, message.thread_id)
+                                            when(inboxType) {
+                                                InboxType.ARCHIVED ->
+                                                    viewModel.unarchive(context,
+                                                        listOf(Archive().apply {
+                                                            this.thread_id = message.thread_id
+                                                            this.is_archived = false
+                                                        })
+                                                    )
+                                                else -> viewModel.archive(context, message.thread_id)
+                                            }
                                         }
+                                        return@rememberSwipeToDismissBoxState true
                                     }
                                     SwipeToDismissBoxValue.Settled ->
                                         return@rememberSwipeToDismissBoxState false
@@ -815,7 +832,12 @@ fun ThreadConversationLayout(
                         SwipeToDismissBox(
                             state = dismissState,
                             enableDismissFromStartToEnd = false,
-                            backgroundContent = { SwipeToDeleteBackground(dismissState) }
+                            backgroundContent = {
+                                SwipeToDeleteBackground(
+                                    dismissState,
+                                    inboxType == InboxType.ARCHIVED
+                                )
+                            }
                         ) {
                             ThreadConversationCard(
                                 id = message.thread_id,
@@ -831,13 +853,10 @@ fun ThreadConversationLayout(
                                 else "Tues",
                                 isRead = message.isIs_read,
                                 isContact = isContact,
-//                                unreadCount = message.unread_count,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {
                                             navigateToConversation(
-                                                context = context,
-                                                viewModel = viewModel,
                                                 conversationsViewModel = conversationsViewModel,
                                                 address = message.address,
                                                 threadId = message.thread_id,
@@ -856,7 +875,7 @@ fun ThreadConversationLayout(
                                 ),
                                 isSelected = selectedItems.contains(message),
                                 isMuted = message.isIs_mute,
-                                isDraft = message.type == Telephony.Sms.MESSAGE_TYPE_DRAFT,
+                                type = message.type
                             )
                         }
                     }

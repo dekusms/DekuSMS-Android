@@ -180,7 +180,7 @@ interface ThreadedConversationsDao {
     fun insertAll(threadedConversationsList: MutableList<ThreadedConversations>): MutableList<Long>
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
-    fun get(thread_id: String): ThreadedConversations
+    fun get(thread_id: String): ThreadedConversations?
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadIds)")
     fun getList(threadIds: List<String>): MutableList<ThreadedConversations>
@@ -219,14 +219,14 @@ interface ThreadedConversationsDao {
     )
     fun searchThreadId(searchString: String, threadId: String): MutableList<ThreadsSearch>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun _insert(threadedConversations: ThreadedConversations): Long
 
     @Transaction
     fun insertThreadFromConversation(
         context: Context,
         conversation: Conversation
-    ): ThreadedConversations {
+    ): ThreadedConversations? {
         // TODO: Here is the culprit
 
         /* - Import things are:
@@ -245,19 +245,20 @@ interface ThreadedConversationsDao {
         val isRead = type == Telephony.Sms.MESSAGE_TYPE_OUTBOX || conversation.isRead
         val isSecured = conversation.isIs_encrypted
 
-        var threadedConversations = Datastore.getDatastore(context)
+        var threadedConversations: ThreadedConversations? = Datastore.getDatastore(context)
             .threadedConversationsDao()
-            .get(conversation.thread_id!!)
-        threadedConversations.setDate(dates)
-        threadedConversations.setSnippet(snippet)
-        threadedConversations.setIs_read(isRead)
-        threadedConversations.setIs_secured(isSecured)
-        threadedConversations.setAddress(address)
-        threadedConversations.setType(type)
+            .get(conversation.thread_id!!)?.let {
+                it.date = dates
+                it.snippet = snippet
+                it.isIs_read = isRead
+                it.isIs_secured = isSecured
+                it.address = address
+                it.type = type
+                update(context, it)
 
-        update(context, threadedConversations)
-        threadedConversations = Datastore.getDatastore(context).threadedConversationsDao()
-            .get(conversation.thread_id!!)
+                Datastore.getDatastore(context).threadedConversationsDao()
+                    .get(conversation.thread_id!!)
+            }
 
         return threadedConversations
     }
@@ -287,19 +288,19 @@ interface ThreadedConversationsDao {
         var insert = false
         val unreadCount = Datastore.getDatastore(context).conversationDao()
             .getUnreadCount(threadId!!)
-        var threadedConversations: ThreadedConversations = get(threadId)
+        var threadedConversations: ThreadedConversations? = get(threadId)
         if (threadedConversations == null) {
             threadedConversations = ThreadedConversations()
             threadedConversations.thread_id = threadId
             insert = true
         }
-        threadedConversations.setDate(dates)
-        threadedConversations.setSnippet(snippet)
-        threadedConversations.setIs_read(isRead)
-        threadedConversations.setIs_secured(isSecured)
-        threadedConversations.setAddress(address)
-        threadedConversations.setType(type)
-        threadedConversations.setUnread_count(unreadCount)
+        threadedConversations.date = dates
+        threadedConversations.snippet = snippet
+        threadedConversations.isIs_read = isRead
+        threadedConversations.isIs_secured = isSecured
+        threadedConversations.address = address
+        threadedConversations.type = type
+        threadedConversations.unread_count = unreadCount
 
         if (insert) _insert(threadedConversations)
         else {
@@ -314,12 +315,10 @@ interface ThreadedConversationsDao {
 
     @Transaction
     fun update(context: Context, threadedConversations: ThreadedConversations): Int {
-        if (threadedConversations.getDate() == null || threadedConversations.getDate()
+        if (threadedConversations.date == null || threadedConversations.date
                 .isEmpty()
-        ) threadedConversations.setDate(
-            Datastore.getDatastore(context).conversationDao()
-                .fetchLatestForThread(threadedConversations.getThread_id())!!.date
-        )
+        ) threadedConversations.date = Datastore.getDatastore(context).conversationDao()
+            .fetchLatestForThread(threadedConversations.thread_id)!!.date
         return _update(threadedConversations)
     }
 

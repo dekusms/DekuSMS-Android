@@ -14,11 +14,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity
 import com.afkanerd.deku.DefaultSMS.MainActivity
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
@@ -40,7 +41,8 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     - service providers do send in country code.
     - How is matched to users stored without country code?
      */
-    var executorService: ExecutorService = Executors.newFixedThreadPool(4)
+    
+    val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Telephony.Sms.Intents.SMS_DELIVER_ACTION) {
@@ -69,41 +71,45 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     Log.e(javaClass.name, "Exception Incoming message broadcast", e)
                 }
             }
-        } else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
-            executorService.execute(object : Runnable {
-                override fun run() {
-                    val id = intent.getStringExtra(NativeSMSDB.ID)!!
+        }
+        else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
+            coroutineScope.launch{
+                val id = intent.getStringExtra(NativeSMSDB.ID)!!
 
-                    val conversation = Datastore.getDatastore(context).conversationDao()
-                            .getMessage(id)
+                val datastore = Datastore.getDatastore(context)
+                val conversation = datastore.conversationDao().getMessage(id)
 
-                    if (resultCode == Activity.RESULT_OK) {
-                        NativeSMSDB.Outgoing.register_sent(context, id)
-                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
-                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                    } else {
-                        try {
-                            NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
-                            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                            conversation.error_code = resultCode
+                if (resultCode == Activity.RESULT_OK) {
+                    NativeSMSDB.Outgoing.register_sent(context, id)
+                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
+                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                } else {
+                    try {
+                        NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
+                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+                        conversation.error_code = resultCode
 
-                        } catch (e: Exception) {
-                            Log.e(javaClass.name,
-                                    "Exception with sent message broadcast", e)
-                        } finally {
-                            conversation.thread_id?.let {
-                                notifyMessageFailedToSend(context, conversation)
-                            }
+                    } catch (e: Exception) {
+                        Log.e(javaClass.name,
+                            "Exception with sent message broadcast", e)
+                    } finally {
+                        conversation.thread_id?.let {
+                            notifyMessageFailedToSend(context, conversation)
                         }
                     }
-                    Datastore.getDatastore(context).conversationDao()
-                        ._update(conversation)
                 }
-            })
+                datastore.conversationDao()._update(conversation)
+                val threadedConversation = datastore.threadedConversationsDao()
+                    .get(conversation.thread_id!!)
+                threadedConversation?.let {
+                    it.type = conversation.type
+                    datastore.threadedConversationsDao().update(context, it)
+                }
+            }
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {
-            executorService.execute(Runnable {
+            coroutineScope.launch {
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -117,10 +123,10 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     conversation.error_code = resultCode
                 }
                 Datastore.getDatastore(context).conversationDao()._update(conversation)
-            })
+            }
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT) {
-            executorService.execute {
+            coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -136,7 +142,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             }
         }
         else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
-            executorService.execute {
+            coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
 
@@ -180,8 +186,73 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 val threadedConversations = Datastore.getDatastore(context)
                         .threadedConversationsDao()
                         .insertThreadAndConversation(context, conversation)
-                if (!threadedConversations.isIs_mute)
-                    NotificationsHandler.sendIncomingTextMessageNotification(context, conversation)
+                if (!threadedConversations.isIs_mute) {
+
+                    val builder = Notifications.createNotification(
+                        context=context,
+                        title=Contacts.retrieveContactName(context, conversation.address) ?:
+                        conversation.address!!,
+                        text=conversation.text!!,
+                        requestCode = conversation.thread_id!!.toInt(),
+                        address=conversation.address!!,
+                        contentIntent = Intent(
+                            context,
+                            MainActivity::class.java
+                        ).apply {
+                            putExtra("address", conversation.address)
+                            putExtra("thread_id", conversation.thread_id)
+                            println("ThreadID: ${conversation.thread_id}")
+                            setFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            )
+                        },
+                        muteIntent = Intent(
+                            context,
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                                .MUTE_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
+                        },
+                        replyIntent = Intent(
+                            context,
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                                .REPLY_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
+                        },
+                        markAsRead = Intent(
+                            context,
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                        ).apply {
+                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                                .MARK_AS_READ_BROADCAST_INTENT
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                                conversation.address)
+                            putExtra(
+                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                                conversation.thread_id)
+                        },
+                    )
+
+                    Notifications.notify(
+                        context,
+                        builder,
+                        conversation.thread_id!!.toInt()
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -238,30 +309,21 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val pendingIntent =
-                PendingIntent.getActivity(context, 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE)
-
         val content = context
                 .getString(R.string
                         .message_failed_send_notification_description_a_message_failed_to_send_to) +
                 " ${conversation.address}"
-        val notification =
-                NotificationCompat.Builder(context,
-                        context.getString(R.string.message_failed_channel_id))
-                    .setContentTitle(context
-                            .getString(R.string.message_failed_channel_name))
-                    .setSmallIcon(R.drawable.ic_stat_name)
-                    .setPriority(NotificationCompat.DEFAULT_ALL)
-                    .setAutoCancel(true)
-                    .setContentText(content)
-                    .setContentIntent(pendingIntent)
-                    .build()
 
+        val builder = Notifications.createNotification(
+            context = context,
+            title = conversation.address!!,
+            text = content,
+            address = conversation.address!!,
+            requestCode = conversation.thread_id!!.toInt(),
+            contentIntent = notificationIntent,
+        )
 
-        val notificationId = context.getString(R.string.message_failed_notification_id).toInt()
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(notificationId, notification)
+        Notifications.notify(context, builder, conversation.thread_id!!.toInt())
     }
 
 }

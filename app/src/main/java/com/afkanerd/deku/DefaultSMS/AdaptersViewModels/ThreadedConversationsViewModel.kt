@@ -35,7 +35,6 @@ import kotlin.concurrent.thread
 
 class ThreadedConversationsViewModel : ViewModel() {
 
-    var intent:Intent? = Intent()
     var inboxType: InboxType = InboxType.INBOX
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null
@@ -175,15 +174,15 @@ class ThreadedConversationsViewModel : ViewModel() {
 //                        threadedConversations.address
 //                    )
 //                    threadedConversations.contact_name = contactName
-                    threadedConversations.msg_count =
-                        getUnreadCountNative(context, threadedConversations.thread_id)
+//                    threadedConversations.msg_count =
+//                        getUnreadCountNative(context, threadedConversations.thread_id)
                     threadedConversations.subscription_id = cursor.getInt(sub_id)
                     threadedConversationsList.add(threadedConversations)
                 } while (cursor.moveToNext())
                 cursor.close()
             }
             databaseConnector!!.threadedConversationsDao().deleteAll()
-            databaseConnector!!.threadedConversationsDao().insertAll(threadedConversationsList)
+            databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList)
             getCount(context)
         } catch (e: Exception) {
             Log.e(javaClass.getName(), "Exception refreshing", e)

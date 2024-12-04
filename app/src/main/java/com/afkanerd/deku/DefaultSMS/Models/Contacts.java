@@ -97,11 +97,16 @@ public class Contacts {
                 null,
                 null, null);
 
-        if(cursor != null && cursor.moveToFirst()) {
-            int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
-            String contactName = cursor.getString(displayNameIndex);
+        if(cursor == null)
+            return null;
+
+        try {
+            if(cursor.moveToFirst()) {
+                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
+                return cursor.getString(displayNameIndex);
+            }
+        } finally {
             cursor.close();
-            return contactName;
         }
 
         return null;
@@ -116,11 +121,17 @@ public class Contacts {
                 null, null);
 
         String contactPhotoThumbUri = "";
-        if(cursor.moveToFirst()) {
-            int displayContactPhoto = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI);
-            contactPhotoThumbUri = String.valueOf(cursor.getString(displayContactPhoto));
-        }
+        if(cursor == null)
+            return null;
 
+        try {
+            if(cursor.moveToFirst()) {
+                int displayContactPhoto = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI);
+                contactPhotoThumbUri = String.valueOf(cursor.getString(displayContactPhoto));
+            }
+        } finally {
+            cursor.close();
+        }
         return contactPhotoThumbUri;
     }
 

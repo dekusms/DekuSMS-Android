@@ -539,7 +539,10 @@ fun Conversations(
                 isMute = it.isIs_mute
                 isBlocked = it.isIs_blocked
             }
-
+            threadConversationsViewModel.updateRead(
+                context,
+                viewModel.threadId,
+            )
         }
 
         if(searchIndexes.isNotEmpty() && searchIndex == 0)
@@ -622,7 +625,9 @@ fun Conversations(
     }
 
     Scaffold (
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        modifier = Modifier
+            .padding(bottom=16.dp)
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -753,7 +758,9 @@ fun Conversations(
             }
             else if(isShortCode) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

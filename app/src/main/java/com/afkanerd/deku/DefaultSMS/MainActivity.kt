@@ -5,9 +5,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
@@ -35,7 +38,7 @@ object ComposeNewMessageScreen
 @Serializable
 object SearchThreadScreen
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
 
     lateinit var navController: NavHostController
 
@@ -52,19 +55,21 @@ class MainActivity : AppCompatActivity() {
         setContent {
             AppTheme {
                 navController = rememberNavController()
-                Surface(Modifier.safeDrawingPadding()) {
+                Surface(Modifier
+                    .fillMaxSize()
+                ) {
 
                     NavHost(
                         modifier = Modifier,
                         navController = navController,
                         startDestination = HomeScreen,
                     ) {
-                        viewModel.intent?.let { viewModel.intent = intent }
                         composable<HomeScreen>{
                             ThreadConversationLayout(
                                 viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
-                                navController,
+                                intent=intent,
+                                navController = navController,
                             )
                         }
 
@@ -112,6 +117,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        checkLoadNatives()
+//        checkLoadNatives()
     }
 }

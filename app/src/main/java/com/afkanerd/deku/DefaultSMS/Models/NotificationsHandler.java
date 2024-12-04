@@ -4,7 +4,9 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 
@@ -14,10 +16,10 @@ import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.MainActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -27,14 +29,21 @@ import java.util.List;
 
 public class NotificationsHandler {
 
-    public static void sendIncomingTextMessageNotification(Context context, Conversation conversation) {
+    public static void sendIncomingTextMessageNotification(
+            Context context,
+            Conversation conversation
+    ) {
         NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context, conversation, null);
 
         Intent replyIntent = getReplyIntent(context, conversation);
         PendingIntent pendingIntent = getPendingIntent(context, conversation);
 
-        NotificationCompat.Builder builder = getNotificationBuilder(context, replyIntent,
-                conversation, pendingIntent);
+        NotificationCompat.Builder builder = getNotificationBuilder(
+                context,
+                replyIntent,
+                conversation,
+                pendingIntent
+        );
         builder.setStyle(messagingStyle);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
@@ -44,32 +53,44 @@ public class NotificationsHandler {
     public static PendingIntent getPendingIntent(Context context, Conversation conversation) {
         Intent receivedIntent = getReceivedIntent(context, conversation);
         return PendingIntent.getActivity(context, Integer.parseInt(conversation.getThread_id()),
-                receivedIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                receivedIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public static Person getPerson(Context context, Conversation conversation) {
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        try {
+            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
+            IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
+
+            if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+            }
+        } catch(Exception e) {
+
+        }
+
         Person.Builder personBuilder = new Person.Builder()
+//                .setIcon(icon)
                 .setName(contactName == null ? conversation.getAddress() : contactName)
                 .setKey(contactName == null ? conversation.getAddress() : contactName);
         return personBuilder.build();
     }
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
-        if(conversation != null &&
-                !Helpers.isShortCode(conversation.getAddress())) {
-            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+        if(conversation != null && !Helpers.isShortCode(conversation.getAddress())) {
+            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,
-                    conversation.getAddress());
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+                            .getREPLY_BROADCAST_INTENT(), conversation.getAddress());
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_THREAD_ID,
-                    conversation.getThread_id());
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+                            .getREPLY_THREAD_ID(), conversation.getThread_id());
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_SUBSCRIPTION_ID,
-                    conversation.getSubscription_id());
+            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+                            .getREPLY_SUBSCRIPTION_ID(), conversation.getSubscription_id());
 
-            replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
+            replyBroadcastIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.
+                    Companion.getREPLY_BROADCAST_INTENT());
             return replyBroadcastIntent;
         }
         return null;
@@ -95,7 +116,15 @@ public class NotificationsHandler {
                                                                       String reply) {
         Person person = getPerson(context, conversation);
 
+        Bitmap bitmap = Contacts.getContactBitmapPhoto(context, conversation.getAddress());
+        IconCompat icon = bitmap == null ? null : IconCompat.createWithBitmap(bitmap);
+
+        if(icon == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            icon = IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24);
+        }
+
         Person.Builder personBuilder = new Person.Builder()
+                .setIcon(icon)
                 .setName(context.getString(R.string.notification_title_reply_you))
                 .setKey(context.getString(R.string.notification_title_reply_you));
         Person replyPerson = personBuilder.build();
@@ -219,10 +248,11 @@ public class NotificationsHandler {
 
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
-        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
         markAsReadIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
         markAsReadIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-        markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
+        markAsReadIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+                .getMARK_AS_READ_BROADCAST_INTENT());
 
         PendingIntent markAsReadPendingIntent =
                 PendingIntent.getBroadcast(context, Integer.parseInt(conversation.getThread_id()),
@@ -243,7 +273,7 @@ public class NotificationsHandler {
 
             String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
             RemoteInput remoteInput = new RemoteInput.Builder(
-                    IncomingTextSMSReplyActionBroadcastReceiver.KEY_TEXT_REPLY)
+                    IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
                     .setLabel(replyLabel)
                     .build();
 
@@ -255,11 +285,12 @@ public class NotificationsHandler {
             builder.addAction(replyAction);
         }
         else if(conversation.getThread_id() != null){
-            Intent muteIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+            Intent muteIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
             muteIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
             muteIntent.putExtra(Conversation.ID, conversation.getMessage_id());
             muteIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-            muteIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MUTE_BROADCAST_INTENT);
+            muteIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+                    .getMUTE_BROADCAST_INTENT());
 
             PendingIntent mutePendingIntent =
                     PendingIntent.getBroadcast(context, Integer.parseInt(conversation.getThread_id()),

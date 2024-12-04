@@ -1,7 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.content.Context
-import android.util.Log
+import android.provider.Telephony
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -95,75 +96,6 @@ private fun ThreadConversationsAvatar(
     }
 }
 
-@Composable
-private fun ThreadConversationsContents(
-    firstName: String,
-    lastName: String,
-    content: String,
-    date: String,
-    isRead: Boolean = false,
-    unreadCount: Int = 1
-) {
-
-    var color = MaterialTheme.colorScheme.onBackground
-    var weight = FontWeight.Bold
-
-    if(isRead) {
-        MaterialTheme.colorScheme.secondary
-        weight = FontWeight.Normal
-    }
-    Row {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = "$firstName $lastName",
-                color = color,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = weight
-            )
-
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = content,
-                color = color,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = weight,
-                maxLines = if(isRead) 1 else 3
-            )
-        }
-//        Spacer(modifier = Modifier.weight(1f))
-        Column {
-            if(unreadCount > 0) {
-                BadgedBox(
-                    badge = {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(top=16.dp)
-                        ) {
-                            Text(unreadCount.toString())
-                        }
-                    },
-                ) {
-                    Text(
-                        text = date,
-                        color = color,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = weight
-                    )
-                }
-            } else {
-                Text(
-                    text = date,
-                    color = color,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = weight
-                )
-            }
-        }
-    }
-    
-}
-
 @Preview(showBackground = true)
 @Composable
 fun ThreadConversationCard(
@@ -179,9 +111,16 @@ fun ThreadConversationCard(
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     isMuted: Boolean = false,
-    isDraft: Boolean = false,
+    type: Int? = if(LocalInspectionMode.current)
+        Telephony.Sms.MESSAGE_TYPE_FAILED else null
 ) {
-    var color = MaterialTheme.colorScheme.onBackground
+    val colorHeadline = MaterialTheme.colorScheme.onBackground
+    val colorContent = when(type) {
+        Telephony.Sms.MESSAGE_TYPE_FAILED ->
+            MaterialTheme.colorScheme.error
+        Telephony.Sms.MESSAGE_TYPE_OUTBOX -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.onBackground
+    }
     var weight = FontWeight.Bold
 
     if(isRead) {
@@ -198,7 +137,7 @@ fun ThreadConversationCard(
             Row {
                 Text(
                     text = "$firstName $lastName",
-                    color = color,
+                    color = colorHeadline,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = weight
                 )
@@ -210,37 +149,34 @@ fun ThreadConversationCard(
         },
         supportingContent = {
             Text(
-                text = if(isDraft)
-                    stringResource(R.string.thread_conversation_type_draft) + ": $content"
-                else content,
-                color = color,
+                text = when(type) {
+                    Telephony.Sms.MESSAGE_TYPE_DRAFT ->
+                        stringResource(R.string.thread_conversation_type_draft) + ": $content"
+                    Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
+                        stringResource(R.string.sms_status_sending)+ ": $content"
+                    Telephony.Sms.MESSAGE_TYPE_FAILED ->
+                        stringResource(R.string.sms_status_failed_only)+ ": $content"
+                    else -> content
+                },
+                color = colorContent,
                 style = MaterialTheme.typography.bodySmall,
-                fontStyle = if(isDraft) FontStyle.Italic else null,
+                fontStyle = if(
+                    type == Telephony.Sms.MESSAGE_TYPE_DRAFT ||
+                    type == Telephony.Sms.MESSAGE_TYPE_OUTBOX ||
+                    type == Telephony.Sms.MESSAGE_TYPE_FAILED
+                    ) FontStyle.Italic else null,
                 fontWeight = weight,
                 maxLines = if(isRead) 1 else 3,
             )
         },
         trailingContent = {
-            BadgedBox(
-                badge = {
-                    Badge(
-                        modifier = modifier.padding(top = 40.dp),
-                        containerColor = if(unreadCount> 0) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ) {
-                        if(unreadCount > 0) Text( text=unreadCount.toString())
-                    }
-                },
-            ) {
-                Text(
-                    text = date,
-                    color = color,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = weight,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-            }
+            Text(
+                text = date,
+                color = colorContent,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = weight,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
         },
         leadingContent = {
             ThreadConversationsAvatar(LocalContext.current, id, firstName, lastName, phoneNumber, isContact)
