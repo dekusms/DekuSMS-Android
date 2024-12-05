@@ -33,7 +33,8 @@ import kotlinx.coroutines.launch
 
 
 class ConversationsViewModel : ViewModel() {
-    var threadId by mutableStateOf("")
+//    var threadId by mutableStateOf("")
+    var threadId = ""
     var address by mutableStateOf("")
     var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
@@ -44,6 +45,14 @@ class ConversationsViewModel : ViewModel() {
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
     var liveData: LiveData<MutableList<Conversation>>? = null
+    var threadedLiveData: LiveData<MutableList<Conversation>>? = null
+
+    fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
+        if(threadedLiveData == null) {
+            threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
+        }
+        return threadedLiveData!!
+    }
 
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
         if(liveData == null) {

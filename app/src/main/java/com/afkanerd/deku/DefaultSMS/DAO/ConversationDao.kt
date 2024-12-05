@@ -24,6 +24,9 @@ interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getDefault(thread_id: String): MutableList<Conversation?>?
 
+    @Query("SELECT *, max(date) as date FROM Conversation WHERE type IS NOT 3 GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreading(): LiveData<MutableList<Conversation>>
+
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     fun getAll(thread_id: String): MutableList<Conversation?>?
 

@@ -45,11 +45,12 @@ public class SIMHandler {
         }
     }
 
-    public static int getDefaultSimSubscription(Context context) {
+    public static Integer getDefaultSimSubscription(Context context) {
         // TODO: check if there's even a simcard and handle it accordingly
         int subId = SubscriptionManager.getDefaultSmsSubscriptionId();
         if(subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID)
-            return getSimCardInformation(context).get(0).getSubscriptionId();
+//            return getSimCardInformation(context).get(0).getSubscriptionId();
+            return null;
         return subId;
     }
 

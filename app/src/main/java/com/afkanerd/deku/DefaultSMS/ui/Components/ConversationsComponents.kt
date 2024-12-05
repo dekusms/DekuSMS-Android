@@ -292,9 +292,11 @@ fun ChatCompose(
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         } else {
-                            val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
-                                .asImageBitmap()
-                            Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                            if(subscriptionId > -1) {
+                                val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
+                                    .asImageBitmap()
+                                Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                            }
                         }
                     }
 

@@ -29,6 +29,8 @@ import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import java.lang.Exception
 import java.util.ArrayList
 import kotlin.concurrent.thread
@@ -64,6 +66,14 @@ class ThreadedConversationsViewModel : ViewModel() {
                 .getThreadedDrafts(Telephony.Sms.MESSAGE_TYPE_DRAFT)
         }
         return threadsLiveData!!
+    }
+    
+    fun importAll(context: Context, data: String): List<Conversation> {
+        val json = Json { ignoreUnknownKeys = true }
+        return json.decodeFromString<MutableList<Conversation>>(data).apply {
+            val databaseConnector = Datastore.getDatastore(context)
+            databaseConnector.conversationDao().insertAll(this)
+        }
     }
 
     fun getAllExport(context: Context): String {

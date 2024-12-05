@@ -349,7 +349,7 @@ interface ThreadedConversationsDao {
 
         _delete(threadedConversations)
         Datastore.getDatastore(context).conversationDao()
-            .deleteAll(mutableListOf<String>(threadedConversations.getThread_id()))
+            .deleteAll(mutableListOf<String>(threadedConversations.thread_id))
     }
 
     @Query("DELETE FROM threadedconversations")

@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.ExperimentalMaterialApi
@@ -160,8 +161,6 @@ enum class InboxType(val value: Int) {
     }
 }
 
-
-
 @Composable
 fun SwipeToDeleteBackground(
     dismissState: SwipeToDismissBoxState? = null,
@@ -224,7 +223,7 @@ fun navigateToConversation(
     conversationsViewModel: ConversationsViewModel,
     address: String,
     threadId: String,
-    subscriptionId: Int,
+    subscriptionId: Int?,
     navController: NavController,
     searchQuery: String? = ""
 ) {
@@ -232,7 +231,7 @@ fun navigateToConversation(
     conversationsViewModel.threadId = threadId
     conversationsViewModel.contactName = ""
     conversationsViewModel.searchQuery = searchQuery ?: ""
-    conversationsViewModel.subscriptionId = subscriptionId
+    conversationsViewModel.subscriptionId = subscriptionId ?: -1
     conversationsViewModel.liveData = null
     navController.navigate(ConversationsScreen)
 }
@@ -496,6 +495,8 @@ fun ThreadConversationLayout(
             intent.apply {
                 removeExtra("address")
                 removeExtra("thread_id")
+                removeExtra("sms_body")
+                data = null
             }
             it.first?.let{ address ->
                 it.second?.let { threadId ->
@@ -519,18 +520,22 @@ fun ThreadConversationLayout(
 
     var inboxType by remember { mutableStateOf(viewModel.inboxType) }
 
-    val items: List<ThreadedConversations> by viewModel
-        .getAllLiveData(context).observeAsState(emptyList())
-    val archivedItems: List<ThreadedConversations> by viewModel
-        .archivedLiveData!!.observeAsState(emptyList())
-    val encryptedItems: List<ThreadedConversations> by viewModel
-        .encryptedLiveData!!.observeAsState(emptyList())
-    val blockedItems: List<ThreadedConversations> by viewModel
-        .blockedLiveData!!.observeAsState(emptyList())
-    val draftsItems: List<ThreadedConversations> by viewModel
-        .draftsLiveData!!.observeAsState(emptyList())
-    val mutedItems: List<ThreadedConversations> by viewModel
-        .mutedLiveData!!.observeAsState(emptyList())
+//    val items: List<ThreadedConversations> by viewModel
+//        .getAllLiveData(context).observeAsState(emptyList())
+
+    val items: List<Conversation> by conversationsViewModel
+        .getThreading(context).observeAsState(emptyList())
+
+//    val archivedItems: List<ThreadedConversations> by viewModel
+//        .archivedLiveData!!.observeAsState(emptyList())
+//    val encryptedItems: List<ThreadedConversations> by viewModel
+//        .encryptedLiveData!!.observeAsState(emptyList())
+//    val blockedItems: List<ThreadedConversations> by viewModel
+//        .blockedLiveData!!.observeAsState(emptyList())
+//    val draftsItems: List<ThreadedConversations> by viewModel
+//        .draftsLiveData!!.observeAsState(emptyList())
+//    val mutedItems: List<ThreadedConversations> by viewModel
+//        .mutedLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -545,22 +550,6 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(items) {
-        CoroutineScope(Dispatchers.Default).launch {
-            val items = viewModel.getAll(context)
-            items.forEach {
-                viewModel.updateInformation(
-                    context=context,
-                    threadId = it.thread_id,
-                    contactName =
-                    Contacts.retrieveContactName(context, it.address),
-                    conversationsViewModel = conversationsViewModel
-                )
-            }
-            viewModel.refreshCount(context)
-        }
-    }
 
     BackHandler {
         if(viewModel.inboxType != InboxType.INBOX) {
@@ -788,24 +777,17 @@ fun ThreadConversationLayout(
                 modifier = Modifier.padding(innerPadding),
                 state = listState
             )  {
-                items(
-                    items = if(_items == null) when(inboxType) {
-                        InboxType.INBOX -> items
-                        InboxType.ARCHIVED -> archivedItems
-                        InboxType.ENCRYPTED -> encryptedItems
-                        InboxType.BLOCKED -> blockedItems
-                        InboxType.DRAFTS -> draftsItems
-                        InboxType.MUTED -> mutedItems
-                    } else _items,
-                    key = { it.hashCode() }
-                ) { message ->
+                itemsIndexed(
+                    items = items,
+                    key = { index, message -> message.thread_id!! }
+                ) { index, message ->
 
                     message.address?.let { address ->
+                        val contactName: String? by remember { mutableStateOf(Contacts.retrieveContactName(context, message.address)) }
                         var firstName = message.address
                         var lastName = ""
-                        val isContact = !message.contact_name.isNullOrBlank()
-                        if (isContact) {
-                            message.contact_name.split(" ").let {
+                        if (!contactName.isNullOrEmpty()) {
+                            contactName!!.split(" ").let {
                                 firstName = it[0]
                                 if (it.size > 1)
                                     lastName = it[1]
@@ -821,11 +803,12 @@ fun ThreadConversationLayout(
                                                 InboxType.ARCHIVED ->
                                                     viewModel.unarchive(context,
                                                         listOf(Archive().apply {
-                                                            this.thread_id = message.thread_id
+                                                            this.thread_id = message.thread_id!!
                                                             this.is_archived = false
                                                         })
                                                     )
-                                                else -> viewModel.archive(context, message.thread_id)
+                                                else -> viewModel.archive(context,
+                                                    message.thread_id!!)
                                             }
                                         }
                                         return@rememberSwipeToDismissBoxState true
@@ -850,41 +833,45 @@ fun ThreadConversationLayout(
                             }
                         ) {
                             ThreadConversationCard(
-                                id = message.thread_id,
-                                firstName = firstName,
+                                id = message.thread_id!!,
+                                firstName = firstName!!,
                                 lastName = lastName,
                                 phoneNumber = address,
-                                content = if(message.snippet.isNullOrBlank())
+                                content = if(message.text.isNullOrBlank())
                                     stringResource(R.string.conversation_threads_secured_content)
-                                else message.snippet,
+                                else message.text!!,
                                 date =
                                 if(!message.date.isNullOrBlank())
-                                    Helpers.formatDate(context, message.date.toLong())
+                                    Helpers.formatDate(context, message.date!!.toLong())
                                 else "Tues",
-                                isRead = message.isIs_read,
-                                isContact = isContact,
+                                isRead = message.isRead,
+                                isContact = !contactName.isNullOrBlank(),
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {
                                             navigateToConversation(
                                                 conversationsViewModel = conversationsViewModel,
-                                                address = message.address,
-                                                threadId = message.thread_id,
+                                                address = message.address!!,
+                                                threadId = message.thread_id!!,
                                                 subscriptionId =
                                                 SIMHandler.getDefaultSimSubscription(context),
                                                 navController = navController,
                                             )
                                         } else {
-                                            if(selectedItems.contains(message))
-                                                selectedItems.remove(message)
-                                            else
-                                                selectedItems.add(message)
+//                                            if(selectedItems.contains(message))
+//                                                selectedItems.remove(message)
+//                                            else
+//                                                selectedItems.add(message)
+                                            TODO()
                                         }
                                     },
-                                    onLongClick = { selectedItems.add(message) }
+                                    onLongClick = {
+                                        TODO()
+//                                        selectedItems.add(message)
+                                    }
                                 ),
-                                isSelected = selectedItems.contains(message),
-                                isMuted = message.isIs_mute,
+                                isSelected = false,
+                                isMuted = false,
                                 type = message.type
                             )
                         }

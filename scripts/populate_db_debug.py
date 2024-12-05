@@ -19,7 +19,7 @@ for i in range((1000//50)):
                 "isIs_image": False,
                 "isIs_key": False,
                 "isRead": True,
-                "message_id": int(f"{i}{j}"),
+                "message_id": f"{i}{j}",
                 "num_segments": 0,
                 "status": 32,
                 "subscription_id": 0,
