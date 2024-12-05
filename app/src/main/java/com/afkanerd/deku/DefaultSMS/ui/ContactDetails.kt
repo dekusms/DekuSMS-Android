@@ -35,10 +35,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +49,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import kotlin.text.take
+import kotlin.text.uppercase
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +61,9 @@ fun ContactDetails (
     contactPhotoUri: String? = null,
     isContact: Boolean = false,
     isEncryptionEnabled: Boolean = false,
+    firstName: String,
+    lastName: String,
+    id: String? = null,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -81,14 +89,36 @@ fun ContactDetails (
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (contactPhotoUri != null) {
-                    AsyncImage(
-                        model = contactPhotoUri,
-                        contentDescription = "Contact Photo",
-                        modifier = Modifier
-                            .size(75.dp)
-                            .clip(CircleShape)
-                    )
+                if (isContact) {
+                    if (contactPhotoUri != null && contactPhotoUri != "null") {
+                        AsyncImage(
+                            model = contactPhotoUri,
+                            contentDescription = "Contact Photo",
+                            modifier = Modifier
+                                .size(75.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(75.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    remember(id, firstName, lastName) {
+                                        Color("$id / $firstName".toHslColor())
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = (firstName.take(1) + lastName.take(1)).uppercase(),
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontSize = 24.sp
+                                ),
+                                color = Color.White
+                            )
+                        }
+                    }
                 } else {
                     Icon(
                         Icons.Filled.Person,
@@ -333,6 +363,9 @@ fun ContactDetailsPreview() {
         phoneNumber = "+1-555-123-4567",
         isContact = true,
         isEncryptionEnabled = true,
+        firstName = "John",
+        lastName = "Doe",
+        id = "12345",
         onBackClick = { }
     )
 }
