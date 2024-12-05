@@ -16,18 +16,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Message
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.PeopleOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
@@ -37,18 +32,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +55,7 @@ fun ContactDetails (
     phoneNumber: String,
     contactPhotoUri: String? = null,
     isContact: Boolean = false,
+    isEncryptionEnabled: Boolean = false,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -205,42 +205,44 @@ fun ContactDetails (
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = "Notification",
-                        )
+                    TextButton(onClick = { /* Handle notifications click */ }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.Notifications,
+                                contentDescription = "Notification"
+                            )
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                        Text(
-                            text = "Notifications",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                            Text(
+                                text = "Notifications",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    TextButton(onClick = { /* Handle block & report spam click */ }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.Block,
+                                contentDescription = "Block and Report",
+                                tint = Color.Red
+                            )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.Block,
-                            contentDescription = "Notification",
-                            tint = Color.Red
-                        )
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text(
-                            text = "Block & report spam",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Red
-                        )
+                            Text(
+                                text = "Block & report spam",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Red
+                            )
+                        }
                     }
                 }
             }
@@ -258,22 +260,32 @@ fun ContactDetails (
                 ) {
                     Icon(
                         Icons.Outlined.Lock,
-                        contentDescription = "Notification",
+                        contentDescription = "End-to-end encryption",
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Column(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .padding(8.dp)
                     ) {
                         Text(
-                            text = "End-to-end encryption: Off",
+                            text = buildAnnotatedString {
+                                append("End-to-end encryption: ")
+                                withStyle(
+                                    style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isEncryptionEnabled) Color.Green else Color.Red
+                                    )
+                                ) {
+                                    append(if (isEncryptionEnabled) "On" else "Off")
+                                }
+                            },
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "End-to-end encryption isn't available in conversation.",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "End-to-end encryption isn't available in this conversation.",
+                            style = MaterialTheme.typography.bodySmall
                         )
 
                     }
@@ -297,7 +309,7 @@ fun ContactDetails (
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = phoneNumber, // Display phone number
+                            text = phoneNumber,
                             style = MaterialTheme.typography.bodyMedium
                         )
 
@@ -320,6 +332,7 @@ fun ContactDetailsPreview() {
     ContactDetails(
         phoneNumber = "+1-555-123-4567",
         isContact = true,
+        isEncryptionEnabled = true,
         onBackClick = { }
     )
 }
