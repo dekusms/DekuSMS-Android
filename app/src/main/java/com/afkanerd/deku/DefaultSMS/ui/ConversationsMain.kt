@@ -535,14 +535,7 @@ fun Conversations(
                 coroutineScope.launch{
                     listState.animateScrollToItem(0)
                 }
-            threadConversationsViewModel.get(context, viewModel.threadId)?.let {
-                isMute = it.isIs_mute
-                isBlocked = it.isIs_blocked
-            }
-            threadConversationsViewModel.updateRead(
-                context,
-                viewModel.threadId,
-            )
+            viewModel.updateToRead(context)
         }
 
         if(searchIndexes.isNotEmpty() && searchIndex == 0)

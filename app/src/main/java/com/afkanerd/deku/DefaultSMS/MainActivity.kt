@@ -73,7 +73,6 @@ class MainActivity : AppCompatActivity(){
                     ) {
                         composable<HomeScreen>{
                             ThreadConversationLayout(
-                                viewModel=viewModel,
                                 conversationsViewModel=conversationViewModel,
                                 intent=intent,
                                 navController = navController,

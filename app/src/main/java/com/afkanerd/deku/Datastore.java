@@ -44,7 +44,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 18,
+        version = 19,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -54,7 +54,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 14, to = 15),
         @AutoMigration(from = 15, to = 16),
         @AutoMigration(from = 16, to = 17, spec = Datastore.Migrate16To17.class),
-        @AutoMigration(from = 17, to = 18)
+        @AutoMigration(from = 17, to = 18),
+        @AutoMigration(from = 18, to = 19)
 })
 
 

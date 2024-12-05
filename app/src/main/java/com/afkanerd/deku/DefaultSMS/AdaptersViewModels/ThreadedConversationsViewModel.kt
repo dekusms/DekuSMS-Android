@@ -37,7 +37,6 @@ import kotlin.concurrent.thread
 
 class ThreadedConversationsViewModel : ViewModel() {
 
-    var inboxType: InboxType = InboxType.INBOX
 
     private var threadsLiveData: LiveData<MutableList<ThreadedConversations>>? = null
     var archivedLiveData: LiveData<MutableList<ThreadedConversations>>? = null
@@ -103,8 +102,9 @@ class ThreadedConversationsViewModel : ViewModel() {
             cursor.close()
         }
 
+        Datastore.getDatastore(context).conversationDao().deleteEvery()
         Datastore.getDatastore(context).conversationDao().insertAll(conversationList)
-        refresh(context)
+//        refresh(context)
     }
 
     fun archive(context: Context, archiveList: List<Archive>) {
@@ -193,7 +193,7 @@ class ThreadedConversationsViewModel : ViewModel() {
             }
             databaseConnector!!.threadedConversationsDao().deleteAll()
             databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList)
-            getCount(context)
+//            getCount(context)
         } catch (e: Exception) {
             Log.e(javaClass.getName(), "Exception refreshing", e)
             loadNative(context)
@@ -265,21 +265,13 @@ class ThreadedConversationsViewModel : ViewModel() {
         databaseConnector!!.threadedConversationsDao().updateRead(1)
     }
 
-    private var folderMetrics: MutableLiveData<ThreadsCount> = MutableLiveData()
-    fun getCount(context: Context) : MutableLiveData<ThreadsCount> {
-        val databaseConnector = Datastore.getDatastore(context)
-        CoroutineScope(Dispatchers.Default).launch {
-            folderMetrics.postValue(databaseConnector.threadedConversationsDao().getFullCounts())
-        }
-        return folderMetrics
-    }
 
-    fun refreshCount(context: Context) {
-        val databaseConnector = Datastore.getDatastore(context)
-        CoroutineScope(Dispatchers.Default).launch {
-            folderMetrics.postValue(databaseConnector.threadedConversationsDao().getFullCounts())
-        }
-    }
+//    fun refreshCount(context: Context) {
+//        val databaseConnector = Datastore.getDatastore(context)
+//        CoroutineScope(Dispatchers.Default).launch {
+//            folderMetrics.postValue(databaseConnector.threadedConversationsDao().getFullCounts())
+//        }
+//    }
 
     fun unMute(context: Context, threadIds: MutableList<String>) {
         val databaseConnector = Datastore.getDatastore(context)

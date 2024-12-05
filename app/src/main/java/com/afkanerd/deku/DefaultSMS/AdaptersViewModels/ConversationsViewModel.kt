@@ -27,6 +27,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,10 +48,22 @@ class ConversationsViewModel : ViewModel() {
 
     var liveData: LiveData<MutableList<Conversation>>? = null
     var threadedLiveData: LiveData<MutableList<Conversation>>? = null
+    var archivedLiveData: LiveData<MutableList<Conversation>>? = null
+    var encryptedLiveData: LiveData<MutableList<Conversation>>? = null
+    var blockedLiveData: LiveData<MutableList<Conversation>>? = null
+    var mutedLiveData: LiveData<MutableList<Conversation>>? = null
+    var draftsLiveData: LiveData<MutableList<Conversation>>? = null
+
+    var inboxType: InboxType = InboxType.INBOX
 
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
+            archivedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingArchived()
+            encryptedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingEncrypted()
+            blockedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingBlocked()
+            mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
+            draftsLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingDrafts()
         }
         return threadedLiveData!!
     }
@@ -87,22 +101,58 @@ class ConversationsViewModel : ViewModel() {
 
     fun fetchDraft(context: Context): Conversation? {
         return Datastore.getDatastore(context).conversationDao().fetchTypedConversation(
-            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId!!
+            Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId
         )
     }
 
     fun clearDraft(context: Context) {
         Datastore.getDatastore(context).conversationDao()
-            .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId!!)
+            .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId)
         SMSDatabaseWrapper.deleteDraft(context, threadId)
     }
 
     fun unMute(context: Context) {
-        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(0, threadId!!)
+        Datastore.getDatastore(context).conversationDao().unMute(threadId)
     }
 
     fun mute(context: Context) {
-        Datastore.getDatastore(context).threadedConversationsDao().updateMuted(1, threadId!!)
+        Datastore.getDatastore(context).conversationDao().mute(threadId)
+    }
+
+    fun block(context: Context) {
+        Datastore.getDatastore(context).conversationDao().block(threadId)
+    }
+
+    fun unBlock(context: Context) {
+        Datastore.getDatastore(context).conversationDao().unBlock(threadId)
+    }
+
+    fun archive(context: Context, threadIds: List<String>) {
+        Datastore.getDatastore(context).conversationDao().archive(threadIds)
+    }
+
+    fun archive(context: Context, threadId: String? = null) {
+        Datastore.getDatastore(context).conversationDao().archive(threadId ?: this.threadId)
+    }
+
+    fun unArchive(context: Context, threadIds: List<String>) {
+        Datastore.getDatastore(context).conversationDao().unarchive(threadIds)
+    }
+
+    fun unArchive(context: Context, threadId: String? = null) {
+        Datastore.getDatastore(context).conversationDao().unarchive(threadId ?: this.threadId)
+    }
+
+    fun setSecured(context: Context, isSecured: Boolean) {
+        Datastore.getDatastore(context).conversationDao().archive(threadId)
+    }
+
+    fun delete(context: Context) {
+        Datastore.getDatastore(context).conversationDao().delete(threadId)
+    }
+
+    fun delete(context: Context, threadIds: List<String>) {
+        Datastore.getDatastore(context).conversationDao().deleteAll(threadIds)
     }
 
     fun insertDraft(context: Context) {
@@ -119,5 +169,18 @@ class ConversationsViewModel : ViewModel() {
 
         insert(context, conversation);
         SMSDatabaseWrapper.saveDraft(context, conversation);
+    }
+
+    private var folderMetrics: MutableLiveData<ThreadsCount> = MutableLiveData()
+    fun getCount(context: Context) : MutableLiveData<ThreadsCount> {
+        val databaseConnector = Datastore.getDatastore(context)
+        CoroutineScope(Dispatchers.Default).launch {
+            folderMetrics.postValue(databaseConnector.conversationDao().getFullCounts())
+        }
+        return folderMetrics
+    }
+
+    fun updateToRead(context: Context) {
+        Datastore.getDatastore(context).conversationDao().updateRead(true, threadId)
     }
 }
