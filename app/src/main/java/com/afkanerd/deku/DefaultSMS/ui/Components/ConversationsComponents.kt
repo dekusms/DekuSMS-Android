@@ -200,6 +200,7 @@ fun ChatCompose(
     sentCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val inPreviewMode = LocalInspectionMode.current
     val interactionsSource = remember { MutableInteractionSource() }
 
     Row(modifier = Modifier
@@ -228,7 +229,9 @@ fun ChatCompose(
 
             BasicTextField(
                 value = value,
-                onValueChange = { valueChanged?.invoke(it) },
+                onValueChange = {
+                    valueChanged?.invoke(it)
+                },
                 maxLines = 7,
                 singleLine = false,
                 textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
@@ -260,9 +263,10 @@ fun ChatCompose(
             }
 
             if(encryptedValue.isNotBlank() || value.isNotBlank()) {
-                val length = if(LocalInspectionMode.current) "10/140"
-                else getSMSCount(context,
-                    if(encryptedValue.isNotBlank()) encryptedValue else value)
+                val length by remember{ mutableStateOf(
+                    if(inPreviewMode) "10/140"
+                    else getSMSCount(context,
+                        if(encryptedValue.isNotBlank()) encryptedValue else value)) }
                 Text(
                     length,
                     color= MaterialTheme.colorScheme.secondary,

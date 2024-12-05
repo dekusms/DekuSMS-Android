@@ -571,6 +571,7 @@ fun ThreadConversationLayout(
     }
 
     ModalNavigationDrawer(
+        modifier = Modifier.safeDrawingPadding(),
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheetLayout(
@@ -854,19 +855,17 @@ fun ThreadConversationLayout(
                                                 navController = navController,
                                             )
                                         } else {
-//                                            if(selectedItems.contains(message))
-//                                                selectedItems.remove(message)
-//                                            else
-//                                                selectedItems.add(message)
-                                            TODO()
+                                            if(selectedItems.contains(message))
+                                                selectedItems.remove(message)
+                                            else
+                                                selectedItems.add(message)
                                         }
                                     },
                                     onLongClick = {
-                                        TODO()
-//                                        selectedItems.add(message)
+                                        selectedItems.add(message)
                                     }
                                 ),
-                                isSelected = false,
+                                isSelected = selectedItems.contains(message),
                                 isMuted = false,
                                 type = message.type
                             )
