@@ -199,4 +199,10 @@
     <string name="conversations_exported_complete">Экспорт завершён!</string>
     <string name="gateway_client_project_listing_project_name_title">Имя проекта</string>
     <string name="gateway_client_project_listing_no_projects_added">Нет добавленных проектов</string>
+
+    <string name="notifications">Уведомления</string>
+    <string name="block_report_spam"><![CDATA[Заблокировать и сообщить о спаме]]></string>
+    <string name="end_to_end_encryption">Сквозное шифрование</string>
+    <string name="end_to_end_encrypt">"Сквозное шифрование: "</string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">Сквозное шифрование недоступно в этом разговоре.</string>
 </resources>

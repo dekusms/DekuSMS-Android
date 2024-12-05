@@ -179,4 +179,9 @@
     <string name="gateway_server_routing_state_cancelled">Annulé</string>
     <string name="gateway_server_routing_state_running">En cours d\'exécution</string>
     <string name="add_new_gateway_server_smtp_recipient_helper">Utilisez des virgules pour plusieurs destinataires, par exemple exemple@email.com, exemple1@email.com</string>
+    <string name="notifications">Notifications</string>
+    <string name="block_report_spam"><![CDATA[Bloquer et signaler le spam]]></string>
+    <string name="end_to_end_encryption">Chiffrement de bout en bout</string>
+    <string name="end_to_end_encrypt">"Chiffrement de bout en bout : "</string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">Le chiffrement de bout en bout n\'est pas disponible dans cette conversation.</string>
 </resources>

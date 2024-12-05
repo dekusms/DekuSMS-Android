@@ -322,5 +322,10 @@
     <string name="conversation_is_secured">Conversation is secured</string>
     <string name="compose_new">Compose new</string>
     <string name="compose">Compose</string>
+    <string name="notifications">Notifications</string>
+    <string name="block_report_spam"><![CDATA[Block & report spam]]></string>
+    <string name="end_to_end_encryption">End-to-end encryption</string>
+    <string name="end_to_end_encrypt">"End-to-end encryption: "</string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">End-to-end encryption isn\'t available in this conversation.</string>
 
 </resources>

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Block
@@ -41,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.afkanerd.deku.DefaultSMS.R
 import kotlin.text.take
 import kotlin.text.uppercase
 
@@ -71,7 +74,7 @@ fun ContactDetails (
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 title = {Text("")},
@@ -132,7 +135,7 @@ fun ContactDetails (
 
                 if (isContact) {
                     Text(
-                        text = "Contact",
+                        text = "$firstName $lastName",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold
@@ -249,7 +252,7 @@ fun ContactDetails (
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Text(
-                                text = "Notifications",
+                                text = stringResource(R.string.notifications),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -268,7 +271,7 @@ fun ContactDetails (
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Text(
-                                text = "Block & report spam",
+                                text = stringResource(R.string.block_report_spam),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Red
                             )
@@ -290,7 +293,7 @@ fun ContactDetails (
                 ) {
                     Icon(
                         Icons.Outlined.Lock,
-                        contentDescription = "End-to-end encryption",
+                        contentDescription = stringResource(R.string.end_to_end_encryption),
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -301,7 +304,7 @@ fun ContactDetails (
                     ) {
                         Text(
                             text = buildAnnotatedString {
-                                append("End-to-end encryption: ")
+                                append(stringResource(R.string.end_to_end_encrypt))
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Bold,
@@ -314,7 +317,7 @@ fun ContactDetails (
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "End-to-end encryption isn't available in this conversation.",
+                            text = stringResource(R.string.end_to_end_encryption_isn_t_available_in_this_conversation),
                             style = MaterialTheme.typography.bodySmall
                         )
 
