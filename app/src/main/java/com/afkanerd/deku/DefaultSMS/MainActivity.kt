@@ -18,9 +18,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
+import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
@@ -37,6 +39,8 @@ object ConversationsScreen
 object ComposeNewMessageScreen
 @Serializable
 object SearchThreadScreen
+@Serializable
+object ContactDetailsScreen
 
 class MainActivity : AppCompatActivity(){
 
@@ -45,6 +49,7 @@ class MainActivity : AppCompatActivity(){
     val viewModel: ThreadedConversationsViewModel by viewModels()
     val conversationViewModel: ConversationsViewModel by viewModels()
     val searchViewModel: SearchViewModel by viewModels()
+    val contactsViewModel: ContactsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +99,14 @@ class MainActivity : AppCompatActivity(){
                                 viewModel = searchViewModel,
                                 conversationsViewModel = conversationViewModel,
                                 navController = navController
+                            )
+                        }
+
+                        composable<ContactDetailsScreen> { backStackEntry ->
+                            ContactDetails(
+                                contactsViewModel = contactsViewModel,
+                                conversationViewModel = conversationViewModel,
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
                     }

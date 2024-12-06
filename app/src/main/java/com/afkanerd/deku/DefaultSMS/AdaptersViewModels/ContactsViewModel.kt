@@ -82,4 +82,26 @@ class ContactsViewModel : ViewModel() {
         }
         contactsMutableLiveData?.postValue(contactsList)
     }
+
+    fun getContactDetails(context: Context, phoneNumber: String): Map<String, Any?> {
+        val contactName = Contacts.retrieveContactName(context, phoneNumber)
+        val contactPhotoUri = Contacts.retrieveContactPhoto(context, phoneNumber)
+        val isContact = contactName != null
+
+        val nameParts = contactName?.split(" ") ?: listOf("", "")
+        val firstName = nameParts.getOrNull(0) ?: ""
+        val lastName = nameParts.getOrNull(1) ?: ""
+
+        val isEncryptionEnabled = false
+
+        return mapOf(
+            "phoneNumber" to phoneNumber,
+            "contactPhotoUri" to contactPhotoUri,
+            "isContact" to isContact,
+            "isEncryptionEnabled" to isEncryptionEnabled,
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "id" to null
+        )
+    }
 }

@@ -8,6 +8,7 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.net.Uri
 import android.provider.Telephony
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -108,11 +109,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.ContactDetailsScreen
 import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -469,6 +472,7 @@ fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
     threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
+    contactsViewModel: ContactsViewModel = ContactsViewModel(),
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -516,6 +520,9 @@ fun Conversations(
     var encryptedText by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
+
+    var showContactDetails by remember { mutableStateOf(false) }
+    var contactDetailsMap by remember { mutableStateOf<Map<String, Any?>?>(null) }
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -633,7 +640,7 @@ fun Conversations(
                 title = {
                     if(searchQuery.isBlank()) {
                         TextButton(onClick = {
-
+                            navController.navigate(ContactDetailsScreen)
                         }) {
                             Column {
                                 Row {

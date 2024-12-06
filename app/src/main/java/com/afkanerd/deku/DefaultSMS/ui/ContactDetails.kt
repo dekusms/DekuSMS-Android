@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -50,7 +51,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.R
 import kotlin.text.take
@@ -60,15 +64,21 @@ import kotlin.text.uppercase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactDetails (
-    phoneNumber: String,
-    contactPhotoUri: String? = null,
-    isContact: Boolean = false,
-    isEncryptionEnabled: Boolean = false,
-    firstName: String,
-    lastName: String,
-    id: String? = null,
+    contactsViewModel: ContactsViewModel,
+    conversationViewModel: ConversationsViewModel,
     onBackClick: () -> Unit
 ) {
+
+    val phoneNumber = conversationViewModel.address
+    val contactDetailsMap = contactsViewModel.getContactDetails(LocalContext.current, phoneNumber)
+
+    val isContact = contactDetailsMap["isContact"] as Boolean
+    val contactPhotoUri = contactDetailsMap["contactPhotoUri"] as String?
+    val isEncryptionEnabled = contactDetailsMap["isEncryptionEnabled"] as Boolean
+    val firstName = contactDetailsMap["firstName"] as String
+    val lastName = contactDetailsMap["lastName"] as String
+    val id = contactDetailsMap["id"] as String?
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -362,13 +372,11 @@ fun ContactDetails (
 @Preview(showBackground = true)
 @Composable
 fun ContactDetailsPreview() {
+    val contactsViewModel = ContactsViewModel()
+    val conversationViewModel = ConversationsViewModel()
     ContactDetails(
-        phoneNumber = "+1-555-123-4567",
-        isContact = true,
-        isEncryptionEnabled = true,
-        firstName = "John",
-        lastName = "Doe",
-        id = "12345",
-        onBackClick = { }
+        contactsViewModel = contactsViewModel,
+        conversationViewModel = conversationViewModel,
+        onBackClick = {  }
     )
 }
