@@ -322,5 +322,6 @@
     <string name="conversation_is_secured">Conversation is secured</string>
     <string name="compose_new">Compose new</string>
     <string name="compose">Compose</string>
+    <string name="contact_is_blocked">Contact is blocked</string>
 
 </resources>

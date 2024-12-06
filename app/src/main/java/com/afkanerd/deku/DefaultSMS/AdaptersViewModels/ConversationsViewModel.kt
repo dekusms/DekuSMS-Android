@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
+import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
@@ -182,5 +183,15 @@ class ConversationsViewModel : ViewModel() {
 
     fun updateToRead(context: Context) {
         Datastore.getDatastore(context).conversationDao().updateRead(true, threadId)
+    }
+
+    fun unblock(context: Context) {
+        BlockedNumberContract.unblock(context, this.address)
+    }
+
+    fun unblock(context: Context, addresses: List<String>) {
+        for (address in addresses) {
+            BlockedNumberContract.unblock(context, address)
+        }
     }
 }

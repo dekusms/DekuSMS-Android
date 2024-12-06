@@ -224,16 +224,6 @@ class ThreadedConversationsViewModel : ViewModel() {
         databaseConnector!!.threadedConversationsDao().unarchive(archiveList)
     }
 
-    fun unblock(context: Context, threadIds: List<String>) {
-        val databaseConnector = Datastore.getDatastore(context)
-        val threadedConversationsList =
-            Datastore.getDatastore(context).threadedConversationsDao().getList(threadIds)
-        for (threadedConversations in threadedConversationsList) {
-            BlockedNumberContract.unblock(context, threadedConversations.address)
-            threadedConversations.isIs_blocked = false
-            databaseConnector!!.threadedConversationsDao().update(context, threadedConversations)
-        }
-    }
 
     fun clearDrafts(context: Context) {
         val databaseConnector = Datastore.getDatastore(context)

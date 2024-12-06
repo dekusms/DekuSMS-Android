@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.ui
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
+import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.text.InputType
@@ -529,8 +530,9 @@ fun ThreadConversationLayout(
         .archivedLiveData!!.observeAsState(emptyList())
     val encryptedItems: List<Conversation> by conversationsViewModel
         .encryptedLiveData!!.observeAsState(emptyList())
-    val blockedItems: List<Conversation> by conversationsViewModel
-        .blockedLiveData!!.observeAsState(emptyList())
+
+    var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+
     val draftsItems: List<Conversation> by conversationsViewModel
         .draftsLiveData!!.observeAsState(emptyList())
     val mutedItems: List<Conversation> by conversationsViewModel
@@ -549,6 +551,16 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(inboxType) {
+        if(inboxType == InboxType.BLOCKED) {
+            CoroutineScope(Dispatchers.Default).launch {
+                items.forEach {
+                    if(BlockedNumberContract.isBlocked(context, it.address)) blockedItems.add(it)
+                }
+            }
+        }
+    }
 
     BackHandler {
         if(conversationsViewModel.inboxType != InboxType.INBOX) {
@@ -782,8 +794,9 @@ fun ThreadConversationLayout(
                     },
                     key = { index, message -> message.thread_id!! }
                 ) { index, message ->
-
                     message.address?.let { address ->
+                        val isBlocked by remember { mutableStateOf(BlockedNumberContract
+                            .isBlocked(context, message.address)) }
                         val contactName: String? by remember { mutableStateOf(Contacts.retrieveContactName(context, message.address)) }
                         var firstName = message.address
                         var lastName = ""
@@ -843,6 +856,7 @@ fun ThreadConversationLayout(
                                 else "Tues",
                                 isRead = message.isRead,
                                 isContact = !contactName.isNullOrBlank(),
+                                isBlocked = isBlocked,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
                                         if(selectedItems.isEmpty()) {

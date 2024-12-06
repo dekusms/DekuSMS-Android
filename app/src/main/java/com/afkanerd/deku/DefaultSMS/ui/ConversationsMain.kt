@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.net.Uri
+import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -508,7 +509,9 @@ fun Conversations(
     var searchIndex by remember { mutableIntStateOf(0) }
 
     var isMute by remember { mutableStateOf(false) }
-    var isBlocked by remember { mutableStateOf(false) }
+    var isBlocked by remember { mutableStateOf(BlockedNumberContract
+        .isBlocked(context, viewModel.address))
+    }
     var openAlertDialog by remember { mutableStateOf(false)}
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
@@ -586,16 +589,13 @@ fun Conversations(
             navController.navigate(SearchThreadScreen)
         },
         blockCallback = {
-            TODO()
             if(isBlocked) {
-                val ids = listOf(viewModel.threadId)
-                CoroutineScope(Dispatchers.Default).launch {
-                    threadConversationsViewModel.unblock(context, ids)
-                }
+                viewModel.unblock(context)
             }
             else {
                 ConvenientMethods.blockContact(context, viewModel.threadId, viewModel.address)
             }
+            isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
         },
         deleteCallback = {
             TODO()
@@ -867,11 +867,6 @@ fun Conversations(
                                             conversation.subscription_id)
                                     } else ""
                         }) }
-
-//                    if(dualSim && !inPreviewMode) {
-//                        date += " • " + SIMHandler.getSubscriptionName(context,
-//                                conversation.subscription_id)
-//                    }
 
                     ConversationsCard(
                         text= if(conversation.text.isNullOrBlank()) ""
