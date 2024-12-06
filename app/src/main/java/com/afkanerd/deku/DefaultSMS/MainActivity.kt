@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -49,7 +48,6 @@ class MainActivity : AppCompatActivity(){
 
     lateinit var navController: NavHostController
 
-    val viewModel: ThreadedConversationsViewModel by viewModels()
     val conversationViewModel: ConversationsViewModel by viewModels()
     val searchViewModel: SearchViewModel by viewModels()
 
@@ -90,7 +88,6 @@ class MainActivity : AppCompatActivity(){
                         composable<ComposeNewMessageScreen>{
                             ComposeNewMessage(
                                 conversationsViewModel = conversationViewModel,
-                                threadsViewModel = viewModel,
                                 navController=navController
                             )
                         }
@@ -112,7 +109,7 @@ class MainActivity : AppCompatActivity(){
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), false)){
             CoroutineScope(Dispatchers.Default).launch {
-                viewModel.reset(applicationContext)
+                conversationViewModel.reset(applicationContext)
             }
             sharedPreferences.edit()
                 .putBoolean(getString(R.string.configs_load_natives), false)
@@ -140,7 +137,7 @@ class MainActivity : AppCompatActivity(){
                         with(contentResolver.openFileDescriptor(uri, "w")) {
                             this?.fileDescriptor.let { fd ->
                                 val fileOutputStream = FileOutputStream(fd);
-                                fileOutputStream.write(viewModel
+                                fileOutputStream.write(conversationViewModel
                                     .getAllExport(applicationContext).encodeToByteArray());
                                 // Let the document provider know you're done by closing the stream.
                                 fileOutputStream.close();

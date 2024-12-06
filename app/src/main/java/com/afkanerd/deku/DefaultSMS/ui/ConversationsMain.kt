@@ -83,7 +83,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.MainActivity
@@ -221,7 +220,6 @@ private fun getContentType(
 @Composable
 private fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     items: List<Conversation> = emptyList(),
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
@@ -430,7 +428,6 @@ fun backHandler(
 fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
-    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -557,7 +554,7 @@ fun Conversations(
                 viewModel.unblock(context)
             }
             else {
-                ConvenientMethods.blockContact(context, viewModel.threadId, viewModel.address)
+                ConvenientMethods.blockContact(context, viewModel.address)
             }
             isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
         },
@@ -685,7 +682,6 @@ fun Conversations(
             if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
-                    threadConversationsViewModel,
                     items!!,
                     onCompleted = { selectedItems.clear() }
                 ) {

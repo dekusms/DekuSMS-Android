@@ -15,14 +15,7 @@ import com.afkanerd.deku.DefaultSMS.R
 
 object ConvenientMethods {
 
-    fun blockContact(context: Context, threadId: String, address: String) {
-        CoroutineScope(Dispatchers.Default).launch {
-            val datastore = Datastore.getDatastore(context)
-            val threadedConversations = datastore.threadedConversationsDao().get(threadId);
-            threadedConversations!!.isIs_blocked = true;
-            datastore.threadedConversationsDao().update(context, threadedConversations!!);
-        }
-
+    fun blockContact(context: Context, address: String) {
         val contentValues = ContentValues();
         contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address);
         val uri = context.contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,

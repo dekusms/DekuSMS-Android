@@ -53,12 +53,10 @@ open class Conversation : Cloneable {
     // Starting with the Jetpack migration
     @ColumnInfo(defaultValue = "0")
     var isArchived = false
+
     @ColumnInfo(defaultValue = "0")
-    var isBlocked = false
-    @ColumnInfo(defaultValue = "0")
-    var isMute = false
-    @ColumnInfo(defaultValue = "0")
-    var isSecured = false
+    var isData = false
+
 
     constructor()
 

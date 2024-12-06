@@ -10,6 +10,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -57,8 +58,7 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
 
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        databaseConnector!!.threadedConversationsDao()
-                            .insertThreadAndConversation(context, conversation)
+                        databaseConnector!!.conversationDao()._insert(conversation)
 
                         SMSDatabaseWrapper.send_text(context, conversation, null)
                         val messagingStyle: NotificationCompat.MessagingStyle? =
@@ -116,10 +116,7 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
             try {
                 CoroutineScope(Dispatchers.Default).launch {
                     NativeSMSDB.Incoming.update_read(context, 1, threadId, null)
-                    databaseConnector!!.threadedConversationsDao().updateRead(
-                        1,
-                        threadId!!.toLong()
-                    )
+                    databaseConnector!!.conversationDao().updateRead(true, threadId!!)
                     val notificationManager = NotificationManagerCompat.from(context)
                     notificationManager.cancel(threadId.toInt())
                 }
@@ -131,8 +128,7 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
             val threadId = intent.getStringExtra(REPLY_THREAD_ID)
 
             CoroutineScope(Dispatchers.Default).launch {
-                databaseConnector!!.threadedConversationsDao().updateMuted(1, threadId!!)
-
+                ConversationsViewModel().mute(context, threadId!!)
                 val notificationManager = NotificationManagerCompat.from(context)
                 notificationManager.cancel(threadId.toInt())
             }

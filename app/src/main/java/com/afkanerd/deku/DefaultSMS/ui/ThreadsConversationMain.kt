@@ -119,7 +119,6 @@ import androidx.room.util.TableInfo
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
@@ -334,10 +333,6 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                 badge = {
-                    counts?.let {
-                        if(counts.encryptedCount > 0)
-                            Text(counts.encryptedCount.toString(), fontSize = 14.sp)
-                    }
                 },
                 selected = selectedItemIndex == InboxType.ENCRYPTED,
                 onClick = { callback?.let{ it(InboxType.ENCRYPTED) } }
@@ -357,10 +352,6 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                 badge = {
-                    counts?.let {
-                        if(counts.mutedCount > 0)
-                            Text(counts.mutedCount.toString(), fontSize = 14.sp)
-                    }
                 },
                 selected = selectedItemIndex == InboxType.MUTED,
                 onClick = { callback?.let{ it(InboxType.MUTED) } }
@@ -380,10 +371,6 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                  badge = {
-                    counts?.let {
-                        if(counts.blockedCount > 0)
-                            Text(counts.blockedCount.toString(), fontSize = 14.sp)
-                    }
                 },
                 selected = selectedItemIndex == InboxType.BLOCKED,
                 onClick = { callback?.let{ it(InboxType.BLOCKED) } }
@@ -527,17 +514,13 @@ fun ThreadConversationLayout(
     val items: List<Conversation> by conversationsViewModel
         .getThreading(context).observeAsState(emptyList())
 
-    val archivedItems: List<Conversation> by conversationsViewModel
-        .archivedLiveData!!.observeAsState(emptyList())
-    val encryptedItems: List<Conversation> by conversationsViewModel
-        .encryptedLiveData!!.observeAsState(emptyList())
-
     var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    var archivedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    var mutedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
     val draftsItems: List<Conversation> by conversationsViewModel
         .draftsLiveData!!.observeAsState(emptyList())
-    val mutedItems: List<Conversation> by conversationsViewModel
-        .mutedLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -799,7 +782,9 @@ fun ThreadConversationLayout(
                     message.address?.let { address ->
                         val isBlocked by remember { mutableStateOf(BlockedNumberContract
                             .isBlocked(context, message.address)) }
-                        val contactName: String? by remember { mutableStateOf(Contacts.retrieveContactName(context, message.address)) }
+                        val contactName: String? by remember { mutableStateOf(Contacts
+                            .retrieveContactName(context, message.address))
+                        }
                         var firstName = message.address
                         var lastName = ""
                         if (!contactName.isNullOrEmpty()) {

@@ -37,12 +37,14 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.DatastoreHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 
 class ConversationsViewModel : ViewModel() {
@@ -70,10 +72,6 @@ class ConversationsViewModel : ViewModel() {
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
-            archivedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingArchived()
-            encryptedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingEncrypted()
-            blockedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingBlocked()
-            mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
             draftsLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingDrafts()
         }
         return threadedLiveData!!
@@ -88,9 +86,7 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun insert(context: Context, conversation: Conversation): Long {
-        Datastore.getDatastore(context).threadedConversationsDao()
-            .insertThreadAndConversation(context, conversation)
-        return 0
+        return Datastore.getDatastore(context).conversationDao()._insert(conversation)
     }
 
     fun update(context: Context, conversation: Conversation) {
@@ -138,12 +134,11 @@ class ConversationsViewModel : ViewModel() {
         }
     }
 
-    fun block(context: Context) {
-        Datastore.getDatastore(context).conversationDao().block(threadId)
-    }
-
-    fun unBlock(context: Context) {
-        Datastore.getDatastore(context).conversationDao().unBlock(threadId)
+    suspend fun mute(context: Context, threadId: String) {
+        val mutingKey = stringPreferencesKey(threadId)
+        DatastoreHandler.getDatastore(context).edit { preference ->
+            preference[mutingKey] = address
+        }
     }
 
     fun archive(context: Context, threadIds: List<String>) {
@@ -223,6 +218,42 @@ class ConversationsViewModel : ViewModel() {
         for (address in addresses) {
             BlockedNumberContract.unblock(context, address)
         }
+    }
+
+
+    fun importAll(context: Context, data: String): List<Conversation> {
+        val json = Json { ignoreUnknownKeys = true }
+        return json.decodeFromString<MutableList<Conversation>>(data).apply {
+            val databaseConnector = Datastore.getDatastore(context)
+            databaseConnector.conversationDao().insertAll(this)
+        }
+    }
+
+    fun getAllExport(context: Context): String {
+        val databaseConnector = Datastore.getDatastore(context)
+        val conversations = databaseConnector!!.conversationDao().getComplete()
+
+        val gsonBuilder = GsonBuilder()
+        gsonBuilder.setPrettyPrinting().serializeNulls()
+
+        val gson = gsonBuilder.create()
+        return gson.toJson(conversations)
+    }
+
+    fun reset(context: Context) {
+        val cursor = NativeSMSDB.fetchAll(context)
+
+        val conversationList: MutableList<Conversation> = ArrayList<Conversation>()
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                conversationList.add(Conversation.Companion.build(cursor))
+            } while (cursor.moveToNext())
+            cursor.close()
+        }
+
+        Datastore.getDatastore(context).conversationDao().deleteEvery()
+        Datastore.getDatastore(context).conversationDao().insertAll(conversationList)
+//        refresh(context)
     }
 
 }

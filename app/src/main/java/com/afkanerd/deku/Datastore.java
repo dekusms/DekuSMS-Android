@@ -7,6 +7,7 @@ import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.DatabaseConfiguration;
 import androidx.room.Delete;
+import androidx.room.DeleteColumn;
 import androidx.room.DeleteTable;
 import androidx.room.InvalidationTracker;
 import androidx.room.Room;
@@ -14,12 +15,10 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.AutoMigrationSpec;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -37,14 +36,13 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //        ThreadedConversations.class, Conversation.class}, version = 9)
 
 @Database(entities = {
-        ThreadedConversations.class,
         Archive.class,
         GatewayServer.class,
         GatewayClientProjects.class,
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 19,
+        version = 20,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -55,7 +53,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 15, to = 16),
         @AutoMigration(from = 16, to = 17, spec = Datastore.Migrate16To17.class),
         @AutoMigration(from = 17, to = 18),
-        @AutoMigration(from = 18, to = 19)
+        @AutoMigration(from = 18, to = 19),
+        @AutoMigration(from = 19, to = 20, spec = Datastore.Migrate19To20.class)
 })
 
 
@@ -82,8 +81,6 @@ public abstract class Datastore extends RoomDatabase {
     public abstract GatewayClientDAO gatewayClientDAO();
     public abstract GatewayClientProjectDao gatewayClientProjectDao();
 
-    public abstract ThreadedConversationsDao threadedConversationsDao();
-
     public abstract ConversationDao conversationDao();
 
     public abstract ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao();
@@ -107,4 +104,14 @@ public abstract class Datastore extends RoomDatabase {
 
     @DeleteTable(tableName = "CustomKeyStore")
     static class Migrate16To17 implements AutoMigrationSpec { }
+
+    @DeleteColumn.Entries({
+            @DeleteColumn(tableName = "Conversation", columnName = "isBlocked"),
+            @DeleteColumn(tableName = "Conversation", columnName = "isMute"),
+            @DeleteColumn(tableName = "Conversation", columnName = "isSecured")
+    })
+    @DeleteTable.Entries(
+            @DeleteTable(tableName = "ThreadedConversations")
+    )
+    static class Migrate19To20 implements AutoMigrationSpec { }
 }

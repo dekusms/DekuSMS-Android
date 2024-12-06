@@ -101,12 +101,6 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     }
                 }
                 datastore.conversationDao()._update(conversation)
-                val threadedConversation = datastore.threadedConversationsDao()
-                    .get(conversation.thread_id!!)
-                threadedConversation?.let {
-                    it.type = conversation.type
-                    datastore.threadedConversationsDao().update(context, it)
-                }
             }
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {

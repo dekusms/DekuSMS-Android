@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
@@ -96,7 +95,6 @@ fun ContactAvatar(
 fun ComposeNewMessage(
     navController: NavController,
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
-    threadsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     _items: List<Contacts>? = null
 ) {
     val context = LocalContext.current
