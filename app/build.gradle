@@ -56,6 +56,16 @@ android {
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "1.1.1"
 //    }
+    buildscript {
+        ext {
+            compose_compiler = '1.3.1'         //compiler
+            compose_version = '1.3.0-beta02'   //compose dependencies
+            compose_material3 = '1.0.0-beta02' //material3 release
+        }
+        //...
+    }
+
+
 
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
@@ -64,7 +74,6 @@ android {
             jniLibs.srcDirs = ['libs']
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
-                exclude 'com/afkanerd/deku/E2EE'
                 exclude 'com/afkanerd/deku/DefaultSMS/Deprecated/*'
                 exclude 'com/afkanerd/deku/DefaultSMS/Deprecated'
                 /* The holder name I want to excludes its all classes */
@@ -243,7 +252,7 @@ dependencies {
     debugImplementation libs.androidx.ui.tooling
 
     // UI Tests
-    androidTestImplementation libs.androidx.ui.test.junit4
+//    androidTestImplementation libs.androidx.ui.test.junit4
     debugImplementation libs.androidx.ui.test.manifest
 
     // Optional - Included automatically by material, only add when you need

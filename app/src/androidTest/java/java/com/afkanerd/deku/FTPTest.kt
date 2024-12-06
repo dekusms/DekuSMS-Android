@@ -35,8 +35,8 @@ class FTPTest {
     @Before
     fun init() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
-        val inputStream = context.resources.openRawResource(R.raw.ftp)
-        properties.load(inputStream)
+//        val inputStream = context.resources.openRawResource(R.raw.ftp)
+//        properties.load(inputStream)
 
         ftpClient.setConnectTimeout(10000); // Set connection timeout
 

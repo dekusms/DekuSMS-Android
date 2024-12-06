@@ -116,8 +116,8 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.ContactDetailsScreen
-import com.afkanerd.deku.DefaultSMS.Deprecated.ThreadedConversationsActivity
 import com.afkanerd.deku.DefaultSMS.HomeScreen
+import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
@@ -347,7 +347,7 @@ private fun shareItem(context: Context, text: String) {
     val excludedComponentNames = arrayOf(
         ComponentName(
             BuildConfig.APPLICATION_ID,
-            ThreadedConversationsActivity::class.java.name
+            MainActivity::class.java.name
         )
     )
     shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
@@ -534,18 +534,11 @@ fun Conversations(
         }
 
         CoroutineScope(Dispatchers.Default).launch {
-            if(viewModel.fetchDraft(context) == null)
+            if(viewModel.fetchDraft(context) == null && searchIndexes.isEmpty()) {
                 coroutineScope.launch{
                     listState.animateScrollToItem(0)
                 }
-            threadConversationsViewModel.get(context, viewModel.threadId)?.let {
-                isMute = it.isIs_mute
-                isBlocked = it.isIs_blocked
             }
-            threadConversationsViewModel.updateRead(
-                context,
-                viewModel.threadId,
-            )
         }
 
         if(searchIndexes.isNotEmpty() && searchIndex == 0)
@@ -573,6 +566,7 @@ fun Conversations(
                     address = viewModel.address
                 ).first
             }
+            viewModel.updateToRead(context)
         }
     }
 
@@ -595,16 +589,19 @@ fun Conversations(
             navController.navigate(SearchThreadScreen)
         },
         blockCallback = {
+            TODO()
             if(isBlocked) {
                 val ids = listOf(viewModel.threadId)
                 CoroutineScope(Dispatchers.Default).launch {
                     threadConversationsViewModel.unblock(context, ids)
                 }
             }
-            else
+            else {
                 ConvenientMethods.blockContact(context, viewModel.threadId, viewModel.address)
+            }
         },
         deleteCallback = {
+            TODO()
             val ids = listOf(viewModel.threadId)
             CoroutineScope(Dispatchers.Default).launch{
                 threadConversationsViewModel.delete(context, ids)
@@ -616,6 +613,7 @@ fun Conversations(
             )
         },
         muteCallback = {
+            TODO()
             CoroutineScope(Dispatchers.Default).launch {
                 threadConversationsViewModel.get(context, viewModel.threadId)?.let {
                     if(it.isIs_mute) viewModel.unMute(context)
@@ -629,7 +627,7 @@ fun Conversations(
 
     Scaffold (
         modifier = Modifier
-            .padding(bottom=16.dp)
+            .safeDrawingPadding()
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
@@ -769,13 +767,15 @@ fun Conversations(
                 ) {
                     Text(
                         stringResource(R.string.conversation_shortcode_description),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
                     )
                     TextButton(onClick = {
                         openAlertDialog = true
                     }) {
                         Text(
                             stringResource(R.string.conversation_shortcode_action_button),
+                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.tertiary
                         )
                     }
@@ -853,18 +853,28 @@ fun Conversations(
             ) {
                 itemsIndexed(
                     items = items!!,
-                    key = { index, conversation -> conversation.id }
+                    key = { index, conversation -> conversation.hashCode() }
                 ) { index, conversation ->
                     var showDate by remember { mutableStateOf(index == 0) }
 
-                    var timestamp = if(inPreviewMode) "1234567"
-                    else Helpers.formatDateExtended(context, conversation.date!!.toLong())
+                    var timestamp by remember { mutableStateOf(
+                        if(inPreviewMode) "1234567"
+                        else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
 
-                    var date = if(inPreviewMode) "1234567" else deriveMetaDate(conversation)
-                    if(dualSim && !inPreviewMode) {
-                        date += " • " + SIMHandler.getSubscriptionName(context,
-                                conversation.subscription_id)
-                    }
+                    var date by remember { mutableStateOf(
+                        if(inPreviewMode) "1234567"
+                        else {
+                            deriveMetaDate(conversation) +
+                                    if(dualSim && !inPreviewMode) {
+                                        " • " + SIMHandler.getSubscriptionName(context,
+                                            conversation.subscription_id)
+                                    } else ""
+                        }) }
+
+//                    if(dualSim && !inPreviewMode) {
+//                        date += " • " + SIMHandler.getSubscriptionName(context,
+//                                conversation.subscription_id)
+//                    }
 
                     ConversationsCard(
                         text= if(conversation.text.isNullOrBlank()) ""
@@ -896,7 +906,7 @@ fun Conversations(
                         isSelected = selectedItems.contains(conversation.message_id),
                         isKey = conversation.isIs_key,
                     )
-
+//
                     val checkIsSecured by remember {
                         derivedStateOf {
                             conversation.isIs_key &&

@@ -84,17 +84,6 @@ interface ThreadedConversationsDao {
     )
     fun getCountArchived(): Int
 
-    @Query("SELECT " +
-            "SUM(CASE WHEN ThreadedConversations.is_secured = '1' THEN 1 ELSE 0 END) as encryptedCount, " +
-            "SUM(CASE WHEN ThreadedConversations.is_archived = '1' THEN 1 ELSE 0 END) as archivedCount, " +
-            "SUM(CASE WHEN ThreadedConversations.is_read = '0' AND " +
-            "ThreadedConversations.is_archived = '0' THEN 1 ELSE 0 END) as unreadCount, " +
-            "SUM(CASE WHEN ThreadedConversations.is_blocked = '1' THEN 1 ELSE 0 END) as blockedCount, " +
-            "SUM(CASE WHEN ThreadedConversations.is_mute = '1' THEN 1 ELSE 0 END) as mutedCount, " +
-            "SUM(CASE WHEN ThreadedConversations.type = 3 THEN 1 ELSE 0 END) as draftsCount " +
-            "FROM ThreadedConversations ")
-    fun getFullCounts(): ThreadsCount
-
     @Query( "SELECT Conversation.address, " +
                 "Conversation.text as snippet, " +
                 "Conversation.thread_id, " +
@@ -349,7 +338,7 @@ interface ThreadedConversationsDao {
 
         _delete(threadedConversations)
         Datastore.getDatastore(context).conversationDao()
-            .deleteAll(mutableListOf<String>(threadedConversations.getThread_id()))
+            .deleteAll(mutableListOf<String>(threadedConversations.thread_id))
     }
 
     @Query("DELETE FROM threadedconversations")
