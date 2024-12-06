@@ -144,6 +144,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.exp
 
@@ -551,10 +552,11 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 
     val scope = rememberCoroutineScope()
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED) {
-            CoroutineScope(Dispatchers.Default).launch {
+            coroutineScope.launch {
                 items.forEach {
                     if(BlockedNumberContract.isBlocked(context, it.address)) blockedItems.add(it)
                 }
@@ -672,7 +674,7 @@ fun ThreadConversationLayout(
                         actions = {
                             IconButton(onClick = {
                                 if(inboxType == InboxType.ARCHIVED) {
-                                    CoroutineScope(Dispatchers.Default).launch {
+                                    coroutineScope.launch {
                                         val threads : List<String> = selectedItems.map{
                                             it.thread_id!!
                                         }
@@ -680,7 +682,7 @@ fun ThreadConversationLayout(
                                         selectedItems.clear()
                                     }
                                 } else {
-                                    CoroutineScope(Dispatchers.Default).launch {
+                                    coroutineScope.launch {
                                         val threads : List<String> = selectedItems.map{
                                             it.thread_id!!
                                         }
@@ -707,7 +709,7 @@ fun ThreadConversationLayout(
                             }
 
                             IconButton(onClick = {
-                                CoroutineScope(Dispatchers.Default).launch {
+                                coroutineScope.launch {
                                     val threads: List<String> = selectedItems.map{ it.thread_id!! }
                                     conversationsViewModel.deleteThreads(context, threads)
                                     selectedItems.clear()
@@ -808,11 +810,15 @@ fun ThreadConversationLayout(
                             }
                         }
 
+                        var isMute by remember { mutableStateOf(conversationsViewModel
+                            .isMuted(context, message.thread_id))
+                        }
+
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
                                 when(it) {
                                     SwipeToDismissBoxValue.EndToStart -> {
-                                        CoroutineScope(Dispatchers.Default).launch {
+                                        coroutineScope.launch {
                                             when(inboxType) {
                                                 InboxType.ARCHIVED ->
                                                     conversationsViewModel.unArchive(context,
@@ -880,7 +886,7 @@ fun ThreadConversationLayout(
                                     }
                                 ),
                                 isSelected = selectedItems.contains(message),
-                                isMuted = false,
+                                isMuted = isMute,
                                 type = message.type
                             )
                         }

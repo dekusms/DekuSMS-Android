@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -181,82 +182,78 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         }
         conversation.text = text
 
+        val conversationsViewModel = ConversationsViewModel()
         CoroutineScope(Dispatchers.Default).launch {
-            try {
-                val threadedConversations = Datastore.getDatastore(context)
-                        .threadedConversationsDao()
-                        .insertThreadAndConversation(context, conversation)
-                if (!threadedConversations.isIs_mute) {
-
-                    val builder = Notifications.createNotification(
-                        context=context,
-                        title=Contacts.retrieveContactName(context, conversation.address) ?:
-                        conversation.address!!,
-                        text=conversation.text!!,
-                        requestCode = conversation.thread_id!!.toInt(),
-                        address=conversation.address!!,
-                        contentIntent = Intent(
-                            context,
-                            MainActivity::class.java
-                        ).apply {
-                            putExtra("address", conversation.address)
-                            putExtra("thread_id", conversation.thread_id)
-                            println("ThreadID: ${conversation.thread_id}")
-                            setFlags(
-                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            )
-                        },
-                        muteIntent = Intent(
-                            context,
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                        ).apply {
-                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                                .MUTE_BROADCAST_INTENT
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                                conversation.address)
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                                conversation.thread_id)
-                        },
-                        replyIntent = Intent(
-                            context,
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                        ).apply {
-                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                                .REPLY_BROADCAST_INTENT
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                                conversation.address)
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                                conversation.thread_id)
-                        },
-                        markAsRead = Intent(
-                            context,
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                        ).apply {
-                            action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                                .MARK_AS_READ_BROADCAST_INTENT
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                                conversation.address)
-                            putExtra(
-                                IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                                conversation.thread_id)
-                        },
-                    )
-
-                    Notifications.notify(
-                        context,
-                        builder,
-                        conversation.thread_id!!.toInt()
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            conversationsViewModel.insert(context, conversation)
         }
+
+        if (!conversationsViewModel.isMuted(context, conversation.thread_id)) {
+            val builder = Notifications.createNotification(
+                context=context,
+                title=Contacts.retrieveContactName(context, conversation.address) ?:
+                conversation.address!!,
+                text=conversation.text!!,
+                requestCode = conversation.thread_id!!.toInt(),
+                address=conversation.address!!,
+                contentIntent = Intent(
+                    context,
+                    MainActivity::class.java
+                ).apply {
+                    putExtra("address", conversation.address)
+                    putExtra("thread_id", conversation.thread_id)
+                    println("ThreadID: ${conversation.thread_id}")
+                    setFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    )
+                },
+                muteIntent = Intent(
+                    context,
+                    IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                ).apply {
+                    action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                        .MUTE_BROADCAST_INTENT
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                        conversation.address)
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                        conversation.thread_id)
+                },
+                replyIntent = Intent(
+                    context,
+                    IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                ).apply {
+                    action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                        .REPLY_BROADCAST_INTENT
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                        conversation.address)
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                        conversation.thread_id)
+                },
+                markAsRead = Intent(
+                    context,
+                    IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+                ).apply {
+                    action = IncomingTextSMSReplyMuteActionBroadcastReceiver
+                        .MARK_AS_READ_BROADCAST_INTENT
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
+                        conversation.address)
+                    putExtra(
+                        IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
+                        conversation.thread_id)
+                },
+            )
+
+            Notifications.notify(
+                context,
+                builder,
+                conversation.thread_id!!.toInt()
+            )
+        }
+
 
         return conversation
     }

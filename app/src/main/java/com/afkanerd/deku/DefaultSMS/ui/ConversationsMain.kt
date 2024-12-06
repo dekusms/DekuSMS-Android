@@ -12,20 +12,14 @@ import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -34,17 +28,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SnackbarDuration
-import androidx.compose.material.SnackbarHost
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
@@ -61,20 +47,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.outlined.SimCard
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,16 +69,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -108,13 +81,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -135,15 +106,12 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.SimChooser
 import com.example.compose.AppTheme
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Arrays
-import java.util.Collections
 import java.util.Date
 
 private fun copyItem(context: Context, text: String) {
@@ -501,7 +469,8 @@ fun Conversations(
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
 
-    var isMute by remember { mutableStateOf(false) }
+    var isMute by remember { mutableStateOf(viewModel.isMuted(context)) }
+
     var isBlocked by remember { mutableStateOf(BlockedNumberContract
         .isBlocked(context, viewModel.address))
     }
@@ -511,11 +480,13 @@ fun Conversations(
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
     var encryptedText by remember { mutableStateOf("") }
 
-    val coroutineScope = rememberCoroutineScope()
+
+    val scope = rememberCoroutineScope()
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
-            CoroutineScope(Dispatchers.Default).launch {
+            coroutineScope.launch {
                 items?.forEachIndexed { index, it ->
                     it.text?.let { text ->
                         if(it.text!!.contains(other=searchQuery, ignoreCase=true)
@@ -526,9 +497,9 @@ fun Conversations(
             }
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
+        coroutineScope.launch {
             if(viewModel.fetchDraft(context) == null && searchIndexes.isEmpty()) {
-                coroutineScope.launch{
+                scope.launch{
                     listState.animateScrollToItem(0)
                 }
             }
@@ -549,7 +520,7 @@ fun Conversations(
             viewModel.contactName = viewModel.address
         viewModel.address = viewModel.address.replace(Regex("[\\s-]"), "")
 
-        CoroutineScope(Dispatchers.Default).launch {
+        coroutineScope.launch {
             viewModel.fetchDraft(context)?.let {
                 viewModel.clearDraft(context)
                 viewModel.text = it.text!!
@@ -591,7 +562,7 @@ fun Conversations(
             isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
         },
         deleteCallback = {
-            CoroutineScope(Dispatchers.Default).launch{
+            coroutineScope.launch{
                 viewModel.deleteThread(context)
             }
             backHandler(
@@ -601,12 +572,10 @@ fun Conversations(
             )
         },
         muteCallback = {
-            TODO()
-            CoroutineScope(Dispatchers.Default).launch {
-                threadConversationsViewModel.get(context, viewModel.threadId)?.let {
-                    if(it.isIs_mute) viewModel.unMute(context)
-                    else viewModel.mute(context)
-                }
+            coroutineScope.launch {
+                if(isMute) viewModel.unMute(context)
+                else viewModel.mute(context)
+                isMute = viewModel.isMuted(context)
             }
         }
     ) {
@@ -731,7 +700,7 @@ fun Conversations(
                         if(searchIndex + 1 >= searchIndexes.size)
                             searchIndex = 0
                         else searchIndex += 1
-                        coroutineScope.launch {
+                        scope.launch {
                             listState.animateScrollToItem(searchIndexes[searchIndex])
                         }
                     },
@@ -739,7 +708,7 @@ fun Conversations(
                         if(searchIndex - 1 < 0)
                             searchIndex = searchIndexes.size - 1
                         else searchIndex -= 1
-                        coroutineScope.launch {
+                        scope.launch {
                             listState.animateScrollToItem(searchIndexes[searchIndex])
                         }
                     }
@@ -783,7 +752,7 @@ fun Conversations(
                         valueChanged = {
                             viewModel.text = it
 
-                            CoroutineScope(Dispatchers.Default).launch {
+                            coroutineScope.launch {
                                 if (it.isEmpty()) {
                                     viewModel.clearDraft(context)
                                     encryptedText = ""
@@ -900,7 +869,7 @@ fun Conversations(
 
                     if(checkIsSecured) {
                         LaunchedEffect(true) {
-                            coroutineScope.launch{
+                            scope.launch{
                                 showSecureAgreeModal = E2EEHandler
                                     .hasPendingApproval(context, viewModel.address)
                             }
@@ -922,7 +891,7 @@ fun Conversations(
                         searchIndexes.clear()
                         searchIndex = 0
 
-                        coroutineScope.launch { listState.animateScrollToItem(0) }
+                        scope.launch { listState.animateScrollToItem(0) }
                     },
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.outline
@@ -953,7 +922,7 @@ fun Conversations(
         if(showFailedRetryModal) {
             FailedMessageOptionsModal(
                 retryCallback = {
-                    CoroutineScope(Dispatchers.Default).launch {
+                    coroutineScope.launch {
                         viewModel.delete(context, viewModel.retryDeleteItem.first())
                         sendSMS(
                             context=context,
@@ -969,7 +938,7 @@ fun Conversations(
                     }
                 },
                 deleteCallback = {
-                    CoroutineScope(Dispatchers.Default).launch {
+                    coroutineScope.launch {
                         viewModel.delete(context, viewModel.retryDeleteItem.first())
                         viewModel.retryDeleteItem = arrayListOf()
                     }

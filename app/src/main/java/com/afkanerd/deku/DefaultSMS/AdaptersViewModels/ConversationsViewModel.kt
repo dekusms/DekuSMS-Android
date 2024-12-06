@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.compose.runtime.Immutable
@@ -26,17 +27,26 @@ import kotlin.concurrent.thread
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.DatastoreHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 class ConversationsViewModel : ViewModel() {
-//    var threadId by mutableStateOf("")
+
     var threadId by mutableStateOf("")
     var address by mutableStateOf("")
     var text by mutableStateOf("")
@@ -104,12 +114,28 @@ class ConversationsViewModel : ViewModel() {
         SMSDatabaseWrapper.deleteDraft(context, threadId)
     }
 
-    fun unMute(context: Context) {
-        Datastore.getDatastore(context).conversationDao().unMute(threadId)
+   fun isMuted(context: Context, threadId: String? = null) : Boolean {
+       val mutingKey = stringPreferencesKey(threadId ?: this.threadId)
+       val isMuted = runBlocking {
+           DatastoreHandler.getDatastore(context).data.firstOrNull()?.let {
+               return@runBlocking it.contains(mutingKey)
+           }
+       }
+       return isMuted == true
     }
 
-    fun mute(context: Context) {
-        Datastore.getDatastore(context).conversationDao().mute(threadId)
+    suspend fun unMute(context: Context) {
+        val mutingKey = stringPreferencesKey(threadId)
+        DatastoreHandler.getDatastore(context).edit { preference ->
+            preference.remove(mutingKey)
+        }
+    }
+
+    suspend fun mute(context: Context) {
+        val mutingKey = stringPreferencesKey(threadId)
+        DatastoreHandler.getDatastore(context).edit { preference ->
+            preference[mutingKey] = address
+        }
     }
 
     fun block(context: Context) {
@@ -162,7 +188,6 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun insertDraft(context: Context) {
-
         val conversation = Conversation();
         conversation.message_id = "1"
         conversation.thread_id = threadId
