@@ -320,7 +320,7 @@ interface ThreadedConversationsDao {
     @Transaction
     fun delete(context: Context, ids: List<String>) {
         _delete(ids)
-        Datastore.getDatastore(context).conversationDao().deleteAll(ids)
+//        Datastore.getDatastore(context).conversationDao().deleteAll(ids)
     }
 
     @Transaction
@@ -338,7 +338,7 @@ interface ThreadedConversationsDao {
 
         _delete(threadedConversations)
         Datastore.getDatastore(context).conversationDao()
-            .deleteAll(mutableListOf<String>(threadedConversations.thread_id))
+//            .deleteAll(mutableListOf<String>(threadedConversations.thread_id))
     }
 
     @Query("DELETE FROM threadedconversations")

@@ -121,18 +121,6 @@ class ThreadedConversationsViewModel : ViewModel() {
             .archive(ArrayList<Archive>(mutableListOf<Archive>(archive)))
     }
 
-    fun delete(context: Context, ids: List<String>) {
-        val datastore = Datastore.getDatastore(context)
-
-        datastore.threadedConversationsDao().getList(ids).forEach {
-            if(isSecured(context, it.address))
-                E2EEHandler.clear(context, it.address)
-        }
-
-        datastore.threadedConversationsDao().delete(context, ids)
-        NativeSMSDB.deleteThreads(context, ids.toTypedArray<String?>())
-    }
-
     private fun refresh(context: Context) {
         val databaseConnector = Datastore.getDatastore(context)
         try {

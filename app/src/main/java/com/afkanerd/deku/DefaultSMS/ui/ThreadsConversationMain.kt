@@ -709,7 +709,7 @@ fun ThreadConversationLayout(
                             IconButton(onClick = {
                                 CoroutineScope(Dispatchers.Default).launch {
                                     val threads: List<String> = selectedItems.map{ it.thread_id!! }
-                                    conversationsViewModel.delete(context, threads)
+                                    conversationsViewModel.deleteThreads(context, threads)
                                     selectedItems.clear()
                                 }
                             }) {

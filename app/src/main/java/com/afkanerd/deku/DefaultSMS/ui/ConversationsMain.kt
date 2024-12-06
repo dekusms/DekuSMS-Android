@@ -313,14 +313,7 @@ private fun ConversationCrudBottomBar(
                         val conversations = items.filter {
                             it.message_id in viewModel.selectedItems
                         }
-                        viewModel.deleteItems(context, conversations)
-                        Datastore.getDatastore(context).conversationDao()
-                            .getAll(viewModel.threadId).let {
-                                if(it.isNullOrEmpty()) {
-                                    threadConversationsViewModel.delete(context,
-                                        listOf(viewModel.retryDeleteItem.first().thread_id!!))
-                                }
-                            }
+                        viewModel.delete(context, conversations)
                         onCompleted?.let { it() }
                     }
                 }) {
@@ -598,10 +591,8 @@ fun Conversations(
             isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
         },
         deleteCallback = {
-            TODO()
-            val ids = listOf(viewModel.threadId)
             CoroutineScope(Dispatchers.Default).launch{
-                threadConversationsViewModel.delete(context, ids)
+                viewModel.deleteThread(context)
             }
             backHandler(
                 context = context,
@@ -963,7 +954,7 @@ fun Conversations(
             FailedMessageOptionsModal(
                 retryCallback = {
                     CoroutineScope(Dispatchers.Default).launch {
-                        viewModel.deleteItems(context, viewModel.retryDeleteItem)
+                        viewModel.delete(context, viewModel.retryDeleteItem.first())
                         sendSMS(
                             context=context,
                             text=viewModel.retryDeleteItem.first().text!!,
@@ -979,14 +970,7 @@ fun Conversations(
                 },
                 deleteCallback = {
                     CoroutineScope(Dispatchers.Default).launch {
-                        viewModel.deleteItems(context, viewModel.retryDeleteItem)
-                        Datastore.getDatastore(context).conversationDao()
-                            .getAll(viewModel.threadId).let {
-                                if(it.isNullOrEmpty()) {
-                                    threadConversationsViewModel.delete(context,
-                                        listOf(viewModel.retryDeleteItem.first().thread_id!!))
-                                }
-                            }
+                        viewModel.delete(context, viewModel.retryDeleteItem.first())
                         viewModel.retryDeleteItem = arrayListOf()
                     }
                 },

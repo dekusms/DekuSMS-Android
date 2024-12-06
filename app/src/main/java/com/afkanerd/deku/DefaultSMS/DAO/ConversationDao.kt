@@ -84,10 +84,10 @@ interface ConversationDao {
     fun updateRead(isRead: Boolean, threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
-    fun delete(threadId: String): Int
+    fun deleteThread(threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id IN (:threadIds)")
-    fun deleteAll(threadIds: List<String>)
+    fun deleteAllThreads(threadIds: List<String>)
 
     @Query("DELETE FROM Conversation")
     fun deleteEvery()
