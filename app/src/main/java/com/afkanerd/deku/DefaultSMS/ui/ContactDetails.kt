@@ -338,7 +338,6 @@ fun ContactDetails (
                             Text(
                                 text = stringResource(R.string.end_to_end_encryption_is_available_in_this_conversation),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Red
                             )
                         }
 

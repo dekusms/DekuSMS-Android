@@ -208,4 +208,5 @@
     <string name="end_to_end_encryption_is_available_in_this_conversation">Сквозное шифрование доступно в этом разговоре</string>
     <string name="on">Вкл.</string>
     <string name="off">Выкл.</string>
+    <string name="phone_number_copied_to_clipboard">Скопировано \'%1$s\' в буфер обмена</string>
 </resources>

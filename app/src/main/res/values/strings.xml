@@ -330,5 +330,6 @@
     <string name="end_to_end_encryption_is_available_in_this_conversation">End-to-End Encryption is available in this conversation</string>
     <string name="on">On</string>
     <string name="off">Off</string>
+    <string name="phone_number_copied_to_clipboard">Copied \'%1$s\' to clipboard</string>
 
 </resources>
