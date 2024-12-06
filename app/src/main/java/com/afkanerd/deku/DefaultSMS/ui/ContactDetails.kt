@@ -52,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
@@ -66,7 +67,7 @@ import kotlin.text.uppercase
 fun ContactDetails (
     contactsViewModel: ContactsViewModel,
     conversationViewModel: ConversationsViewModel,
-    onBackClick: () -> Unit
+    navController: NavController,
 ) {
 
     val phoneNumber = conversationViewModel.address
@@ -82,7 +83,7 @@ fun ContactDetails (
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -320,15 +321,27 @@ fun ContactDetails (
                                         color = if (isEncryptionEnabled) Color.Green else Color.Red
                                     )
                                 ) {
-                                    append(if (isEncryptionEnabled) "On" else "Off")
+                                    append(if (isEncryptionEnabled) stringResource(R.string.on) else stringResource(
+                                        R.string.off
+                                    )
+                                    )
                                 }
                             },
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        Text(
-                            text = stringResource(R.string.end_to_end_encryption_isn_t_available_in_this_conversation),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        if (!isEncryptionEnabled) {
+                            Text(
+                                text = stringResource(R.string.end_to_end_encryption_isn_t_available_in_this_conversation),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.end_to_end_encryption_is_available_in_this_conversation),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Red
+                            )
+                        }
+
 
                     }
                 }
@@ -376,6 +389,6 @@ fun ContactDetailsPreview() {
     ContactDetails(
         contactsViewModel = contactsViewModel,
         conversationViewModel = conversationViewModel,
-        onBackClick = {  }
+        navController = rememberNavController()
     )
 }

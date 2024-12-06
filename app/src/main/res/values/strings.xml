@@ -327,5 +327,8 @@
     <string name="end_to_end_encryption">End-to-end encryption</string>
     <string name="end_to_end_encrypt">"End-to-end encryption: "</string>
     <string name="end_to_end_encryption_isn_t_available_in_this_conversation">End-to-end encryption isn\'t available in this conversation.</string>
+    <string name="end_to_end_encryption_is_available_in_this_conversation">End-to-End Encryption is available in this conversation</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
 
 </resources>

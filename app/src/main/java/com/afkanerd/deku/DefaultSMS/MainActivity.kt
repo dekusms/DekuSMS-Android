@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity(){
                             ContactDetails(
                                 contactsViewModel = contactsViewModel,
                                 conversationViewModel = conversationViewModel,
-                                onBackClick = { navController.popBackStack() }
+                                navController = navController,
                             )
                         }
                     }
