@@ -70,14 +70,13 @@ fun ContactDetails (
 ) {
 
     val phoneNumber = conversationViewModel.address
-    val contactDetailsMap = contactsViewModel.getContactDetails(LocalContext.current, phoneNumber)
+    val contactDetails = contactsViewModel.getContactDetails(LocalContext.current, phoneNumber)
 
-    val isContact = contactDetailsMap["isContact"] as Boolean
-    val contactPhotoUri = contactDetailsMap["contactPhotoUri"] as String?
-    val isEncryptionEnabled = contactDetailsMap["isEncryptionEnabled"] as Boolean
-    val firstName = contactDetailsMap["firstName"] as String
-    val lastName = contactDetailsMap["lastName"] as String
-    val id = contactDetailsMap["id"] as String?
+    val isContact = contactDetails.isContact
+    val contactPhotoUri = contactDetails.contactPhotoUri
+    val isEncryptionEnabled = contactDetails.isEncryptionEnabled
+    val contactName = contactDetails.contactName
+    val id = contactDetails.id
 
     Scaffold(
         topBar = {
@@ -117,14 +116,14 @@ fun ContactDetails (
                                 .size(75.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    remember(id, firstName, lastName) {
-                                        Color("$id / $firstName".toHslColor())
+                                    remember(id, contactName) {
+                                        Color("$id / $contactName".toHslColor())
                                     }
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = (firstName.take(1) + lastName.take(1)).uppercase(),
+                                text = contactName.uppercase(),
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontSize = 24.sp
                                 ),
@@ -145,7 +144,7 @@ fun ContactDetails (
 
                 if (isContact) {
                     Text(
-                        text = "$firstName $lastName",
+                        text = contactName,
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold

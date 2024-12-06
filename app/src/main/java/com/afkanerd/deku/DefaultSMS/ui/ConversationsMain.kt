@@ -472,7 +472,6 @@ fun Conversations(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
     threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
-    contactsViewModel: ContactsViewModel = ContactsViewModel(),
     navController: NavController,
     _items: List<Conversation>? = null
 ) {
@@ -520,9 +519,6 @@ fun Conversations(
     var encryptedText by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
-
-    var showContactDetails by remember { mutableStateOf(false) }
-    var contactDetailsMap by remember { mutableStateOf<Map<String, Any?>?>(null) }
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {

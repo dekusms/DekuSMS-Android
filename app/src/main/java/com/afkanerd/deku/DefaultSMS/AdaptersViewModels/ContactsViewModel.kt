@@ -6,6 +6,7 @@ import android.telephony.PhoneNumberUtils
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import com.afkanerd.deku.DefaultSMS.Commons.ContactDetailsData
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.i18n.phonenumbers.NumberParseException
@@ -83,25 +84,21 @@ class ContactsViewModel : ViewModel() {
         contactsMutableLiveData?.postValue(contactsList)
     }
 
-    fun getContactDetails(context: Context, phoneNumber: String): Map<String, Any?> {
+    fun getContactDetails(context: Context, phoneNumber: String): ContactDetailsData {
         val contactName = Contacts.retrieveContactName(context, phoneNumber)
         val contactPhotoUri = Contacts.retrieveContactPhoto(context, phoneNumber)
         val isContact = contactName != null
-
-        val nameParts = contactName?.split(" ") ?: listOf("", "")
-        val firstName = nameParts.getOrNull(0) ?: ""
-        val lastName = nameParts.getOrNull(1) ?: ""
-
         val isEncryptionEnabled = false
 
-        return mapOf(
-            "phoneNumber" to phoneNumber,
-            "contactPhotoUri" to contactPhotoUri,
-            "isContact" to isContact,
-            "isEncryptionEnabled" to isEncryptionEnabled,
-            "firstName" to firstName,
-            "lastName" to lastName,
-            "id" to null
+        val name = contactName ?: ""
+
+        return ContactDetailsData(
+            phoneNumber = phoneNumber,
+            contactPhotoUri = contactPhotoUri,
+            isContact = isContact,
+            isEncryptionEnabled = isEncryptionEnabled,
+            contactName = name,
+            id = null
         )
     }
 }
