@@ -123,7 +123,7 @@ fun ContactDetails (
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = contactName.uppercase(),
+                                text = contactName[0].uppercase(),
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontSize = 24.sp
                                 ),
@@ -166,7 +166,7 @@ fun ContactDetails (
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(Color.LightGray, CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                             .clip(CircleShape)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
@@ -186,7 +186,7 @@ fun ContactDetails (
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
-                                .background(Color.LightGray, CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                                 .clip(CircleShape)
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
@@ -206,7 +206,7 @@ fun ContactDetails (
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(Color.LightGray, CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                             .clip(CircleShape)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
@@ -225,7 +225,7 @@ fun ContactDetails (
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(Color.LightGray, CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                             .clip(CircleShape)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center

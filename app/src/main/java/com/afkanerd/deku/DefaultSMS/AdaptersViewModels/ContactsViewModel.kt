@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import com.afkanerd.deku.DefaultSMS.Commons.ContactDetailsData
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.i18n.phonenumbers.NumberParseException
 import java.util.ArrayList
@@ -88,7 +89,7 @@ class ContactsViewModel : ViewModel() {
         val contactName = Contacts.retrieveContactName(context, phoneNumber)
         val contactPhotoUri = Contacts.retrieveContactPhoto(context, phoneNumber)
         val isContact = contactName != null
-        val isEncryptionEnabled = false
+        val isEncryptionEnabled = E2EEHandler.isSecured(context, phoneNumber)
 
         val name = contactName ?: ""
 
