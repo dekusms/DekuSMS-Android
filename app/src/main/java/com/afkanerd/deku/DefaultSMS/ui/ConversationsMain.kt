@@ -468,9 +468,11 @@ fun Conversations(
 
     var isMute by remember { mutableStateOf(viewModel.isMuted(context)) }
 
-    var isBlocked by remember { mutableStateOf(BlockedNumberContract
-        .isBlocked(context, viewModel.address))
-    }
+    var isBlocked by remember { mutableStateOf(
+        if(!inPreviewMode)
+            BlockedNumberContract .isBlocked(context, viewModel.address)
+        else false
+    ) }
     var openAlertDialog by remember { mutableStateOf(false)}
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)

@@ -56,15 +56,13 @@ class ConversationsViewModel : ViewModel() {
     var contactName: String by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
 
+    var importDetails by mutableStateOf("")
+
     var selectedItems = mutableStateListOf<String>()
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
     var liveData: LiveData<MutableList<Conversation>>? = null
     var threadedLiveData: LiveData<MutableList<Conversation>>? = null
-    var archivedLiveData: LiveData<MutableList<Conversation>>? = null
-    var encryptedLiveData: LiveData<MutableList<Conversation>>? = null
-    var blockedLiveData: LiveData<MutableList<Conversation>>? = null
-    var mutedLiveData: LiveData<MutableList<Conversation>>? = null
     var draftsLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
@@ -221,12 +219,14 @@ class ConversationsViewModel : ViewModel() {
     }
 
 
-    fun importAll(context: Context, data: String): List<Conversation> {
+    fun importAll(context: Context, detailsOnly:Boolean = false): List<Conversation> {
         val json = Json { ignoreUnknownKeys = true }
-        return json.decodeFromString<MutableList<Conversation>>(data).apply {
+        val conversations = json.decodeFromString<MutableList<Conversation>>(importDetails)
+        if(!detailsOnly) {
             val databaseConnector = Datastore.getDatastore(context)
-            databaseConnector.conversationDao().insertAll(this)
+            databaseConnector.conversationDao().insertAll(conversations)
         }
+        return conversations
     }
 
     fun getAllExport(context: Context): String {
@@ -256,4 +256,8 @@ class ConversationsViewModel : ViewModel() {
 //        refresh(context)
     }
 
+    fun clear(context: Context) {
+        Telephony.Sms.MESSAGE_TYPE_DRAFT
+        Datastore.getDatastore(context).conversationDao().deleteEvery()
+    }
 }

@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Block
@@ -47,11 +49,80 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.util.TableInfo
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import java.nio.file.WatchEvent
+
+@Preview
+@Composable
+fun ImportDetails(
+    numOfConversations: Int = 0,
+    numOfThreads: Int = 0,
+    confirmCallback: (() -> Unit)? = null,
+    resetConfirmCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
+) {
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        title = {
+            Text(
+                "Import Conversations",
+                color = MaterialTheme.colorScheme.onSecondary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.threads) + numOfThreads,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+                Text(
+                    stringResource(R.string.conversations) + numOfConversations,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {
+            if(BuildConfig.DEBUG)
+                TextButton(
+                    onClick = {resetConfirmCallback?.invoke()}
+                ) {
+                    Text(
+                        "Reset and Import",
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                }
+
+            TextButton(
+                onClick = { confirmCallback?.invoke() }
+            ) {
+                Text(
+                    "Import",
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
+}
 
 @Composable
 private fun ThreadConversationsAvatar(

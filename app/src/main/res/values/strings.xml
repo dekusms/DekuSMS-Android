@@ -323,5 +323,8 @@
     <string name="compose_new">Compose new</string>
     <string name="compose">Compose</string>
     <string name="contact_is_blocked">Contact is blocked</string>
+    <string name="conversation_menu_import">Import</string>
+    <string name="conversations">"Conversations: "</string>
+    <string name="threads">"Threads: "</string>
 
 </resources>
