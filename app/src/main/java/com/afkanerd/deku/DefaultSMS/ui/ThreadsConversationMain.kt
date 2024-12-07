@@ -700,7 +700,7 @@ fun ThreadConversationLayout(
                                         val threads : List<String> = selectedItems.map{
                                             it.thread_id!!
                                         }
-                                        conversationsViewModel.unArchive(context, threads)
+                                        conversationsViewModel.archive(context, threads)
                                         selectedItems.clear()
                                     }
                                 }
