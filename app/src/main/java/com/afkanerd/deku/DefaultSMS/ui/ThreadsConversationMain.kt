@@ -531,10 +531,13 @@ fun ThreadConversationLayout(
     val items: List<Conversation> by conversationsViewModel
         .getThreading(context).observeAsState(emptyList())
 
+    val archivedItems: List<Conversation> by conversationsViewModel
+        .archivedLiveData!!.observeAsState(emptyList())
+
+    val mutedItems: List<Conversation> by conversationsViewModel
+        .mutedLiveData!!.observeAsState(emptyList())
+
     var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    // TODO: should have new format for storing
-    var archivedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    var mutedItems: MutableList<Conversation> = remember { mutableStateListOf() }
     var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
     val draftsItems: List<Conversation> by conversationsViewModel
@@ -827,8 +830,12 @@ fun ThreadConversationLayout(
                                 }
                             }
 
-                            var isMute by remember { mutableStateOf(conversationsViewModel
-                                .isMuted(context, message.thread_id))
+                            var isMute by remember { mutableStateOf( false) }
+                            LaunchedEffect(message.thread_id) {
+                                coroutineScope.launch {
+                                    isMute = conversationsViewModel.isMuted(context,
+                                        message.thread_id)
+                                }
                             }
 
                             val dismissState = rememberSwipeToDismissBoxState(

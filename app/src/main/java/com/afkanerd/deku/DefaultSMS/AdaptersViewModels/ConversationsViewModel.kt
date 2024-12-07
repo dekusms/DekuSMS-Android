@@ -36,6 +36,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.DatastoreHandler
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -64,6 +65,8 @@ class ConversationsViewModel : ViewModel() {
     var liveData: LiveData<MutableList<Conversation>>? = null
     var threadedLiveData: LiveData<MutableList<Conversation>>? = null
     var draftsLiveData: LiveData<MutableList<Conversation>>? = null
+    var archivedLiveData: LiveData<MutableList<Conversation>>? = null
+    var mutedLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
 
@@ -71,6 +74,8 @@ class ConversationsViewModel : ViewModel() {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
             draftsLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingDrafts()
+            archivedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingArchived()
+            mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
         }
         return threadedLiveData!!
     }
@@ -109,54 +114,111 @@ class ConversationsViewModel : ViewModel() {
     }
 
    fun isMuted(context: Context, threadId: String? = null) : Boolean {
-       val mutingKey = stringPreferencesKey(threadId ?: this.threadId)
-       val isMuted = runBlocking {
-           DatastoreHandler.getDatastore(context).data.firstOrNull()?.let {
-               return@runBlocking it.contains(mutingKey)
-           }
-       }
-       return isMuted == true
+       val datastore = Datastore.getDatastore(context)
+       val thread = datastore.threadsConfigurationsDao().get(threadId ?: this.threadId)
+       if(thread != null)
+           return thread.isMute
+       return false
     }
 
-    suspend fun unMute(context: Context) {
-        val mutingKey = stringPreferencesKey(threadId)
-        DatastoreHandler.getDatastore(context).edit { preference ->
-            preference.remove(mutingKey)
+    fun unMute(context: Context, threadIds: List<String>) {
+        val datastore = Datastore.getDatastore(context)
+        var threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
+        threadIds.forEach { id ->
+            var threadsConfigurations: ThreadsConfigurations? =
+                datastore.threadsConfigurationsDao().get(id)
+
+            if(threadsConfigurations != null) {
+                threadsConfigurations.isMute = false
+            }
+            else {
+                threadsConfigurations = ThreadsConfigurations().apply {
+                    threadId = id
+                    isMute = false
+                }
+            }
+            threadsConfigurationsList.add(threadsConfigurations)
         }
+        Datastore.getDatastore(context).threadsConfigurationsDao().insert(threadsConfigurationsList)
     }
 
-    suspend fun mute(context: Context) {
-        val mutingKey = stringPreferencesKey(threadId)
-        DatastoreHandler.getDatastore(context).edit { preference ->
-            preference[mutingKey] = address
-        }
+    fun unMute(context: Context, threadId: String? = null) {
+        unMute(context, listOf(threadId ?: this.threadId))
     }
 
-    suspend fun mute(context: Context, threadId: String) {
-        val mutingKey = stringPreferencesKey(threadId)
-        DatastoreHandler.getDatastore(context).edit { preference ->
-            preference[mutingKey] = address
+    fun mute(context: Context, threadIds: List<String>) {
+        val datastore = Datastore.getDatastore(context)
+        var threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
+        threadIds.forEach { id ->
+            var threadsConfigurations: ThreadsConfigurations? =
+                datastore.threadsConfigurationsDao().get(id)
+
+            if(threadsConfigurations != null) {
+                threadsConfigurations.isMute = true
+            }
+            else {
+                threadsConfigurations = ThreadsConfigurations().apply {
+                    threadId = id
+                    isMute = true
+                }
+            }
+            threadsConfigurationsList.add(threadsConfigurations)
         }
+        Datastore.getDatastore(context).threadsConfigurationsDao().insert(threadsConfigurationsList)
+    }
+
+    fun mute(context: Context, threadId: String? = null) {
+        mute(context, listOf(threadId ?: this.threadId))
     }
 
     fun archive(context: Context, threadIds: List<String>) {
-        Datastore.getDatastore(context).conversationDao().archive(threadIds)
+        val datastore = Datastore.getDatastore(context)
+        var threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
+        threadIds.forEach { id ->
+            var threadsConfigurations: ThreadsConfigurations? =
+                datastore.threadsConfigurationsDao().get(id)
+
+            if(threadsConfigurations != null) {
+                threadsConfigurations.isArchive = true
+            }
+            else {
+                threadsConfigurations = ThreadsConfigurations().apply {
+                    threadId = id
+                    isArchive = true
+                }
+            }
+            threadsConfigurationsList.add(threadsConfigurations)
+        }
+        Datastore.getDatastore(context).threadsConfigurationsDao().insert(threadsConfigurationsList)
     }
 
     fun archive(context: Context, threadId: String? = null) {
-        Datastore.getDatastore(context).conversationDao().archive(threadId ?: this.threadId)
+        archive(context, listOf(threadId ?: this.threadId))
     }
 
     fun unArchive(context: Context, threadIds: List<String>) {
-        Datastore.getDatastore(context).conversationDao().unarchive(threadIds)
+        val datastore = Datastore.getDatastore(context)
+        var threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
+        threadIds.forEach { id ->
+            var threadsConfigurations: ThreadsConfigurations? =
+                datastore.threadsConfigurationsDao().get(id)
+
+            if(threadsConfigurations != null) {
+                threadsConfigurations.isArchive = false
+            }
+            else {
+                threadsConfigurations = ThreadsConfigurations().apply {
+                    threadId = id
+                    isArchive = false
+                }
+            }
+            threadsConfigurationsList.add(threadsConfigurations)
+        }
+        Datastore.getDatastore(context).threadsConfigurationsDao().insert(threadsConfigurationsList)
     }
 
     fun unArchive(context: Context, threadId: String? = null) {
-        Datastore.getDatastore(context).conversationDao().unarchive(threadId ?: this.threadId)
-    }
-
-    fun setSecured(context: Context, isSecured: Boolean) {
-        Datastore.getDatastore(context).conversationDao().archive(threadId)
+        unArchive(context, listOf(threadId ?: this.threadId))
     }
 
     fun deleteThread(context: Context) {

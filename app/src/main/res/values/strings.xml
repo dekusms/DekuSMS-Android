@@ -326,5 +326,6 @@
     <string name="conversation_menu_import">Import</string>
     <string name="conversations">"Conversations: "</string>
     <string name="threads">"Threads: "</string>
+    <string name="archive">Archive</string>
 
 </resources>

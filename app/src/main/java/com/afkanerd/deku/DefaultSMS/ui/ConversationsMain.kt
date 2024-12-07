@@ -108,6 +108,7 @@ import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -325,6 +326,7 @@ private fun MainDropDownMenu(
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
     deleteCallback: (() -> Unit)? = null,
+    archiveCallback: (() -> Unit)? = null,
     muteCallback: (() -> Unit)? = null,
     isMute: Boolean = false,
     isBlocked: Boolean = false,
@@ -364,6 +366,21 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     blockCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= stringResource(R.string.archive),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    archiveCallback?.let {
                         dismissCallback?.let { it(false) }
                         it()
                     }
@@ -435,6 +452,9 @@ fun Conversations(
     val inPreviewMode = LocalInspectionMode.current
     val dualSim = if(inPreviewMode) true else SIMHandler.isDualSim(context)
 
+    val scope = rememberCoroutineScope()
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
+
     var isSecured by remember {
         mutableStateOf(
             if(viewModel.address.isBlank()) false
@@ -466,7 +486,7 @@ fun Conversations(
     var searchQuery by remember { mutableStateOf(viewModel.searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
 
-    var isMute by remember { mutableStateOf(viewModel.isMuted(context)) }
+    var isMute by remember { mutableStateOf(false) }
 
     var isBlocked by remember { mutableStateOf(
         if(!inPreviewMode)
@@ -479,9 +499,6 @@ fun Conversations(
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
     var encryptedText by remember { mutableStateOf("") }
 
-
-    val scope = rememberCoroutineScope()
-    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -530,6 +547,7 @@ fun Conversations(
                 ).first
             }
             viewModel.updateToRead(context)
+            isMute = viewModel.isMuted(context)
         }
     }
 
@@ -569,6 +587,9 @@ fun Conversations(
                 viewModel = viewModel,
                 navController = navController,
             )
+        },
+        archiveCallback = {
+            TODO()
         },
         muteCallback = {
             coroutineScope.launch {
