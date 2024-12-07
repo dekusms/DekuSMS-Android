@@ -330,6 +330,7 @@ private fun MainDropDownMenu(
     muteCallback: (() -> Unit)? = null,
     isMute: Boolean = false,
     isBlocked: Boolean = false,
+    isArchived: Boolean = false,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     var expanded = expanded
@@ -375,7 +376,8 @@ private fun MainDropDownMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text= stringResource(R.string.archive),
+                        text=if(isArchived) stringResource(R.string.conversation_menu_unarchive)
+                        else stringResource(R.string.archive),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
@@ -487,12 +489,14 @@ fun Conversations(
     var searchIndex by remember { mutableIntStateOf(0) }
 
     var isMute by remember { mutableStateOf(false) }
+    var isArchived by remember { mutableStateOf(false) }
 
     var isBlocked by remember { mutableStateOf(
         if(!inPreviewMode)
             BlockedNumberContract .isBlocked(context, viewModel.address)
         else false
     ) }
+
     var openAlertDialog by remember { mutableStateOf(false)}
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
@@ -548,6 +552,7 @@ fun Conversations(
             }
             viewModel.updateToRead(context)
             isMute = viewModel.isMuted(context)
+            isArchived = viewModel.isArchived(context)
         }
     }
 
@@ -565,6 +570,7 @@ fun Conversations(
         rememberMenuExpanded,
         isMute = isMute,
         isBlocked = isBlocked,
+        isArchived = isArchived,
         searchCallback = {
             searchViewModel.threadId = viewModel.threadId
             navController.navigate(SearchThreadScreen)
@@ -589,7 +595,15 @@ fun Conversations(
             )
         },
         archiveCallback = {
-            TODO()
+            coroutineScope.launch{
+                if(isArchived) viewModel.unArchive(context)
+                else viewModel.archive(context)
+            }
+            backHandler(
+                context = context,
+                viewModel = viewModel,
+                navController = navController,
+            )
         },
         muteCallback = {
             coroutineScope.launch {

@@ -113,6 +113,14 @@ class ConversationsViewModel : ViewModel() {
         SMSDatabaseWrapper.deleteDraft(context, threadId)
     }
 
+    fun isArchived(context: Context, threadId: String? = null) : Boolean {
+        val datastore = Datastore.getDatastore(context)
+        val thread = datastore.threadsConfigurationsDao().get(threadId ?: this.threadId)
+        if(thread != null)
+            return thread.isArchive
+        return false
+    }
+
    fun isMuted(context: Context, threadId: String? = null) : Boolean {
        val datastore = Datastore.getDatastore(context)
        val thread = datastore.threadsConfigurationsDao().get(threadId ?: this.threadId)

@@ -196,7 +196,7 @@
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">Delete</string>
-    <string name="conversation_menu_unarchive">unarchive</string>
+    <string name="conversation_menu_unarchive">Unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
     <string name="conversation_menu_export">Export</string>
