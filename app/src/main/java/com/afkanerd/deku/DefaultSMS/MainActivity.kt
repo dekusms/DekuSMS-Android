@@ -5,15 +5,18 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.text.Layout
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,6 +58,8 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.tooling.preview.Preview
 
 @Serializable
 object HomeScreen
@@ -168,7 +173,6 @@ class MainActivity : AppCompatActivity(){
                 Surface(Modifier
                     .fillMaxSize()
                 ) {
-
                     val isFolded by remember {
                         mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
                     }
@@ -177,54 +181,65 @@ class MainActivity : AppCompatActivity(){
                         navController = navController,
                         startDestination = HomeScreen,
                     ) {
-                        composable<HomeScreen>{
-                            Row {
-                                Column(modifier = if(isFolded)
-                                    Modifier.fillMaxWidth(0.5f) else Modifier){
-                                    ThreadConversationLayout(
-                                        conversationsViewModel = conversationViewModel,
-                                        intent = intent,
-                                        navController = navController,
-                                    )
-                                }
-                                if(isFolded) {
-                                    Column{
-                                        if(conversationViewModel.address.isNotEmpty() &&
-                                            conversationViewModel.threadId.isNotEmpty()
-                                        )
-                                            ConversationScreenComposable()
-                                        else
-                                            Text("In Foldable mode, something should go here")
-                                    }
-                                }
-                            }
-                        }
-
-
                         if(!isFolded) {
+                            composable<HomeScreen>{
+                                HomeScreenComposable()
+                            }
                             composable<ConversationsScreen> {
                                 ConversationScreenComposable()
                             }
-                        }
+                            composable<ComposeNewMessageScreen>{
+                                ComposeNewMessageScreenComposable()
+                            }
 
-                        composable<ComposeNewMessageScreen>{
-                            ComposeNewMessage(
-                                conversationsViewModel = conversationViewModel,
-                                navController=navController
-                            )
+                            composable<SearchThreadScreen>{
+                                SearchThreadScreenComposable()
+                            }
                         }
+                        else {
+                            composable<HomeScreen>{
+                                Row {
+                                    Column(modifier = Modifier.fillMaxWidth(0.5f)){
+                                        HomeScreenComposable()
+                                    }
 
-                        composable<SearchThreadScreen>{
-                            SearchThreadsMain(
-                                viewModel = searchViewModel,
-                                conversationsViewModel = conversationViewModel,
-                                navController = navController
-                            )
+
+                                    if(conversationViewModel.address.isNotEmpty() &&
+                                        conversationViewModel.threadId.isNotEmpty()
+                                    )
+                                        Column { ConversationScreenComposable() }
+                                    else
+                                        Column(
+                                            modifier = Modifier.fillMaxHeight(),
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                "Select a conversation from the list on the left",
+                                            )
+                                        }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+
+    @Preview(showBackground = true)
+    @Composable
+    fun NoMessageSelected() {
+
+    }
+
+    @Composable
+    fun HomeScreenComposable() {
+        ThreadConversationLayout(
+            conversationsViewModel = conversationViewModel,
+            intent = intent,
+            navController = navController,
+        )
     }
 
     @Composable
@@ -233,6 +248,23 @@ class MainActivity : AppCompatActivity(){
             viewModel=conversationViewModel,
             searchViewModel=searchViewModel,
             navController=navController
+        )
+    }
+
+    @Composable
+    fun ComposeNewMessageScreenComposable() {
+        ComposeNewMessage(
+            conversationsViewModel = conversationViewModel,
+            navController=navController
+        )
+    }
+
+    @Composable
+    fun SearchThreadScreenComposable() {
+        SearchThreadsMain(
+            viewModel = searchViewModel,
+            conversationsViewModel = conversationViewModel,
+            navController = navController
         )
     }
 
