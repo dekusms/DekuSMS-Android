@@ -235,7 +235,8 @@ fun navigateToConversation(
     conversationsViewModel.searchQuery = searchQuery ?: ""
     conversationsViewModel.subscriptionId = subscriptionId ?: -1
     conversationsViewModel.liveData = null
-    navController.navigate(ConversationsScreen)
+    if(conversationsViewModel.newLayoutInfo?.displayFeatures!!.isEmpty())
+        navController.navigate(ConversationsScreen)
 }
 
 @Preview(showBackground = true)

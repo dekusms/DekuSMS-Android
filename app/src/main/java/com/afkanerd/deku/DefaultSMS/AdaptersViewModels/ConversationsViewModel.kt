@@ -32,6 +32,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
@@ -69,6 +70,8 @@ class ConversationsViewModel : ViewModel() {
     var mutedLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
+
+    var newLayoutInfo: WindowLayoutInfo? = null
 
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {

@@ -301,5 +301,12 @@ dependencies {
 
     // optional - RxJava3 support
     implementation(libs.androidx.datastore.preferences.rxjava3)
+
+    implementation libs.androidx.window
+    androidTestImplementation libs.androidx.window.testing
+
+    // Needed to use lifecycleScope to collect the WindowLayoutInfo flow
+    implementation libs.androidx.lifecycle.runtime.ktx
+
 }
 

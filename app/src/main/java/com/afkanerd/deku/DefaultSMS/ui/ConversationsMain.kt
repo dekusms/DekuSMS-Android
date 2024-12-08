@@ -530,7 +530,7 @@ fun Conversations(
 
     }
 
-    LaunchedEffect(true){
+    LaunchedEffect(viewModel.address){
         Contacts.retrieveContactName(
             context,
             Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
@@ -662,17 +662,19 @@ fun Conversations(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if(searchQuery.isNotBlank()) searchQuery = ""
-                        else
-                        backHandler(
-                            context = context,
-                            viewModel = viewModel,
-                            navController = navController,
-                        )
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
-                    }
+                    if(viewModel.newLayoutInfo == null ||
+                        viewModel.newLayoutInfo!!.displayFeatures.isEmpty())
+                        IconButton(onClick = {
+                            if(searchQuery.isNotBlank()) searchQuery = ""
+                            else
+                            backHandler(
+                                context = context,
+                                viewModel = viewModel,
+                                navController = navController,
+                            )
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
+                        }
 
                 },
                 actions = {

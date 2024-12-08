@@ -11,18 +11,34 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
+import androidx.window.layout.WindowLayoutInfo
+import androidx.window.layout.WindowMetricsCalculator
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.Models.ExportImportHandlers
@@ -37,6 +53,8 @@ import kotlinx.serialization.Serializable
 import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.io.InputStreamReader
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @Serializable
 object HomeScreen
@@ -60,50 +78,13 @@ class MainActivity : AppCompatActivity(){
 
         checkLoadNatives()
 
-        setContent {
-            AppTheme {
-                navController = rememberNavController()
-                Surface(Modifier
-                    .fillMaxSize()
-                ) {
-
-                    NavHost(
-                        modifier = Modifier,
-                        navController = navController,
-                        startDestination = HomeScreen,
-                    ) {
-                        composable<HomeScreen>{
-                            ThreadConversationLayout(
-                                conversationsViewModel=conversationViewModel,
-                                intent=intent,
-                                navController = navController,
-                            )
-                        }
-
-                        composable<ConversationsScreen>{
-                            Conversations(
-                                viewModel=conversationViewModel,
-                                searchViewModel=searchViewModel,
-                                navController=navController
-                            )
-                        }
-
-                        composable<ComposeNewMessageScreen>{
-                            ComposeNewMessage(
-                                conversationsViewModel = conversationViewModel,
-                                navController=navController
-                            )
-                        }
-
-                        composable<SearchThreadScreen>{
-                            SearchThreadsMain(
-                                viewModel = searchViewModel,
-                                conversationsViewModel = conversationViewModel,
-                                navController = navController
-                            )
-                        }
+        lifecycleScope.launch(Dispatchers.Main) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@MainActivity)
+                    .windowLayoutInfo(this@MainActivity)
+                    .collect { newLayoutInfo ->
+                        onLayoutInfoChanged(newLayoutInfo)
                     }
-                }
             }
         }
     }
@@ -177,6 +158,82 @@ class MainActivity : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
+        conversationViewModel.newLayoutInfo = newLayoutInfo
+        setContent {
+            AppTheme {
+                navController = rememberNavController()
+                Surface(Modifier
+                    .fillMaxSize()
+                ) {
+
+                    val isFolded by remember {
+                        mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
+                    }
+                    NavHost(
+                        modifier = Modifier,
+                        navController = navController,
+                        startDestination = HomeScreen,
+                    ) {
+                        composable<HomeScreen>{
+                            Row {
+                                Column(modifier = if(isFolded)
+                                    Modifier.fillMaxWidth(0.5f) else Modifier){
+                                    ThreadConversationLayout(
+                                        conversationsViewModel = conversationViewModel,
+                                        intent = intent,
+                                        navController = navController,
+                                    )
+                                }
+                                if(isFolded) {
+                                    Column{
+                                        if(conversationViewModel.address.isNotEmpty() &&
+                                            conversationViewModel.threadId.isNotEmpty()
+                                        )
+                                            ConversationScreenComposable()
+                                        else
+                                            Text("In Foldable mode, something should go here")
+                                    }
+                                }
+                            }
+                        }
+
+
+                        if(!isFolded) {
+                            composable<ConversationsScreen> {
+                                ConversationScreenComposable()
+                            }
+                        }
+
+                        composable<ComposeNewMessageScreen>{
+                            ComposeNewMessage(
+                                conversationsViewModel = conversationViewModel,
+                                navController=navController
+                            )
+                        }
+
+                        composable<SearchThreadScreen>{
+                            SearchThreadsMain(
+                                viewModel = searchViewModel,
+                                conversationsViewModel = conversationViewModel,
+                                navController = navController
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ConversationScreenComposable() {
+        Conversations(
+            viewModel=conversationViewModel,
+            searchViewModel=searchViewModel,
+            navController=navController
+        )
     }
 
 }
