@@ -58,8 +58,13 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 
 @Serializable
 object HomeScreen
@@ -210,12 +215,11 @@ class MainActivity : AppCompatActivity(){
                                         Column { ConversationScreenComposable() }
                                     else
                                         Column(
-                                            modifier = Modifier.fillMaxHeight(),
-                                            verticalArrangement = Arrangement.Center
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-                                            Text(
-                                                "Select a conversation from the list on the left",
-                                            )
+                                            NoMessageSelected()
                                         }
                                 }
                             }
@@ -230,7 +234,12 @@ class MainActivity : AppCompatActivity(){
     @Preview(showBackground = true)
     @Composable
     fun NoMessageSelected() {
-
+        Text(
+            stringResource(R.string
+                .select_a_conversation_from_the_list_on_the_left),
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center
+        )
     }
 
     @Composable
