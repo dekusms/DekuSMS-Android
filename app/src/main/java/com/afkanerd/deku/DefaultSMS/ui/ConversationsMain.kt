@@ -60,6 +60,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -109,6 +110,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -431,6 +433,7 @@ fun backHandler(
     if(viewModel.text.isNotBlank()) {
         CoroutineScope(Dispatchers.Default).launch {
             viewModel.insertDraft(context)
+            viewModel.text = ""
         }
     }
 
@@ -503,6 +506,8 @@ fun Conversations(
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
     var encryptedText by remember { mutableStateOf("") }
 
+    var shouldPulse by remember { mutableStateOf(false) }
+    val pulseRateMs by remember { mutableLongStateOf(3000L) }
 
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
@@ -544,15 +549,32 @@ fun Conversations(
             viewModel.fetchDraft(context)?.let {
                 viewModel.clearDraft(context)
                 viewModel.text = it.text!!
-                encryptedText = E2EEHandler.encryptMessage(
-                    context = context,
-                    text = viewModel.text,
-                    address = viewModel.address
-                ).first
             }
             viewModel.updateToRead(context)
             isMute = viewModel.isMuted(context)
             isArchived = viewModel.isArchived(context)
+        }
+    }
+
+    if(isSecured) {
+        LaunchedEffect(viewModel.text) {
+            if(viewModel.text.isBlank()) {
+                encryptedText = ""
+                shouldPulse = false
+            } else shouldPulse = true
+        }
+
+        LaunchedEffect(shouldPulse) {
+            if(shouldPulse)
+                coroutineScope.launch {
+                    delay(pulseRateMs)
+                    encryptedText = E2EEHandler.encryptMessage(
+                        context = context,
+                        text = viewModel.text,
+                        address = viewModel.address
+                    ).first
+                    shouldPulse = false
+                }
         }
     }
 
@@ -781,32 +803,15 @@ fun Conversations(
                         value = viewModel.text,
                         encryptedValue = encryptedText,
                         subscriptionId = viewModel.subscriptionId,
+                        shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
                             { openSimCardChooser = true}
                         } else null,
                         valueChanged = {
                             viewModel.text = it
-
-                            coroutineScope.launch {
-                                if (it.isEmpty()) {
-                                    viewModel.clearDraft(context)
-                                    encryptedText = ""
-                                }
-                                else {
-                                    viewModel.insertDraft(context)
-                                    if(isSecured)
-                                        encryptedText = E2EEHandler.encryptMessage(
-                                            context = context,
-                                            text = it,
-                                            address = viewModel.address
-                                        ).first
-                                }
-                            }
                         }
                     ) {
                         val text = viewModel.text
-                        encryptedText = ""
-                        viewModel.text = ""
                         sendSMS(
                             context = context,
                             text = text,
@@ -816,6 +821,7 @@ fun Conversations(
                             conversationsViewModel = viewModel
                         ) {
                             viewModel.text = ""
+                            encryptedText = ""
                             viewModel.clearDraft(context)
                         }
                     }

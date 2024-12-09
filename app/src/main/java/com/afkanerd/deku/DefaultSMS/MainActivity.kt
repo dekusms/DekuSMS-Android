@@ -277,4 +277,13 @@ class MainActivity : AppCompatActivity(){
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        CoroutineScope(Dispatchers.Default).launch {
+            if(conversationViewModel.text.isNotEmpty())
+                conversationViewModel.insertDraft(applicationContext)
+        }
+    }
+
 }

@@ -255,7 +255,7 @@ class ConversationsViewModel : ViewModel() {
 
     fun insertDraft(context: Context) {
         val conversation = Conversation();
-        conversation.message_id = "1"
+        conversation.message_id = System.currentTimeMillis().toString()
         conversation.thread_id = threadId
         conversation.text = text
         conversation.isRead = true
