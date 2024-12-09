@@ -540,9 +540,6 @@ fun ThreadConversationLayout(
 
     var inboxType by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
-//    val items: List<ThreadedConversations> by viewModel
-//        .getAllLiveData(context).observeAsState(emptyList())
-
     val items: List<Conversation> by conversationsViewModel
         .getThreading(context).observeAsState(emptyList())
 
@@ -572,9 +569,19 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
+    var rememberItemsIsEmpty by remember { mutableStateOf(false)}
+    var rememberArchivedIsEmpty by remember { mutableStateOf(false)}
 
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
+
+    LaunchedEffect(items) {
+        rememberItemsIsEmpty = items.isEmpty()
+    }
+
+    LaunchedEffect(archivedItems) {
+        rememberArchivedIsEmpty = archivedItems.isEmpty()
+    }
 
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED) {
@@ -812,6 +819,39 @@ fun ThreadConversationLayout(
                 modifier = Modifier.padding(innerPadding)
             ) {
 
+                when(inboxType) {
+                    InboxType.INBOX -> {
+                        if(items.isEmpty())
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    stringResource(R.string.homepage_no_message),
+                                    fontSize = 24.sp
+                                )
+                            }
+                    }
+                    InboxType.ARCHIVED -> {
+                        if(archivedItems.isEmpty())
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    stringResource(R.string.homepage_archive_no_message),
+                                    fontSize = 24.sp
+                                )
+                            }
+                    }
+                    InboxType.ENCRYPTED -> {}
+                    InboxType.BLOCKED -> {}
+                    InboxType.DRAFTS -> {}
+                    InboxType.MUTED -> {}
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState
@@ -954,7 +994,6 @@ fun ThreadConversationLayout(
                     }
                 }
 
-
                 if(rememberImportMenuExpanded) {
                     val importConversations by remember { mutableStateOf(conversationsViewModel
                         .importAll(context, detailsOnly = true)) }
@@ -981,6 +1020,7 @@ fun ThreadConversationLayout(
                         conversationsViewModel.importDetails = ""
                     }
                 }
+
             }
         }
 
