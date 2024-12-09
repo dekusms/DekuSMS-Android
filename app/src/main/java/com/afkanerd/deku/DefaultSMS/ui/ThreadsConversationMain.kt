@@ -170,8 +170,15 @@ fun SwipeToDeleteBackground(
     dismissState: SwipeToDismissBoxState? = null,
     inArchive: Boolean = false
 ) {
+    var arrangement = Arrangement.End
     val color = when(dismissState?.dismissDirection) {
-        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.primary
+        SwipeToDismissBoxValue.StartToEnd -> {
+            arrangement = Arrangement.Start
+            MaterialTheme.colorScheme.error
+        }
+        SwipeToDismissBoxValue.EndToStart -> {
+            MaterialTheme.colorScheme.primary
+        }
         SwipeToDismissBoxValue.Settled -> Color.Transparent
         else -> Color.Transparent
     }
@@ -181,12 +188,17 @@ fun SwipeToDeleteBackground(
             .background(color)
             .padding(12.dp, 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = arrangement
     ) {
         Icon(
-            when {
-                inArchive -> Icons.Default.Unarchive
-                else -> Icons.Default.Archive
+            when(dismissState?.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Delete
+                else -> {
+                    when {
+                        inArchive -> Icons.Default.Unarchive
+                        else -> Icons.Default.Archive
+                    }
+                }
             },
             tint = MaterialTheme.colorScheme.onPrimary,
             contentDescription = stringResource(R.string.messages_threads_menu_archive)
@@ -552,6 +564,7 @@ fun ThreadConversationLayout(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     var selectedItems = remember { mutableStateListOf<Conversation>() }
+    var slideDeleteItem = remember { mutableStateOf("") }
 
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
@@ -841,6 +854,11 @@ fun ThreadConversationLayout(
                             val dismissState = rememberSwipeToDismissBoxState(
                                 confirmValueChange = {
                                     when(it) {
+                                        SwipeToDismissBoxValue.StartToEnd -> {
+                                            slideDeleteItem.value = message.thread_id!!
+                                            rememberDeleteMenu = true
+                                            return@rememberSwipeToDismissBoxState false
+                                        }
                                         SwipeToDismissBoxValue.EndToStart -> {
                                             coroutineScope.launch {
                                                 when(inboxType) {
@@ -864,7 +882,6 @@ fun ThreadConversationLayout(
 
                             SwipeToDismissBox(
                                 state = dismissState,
-                                enableDismissFromStartToEnd = false,
                                 backgroundContent = {
                                     SwipeToDeleteBackground(
                                         dismissState,
@@ -923,7 +940,10 @@ fun ThreadConversationLayout(
                         confirmCallback = {
                             coroutineScope.launch {
                                 val threads: List<String> = selectedItems.map { it.thread_id!! }
-                                conversationsViewModel.deleteThreads(context, threads)
+                                conversationsViewModel.deleteThreads(context,
+                                    if(threads.isNotEmpty()) threads
+                                    else listOf<String>(slideDeleteItem.value)
+                                )
                                 selectedItems.clear()
                                 rememberDeleteMenu = false
                             }
