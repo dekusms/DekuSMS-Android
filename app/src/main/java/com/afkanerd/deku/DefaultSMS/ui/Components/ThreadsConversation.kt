@@ -133,10 +133,12 @@ private fun ThreadConversationsAvatar(
     phoneNumber: String,
     isContact: Boolean = true) {
 
-    val contactPhotoUri = remember(phoneNumber) { Contacts.retrieveContactPhoto(context, phoneNumber) }
 
     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
         if (isContact) {
+            val contactPhotoUri = remember(phoneNumber) {
+                Contacts.retrieveContactPhoto(context, phoneNumber)
+            }
             if (contactPhotoUri.isNotEmpty() && contactPhotoUri != "null") {
                 AsyncImage(
                     model = contactPhotoUri,

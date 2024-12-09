@@ -13,11 +13,14 @@ import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -30,9 +33,13 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import androidx.core.graphics.drawable.toBitmap
 import androidx.preference.PreferenceManager
+import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 
 object Notifications {
     const val KEY_TEXT_REPLY = "KEY_TEXT_REPLY"
@@ -121,7 +128,10 @@ object Notifications {
                 .build()
 
         val bitmap = Contacts.getContactBitmapPhoto(context, address)
-        val icon = if(bitmap != null) IconCompat.createWithBitmap(bitmap) else {
+        val icon = if(bitmap != null) {
+            IconCompat.createWithBitmap(
+                ConvenientMethods.getRoundedCornerImageBitmap(bitmap.asImageBitmap(), 100))
+        } else {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
                 IconCompat.createWithResource(context, R.drawable.baseline_account_circle_24)
             else null
