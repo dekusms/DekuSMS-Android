@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
@@ -99,6 +100,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
+import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.FailedMessageOptionsModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchCounterCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
@@ -509,6 +511,8 @@ fun Conversations(
     var shouldPulse by remember { mutableStateOf(false) }
     val pulseRateMs by remember { mutableLongStateOf(3000L) }
 
+    var rememberDeleteAlert by remember { mutableStateOf(false) }
+
     LaunchedEffect(items) {
         if(searchQuery.isNotBlank()) {
             coroutineScope.launch {
@@ -607,14 +611,7 @@ fun Conversations(
             isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
         },
         deleteCallback = {
-            coroutineScope.launch{
-                viewModel.deleteThread(context)
-            }
-            backHandler(
-                context = context,
-                viewModel = viewModel,
-                navController = navController,
-            )
+            rememberDeleteAlert = true
         },
         archiveCallback = {
             coroutineScope.launch{
@@ -1001,6 +998,27 @@ fun Conversations(
 
                 if(showSecureRequestModal)
                     showSecureRequestModal = false
+            }
+        }
+
+        if(rememberDeleteAlert) {
+            DeleteConfirmationAlert(
+                confirmCallback = {
+                    coroutineScope.launch {
+                        viewModel.deleteThread(context)
+                        rememberDeleteAlert = false
+                        (context as Activity).runOnUiThread {
+                            backHandler(
+                                context,
+                                viewModel,
+                                navController
+                            )
+                        }
+                    }
+                }
+            ) {
+                rememberDeleteAlert = false
+                selectedItems.clear()
             }
         }
     }

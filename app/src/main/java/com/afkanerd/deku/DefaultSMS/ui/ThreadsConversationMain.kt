@@ -54,6 +54,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Badge
@@ -138,6 +139,7 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
+import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.ImportDetails
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
@@ -556,6 +558,7 @@ fun ThreadConversationLayout(
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
+    var rememberDeleteMenu by remember { mutableStateOf( false)}
 
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
@@ -724,14 +727,10 @@ fun ThreadConversationLayout(
                             }
 
                             IconButton(onClick = {
-                                coroutineScope.launch {
-                                    val threads: List<String> = selectedItems.map{ it.thread_id!! }
-                                    conversationsViewModel.deleteThreads(context, threads)
-                                    selectedItems.clear()
-                                }
+                                rememberDeleteMenu = true
                             }) {
                                 Icon(
-                                    imageVector = Icons.Filled.Delete,
+                                    imageVector = Icons.Rounded.Delete,
                                     tint = selectedIconColors,
                                     contentDescription =
                                     stringResource(R.string.message_threads_menu_delete)
@@ -916,6 +915,22 @@ fun ThreadConversationLayout(
                                 )
                             }
                         }
+                    }
+                }
+
+                if(rememberDeleteMenu) {
+                    DeleteConfirmationAlert(
+                        confirmCallback = {
+                            coroutineScope.launch {
+                                val threads: List<String> = selectedItems.map { it.thread_id!! }
+                                conversationsViewModel.deleteThreads(context, threads)
+                                selectedItems.clear()
+                                rememberDeleteMenu = false
+                            }
+                        }
+                    ) {
+                        rememberDeleteMenu = false
+                        selectedItems.clear()
                     }
                 }
 

@@ -328,5 +328,7 @@
     <string name="threads">"Threads: "</string>
     <string name="archive">Archive</string>
     <string name="select_a_conversation_from_the_list_on_the_left">Select a conversation from the list on the left</string>
+    <string name="import_conversations">Import Conversations</string>
+    <string name="reset_and_import">Reset and Import</string>
 
 </resources>

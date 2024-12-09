@@ -59,6 +59,55 @@ import java.nio.file.WatchEvent
 
 @Preview
 @Composable
+fun DeleteConfirmationAlert(
+    confirmCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
+) {
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        title = {
+            Text(
+                stringResource(R.string.messages_thread_delete_confirmation_title),
+                color = MaterialTheme.colorScheme.onSecondary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.messages_thread_delete_confirmation_text),
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {
+            TextButton(
+                onClick = { confirmCallback?.invoke() }
+            ) {
+                Text(
+                    stringResource(R.string.messages_thread_delete_confirmation_yes),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
+}
+
+@Preview
+@Composable
 fun ImportDetails(
     numOfConversations: Int = 0,
     numOfThreads: Int = 0,
@@ -70,7 +119,7 @@ fun ImportDetails(
         backgroundColor = MaterialTheme.colorScheme.secondary,
         title = {
             Text(
-                "Import Conversations",
+                stringResource(R.string.import_conversations),
                 color = MaterialTheme.colorScheme.onSecondary,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(8.dp)
@@ -97,7 +146,7 @@ fun ImportDetails(
                     onClick = {resetConfirmCallback?.invoke()}
                 ) {
                     Text(
-                        "Reset and Import",
+                        stringResource(R.string.reset_and_import),
                         color = MaterialTheme.colorScheme.tertiaryContainer
                     )
                 }
@@ -106,7 +155,7 @@ fun ImportDetails(
                 onClick = { confirmCallback?.invoke() }
             ) {
                 Text(
-                    "Import",
+                    stringResource(R.string.conversation_menu_import),
                     color = MaterialTheme.colorScheme.tertiaryContainer
                 )
             }
