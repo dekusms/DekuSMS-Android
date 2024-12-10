@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,8 +72,9 @@ fun ContactDetails (
     navController: NavController,
 ) {
 
+    val context = LocalContext.current
     val phoneNumber = conversationViewModel.address
-    val contactDetails = contactsViewModel.getContactDetails(LocalContext.current, phoneNumber)
+    val contactDetails = contactsViewModel.getContactDetails(context, phoneNumber)
 
     val isContact = contactDetails.isContact
     val contactPhotoUri = contactDetails.contactPhotoUri
@@ -163,7 +166,10 @@ fun ContactDetails (
             Spacer(modifier = Modifier.height(8.dp))
 
             Row {
-                IconButton(onClick = { /* Handle call action */ }) {
+                IconButton(onClick = {
+                    val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber"))
+                    context.startActivity(intent)
+                }) {
                     Box(
                         modifier = Modifier
                             .size(48.dp)

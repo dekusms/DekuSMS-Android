@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity(){
                             )
                         }
 
-                        composable<ContactDetailsScreen> { backStackEntry ->
+                        composable<ContactDetailsScreen> {
                             ContactDetails(
                                 contactsViewModel = contactsViewModel,
                                 conversationViewModel = conversationViewModel,
