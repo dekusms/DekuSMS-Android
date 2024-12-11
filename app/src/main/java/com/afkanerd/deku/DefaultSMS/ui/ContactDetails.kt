@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.util.Log
 import android.widget.Toast
@@ -66,6 +67,7 @@ import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -73,6 +75,9 @@ import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +85,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 fun ContactDetails (
     conversationViewModel: ConversationsViewModel,
     searchViewModel: SearchViewModel,
+    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     navController: NavController,
 ) {
 
@@ -93,7 +99,8 @@ fun ContactDetails (
         conversationViewModel.address) )}
     val contactName by remember { mutableStateOf(conversationViewModel.contactName) }
     val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationViewModel.address)) }
-//    val isBlocked by remember { mutableStateOf(conversationViewModel.) }
+    val isBlocked by remember { mutableStateOf( BlockedNumberContract.isBlocked(context, conversationViewModel.address)) }
+
 
     val clipboardManager = LocalClipboardManager.current
 
@@ -306,7 +313,9 @@ fun ContactDetails (
                     modifier = Modifier
                         .padding(8.dp)
                 ) {
-                    TextButton(onClick = { /* Handle notifications click */ }) {
+                    TextButton(onClick = {
+                        TODO()
+                    }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -325,7 +334,10 @@ fun ContactDetails (
                     }
 
                     TextButton(onClick = {
-                        ConvenientMethods.blockContact(context, conversationViewModel.threadId, phoneNumber)
+                        if(isBlocked) {
+                            TODO()
+                        }
+
                     }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
