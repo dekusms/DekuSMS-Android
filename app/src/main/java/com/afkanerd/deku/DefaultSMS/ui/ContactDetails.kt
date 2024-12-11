@@ -1,7 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
+import android.os.Build
+import android.provider.ContactsContract
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +34,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -80,7 +89,21 @@ fun ContactDetails (
     val contactPhotoUri = contactDetails.contactPhotoUri
     val isEncryptionEnabled = contactDetails.isEncryptionEnabled
     val contactName = contactDetails.contactName
-    val id = contactDetails.id
+    var id: Long? = null
+    var lookupKey: String? = null
+
+    context.contentResolver.query(
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        arrayOf(ContactsContract.Contacts._ID, ContactsContract.Contacts.LOOKUP_KEY),
+        ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?",
+        arrayOf(phoneNumber),
+        null
+    )?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
+            lookupKey = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.LOOKUP_KEY))
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -189,42 +212,63 @@ fun ContactDetails (
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Row {
-                    IconButton(onClick = { /* Handle edit action */ }) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .clip(CircleShape)
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.Edit,
-                                contentDescription = "Call",
-                                modifier = Modifier.size(24.dp)
-                            )
+                    if (isContact) {
+                        IconButton(onClick = {
+                            try {
+                                val contactUri = getContactUriFromPhoneNumber(context, phoneNumber)
+                                if (contactUri != null) {
+                                    val editIntent = Intent(Intent.ACTION_EDIT)
+                                    editIntent.setDataAndType(contactUri, ContactsContract.Contacts.CONTENT_ITEM_TYPE)
+                                    editIntent.putExtra("finishActivityOnSaveCompleted", true)
+                                    context.startActivity(editIntent)
+                                } else {
+                                    Toast.makeText(context, "Contact not found", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Failed to open editor: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Log.e("ContactDetails", "Failed to open editor", e)
+                            }
+                        }) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                    .clip(CircleShape)
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = "Edit",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        IconButton(onClick = {
+                            val addContactIntent = Intent(ContactsContract.Intents.Insert.ACTION)
+                            addContactIntent.type = ContactsContract.RawContacts.CONTENT_TYPE
+                            addContactIntent.putExtra(ContactsContract.Intents.Insert.PHONE, phoneNumber)
+                            context.startActivity(addContactIntent)
+                        }) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                    .clip(CircleShape)
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonAdd,
+                                    contentDescription = "Add Contact",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                IconButton(onClick = { /* Handle action */ }) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                            .clip(CircleShape)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = "About",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -385,6 +429,37 @@ fun ContactDetails (
         }
     }
 }
+
+fun getContactUriFromPhoneNumber(context: Context, phoneNumber: String): Uri? {
+    var contactUri: Uri? = null
+    val projection = arrayOf(
+        ContactsContract.Contacts._ID,
+        ContactsContract.Contacts.LOOKUP_KEY
+    )
+    val selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?"
+    val selectionArgs = arrayOf(phoneNumber)
+
+    val cursor = context.contentResolver.query(
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        projection,
+        selection,
+        selectionArgs,
+        null
+    )
+
+    cursor?.use {
+        if (it.moveToFirst()) {
+            val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
+            val lookupKeyIndex = it.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
+            val id = it.getLong(idIndex)
+            val lookupKey = it.getString(lookupKeyIndex)
+            contactUri = ContactsContract.Contacts.getLookupUri(id, lookupKey)
+        }
+    }
+
+    return contactUri
+}
+
 
 @Preview(showBackground = true)
 @Composable
