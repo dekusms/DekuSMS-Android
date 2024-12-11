@@ -110,6 +110,7 @@ class MainActivity : AppCompatActivity(){
                         composable<ContactDetailsScreen> {
                             ContactDetails(
                                 conversationViewModel = conversationViewModel,
+                                searchViewModel = searchViewModel,
                                 navController = navController,
                             )
                         }

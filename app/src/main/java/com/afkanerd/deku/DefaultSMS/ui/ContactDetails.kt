@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -48,6 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -62,17 +65,21 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactDetails (
     conversationViewModel: ConversationsViewModel,
+    searchViewModel: SearchViewModel,
     navController: NavController,
 ) {
 
@@ -86,6 +93,9 @@ fun ContactDetails (
         conversationViewModel.address) )}
     val contactName by remember { mutableStateOf(conversationViewModel.contactName) }
     val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationViewModel.address)) }
+//    val isBlocked by remember { mutableStateOf(conversationViewModel.) }
+
+    val clipboardManager = LocalClipboardManager.current
 
     Scaffold(
         topBar = {
@@ -265,7 +275,10 @@ fun ContactDetails (
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                IconButton(onClick = { /* Handle search action */ }) {
+                IconButton(onClick = {
+                    searchViewModel.threadId = conversationViewModel.threadId
+                    navController.navigate(SearchThreadScreen)
+                }) {
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -311,7 +324,9 @@ fun ContactDetails (
                         }
                     }
 
-                    TextButton(onClick = { /* Handle block & report spam click */ }) {
+                    TextButton(onClick = {
+                        ConvenientMethods.blockContact(context, conversationViewModel.threadId, phoneNumber)
+                    }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -411,7 +426,11 @@ fun ContactDetails (
                                 style = MaterialTheme.typography.bodyMedium
                             )
 
-                            IconButton(onClick = { /* Handle copy phone number action */ }) {
+                            IconButton(onClick = {
+                                val clipData = ClipData.newPlainText("plain text", phoneNumber)
+                                val clipEntry = ClipEntry(clipData)
+                                clipboardManager.setClip(clipEntry)
+                            }) {
                                 Icon(
                                     Icons.Outlined.ContentCopy,
                                     contentDescription = "Copy Phone Number"
@@ -431,6 +450,7 @@ fun ContactDetailsPreview() {
     val conversationViewModel = ConversationsViewModel()
     ContactDetails(
         conversationViewModel = conversationViewModel,
+        searchViewModel = SearchViewModel(),
         navController = rememberNavController()
     )
 }
