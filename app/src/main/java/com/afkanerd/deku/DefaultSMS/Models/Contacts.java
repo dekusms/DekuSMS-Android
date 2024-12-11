@@ -112,6 +112,33 @@ public class Contacts {
         return null;
     }
 
+    public static Uri retrieveContactUri(Context context, String phoneNumber) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber));
+        Cursor cursor = context.getContentResolver().query(
+                uri,
+                null,
+                null,
+                null, null);
+
+        if(cursor == null)
+            return null;
+
+        try {
+            if(cursor.moveToFirst()) {
+                int idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID);
+                int lookupKeyIndex = cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY);
+                long id = cursor.getLong(idIndex);
+                String lookupKey = cursor.getString(lookupKeyIndex);
+                return ContactsContract.Contacts.getLookupUri(id, lookupKey);
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return null;
+    }
+
     public static String retrieveContactPhoto(Context context, String phoneNumber) {
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
         Cursor cursor = context.getContentResolver().query(

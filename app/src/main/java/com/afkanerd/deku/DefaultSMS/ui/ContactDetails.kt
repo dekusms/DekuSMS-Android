@@ -1,11 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.ContactsContract
 import android.util.Log
 import android.widget.Toast
@@ -25,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Call
@@ -33,7 +29,6 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
@@ -46,13 +41,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -67,43 +62,30 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.R
-import kotlin.text.take
-import kotlin.text.uppercase
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactDetails (
-    contactsViewModel: ContactsViewModel,
     conversationViewModel: ConversationsViewModel,
     navController: NavController,
 ) {
 
     val context = LocalContext.current
-    val phoneNumber = conversationViewModel.address
-    val contactDetails = contactsViewModel.getContactDetails(context, phoneNumber)
+    val phoneNumber by remember { mutableStateOf(conversationViewModel.address) }
 
-    val isContact = contactDetails.isContact
-    val contactPhotoUri = contactDetails.contactPhotoUri
-    val isEncryptionEnabled = contactDetails.isEncryptionEnabled
-    val contactName = contactDetails.contactName
-    var id: Long? = null
-    var lookupKey: String? = null
-
-    context.contentResolver.query(
-        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-        arrayOf(ContactsContract.Contacts._ID, ContactsContract.Contacts.LOOKUP_KEY),
-        ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?",
-        arrayOf(phoneNumber),
-        null
-    )?.use { cursor ->
-        if (cursor.moveToFirst()) {
-            id = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
-            lookupKey = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.LOOKUP_KEY))
-        }
-    }
+    val isContact by remember { mutableStateOf(Contacts.retrieveContactUri(context, phoneNumber) != null) }
+    val contactPhotoUri by remember { mutableStateOf(Contacts
+        .retrieveContactPhoto(context, conversationViewModel.address) )}
+    val isEncryptionEnabled by remember { mutableStateOf(E2EEHandler.isSecured(context,
+        conversationViewModel.address) )}
+    val contactName by remember { mutableStateOf(conversationViewModel.contactName) }
+    val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationViewModel.address)) }
 
     Scaffold(
         topBar = {
@@ -129,6 +111,7 @@ fun ContactDetails (
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isContact) {
+                    Log.d("ContactDetails", "is contact: $isContact")
                     if (contactPhotoUri != null && contactPhotoUri != "null") {
                         AsyncImage(
                             model = contactPhotoUri,
@@ -143,8 +126,8 @@ fun ContactDetails (
                                 .size(75.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    remember(id, contactName) {
-                                        Color("$id / $contactName".toHslColor())
+                                    remember(contactName) {
+                                        Color(contactName.toHslColor())
                                     }
                                 ),
                             contentAlignment = Alignment.Center
@@ -159,6 +142,7 @@ fun ContactDetails (
                         }
                     }
                 } else {
+                    Log.d("ContactDetails", "Default Avatar")
                     Icon(
                         Icons.Filled.Person,
                         contentDescription = "Default Avatar",
@@ -189,33 +173,36 @@ fun ContactDetails (
             Spacer(modifier = Modifier.height(8.dp))
 
             Row {
-                IconButton(onClick = {
-                    val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber"))
-                    context.startActivity(intent)
-                }) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                            .clip(CircleShape)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Call,
-                            contentDescription = "Call",
-                            modifier = Modifier.size(24.dp)
-                        )
+                if (!isShortCode) {
+                    IconButton(onClick = {
+                        val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber"))
+                        context.startActivity(intent)
+                    }) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                .clip(CircleShape)
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Call,
+                                contentDescription = "Call",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
 
                 Row {
                     if (isContact) {
                         IconButton(onClick = {
                             try {
-                                val contactUri = getContactUriFromPhoneNumber(context, phoneNumber)
+                                val contactUri = Contacts.retrieveContactUri(context, phoneNumber)
+
                                 if (contactUri != null) {
                                     val editIntent = Intent(Intent.ACTION_EDIT)
                                     editIntent.setDataAndType(contactUri, ContactsContract.Contacts.CONTENT_ITEM_TYPE)
@@ -232,7 +219,10 @@ fun ContactDetails (
                             Box(
                                 modifier = Modifier
                                     .size(48.dp)
-                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                    .background(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        CircleShape
+                                    )
                                     .clip(CircleShape)
                                     .padding(8.dp),
                                 contentAlignment = Alignment.Center
@@ -244,7 +234,7 @@ fun ContactDetails (
                                 )
                             }
                         }
-                    } else {
+                    } else if(!isShortCode) {
                         IconButton(onClick = {
                             val addContactIntent = Intent(ContactsContract.Intents.Insert.ACTION)
                             addContactIntent.type = ContactsContract.RawContacts.CONTENT_TYPE
@@ -254,7 +244,10 @@ fun ContactDetails (
                             Box(
                                 modifier = Modifier
                                     .size(48.dp)
-                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                    .background(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        CircleShape
+                                    )
                                     .clip(CircleShape)
                                     .padding(8.dp),
                                 contentAlignment = Alignment.Center
@@ -324,14 +317,14 @@ fun ContactDetails (
                         ) {
                             Icon(
                                 Icons.Outlined.Block,
-                                contentDescription = "Block and Report",
+                                contentDescription = "Block",
                                 tint = Color.Red
                             )
 
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Text(
-                                text = stringResource(R.string.block_report_spam),
+                                text = stringResource(R.string.conversation_menu_block),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Red
                             )
@@ -397,31 +390,33 @@ fun ContactDetails (
 
             }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
+            if (!isShortCode) {
+                Card(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
                     ) {
-                        Text(
-                            text = phoneNumber,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        IconButton(onClick = { /* Handle copy phone number action */ }) {
-                            Icon(
-                                Icons.Outlined.ContentCopy,
-                                contentDescription = "Copy Phone Number"
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = phoneNumber,
+                                style = MaterialTheme.typography.bodyMedium
                             )
+
+                            IconButton(onClick = { /* Handle copy phone number action */ }) {
+                                Icon(
+                                    Icons.Outlined.ContentCopy,
+                                    contentDescription = "Copy Phone Number"
+                                )
+                            }
                         }
                     }
                 }
@@ -430,44 +425,11 @@ fun ContactDetails (
     }
 }
 
-fun getContactUriFromPhoneNumber(context: Context, phoneNumber: String): Uri? {
-    var contactUri: Uri? = null
-    val projection = arrayOf(
-        ContactsContract.Contacts._ID,
-        ContactsContract.Contacts.LOOKUP_KEY
-    )
-    val selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?"
-    val selectionArgs = arrayOf(phoneNumber)
-
-    val cursor = context.contentResolver.query(
-        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-        projection,
-        selection,
-        selectionArgs,
-        null
-    )
-
-    cursor?.use {
-        if (it.moveToFirst()) {
-            val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
-            val lookupKeyIndex = it.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
-            val id = it.getLong(idIndex)
-            val lookupKey = it.getString(lookupKeyIndex)
-            contactUri = ContactsContract.Contacts.getLookupUri(id, lookupKey)
-        }
-    }
-
-    return contactUri
-}
-
-
 @Preview(showBackground = true)
 @Composable
 fun ContactDetailsPreview() {
-    val contactsViewModel = ContactsViewModel()
     val conversationViewModel = ConversationsViewModel()
     ContactDetails(
-        contactsViewModel = contactsViewModel,
         conversationViewModel = conversationViewModel,
         navController = rememberNavController()
     )

@@ -85,21 +85,4 @@ class ContactsViewModel : ViewModel() {
         contactsMutableLiveData?.postValue(contactsList)
     }
 
-    fun getContactDetails(context: Context, phoneNumber: String): ContactDetailsData {
-        val contactName = Contacts.retrieveContactName(context, phoneNumber)
-        val contactPhotoUri = Contacts.retrieveContactPhoto(context, phoneNumber)
-        val isContact = contactName != null
-        val isEncryptionEnabled = E2EEHandler.isSecured(context, phoneNumber)
-
-        val name = contactName ?: ""
-
-        return ContactDetailsData(
-            phoneNumber = phoneNumber,
-            contactPhotoUri = contactPhotoUri,
-            isContact = isContact,
-            isEncryptionEnabled = isEncryptionEnabled,
-            contactName = name,
-            id = null
-        )
-    }
 }

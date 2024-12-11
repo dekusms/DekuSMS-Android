@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity(){
     val viewModel: ThreadedConversationsViewModel by viewModels()
     val conversationViewModel: ConversationsViewModel by viewModels()
     val searchViewModel: SearchViewModel by viewModels()
-    val contactsViewModel: ContactsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,7 +109,6 @@ class MainActivity : AppCompatActivity(){
 
                         composable<ContactDetailsScreen> {
                             ContactDetails(
-                                contactsViewModel = contactsViewModel,
                                 conversationViewModel = conversationViewModel,
                                 navController = navController,
                             )
