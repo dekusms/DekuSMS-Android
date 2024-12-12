@@ -29,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
@@ -196,6 +197,7 @@ fun ChatCompose(
     else "",
     valueChanged: ((String) -> Unit)? = null,
     subscriptionId: Int = -1,
+    shouldPulse: Boolean = LocalInspectionMode.current,
     simCardChooserCallback: (() -> Unit)? = null,
     sentCallback: (() -> Unit)? = null
 ) {
@@ -214,12 +216,14 @@ fun ChatCompose(
             .padding(start = 8.dp, end = 8.dp)
             .weight(1f)
             .fillMaxSize()) {
+            if(shouldPulse)
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 
             if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
                 Text(
                     encryptedValue,
                     modifier = Modifier
-                        .basicMarquee()
+                        .verticalScroll(rememberScrollState())
                         .padding(16.dp),
                     maxLines = 4,
                     color = MaterialTheme.colorScheme.secondary,
@@ -263,10 +267,9 @@ fun ChatCompose(
             }
 
             if(encryptedValue.isNotBlank() || value.isNotBlank()) {
-                val length by remember{ mutableStateOf(
-                    if(inPreviewMode) "10/140"
-                    else getSMSCount(context,
-                        if(encryptedValue.isNotBlank()) encryptedValue else value)) }
+                val length = if(inPreviewMode) "10/140"
+                else getSMSCount(context,
+                    if(encryptedValue.isNotBlank()) encryptedValue else value)
                 Text(
                     length,
                     color= MaterialTheme.colorScheme.secondary,

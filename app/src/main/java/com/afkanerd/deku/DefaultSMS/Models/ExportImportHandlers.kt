@@ -3,10 +3,14 @@ package com.afkanerd.deku.DefaultSMS.Models
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.provider.DocumentsContract
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
 
 object ExportImportHandlers {
+
+    val exportRequestCode = 777
+    val importRequestCode = 666
 
     fun exportInbox(context: Context) {
         // Request code for creating a PDF document.
@@ -23,7 +27,25 @@ object ExportImportHandlers {
         startActivityForResult(
             context as Activity,
             intent,
-            777,
+            exportRequestCode,
+            null
+        )
+    }
+
+    fun importInbox(context: Context) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+
+            // Optionally, specify a URI for the file that should appear in the
+            // system file picker when it loads.
+//            putExtra(DocumentsContract.EXTRA_INITIAL_URI)
+        }
+
+        startActivityForResult(
+            context as Activity,
+            intent,
+            importRequestCode,
             null
         )
     }

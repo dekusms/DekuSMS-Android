@@ -196,7 +196,7 @@
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">Delete</string>
-    <string name="conversation_menu_unarchive">unarchive</string>
+    <string name="conversation_menu_unarchive">Unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
     <string name="conversation_menu_export">Export</string>
@@ -322,6 +322,7 @@
     <string name="conversation_is_secured">Conversation is secured</string>
     <string name="compose_new">Compose new</string>
     <string name="compose">Compose</string>
+
     <string name="notifications">Notifications</string>
     <string name="block_report_spam"><![CDATA[Block & report spam]]></string>
     <string name="end_to_end_encryption">End-to-end encryption</string>
@@ -331,5 +332,16 @@
     <string name="on">On</string>
     <string name="off">Off</string>
     <string name="phone_number_copied_to_clipboard">Copied \'%1$s\' to clipboard</string>
+    <string name="contact_is_blocked">Contact is blocked</string>
+    <string name="conversation_menu_import">Import</string>
+    <string name="conversations">"Conversations: "</string>
+    <string name="threads">"Threads: "</string>
+    <string name="archive">Archive</string>
+    <string name="select_a_conversation_from_the_list_on_the_left">Select a conversation from the list on the left</string>
+    <string name="import_conversations">Import Conversations</string>
+    <string name="reset_and_import">Reset and Import</string>
+
+    <string name="block">Block</string>
+    <string name="unblock">Unblock</string>
 
 </resources>

@@ -13,47 +13,57 @@ import androidx.room.Update
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsSearch
 
 @Dao
 interface ConversationDao {
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
-    fun get(thread_id: String): PagingSource<Int, Conversation>
-
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getLiveData(thread_id: String): LiveData<MutableList<Conversation>>
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getDefault(thread_id: String): MutableList<Conversation?>?
 
-    @Query("SELECT *, max(date) as date FROM Conversation " +
-            "WHERE type IS NOT 3 AND isArchived = '0' AND isBlocked = '0' GROUP BY thread_id ORDER BY date DESC")
+    @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
+            "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
+            "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreading(): LiveData<MutableList<Conversation>>
 
-    @Query("SELECT *, max(date) as date FROM Conversation " +
-            "WHERE isArchived = '1' AND isBlocked = '0' GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingArchived(): LiveData<MutableList<Conversation>>
+    @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
+            "ON c.thread_id = tc.threadId " +
+            "WHERE " +
+            "(type IS NOT 3 AND text like '%' || :searchString || '%') AND " +
+            "(tc.isArchive = '0' OR tc.threadId IS NULL )" +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingSearch(searchString: String): List<Conversation>
 
-    @Query("SELECT *, max(date) as date FROM Conversation " +
-            "WHERE isSecured = '1' AND isBlocked = '0' GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingEncrypted(): LiveData<MutableList<Conversation>>
-
-    @Query("SELECT *, max(date) as date FROM Conversation " +
-            "WHERE isBlocked = '1' GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingBlocked(): LiveData<MutableList<Conversation>>
+    @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
+            "ON c.thread_id = tc.threadId " +
+            "WHERE c.thread_id = :threadId AND " +
+            "(type IS NOT 3 AND text like '%' || :searchString || '%') AND " +
+            "(tc.isArchive = '0' OR tc.threadId IS NULL )" +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingSearch(searchString: String, threadId: String): List<Conversation>
 
     @Query("SELECT *, max(date) as date FROM Conversation " +
             "WHERE type = 3 GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingDrafts(): LiveData<MutableList<Conversation>>
 
-    @Query("SELECT *, max(date) as date FROM Conversation " +
-            "WHERE isMute = '1' GROUP BY thread_id ORDER BY date DESC")
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isArchive = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingArchived(): LiveData<MutableList<Conversation>>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isMute = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     fun getAll(thread_id: String): MutableList<Conversation?>?
-
-    @Query("SELECT * FROM Conversation WHERE thread_id =:threadId ORDER BY date DESC LIMIT 1")
-    fun fetchLatestForThread(threadId: String): Conversation?
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     fun getComplete(): MutableList<Conversation>
@@ -84,10 +94,10 @@ interface ConversationDao {
     fun updateRead(isRead: Boolean, threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
-    fun delete(threadId: String): Int
+    fun deleteThread(threadId: String): Int
 
     @Query("DELETE FROM Conversation WHERE thread_id IN (:threadIds)")
-    fun deleteAll(threadIds: List<String>)
+    fun deleteAllThreads(threadIds: List<String>)
 
     @Query("DELETE FROM Conversation")
     fun deleteEvery()
@@ -98,10 +108,6 @@ interface ConversationDao {
     @Transaction
     fun deleteAllType(context: Context, type: Int, thread_id: String) {
         _deleteAllType(type, thread_id)
-        val conversation = fetchLatestForThread(thread_id)
-        if (conversation != null) Datastore.getDatastore(context)
-            .threadedConversationsDao()
-            .insertThreadFromConversation(context, conversation)
     }
 
     @Delete
@@ -110,41 +116,29 @@ interface ConversationDao {
     @Delete
     fun delete(conversation: List<Conversation>): Int
 
-    @Query("UPDATE Conversation SET isArchived = '0' WHERE thread_id = :threadId")
-    fun unarchive(threadId: String)
-
-    @Query("UPDATE Conversation SET isArchived = '1' WHERE thread_id  IN(:threadIds)")
-    fun unarchive(threadIds: List<String>)
-
-    @Query("UPDATE Conversation SET isArchived = '1' WHERE thread_id = :threadId")
-    fun archive(threadId: String)
-
-    @Query("UPDATE Conversation SET isArchived = '1' WHERE thread_id IN (:threadsIds)")
-    fun archive(threadsIds: List<String>)
-
-    @Query("UPDATE Conversation SET isMute = '1' WHERE thread_id = :threadId")
-    fun mute(threadId: String)
-
-    @Query("UPDATE Conversation SET isMute = '0' WHERE thread_id = :threadId")
-    fun unMute(threadId: String)
-
-    @Query("UPDATE Conversation SET isBlocked = '1' WHERE thread_id = :threadId")
-    fun block(threadId: String)
-
-    @Query("UPDATE Conversation SET isBlocked = '0' WHERE thread_id = :threadId")
-    fun unBlock(threadId: String)
-
-    @Query("UPDATE Conversation SET isSecured = :isSecured WHERE thread_id = :threadId")
-    fun updateSecured(threadId: String, isSecured: Boolean)
-
-
     @Query("SELECT " +
-            "SUM(CASE WHEN isSecured = '1' THEN 1 ELSE 0 END) as encryptedCount, " +
             "SUM(CASE WHEN isArchived = '1' THEN 1 ELSE 0 END) as archivedCount, " +
             "SUM(CASE WHEN read = '0' AND isArchived = '0' THEN 1 ELSE 0 END) as unreadCount, " +
-            "SUM(CASE WHEN isBlocked = '1' THEN 1 ELSE 0 END) as blockedCount, " +
-            "SUM(CASE WHEN isMute = '1' THEN 1 ELSE 0 END) as mutedCount, " +
             "SUM(CASE WHEN type = 3 THEN 1 ELSE 0 END) as draftsCount " +
             "FROM Conversation")
     fun getFullCounts(): ThreadsCount
+
+//    @Query(
+//        "SELECT COUNT(Conversation.id) as count, Conversation.thread_id as threadId, " +
+//                "Conversation.text, Conversation.date " +
+//                "FROM Conversation " +
+//                "where thread_id = :threadId and text like '%' || :searchString || '%' " +
+//                "GROUP BY thread_id ORDER BY Conversation.date DESC"
+//    )
+//    fun searchThreadId(searchString: String, threadId: String): MutableList<ThreadsSearch>
+//
+//    @Query(
+//        "SELECT COUNT(Conversation.id) as count, Conversation.thread_id as threadId, " +
+//                "Conversation.text, Conversation.date " +
+//                "FROM Conversation, ThreadedConversations " +
+//                "where text like '%' || :searchString || '%' and " +
+//                "Conversation.thread_id = ThreadedConversations.thread_id " +
+//                "GROUP BY ThreadedConversations.thread_id ORDER BY Conversation.date DESC"
+//    )
+//    fun search(searchString: String): MutableList<ThreadsSearch>
 }

@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -46,11 +49,129 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.util.TableInfo
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import java.nio.file.WatchEvent
+
+@Preview
+@Composable
+fun DeleteConfirmationAlert(
+    confirmCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
+) {
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        title = {
+            Text(
+                stringResource(R.string.messages_thread_delete_confirmation_title),
+                color = MaterialTheme.colorScheme.onSecondary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.messages_thread_delete_confirmation_text),
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {
+            TextButton(
+                onClick = { confirmCallback?.invoke() }
+            ) {
+                Text(
+                    stringResource(R.string.messages_thread_delete_confirmation_yes),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
+}
+
+@Preview
+@Composable
+fun ImportDetails(
+    numOfConversations: Int = 0,
+    numOfThreads: Int = 0,
+    confirmCallback: (() -> Unit)? = null,
+    resetConfirmCallback: (() -> Unit)? = null,
+    dismissCallback: (() -> Unit)? = null,
+) {
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        title = {
+            Text(
+                stringResource(R.string.import_conversations),
+                color = MaterialTheme.colorScheme.onSecondary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.threads) + numOfThreads,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+                Text(
+                    stringResource(R.string.conversations) + numOfConversations,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {
+            if(BuildConfig.DEBUG)
+                TextButton(
+                    onClick = {resetConfirmCallback?.invoke()}
+                ) {
+                    Text(
+                        stringResource(R.string.reset_and_import),
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                }
+
+            TextButton(
+                onClick = { confirmCallback?.invoke() }
+            ) {
+                Text(
+                    stringResource(R.string.conversation_menu_import),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
+}
 
 @Composable
 private fun ThreadConversationsAvatar(
@@ -61,10 +182,12 @@ private fun ThreadConversationsAvatar(
     phoneNumber: String,
     isContact: Boolean = true) {
 
-    val contactPhotoUri = remember(phoneNumber) { Contacts.retrieveContactPhoto(context, phoneNumber) }
 
     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
         if (isContact) {
+            val contactPhotoUri = remember(phoneNumber) {
+                Contacts.retrieveContactPhoto(context, phoneNumber)
+            }
             if (contactPhotoUri.isNotEmpty() && contactPhotoUri != "null") {
                 AsyncImage(
                     model = contactPhotoUri,
@@ -110,23 +233,26 @@ fun ThreadConversationCard(
     unreadCount: Int = 0,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
-    isMuted: Boolean = false,
+    isMuted: Boolean = LocalInspectionMode.current,
+    isBlocked: Boolean = LocalInspectionMode.current,
     type: Int? = if(LocalInspectionMode.current)
         Telephony.Sms.MESSAGE_TYPE_FAILED else null
 ) {
-    val colorHeadline = MaterialTheme.colorScheme.onBackground
+    var weight = FontWeight.Bold
+    val colorHeadline = when {
+        isRead || isBlocked -> {
+            weight = FontWeight.Normal
+            MaterialTheme.colorScheme.secondary
+        }
+        else -> MaterialTheme.colorScheme.onBackground
+    }
     val colorContent = when(type) {
         Telephony.Sms.MESSAGE_TYPE_FAILED ->
             MaterialTheme.colorScheme.error
         Telephony.Sms.MESSAGE_TYPE_OUTBOX -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.onBackground
+        else -> colorHeadline
     }
-    var weight = FontWeight.Bold
 
-    if(isRead) {
-        MaterialTheme.colorScheme.secondary
-        weight = FontWeight.Normal
-    }
     ListItem(
         modifier = modifier,
         colors = ListItemDefaults.colors(
@@ -143,8 +269,10 @@ fun ThreadConversationCard(
                 )
 
                 if(isMuted)
-                    Icon(Icons.AutoMirrored.Default.VolumeOff,
-                        stringResource(R.string.thread_muted))
+                    Icon(Icons.AutoMirrored.Default.VolumeOff, stringResource(R.string.thread_muted))
+
+                if(isBlocked)
+                    Icon(Icons.Filled.Block, stringResource(R.string.contact_is_blocked))
             }
         },
         supportingContent = {

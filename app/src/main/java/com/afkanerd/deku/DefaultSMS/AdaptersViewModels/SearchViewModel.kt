@@ -14,33 +14,25 @@ import kotlinx.coroutines.launch
 import java.util.ArrayList
 
 class SearchViewModel : ViewModel() {
-    var liveData: MutableLiveData<MutableList<ThreadedConversations>> = MutableLiveData()
+    var liveData: MutableLiveData<List<Conversation>> = MutableLiveData()
 
     var threadId: String? = null
-    var databaseConnector: Datastore? = null
 
-    fun get(): LiveData<MutableList<ThreadedConversations>> {
+    fun get(): LiveData<List<Conversation>> {
         return liveData
     }
 
     fun search(context: Context, input: String) {
         if(input.isBlank()) {
-            liveData.value = mutableListOf<ThreadedConversations>()
+            liveData.value = mutableListOf<Conversation>()
         }
         else {
             CoroutineScope(Dispatchers.Default).launch {
-                val datastore = Datastore.getDatastore(context).threadedConversationsDao()
+                val datastore = Datastore.getDatastore(context).conversationDao()
                 val results = if(!threadId.isNullOrBlank())
-                    datastore.searchThreadId(input, threadId!!)
-                else datastore.search(input)
-                val ids: List<String> = results.flatMap { listOf(it.threadId) }
-                val threads = datastore.getList(ids).apply {
-                    forEachIndexed { index, it ->
-                        it.unread_count = results[index].count
-                        it.date = results[index].date
-                    }
-                }
-                liveData.postValue(threads)
+                    datastore.getAllThreadingSearch(input, threadId!!)
+                else datastore.getAllThreadingSearch(input)
+                liveData.postValue(results)
             }
         }
     }

@@ -293,5 +293,20 @@ dependencies {
     // Coil Image Library
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    implementation(libs.androidx.datastore.preferences)
+
+    // optional - RxJava2 support
+    implementation(libs.androidx.datastore.preferences.rxjava2)
+
+    // optional - RxJava3 support
+    implementation(libs.androidx.datastore.preferences.rxjava3)
+
+    implementation libs.androidx.window
+    androidTestImplementation libs.androidx.window.testing
+
+    // Needed to use lifecycleScope to collect the WindowLayoutInfo flow
+    implementation libs.androidx.lifecycle.runtime.ktx
+
 }
 

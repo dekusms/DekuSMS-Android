@@ -71,10 +71,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Deprecated.ComposeNewMessageActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ThreadedConversationsActivity" />
-        <activity
             android:name="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
@@ -90,8 +86,7 @@
 
         <activity
             android:name=".AboutActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ThreadedConversationsActivity" />
+            android:exported="false"/>
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
@@ -102,41 +97,18 @@
             android:parentActivityName=".SettingsActivity" />
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ThreadedConversationsActivity" />
+            android:exported="false"/>
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ConversationActivity" />
-        <activity
-            android:name=".RespondViaMessageActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+            android:exported="false"/>
+
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ThreadedConversationsActivity" />
-        <activity
-            android:name=".SearchMessagesThreadsActivity"
-            android:exported="false"
-            android:parentActivityName=".Deprecated.ThreadedConversationsActivity">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.SEARCH"/> -->
-            <!-- </intent-filter> -->
-            <!-- <meta-data android:name="android.app.searchable" -->
-            <!-- android:resource="@xml/searchable"/> -->
-            <!-- <meta-data android:name="android.app.default_searchable" -->
-            <!-- android:value=".SearchMessagesThreadsActivity"/> -->
-        </activity>
-
+            android:exported="false"/>
         <activity
             android:name=".DefaultCheckActivity"
             android:exported="true">
@@ -193,7 +165,7 @@
         </receiver>
 
         <service
-            android:name=".RespondViaMessageActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>

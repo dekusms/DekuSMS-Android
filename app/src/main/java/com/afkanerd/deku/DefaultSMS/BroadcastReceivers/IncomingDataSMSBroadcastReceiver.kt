@@ -7,6 +7,7 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Base64
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
@@ -79,20 +80,16 @@ class IncomingDataSMSBroadcastReceiver : BroadcastReceiver() {
                     }
                     conversation.isIs_key = true
                     conversation.isIs_encrypted = isSecured
+                    conversation.isData = true
 
                     val finalIsSelf = isSelf
                     CoroutineScope(Dispatchers.Default).launch {
-                        val threadedConversations =
-                            databaseConnector!!.threadedConversationsDao()
-                                .insertThreadAndConversation(context, conversation)
-                        threadedConversations.isSelf = finalIsSelf
-                        databaseConnector!!.threadedConversationsDao()
-                            .update(context, threadedConversations)
+                        val conversations =
+                            databaseConnector!!.conversationDao()._insert(conversation)
 
-                        if (!threadedConversations.isIs_mute) NotificationsHandler.sendIncomingTextMessageNotification(
-                            context,
-                            conversation
-                        )
+                        if (!ConversationsViewModel().isMuted(context, conversation.thread_id))
+                            NotificationsHandler
+                                .sendIncomingTextMessageNotification( context, conversation )
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()

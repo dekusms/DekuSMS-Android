@@ -209,4 +209,6 @@
     <string name="on">Вкл.</string>
     <string name="off">Выкл.</string>
     <string name="phone_number_copied_to_clipboard">Скопировано \'%1$s\' в буфер обмена</string>
+    <string name="block">Заблокировать</string>
+    <string name="unblock">Разблокировать</string>
 </resources>

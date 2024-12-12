@@ -2,7 +2,6 @@ package java.com.afkanerd.deku.DefaultSMS.Commons
 
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import org.junit.Test
 
 @SmallTest

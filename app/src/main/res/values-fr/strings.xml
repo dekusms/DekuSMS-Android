@@ -188,4 +188,6 @@
     <string name="on">Activé</string>
     <string name="off">Désactivé</string>
     <string name="phone_number_copied_to_clipboard">Copié \'%1$s\' dans le presse-papiers</string>
+    <string name="block">Bloquer</string>
+    <string name="unblock">Débloquer</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.content.ClipData
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.BlockedNumberContract
@@ -31,6 +30,7 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
@@ -46,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -64,10 +66,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -83,26 +83,32 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactDetails (
-    conversationViewModel: ConversationsViewModel,
+    conversationsViewModel: ConversationsViewModel,
     searchViewModel: SearchViewModel,
-    threadConversationsViewModel: ThreadedConversationsViewModel = ThreadedConversationsViewModel(),
     navController: NavController,
 ) {
 
     val context = LocalContext.current
-    val phoneNumber by remember { mutableStateOf(conversationViewModel.address) }
+    val phoneNumber by remember { mutableStateOf(conversationsViewModel.address) }
 
     val isContact by remember { mutableStateOf(Contacts.retrieveContactUri(context, phoneNumber) != null) }
     val contactPhotoUri by remember { mutableStateOf(Contacts
-        .retrieveContactPhoto(context, conversationViewModel.address) )}
+        .retrieveContactPhoto(context, conversationsViewModel.address) )}
     val isEncryptionEnabled by remember { mutableStateOf(E2EEHandler.isSecured(context,
-        conversationViewModel.address) )}
-    val contactName by remember { mutableStateOf(conversationViewModel.contactName) }
-    val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationViewModel.address)) }
-    val isBlocked by remember { mutableStateOf( BlockedNumberContract.isBlocked(context, conversationViewModel.address)) }
+        conversationsViewModel.address) )}
+    val contactName by remember { mutableStateOf(conversationsViewModel.contactName) }
+    val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationsViewModel.address)) }
+    val inPreviewMode = LocalInspectionMode.current
+    var isBlocked by remember { mutableStateOf(
+        if(!inPreviewMode)
+            BlockedNumberContract .isBlocked(context, phoneNumber)
+        else false
+    ) }
 
 
     val clipboardManager = LocalClipboardManager.current
+    var isMute by remember { mutableStateOf(false) }
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     Scaffold(
         topBar = {
@@ -283,7 +289,7 @@ fun ContactDetails (
                 Spacer(modifier = Modifier.width(16.dp))
 
                 IconButton(onClick = {
-                    searchViewModel.threadId = conversationViewModel.threadId
+                    searchViewModel.threadId = conversationsViewModel.threadId
                     navController.navigate(SearchThreadScreen)
                 }) {
                     Box(
@@ -314,13 +320,17 @@ fun ContactDetails (
                         .padding(8.dp)
                 ) {
                     TextButton(onClick = {
-                        TODO()
+                        coroutineScope.launch {
+                            if (isMute) conversationsViewModel.unMute(context)
+                            else conversationsViewModel.mute(context)
+                            isMute = conversationsViewModel.isMuted(context)
+                        }
                     }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                Icons.Outlined.Notifications,
+                                if (isMute) Icons.Outlined.NotificationsOff else Icons.Outlined.Notifications, // Change icon based on isMute
                                 contentDescription = "Notification"
                             )
 
@@ -334,10 +344,12 @@ fun ContactDetails (
                     }
 
                     TextButton(onClick = {
-                        if(isBlocked) {
-                            TODO()
+                        if (isBlocked) {
+                            conversationsViewModel.unblock(context)
+                        } else {
+                            ConvenientMethods.blockContact(context, phoneNumber)
                         }
-
+                        isBlocked = BlockedNumberContract.isBlocked(context, conversationsViewModel.address)
                     }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -351,7 +363,7 @@ fun ContactDetails (
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Text(
-                                text = stringResource(R.string.conversation_menu_block),
+                                text = if (isBlocked) stringResource(R.string.unblock) else stringResource(R.string.block),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Red
                             )
@@ -461,7 +473,7 @@ fun ContactDetails (
 fun ContactDetailsPreview() {
     val conversationViewModel = ConversationsViewModel()
     ContactDetails(
-        conversationViewModel = conversationViewModel,
+        conversationsViewModel = conversationViewModel,
         searchViewModel = SearchViewModel(),
         navController = rememberNavController()
     )
