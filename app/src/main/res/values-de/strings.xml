@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Deku SMS</string>
+    <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
+    <string name="incoming_messages_channel_name">Eingehende Nachrichten</string>
+    <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>
+    <string name="foreground_service_failed_channel_name" translatable="false">Gateway clients auto-reconnect</string>
+    <string name="message_failed_channel_name" translatable="false">Message Failed</string>
+
+    <string name="incoming_messages_channel_description">Wird aufgerufen, wenn eine neue Nachricht empfangen wird.</string>
+    <string name="running_gateway_clients_channel_description">Benachrichtigungen, wenn Gateway-Clients lauschen.</string>
+    <string name="foreground_service_failed_channel_description">Klicken, um Gateway-Clients wieder zu verbinden</string>
+    <string name="message_failed_notifications_descriptions">Benachrichtigungen erhalten, wenn Nachrichten fehlschlagen</string>
+
+    <string name="gateway_client_service_notification_id" translatable="false">100000000</string>
+    <string name="message_failed_notification_id" translatable="false">100000001</string>
+
+    <string name="search_messages_text">Nachrichten durchsuchen</string>
+
+    <string name="no_showable_router_message">Keine weitergeleitete Nachricht zum Anzeigen!</string>
+
+    <string name="save_new_gateway_client">Speichern</string>
+    <string name="new_gateway_server_url">URL eingeben - z.B. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_tag">(Optional) Kennzeichnungs-Tag</string>
+    <string name="new_gateway_client_url">URL eingeben - z.B. example.com <i>(Protokoll nicht eingeben)</i></string>
+    <string name="new_gateway_client_username">Benutzernamen eingeben</string>
+    <string name="new_gateway_client_password">Passwort eingeben</string>
+    <string name="new_gateway_client_friendly_name">Einen Anzeigenamen eingeben - z.B. Beispielknoten</string>
+    <string name="new_gateway_client_virtualhost_name">Einen Virtualhost eingeben - <i>Standard /</i></string>
+    <string name="new_gateway_client_port">Port: <i>Standard 5672</i></string>
+    <string name="homepage_menu_archived">Archiviert</string>
+    <string name="homepage_menu_routed">Nachrichtenweiterleitung</string>
+    <string name="homepage_menu_clear_draft">Alle Entwürfe löschen</string>
+    <string name="homepage_menu_clear_mark_all_read">Alle als gelesen markieren</string>
+    <string name="homepage_menu_unmute_all">Stummschaltung aller aufheben</string>
+    <string name="homepage_menu_clear_mark_unread">Als ungelesen markieren</string>
+    <string name="homepage_menu_clear_mark_read">Als gelesen markieren</string>
+    <string name="homepage_no_message">Senden Sie Ihre erste Nachricht</string>
+    <string name="homepage_draft_no_message">Keine Entwürfe vorhanden</string>
+    <string name="homepage_archive_no_message">Keine archivierten Nachrichten vorhanden</string>
+    <string name="homepage_blocked_no_message">Keine blockierten Kontakte</string>
+    <string name="homepage_muted_no_muted">Keine stummgeschalteten Kontakte</string>
+    <string name="homepage_unread_no_message">Keine ungelesenen Nachrichten</string>
+    <string name="homepage_encryption_no_message">Keine Kontakte für verschlüsselte Kommunikation</string>
+    <string name="no_gateway_server_added">Kein Gateway-Server hinzugefügt</string>
+    <string name="gateway_server_listing_toolbar_title">SMS-Routing-Gateways</string>
+    <string name="gateway_client_listing_toolbar_title">SMS-Empfangs-Gateways</string>
+    <string name="add_new_gateway_server_toolbar_title">Gateway hinzufügen</string>
+
+    <string name="gateway_server_update">Aktualisieren</string>
+    <string name="add_new_gateway_server_http">HTTPS-Gateway-Server hinzufügen</string>
+    <string name="add_new_gateway_server_ftp">FTP-Gateway-Server hinzufügen</string>
+    <string name="add_new_gateway_server_smtp">SMTP-Gateway-Server hinzufügen</string>
+    <string name="add_new_gateway_server_smtp_host">Host</string>
+    <string name="add_new_gateway_server_smtp_username">Benutzername</string>
+    <string name="add_new_gateway_server_smtp_password">Passwort</string>
+    <string name="add_new_gateway_server_smtp_port">Port</string>
+    <string name="add_new_gateway_server_smtp_recipient">Empfänger</string>
+    <string name="add_new_gateway_server_smtp_recipient_helper">Verwenden Sie Kommas für mehrere Empfänger, z. B. example@email.com, example1@email.com</string>
+    <string name="add_new_gateway_server_smtp_from">Von</string>
+    <string name="add_new_gateway_server_smtp_subject">(Optional) Betreff</string>
+    <string name="add_new_gateway_server_smtp_add">Hinzufügen</string>
+    <string name="notifications_reply_label">Antworten</string>
+    <string name="notifications_mark_as_read_label">Als gelesen markieren</string>
+    <string name="notification_title_new_key">Anfrage für sichere Kommunikation</string>
+    <string name="notification_title_reply_you">Sie</string>
+    <string name="messages_thread_you">Sie:</string>
+    <string name="messages_thread_encrypted_content">Geschützter Inhalt</string>
+    <string name="messages_thread_encrypted_content_label">Geschützt</string>
+    <string name="search_nothing_found">Nichts gefunden</string>
+    <string name="default_check_text">Um Deku SMS zu verwenden, legen Sie es als Ihre Standard-SMS-App fest</string>
+    <string name="default_check_btn_text">Standard-SMS-App festlegen</string>
+    <string name="default_check_privacy_policy">Lesen Sie unsere Datenschutzrichtlinie</string>
+    <string name="sms_status_delivered">Zugestellt</string>
+    <string name="sms_status_sent">Gesendet</string>
+    <string name="sms_status_sending">Senden…</string>
+    <string name="sms_status_failed">Fehlgeschlagen, klicken Sie zum Wiederholen.</string>
+    <string name="sms_status_failed_only">Fehlgeschlagen</string>
+
+    <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
+    <string name="settings_locale" translatable="false">settings_locale</string>
+    <string name="settings_locale_description">Sprache wählen</string>
+    <string name="gateway_server_settings_locale_description">Automatisches Protokoll-Routing aktivieren</string>
+    <string name="gateway_server_settings_locale_summary">Aktivieren Sie diese Option, um jeweils nur an ein Protokoll weiterzuleiten. Dies beginnt mit HTTP und führt eine Round-Robin-Suche für die anderen Protokolle durch. Verwenden Sie diese Option, um zu vermeiden, dass dieselbe Nachricht an mehrere Protokolle gesendet wird.</string>
+    <string name="settings_about">Über</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="gateway_server_settings_title">Gateway-Server-Einstellungen</string>
+    <string name="settings_advanced_category_title">Erweitert</string>
+    <string name="settings_developer_category_title">Entwickler</string>
+    <string name="settings_security_category_end_to_end_duration">Anfrage für Verschlüsselung ablaufen lassen</string>
+    <string name="settings_security_category_end_to_end_disable">Anfrage zum Sichern von Nachrichten deaktivieren</string>
+    <string name="settings_security_category_end_to_end_disable_summary">Beeinträchtigt nicht die Kontakte, mit denen Sie bereits sicher kommunizieren, aber Sie werden nicht aufgefordert, die Kommunikation mit anderen Kontakten zu sichern</string>
+    <string name="settings_security_category_end_to_end_duration_summary">Wenn diese Option aktiviert ist, läuft die an Kontakte gesendete Verschlüsselungsanfrage nach <b>1 Stunde</b> ab, wenn sie nicht bestätigt wird.</string>
+    <string name="settings_SMS_routing_title">Weitergeleiteter Verlauf</string>
+    <string name="settings_SMS_listening_title">SMS-Empfang</string>
+    <string name="settings_SMS_listening_server">SMS-Empfangs-Gateways konfigurieren</string>
+    <string name="settings_SMS_listening_SMSWithoutBorders_summary">Konfigurationen für den Empfang von SMS-Nachrichten über AMQP/s</string>
+    <string name="gateway_client_add_manually_title">Manuell hinzufügen</string>
+    <string name="settings_SMS_routing_type_base64_option">Base64</string>
+    <string name="settings_SMS_routing_type_all_option">Alle (Standard)</string>
+    <string name="settings_add_gateway_client_protocol_description">Wählen Sie das Empfangsprotokoll</string>
+    <string name="settings_add_gateway_server_protocol_meta_description">Alle POSTs werden als JSON-Formate weitergeleitet.\nAlle Formate verwenden das folgende Schlüssel/Wert-Format:\n\n<b>MSISDN</b>:-Die Adresse der eingehenden Nachricht im E.164-Format\n\n<b>text</b>:-Der Textkörper der eingehenden Nachricht</string>
+    <string name="settings_gateway_server_protocol_description">Protokoll</string>
+    <string name="settings_gateway_client_username_description">Benutzername</string>
+    <string name="settings_gateway_server_data_format_description">Datenformat</string>
+    <string name="settings_gateway_client_virtualhost_description">Virtueller Host</string>
+    <string name="settings_gateway_client_cannot_be_empty">Darf nicht leer sein!</string>
+    <string name="settings_gateway_client_default_virtualhost" translatable="false">/</string>
+    <string name="settings_gateway_client_default_port" translatable="false">5672</string>
+    <string name="settings_gateway_client_amqp_protocol" translatable="false">AMQP</string>
+    <string name="settings_gateway_client_amqps_protocol" translatable="false">AMQP/SSL</string>
+    <string name="gateway_client_project_name">Projektnamen eingeben - (Exchange)</string>
+    <string name="gateway_client_project_binding">Projektbindung eingeben - <i>(Standard project_name.operator_country.operator_name)</i></string>
+    <string name="gateway_client_no_available_gateway_clients">Keine Gateway-Clients zum Empfangen vorhanden</string>
+    <string name="gateway_client_customization_connected">Verbunden</string>
+    <string name="gateway_client_customization_activate">Aktivieren</string>
+    <string name="gateway_client_customization_deactivate">Deaktivieren</string>
+    <string name="gateway_client_customization_deactivated">Deaktiviert</string>
+    <string name="gateway_client_customization_reconnecting">Verbindung wird wiederhergestellt</string>
+    <string name="gateway_client_customization_delete">Löschen</string>
+    <string name="gateway_client_customization_edit">Bearbeiten</string>
+    <string name="gateway_client_running_title">Gateway-Client: Knoten läuft</string>
+    <string name="gateway_client_running_description">Gateway-Clients verbunden</string>
+    <string name="gateway_client_reconnecting_description">Gateway-Clients verbinden sich wieder…</string>
+    <string name="gateway_client_enqueue_description">Gateway-Clients warten auf Verbindung…</string>
+    <string name="homepage_fragment_tab_encrypted">Verschlüsselt</string>
+    <string name="messages_thread_delete_confirmation_title">Löschen bestätigen</string>
+    <string name="messages_thread_delete_confirmation_text">Mit dem Löschen der Threads fortfahren.</string>
+    <string name="messages_thread_delete_confirmation_yes">Ja</string>
+    <string name="messages_thread_delete_confirmation_cancel">Abbrechen</string>
+    <string name="single_message_thread_yesterday">Gestern</string>
+    <string name="sim_chooser_layout_text">Nachricht senden über</string>
+    <string name="linked_devices_scan_qr_code_title">QR-Code für verknüpfte Geräte</string>
+    <string name="message_threads_menu_delete">löschen</string>
+    <string name="message_threads_menu_cancel">abbrechen</string>
+    <string name="messages_threads_menu_archive">archivieren</string>
+    <string name="about_deku">Über</string>
+    <string name="about_deku_motto">Open-Source-SMS richtig gemacht</string>
+    <string name="about_deku_github_titile" translatable="false">GitHub</string>
+    <string name="about_deku_github_description">Deku SMS bleibt kostenlos und Open Source. Wir glauben daran, der Community etwas zurückzugeben, die uns so viel gegeben hat. Vieles an dieser App ist experimentell, aber mit großartigen Experimenten kommen großartige Erkenntnisse. Bitte unterstützen Sie uns, indem Sie das Projekt auf Github mit einem Stern versehen und es mit Ihren Freunden teilen.</string>
+    <string name="about_deku_github_btn">Auf GitHub ansehen</string>
+    <string name="about_deku_github_url" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android</string>
+    <string name="send_message_text_box_hint">SMS-Nachricht</string>
+    <string name="send_message_secured_text_box_hint">SMS-Nachricht (gesichert)</string>
+    <string name="conversations_menu_call_title">Anrufen</string>
+    <string name="conversations_menu_encrypt_title">Verschlüsseln</string>
+    <string name="conversations_menu_secure_title">Sichern</string>
+    <string name="conversations_menu_unblock_manager">Blockierte Kontakte verwalten</string>
+    <string name="conversations_menu_unblock">Entsperren</string>
+    <string name="conversations_menu_block_toast">Kontakt erfolgreich blockiert</string>
+    <string name="conversations_menu_search_title">Suchen</string>
+    <string name="conversations_menu_refresh_title">Aktualisieren</string>
+    <string name="conversations_search_results_found">Ergebnisse gefunden</string>
+    <string name="conversation_copied">Kopiert!</string>
+    <string name="conversation_contact_modal_details_address_label">Kontaktinformationen</string>
+    <string name="router_list_gateways">Gateway-Server anzeigen</string>
+    <string name="conversation_menu_copy">kopieren</string>
+    <string name="conversation_menu_delete">Löschen</string>
+    <string name="conversation_menu_unarchive">Dearchivieren</string>
+    <string name="conversation_menu_share">Teilen</string>
+    <string name="conversation_menu_block">Blockieren</string>
+    <string name="conversation_menu_export">Exportieren</string>
+    <string name="conversation_menu_mute">Stummschalten</string>
+    <string name="conversation_menu_muted_label">Stummgeschaltet</string>
+    <string name="conversation_menu_unmute">Stummschaltung aufheben</string>
+    <string name="conversation_menu_muted">Kontakt ist jetzt stummgeschaltet!</string>
+    <string name="conversation_menu_unmuted">Stummschaltung des Kontakts wurde aufgehoben!</string>
+    <string name="conversation_menu_view_details">Details anzeigen</string>
+    <string name="conversation_menu_view_replay">Wiedergeben</string>
+    <string name="conversation_menu_view_details_title">Nachrichtendetails</string>
+    <string name="conversation_menu_view_details_type">Typ:\u00A0</string>
+    <string name="conversation_menu_view_details_type_text">SMS-Nachricht</string>
+    <string name="conversation_menu_view_details_type_data">Datennachricht</string>
+    <string name="conversation_menu_view_details_from">Von:\u00A0</string>
+    <string name="conversation_menu_view_details_to">An:\u00A0</string>
+    <string name="conversation_menu_view_details_sent">Gesendet:\u00A0</string>
+    <string name="conversation_menu_view_details_received">Empfangen:\u00A0</string>
+    <string name="conversation_secure_popup_text">Klicken, um eine sichere Unterhaltung anzufordern</string>
+    <string name="conversation_threads_secured_content">Geschützter Inhalt</string>
+    <string name="conversation_key_title_requested">Sicherheit angefordert</string>
+    <string name="conversation_secure_popup_request_menu_yes">Senden</string>
+    <string name="conversation_secure_popup_request_menu_cancel">Abbrechen</string>
+    <string name="conversation_secure_popup_request_menu_title">Anfrage für sichere Unterhaltung</string>
+    <string name="conversation_secure_popup_request_menu_description">Eine Anfrage für sichere Kommunikation sendet eine SMS an diesen Kontakt. \n\nDieser muss Deku SMS installiert haben, um diese Anfrage zu erhalten.</string>
+    <string name="conversation_secure_popup_request_menu_description_subtext">* Es fallen weiterhin SMS-Kosten an</string>
+    <string name="conversation_shortcode_description">Kann nicht auf diesen Shortcode antworten</string>
+    <string name="conversation_shortcode_action_button">Mehr erfahren</string>
+    <string name="conversation_shortcode_learn_more_text">Shortcodes sind lokale oder personalisierte Nummern zum Senden internationaler SMS-Nachrichten.\n\nSie können auf reine Zahlen-Shortcodes antworten, aber nicht auf Codes mit Buchstaben und Zahlen, wie z. B. \"MSG007\".</string>
+    <string name="conversation_shortcode_learn_more_ok" translatable="false">OK</string>
+    <string name="thread_conversation_type_draft">Entwurf</string>
+    <string name="thread_conversation_timestamp_yesterday">Gestern</string>
+
+    <!-- settings language -->
+    <string name="language_english">Englisch</string>
+    <string name="language_french">Französisch</string>
+    <string name="language_russian">Russisch</string>
+    <string name="language_german">Deutsch</string>
+
+    <string name="conversations_navigation_view_drafts">Entwürfe</string>
+    <string name="conversations_navigation_view_archived">Archiviert</string>
+    <string name="conversations_navigation_view_unread">Ungelesen</string>
+    <string name="conversations_navigation_view_encryption">Verschlüsselt</string>
+    <string name="conversations_navigation_view_blocked">Blockiert</string>
+    <string name="conversations_navigation_view_folders_label">Ordner</string>
+    <string name="conversations_navigation_view_inbox">Posteingang</string>
+    <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
+    <string name="conversations_exported_complete">Export abgeschlossen!</string>
+    <string name="gateway_client_project_listing_project_name_title">Projektname</string>
+    <string name="gateway_client_project_listing_no_projects_added">Keine Projekte hinzugefügt</string>
+    <string name="conversations_secure_conversation_request"><b>John</b> hat eine sichere Unterhaltung angefordert.</string>
+    <string name="conversations_secure_conversation_request_agree">Zustimmen und sichern!</string>
+    <string name="conversations_secure_conversation_request_information">Sie können eine Anfrage zum Verschlüsseln von Nachrichten an alle senden, die Deku SMS verwenden. Sobald sie zustimmen, können Sie beide sicher miteinander kommunizieren.</string>
+    <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
+    <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Mehr erfahren</string>
+    <string name="route_incoming_messages_of_format">Eingehende Nachrichten des Formats weiterleiten</string>
+    <string name="gateway_server_routing_state_success">Erfolgreich</string>
+    <string name="gateway_server_routing_state_failed">Fehlgeschlagen</string>
+    <string name="gateway_server_routing_state_enqueued">In Warteschlange</string>
+    <string name="gateway_server_routing_state_cancelled">Abgebrochen</string>
+    <string name="gateway_server_routing_state_running">Läuft</string>
+    <string name="gateway_client_add_edit_add_gateway_client">Gateway-Client hinzufügen</string>
+    <string name="message_failed_send_notification_description_a_message_failed_to_send_to">Eine Nachricht konnte nicht an </string>
+
+    <string name="compose_new_message_to">An</string>
+    <string name="compose_new_message_title">Neue Unterhaltung</string>
+    <string name="this_message_failed_to_send">Diese Nachricht konnte nicht gesendet werden.</string>
+    <string name="try_again">Erneut versuchen</string>
+    <string name="request">Anfrage senden</string>
+    <string name="secure_communication_requested">-- Anfrage für sichere Kommunikation gesendet --</string>
+    <string name="secure_communications_request_received">-- Anfrage für sichere Kommunikation empfangen --</string>
+    <string name="secured">Gesichert</string>
+    <string name="search_messages">Nachrichten durchsuchen</string>
+    <string name="open_menu">Menü öffnen</string>
+    <string name="compose_new_message">Neue Nachricht verfassen</string>
+    <string name="open_side_menu">Seitenmenü öffnen</string>
+    <string name="call">Anrufen</string>
+    <string name="text_message">SMS-Nachricht</string>
+    <string name="send_message">Nachricht senden</string>
+    <string name="copy_message">Nachricht kopieren</string>
+    <string name="delete_message">Nachricht löschen</string>
+    <string name="share_message">Nachricht teilen</string>
+    <string name="forward_message">Nachricht weiterleiten</string>
+    <string name="request_secure_communication">Sichere Kommunikation anfordern</string>
+    <string name="go_back">Zurück</string>
+    <string name="type_names_or_phone_numbers">Namen oder Telefonnummern eingeben</string>
+    <string name="selected">ausgewählt</string>
+    <string name="cancel_selection">Auswahl abbrechen</string>
+    <string name="sms">SMS</string>
+    <string name="folders">Ordner</string>
+    <string name="inbox_folder">Posteingang</string>
+    <string name="archive_folder">Archiv</string>
+    <string name="encrypted_folder">Verschlüsselter Ordner</string>
+    <string name="blocked_folder">Blockierter Ordner</string>
+    <string name="move_search_backwards">Suche rückwärts bewegen</string>
+    <string name="move_search_forwards">Suche vorwärts bewegen</string>
+    <string name="results_found">Ergebnisse gefunden</string>
+    <string name="down_to_latest_content">Zum neuesten Inhalt</string>
+    <string name="cancel_selected_messages">Ausgewählte Nachrichten abbrechen</string>
+    <string name="cancel_search">Suche abbrechen</string>
+    <string name="unarchive_messages">Nachrichten dearchivieren</string>
+    <string name="thread_muted">Thread stummgeschaltet</string>
+    <string name="secure_request">Sicherheitsanfrage</string>
+    <string name="resend_message">Nachricht erneut senden</string>
+    <string name="delete_message1">Nachricht löschen</string>
+    <string name="send_to">Senden an </string>
+    <string name="choose_sim_card">SIM-Karte wählen</string>
+    <string name="conversation_is_secured">Unterhaltung ist gesichert</string>
+    <string name="compose_new">Neu verfassen</string>
+    <string name="compose">Verfassen</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="block_report_spam"><![CDATA[Blockieren & Spam melden]]></string>
+    <string name="end_to_end_encryption">Ende-zu-Ende-Verschlüsselung</string>
+    <string name="end_to_end_encrypt">Ende-zu-Ende-Verschlüsselung: </string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">Ende-zu-Ende-Verschlüsselung ist in dieser Unterhaltung nicht verfügbar.</string>
+    <string name="end_to_end_encryption_is_available_in_this_conversation">Ende-zu-Ende-Verschlüsselung ist in dieser Unterhaltung verfügbar</string>
+    <string name="on">Ein</string>
+    <string name="off">Aus</string>
+    <string name="phone_number_copied_to_clipboard">\'%1$s\' in die Zwischenablage kopiert</string>
+    <string name="contact_is_blocked">Kontakt ist blockiert</string>
+    <string name="conversation_menu_import">Importieren</string>
+    <string name="conversations">Unterhaltungen: </string>
+    <string name="threads">Threads: </string>
+    <string name="archive">Archivieren</string>
+    <string name="select_a_conversation_from_the_list_on_the_left">Wählen Sie eine Unterhaltung aus der Liste auf der linken Seite aus</string>
+    <string name="import_conversations">Unterhaltungen importieren</string>
+    <string name="reset_and_import">Zurücksetzen und importieren</string>
+    <string name="block">Blockieren</string>
+    <string name="unblock">Entsperren</string>
+
+
+</resources>
