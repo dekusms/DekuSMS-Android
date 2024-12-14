@@ -6,11 +6,13 @@ import android.telephony.PhoneNumberUtils
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
-import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.Commons.ContactDetailsData
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isSecured
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
+
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.i18n.phonenumbers.NumberParseException
 import java.util.ArrayList

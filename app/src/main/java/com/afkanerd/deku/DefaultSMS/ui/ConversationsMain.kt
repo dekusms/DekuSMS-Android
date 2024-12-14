@@ -10,6 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -83,10 +84,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.ContactDetailsScreen
+import com.afkanerd.deku.DefaultSMS.HomeScreen
 import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -666,7 +671,7 @@ fun Conversations(
                 title = {
                     if(searchQuery.isBlank()) {
                         TextButton(onClick = {
-
+                            navController.navigate(ContactDetailsScreen)
                         }) {
                             Column {
                                 Row {

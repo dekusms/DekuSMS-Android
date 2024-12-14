@@ -38,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -46,6 +47,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.Models.ExportImportHandlers
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
+import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
 import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
@@ -74,6 +76,8 @@ object ConversationsScreen
 object ComposeNewMessageScreen
 @Serializable
 object SearchThreadScreen
+@Serializable
+object ContactDetailsScreen
 
 class MainActivity : AppCompatActivity(){
 
@@ -196,9 +200,11 @@ class MainActivity : AppCompatActivity(){
                             composable<ComposeNewMessageScreen>{
                                 ComposeNewMessageScreenComposable()
                             }
-
                             composable<SearchThreadScreen>{
                                 SearchThreadScreenComposable()
+                            }
+                            composable<ContactDetailsScreen>{
+                                ContactDetailsScreenComposable()
                             }
                         }
                         else {
@@ -273,6 +279,15 @@ class MainActivity : AppCompatActivity(){
         SearchThreadsMain(
             viewModel = searchViewModel,
             conversationsViewModel = conversationViewModel,
+            navController = navController
+        )
+    }
+
+    @Composable
+    fun ContactDetailsScreenComposable() {
+        ContactDetails(
+            conversationsViewModel = conversationViewModel,
+            searchViewModel = searchViewModel,
             navController = navController
         )
     }
