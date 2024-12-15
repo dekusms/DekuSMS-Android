@@ -134,7 +134,6 @@ fun ContactDetails (
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isContact) {
-                    Log.d("ContactDetails", "is contact: $isContact")
                     if (contactPhotoUri != null && contactPhotoUri != "null") {
                         AsyncImage(
                             model = contactPhotoUri,
@@ -165,7 +164,6 @@ fun ContactDetails (
                         }
                     }
                 } else {
-                    Log.d("ContactDetails", "Default Avatar")
                     Icon(
                         Icons.Filled.Person,
                         contentDescription = "Default Avatar",

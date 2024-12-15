@@ -1,10 +1,13 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.provider.Telephony
 import android.text.Layout
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -67,6 +70,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 
 @Serializable
 object HomeScreen
@@ -118,6 +122,7 @@ class MainActivity : AppCompatActivity(){
 
     override fun onResume() {
         super.onResume()
+        checkIsDefault()
     }
 
 
@@ -298,6 +303,19 @@ class MainActivity : AppCompatActivity(){
         CoroutineScope(Dispatchers.Default).launch {
             if(conversationViewModel.text.isNotEmpty())
                 conversationViewModel.insertDraft(applicationContext)
+        }
+    }
+
+    fun checkIsDefault() {
+        val defaultName = Telephony.Sms.getDefaultSmsPackage(applicationContext)
+        if(defaultName.isNullOrBlank() || packageName != defaultName) {
+            when {
+                ContextCompat.checkSelfPermission(applicationContext,
+                    Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED -> {
+                    startActivity(Intent(this, DefaultCheckActivity::class.java))
+                    finish()
+                }
+            }
         }
     }
 
