@@ -80,24 +80,6 @@ build-aab:
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${aab_output}
 
-release-draft: release.properties bump_version build-apk build-aab 
-	# If running this script directly, should always be dev branch
-	@echo "+ Target branch for relase: ${branch}"
-	@git tag -f ${tagVersion}
-	@git push origin ${branch_name}
-	@git push --tag
-	@python3 release.py \
-		--version_code ${tagVersion} \
-		--version_name ${label} \
-		--description "New release: ${label} - build No:${tagVersion}" \
-		--branch ${branch} \
-		--track "internal" \
-		--app_bundle_file apk-outputs/${aab_output} \
-		--app_apk_file apk-outputs/${apk_output} \
-		--status "draft" \
-		--platform "all" \
-		--github_url "${github_url}"
-
 test-flight:
 	# check if builds can be signed
 	@if [ ! -f "app/keys/app-release-key.jks" ]; then \
