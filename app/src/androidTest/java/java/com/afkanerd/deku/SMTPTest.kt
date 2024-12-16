@@ -26,8 +26,8 @@ class SMTPTest {
     @Before
     fun init() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
-        val inputStream = context.resources.openRawResource(R.raw.smtp)
-        properties.load(inputStream)
+//        val inputStream = context.resources.openRawResource(R.raw.smtp)
+//        properties.load(inputStream)
         properties.put("mail.smtp.host", properties.getProperty("host"))
         properties.put("mail.smtp.port", properties.getProperty("port"))
         properties.put("mail.debug", "true");

@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.provider.Telephony;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 public class ThreadedConversationsHandler {

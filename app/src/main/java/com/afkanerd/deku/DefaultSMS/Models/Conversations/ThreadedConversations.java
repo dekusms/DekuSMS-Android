@@ -59,6 +59,17 @@ public class ThreadedConversations {
     private String avatar_image;
      private int msg_count;
 
+    public int getUnread_count() {
+        return unread_count;
+    }
+
+    public void setUnread_count(int unread_count) {
+        this.unread_count = unread_count;
+    }
+
+    @ColumnInfo(defaultValue = "0")
+    private int unread_count;
+
      private int type;
 
      private String date;

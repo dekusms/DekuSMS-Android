@@ -97,11 +97,43 @@ public class Contacts {
                 null,
                 null, null);
 
-        if(cursor != null && cursor.moveToFirst()) {
-            int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
-            String contactName = cursor.getString(displayNameIndex);
+        if(cursor == null)
+            return null;
+
+        try {
+            if(cursor.moveToFirst()) {
+                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
+                return cursor.getString(displayNameIndex);
+            }
+        } finally {
             cursor.close();
-            return contactName;
+        }
+
+        return null;
+    }
+
+    public static Uri retrieveContactUri(Context context, String phoneNumber) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber));
+        Cursor cursor = context.getContentResolver().query(
+                uri,
+                null,
+                null,
+                null, null);
+
+        if(cursor == null)
+            return null;
+
+        try {
+            if(cursor.moveToFirst()) {
+                int idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID);
+                int lookupKeyIndex = cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY);
+                long id = cursor.getLong(idIndex);
+                String lookupKey = cursor.getString(lookupKeyIndex);
+                return ContactsContract.Contacts.getLookupUri(id, lookupKey);
+            }
+        } finally {
+            cursor.close();
         }
 
         return null;
@@ -116,11 +148,17 @@ public class Contacts {
                 null, null);
 
         String contactPhotoThumbUri = "";
-        if(cursor.moveToFirst()) {
-            int displayContactPhoto = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI);
-            contactPhotoThumbUri = String.valueOf(cursor.getString(displayContactPhoto));
-        }
+        if(cursor == null)
+            return null;
 
+        try {
+            if(cursor.moveToFirst()) {
+                int displayContactPhoto = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI);
+                contactPhotoThumbUri = String.valueOf(cursor.getString(displayContactPhoto));
+            }
+        } finally {
+            cursor.close();
+        }
         return contactPhotoThumbUri;
     }
 
