@@ -100,10 +100,15 @@ test-flight:
 		echo "+ [ERROR] app/keys/app-release-key.jks file not found for signing"; \
 		exit 1; \
 	else \
-		echo "All Good!"; \
+		python3 -m venv venv; \
+		( \
+			. venv/bin/activate; \
+			pip3 install -r requirements.txt; \
+			python3 release.py; \
+		) \
 	fi
 
-release-cd: clean requirements.txt bump_version docker-build-aab clean
+release-cd: test-flight clean requirements.txt bump_version docker-build-aab clean
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}

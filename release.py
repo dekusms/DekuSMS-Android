@@ -190,6 +190,8 @@ def test_flight():
         try:
             rel_playstore = RelGooglePlaystore()
             rel_playstore.flight()
+            print("++ Playstore passed!")
+
         except Exception as error:
             logging.exception(error)
             exit("-- Playstore failed")
