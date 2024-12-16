@@ -65,7 +65,7 @@ bump_version:
 	( \
 		. venv/bin/activate; \
 		pip3 install -r requirements.txt; \
-		@python3 bump_version.py $(branch_name); \
+		python3 bump_version.py $(branch_name); \
 		git add . ; \
 		git commit -m "release: making release"; \
 	) 
