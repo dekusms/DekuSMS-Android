@@ -113,8 +113,9 @@ The app sends a callback to your SMS Gateways once the requested message [status
 
 # <a name="build"></a> Build
 ```bash
-git clone https://github.com/deku-messaging/Deku-SMS-Android.git
+git clone https://github.com/dekusms/Deku-SMS-Android.git
 git submodule update --init --recursive
+cp release.properties.example release.properties 
 ```
 Getting the project into Android-studio would allow for an easy build.
 
