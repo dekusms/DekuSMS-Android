@@ -35,7 +35,7 @@ docker_app_image=deku_sms_app_image
 
 diff_check: 
 	@echo "Building apk output: ${APP_1}"
-	@docker build -t ${docker_apk_image} --target apk-builder .
+	@docker build -t ${docker_apk_image} --platform linux/amd64 --target apk-builder .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) ${docker_apk_image} && \
 		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_1}
 	@sleep 3
@@ -47,7 +47,7 @@ diff_check:
 
 docker-build-aab: diff_check
 	@sleep 5
-	@docker build -t ${docker_app_image} --target bundle-builder .
+	@docker build -t ${docker_app_image} --platform linux/amd64 --target bundle-builder .
 	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) -e MIN_SDK=$(minSdk) ${docker_app_image} && \
 		docker cp ${CONTAINER_NAME_BUNDLE}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output}
 
