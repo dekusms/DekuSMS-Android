@@ -61,10 +61,14 @@ build-apk:
 	@shasum apk-outputs/${apk_output}
 
 bump_version: 
-	@python3 bump_version.py $(branch_name)
-	@git add .
-	@git commit -m "release: making release"
-
+	@python3 -m venv venv; \
+	( \
+		. venv/bin/activate; \
+		pip3 install -r requirements.txt; \
+		@python3 bump_version.py $(branch_name); \
+		git add . ; \
+		git commit -m "release: making release"; \
+	) 
 
 build-aab:
 	@echo "+ Building aab output: ${aab_output} - ${branch_name}"
