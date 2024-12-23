@@ -145,7 +145,6 @@ private fun ConversationReceived(
                         text,
                         defaultLinkStyles = TextLinkStyles(
                             SpanStyle(
-                                color = Color.Blue,
                                 textDecoration = TextDecoration.Underline
                             )
                         )
@@ -229,7 +228,6 @@ private fun ConversationSent(
                         text,
                         defaultLinkStyles = TextLinkStyles(
                             SpanStyle(
-                                color = Color.Blue,
                                 textDecoration = TextDecoration.Underline
                             )
                         )
