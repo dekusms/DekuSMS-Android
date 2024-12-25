@@ -134,7 +134,6 @@ class RelGithub:
 
         status = True if status == 'draft' else False
 
-        # url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
         data = {
             "tag_name": str(version_code),
             "name": version_name,
@@ -179,8 +178,9 @@ class RelGithub:
 def test_flight():
     print("-- Beginning flight test")
     try:
+        url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
         rel_github = RelGithub()
-        rel_github.flight("https://api.github.com/repos/dekusms/DekuSMS-Android/releases")
+        rel_github.flight(url)
         print("++ Github passed!")
 
     except Exception as error:
