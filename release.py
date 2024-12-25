@@ -175,10 +175,11 @@ class RelGithub:
         # return json.loads(response.text)
 
 
-def test_flight():
+def test_flight(url):
     print("-- Beginning flight test")
     try:
-        url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
+        # url = "https://api.github.com/repos/dekusms/DekuSMS-Android/releases"
+        print("Github url:", url)
         rel_github = RelGithub()
         rel_github.flight(url)
         print("++ Github passed!")
@@ -230,7 +231,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.log_level)
 
     if args.platform == "test-flight":
-        test_flight()
+        test_flight(args.github_url)
 
     elif args.platform == "all":
         thread_playstore.start()
