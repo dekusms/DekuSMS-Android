@@ -27,8 +27,7 @@ CONTAINER_NAME_COMMIT_CHECK=$(commit)_commit_check
 
 minSdk=24
 
-github_url=https://api.github.com/repos/dekusms/Deku-SMS-Android/releases
-
+github_url=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
 docker_apk_image=deku_sms_apk_image
 docker_apk_image_commit_check=docker_apk_image_commit_check
 docker_app_image=deku_sms_app_image
