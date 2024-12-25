@@ -27,7 +27,7 @@ CONTAINER_NAME_COMMIT_CHECK=$(commit)_commit_check
 
 minSdk=24
 
-github_url=https://api.github.com/repos/deku-messaging/DekuSMS-Android/releases
+github_url=https://api.github.com/repos/dekusms/DekuSMS-Android/releases
 docker_apk_image=deku_sms_apk_image
 docker_apk_image_commit_check=docker_apk_image_commit_check
 docker_app_image=deku_sms_app_image
@@ -89,7 +89,7 @@ test-flight:
 		( \
 			. venv/bin/activate; \
 			pip3 install -r requirements.txt; \
-			python3 release.py; \
+			python3 release.py --github_url "${github_url}"; \
 		) \
 	fi
 
