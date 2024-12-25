@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import re
 import requests
 import json
@@ -6,8 +6,39 @@ import sys, os
 import logging
 import httplib2
 
+from googleapiclient.discovery import build
+from google.oauth2 import service_account 
+
 
 class RelGooglePlaystore:
+    def __init__(self):
+        self.credentials_file_path= None
+        self.package_name= None
+        with open('release.properties', 'r') as fd:
+            lines = fd.readlines()
+
+        for line in lines:
+            if line.startswith('google_playstore_creds_filepath'):
+                self.credentials_file_path = line.split("=")[1].strip() 
+            elif line.startswith('app_package_name'):
+                self.package_name= line.split("=")[1].strip() 
+        # Create an HTTP object with a timeout
+
+        http = httplib2.Http(timeout=600)
+
+        credentials = service_account.Credentials.from_service_account_file(self.credentials_file_path)
+        credentials.http = http
+
+        self.service = build(serviceName='androidpublisher', version='v3', 
+                        credentials=credentials,
+                        num_retries=5)
+
+    def flight(self):
+        edit_request = self.service.edits().insert(packageName=self.package_name)
+        edit_response = edit_request.execute()
+        edit_id = edit_response['id']
+
+
     def create_edit_for_draft_release(self, 
                                       version_code, 
                                       version_name, 
@@ -19,44 +50,21 @@ class RelGooglePlaystore:
                                       changesNotSentForReview = True):
         """
         """
-        from googleapiclient.discovery import build
-        from google.oauth2 import service_account 
         from googleapiclient.http import MediaFileUpload  # Import MediaFileUpload
 
         credentials_file_path = None
-        package_name = None
-
-        with open('release.properties', 'r') as fd:
-            lines = fd.readlines()
-
-        for line in lines:
-            if line.startswith('google_playstore_creds_filepath'):
-                credentials_file_path = line.split("=")[1].strip() 
-            elif line.startswith('app_package_name'):
-                package_name = line.split("=")[1].strip() 
-        # Create an HTTP object with a timeout
-
-        http = httplib2.Http(timeout=timeout_seconds)
-
-        credentials = service_account.Credentials.from_service_account_file(credentials_file_path)
-        credentials.http = http
-
-        service = build(serviceName='androidpublisher', version='v3', 
-                        credentials=credentials,
-                        num_retries=5)
 
         # return service.edits().insert(editId=release_id, body=edit_body).execute()
-        edit_request = service.edits().insert(packageName=package_name)
+        edit_request = self.service.edits().insert(packageName=self.package_name)
         edit_response = edit_request.execute()
         edit_id = edit_response['id']
-
 
         # Create a media upload request
         media_upload = MediaFileUpload(bundle_file, 
                                        mimetype="application/octet-stream", resumable=True)
 
-        bundle_response = service.edits().bundles().upload(
-                packageName=package_name, 
+        bundle_response = self.service.edits().bundles().upload(
+                packageName=self.package_name, 
                 editId=edit_id, 
                 media_body=media_upload
             ).execute()
@@ -73,8 +81,8 @@ class RelGooglePlaystore:
                 'versionCodes':[version_code]
                 }]
 
-        track_request = service.edits().tracks().update(
-                packageName=package_name,
+        track_request = self.service.edits().tracks().update(
+                packageName=self.package_name,
                 editId=edit_id,
                 track=track,
                 body={'releases': release_body}
@@ -84,8 +92,8 @@ class RelGooglePlaystore:
         logging.info("[Playstore] %s release %s created with version code %d", status, version_name, version_code)
 
         # Commit the changes to finalize the edit
-        commit_request = service.edits().commit(
-            packageName=package_name,
+        commit_request = self.service.edits().commit(
+            packageName=self.package_name,
             editId=edit_id
         )
         commit_request.execute()
@@ -94,6 +102,26 @@ class RelGooglePlaystore:
 
 
 class RelGithub:
+    def __init__(self):
+        self.github_token = None
+
+        with open('release.properties', 'r') as fd:
+            lines = fd.readlines()
+
+        for line in lines:
+            if line.startswith('github_token'):
+                self.github_token = line.split("=")[1].strip() 
+                break
+
+        self.headers = {"Authorization": "Bearer {}".format(self.github_token), 
+                   "X-GitHub-Api-Version": "2022-11-28",
+                   "Accept": "application/vnd.github+json"}
+
+
+    def flight(self, url):
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+
     def create_edit_for_draft_release(self, 
                                       version_code, 
                                       version_name, 
@@ -106,7 +134,6 @@ class RelGithub:
 
         status = True if status == 'draft' else False
 
-        # url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
         data = {
             "tag_name": str(version_code),
             "name": version_name,
@@ -118,21 +145,7 @@ class RelGithub:
         }
         logging.info(data)
 
-        github_token = None
-
-        with open('release.properties', 'r') as fd:
-            lines = fd.readlines()
-
-        for line in lines:
-            if line.startswith('github_token'):
-                github_token = line.split("=")[1].strip() 
-                break
-
-        headers = {"Authorization": "Bearer {}".format(github_token), 
-                   "X-GitHub-Api-Version": "2022-11-28",
-                   "Accept": "application/vnd.github+json"}
-
-        response = requests.post(url, json=data, headers=headers)
+        response = requests.post(url, json=data, headers=self.headers)
         response.raise_for_status()
 
         logging.info("[GitHub] Create new release: %d", response.status_code)
@@ -141,7 +154,7 @@ class RelGithub:
 
         # Upload assets to a new release on GitHub.
         headers = {'Content-Type': 'application/octet-stream', 
-                   "Authorization": "Bearer {}".format(github_token), 
+                   "Authorization": "Bearer {}".format(self.github_token), 
                    "X-GitHub-Api-Version": "2022-11-28",
                    "Accept": "application/vnd.github+json"}
 
@@ -162,23 +175,46 @@ class RelGithub:
         # return json.loads(response.text)
 
 
+def test_flight(url):
+    print("-- Beginning flight test")
+    try:
+        # url = "https://api.github.com/repos/dekusms/DekuSMS-Android/releases"
+        print("Github url:", url)
+        rel_github = RelGithub()
+        rel_github.flight(url)
+        print("++ Github passed!")
+
+    except Exception as error:
+        logging.exception(error)
+        exit("-- Github failed")
+    else:
+        try:
+            rel_playstore = RelGooglePlaystore()
+            rel_playstore.flight()
+            print("++ Playstore passed!")
+
+        except Exception as error:
+            logging.exception(error)
+            exit("-- Playstore failed")
+
+
 if __name__ == "__main__":
     import argparse
     import threading
 
     parser = argparse.ArgumentParser(description="An argument parser for Python")
 
-    parser.add_argument("--version_code", type=int, required=True, help="The version code of the app")
-    parser.add_argument("--version_name", type=str, required=True, help="The version name of the app")
-    parser.add_argument("--description", type=str, required=True, help="The description of the app")
-    parser.add_argument("--branch", type=str, required=True, help="The branch of the app")
-    parser.add_argument("--track", type=str, required=True, help="The track of the app")
-    parser.add_argument("--app_bundle_file", type=str, required=True, help="The app bundle file")
-    parser.add_argument("--app_apk_file", type=str, required=True, help="The app APK file")
-    parser.add_argument("--status", type=str, required=True, help="The app release status")
-    parser.add_argument("--github_url", type=str, required=True, help="The github repo URL")
+    parser.add_argument("--version_code", type=int, required=False, help="The version code of the app")
+    parser.add_argument("--version_name", type=str, required=False, help="The version name of the app")
+    parser.add_argument("--description", type=str, required=False, help="The description of the app")
+    parser.add_argument("--branch", type=str, required=False, help="The branch of the app")
+    parser.add_argument("--track", type=str, required=False, help="The track of the app")
+    parser.add_argument("--app_bundle_file", type=str, required=False, help="The app bundle file")
+    parser.add_argument("--app_apk_file", type=str, required=False, help="The app APK file")
+    parser.add_argument("--status", type=str, required=False, help="The app release status")
+    parser.add_argument("--github_url", type=str, required=False, help="The github repo URL")
     parser.add_argument("--log_level", type=str, default='INFO', required=False, help="The level of the log")
-    parser.add_argument("--platform", type=str, default="all", required=False, help="Platform to be released on: \
+    parser.add_argument("--platform", type=str, default="test-flight", required=False, help="Platform to be released on: \
             playstore, github")
 
     args = parser.parse_args()
@@ -194,7 +230,10 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=args.log_level)
 
-    if args.platform == "all":
+    if args.platform == "test-flight":
+        test_flight(args.github_url)
+
+    elif args.platform == "all":
         thread_playstore.start()
         thread_playstore.join()
 

@@ -1,0 +1,132 @@
+[versions]
+activityCompose = "1.9.3"
+amqpClient = "5.20.0"
+androidMail = "1.6.2"
+appcompat = "1.7.0"
+avatarviewCoil = "1.0.7"
+coilCompose = "3.0.4"
+coilNetworkOkhttp = "3.0.4"
+commonsCodec = "1.16.0"
+commonsNet = "3.6"
+composeBom = "2024.11.00"
+constraintlayout = "2.2.0"
+datastorePreferences = "1.1.1"
+datastorePreferencesRxjava2 = "1.1.1"
+espressoCore = "3.6.1"
+fuelVersion = "2.3.1"
+graphicsShapes = "1.0.1"
+gson = "2.11.0"
+javaWebsocket = "1.5.5"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+kotlin = "2.0.0"
+kotlinxCoroutinesTest = "1.8.1"
+kotlinxSerializationJson = "1.6.3"
+ktx = "1.15.0"
+androidGradlePlugin = "7.4.2"
+legacySupportV4 = "1.0.0"
+libphonenumber = "8.13.40"
+lifecycleRuntimeKtx = "2.8.7"
+lifecycleViewmodelCompose = "2.8.7"
+lz4 = "1.3.0"
+material = "1.12.0"
+material3 = "1.3.1"
+materialIconsExtended = "1.7.5"
+navigationCompose = "2.8.4"
+navigationDynamicFeaturesFragment = "2.8.4"
+navigationFragment = "2.8.4"
+navigationTesting = "2.8.4"
+navigationUi = "2.8.4"
+pagingGuava = "3.3.4"
+preference = "1.2.1"
+prov = "1.58.0.0"
+roomTesting = "2.6.1"
+rxbinding = "0.4.0"
+securityCrypto = "1.1.0-alpha06"
+startupRuntime = "1.2.0"
+uiTextGoogleFonts = "1.7.5"
+volley = "1.2.1"
+window = "1.3.0"
+windowTesting = "1.3.0"
+workRuntime = "2.10.0"
+activity = "1.9.3"
+
+[libraries]
+amqp-client = { module = "com.rabbitmq:amqp-client", version.ref = "amqpClient" }
+android-activation = { module = "com.sun.mail:android-activation", version.ref = "androidMail" }
+android-mail = { module = "com.sun.mail:android-mail", version.ref = "androidMail" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+androidx-core = { module = "androidx.core:core", version.ref = "ktx" }
+androidx-datastore-preferences-rxjava2 = { module = "androidx.datastore:datastore-preferences-rxjava2", version.ref = "datastorePreferencesRxjava2" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-datastore-preferences-rxjava3 = { module = "androidx.datastore:datastore-preferences-rxjava3", version.ref = "datastorePreferences" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+androidx-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx" }
+androidx-legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-material = { module = "androidx.compose.material:material", version = "1.7.5" }
+androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-navigation-dynamic-features-fragment = { module = "androidx.navigation:navigation-dynamic-features-fragment", version.ref = "navigationDynamicFeaturesFragment" }
+androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
+androidx-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationTesting" }
+androidx-navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationUi" }
+androidx-paging-guava = { module = "androidx.paging:paging-guava", version.ref = "pagingGuava" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingGuava" }
+androidx-preference = { module = "androidx.preference:preference", version.ref = "preference" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomTesting" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomTesting" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomTesting" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
+androidx-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
+androidx-ui = { module = "androidx.compose.ui:ui" }
+androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.7.5" }
+androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-window = { module = "androidx.window:window", version.ref = "window" }
+androidx-window-testing = { module = "androidx.window:window-testing", version.ref = "windowTesting" }
+androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "workRuntime" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
+androidx-work-rxjava2 = { module = "androidx.work:work-rxjava2", version.ref = "workRuntime" }
+androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "workRuntime" }
+avatarview-coil = { module = "io.getstream:avatarview-coil", version.ref = "avatarviewCoil" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
+commons-net = { module = "commons-net:commons-net", version.ref = "commonsNet" }
+fuel = { module = "com.github.kittinunf.fuel:fuel", version.ref = "fuelVersion" }
+fuel-android = { module = "com.github.kittinunf.fuel:fuel-android", version.ref = "fuelVersion" }
+fuel-coroutines = { module = "com.github.kittinunf.fuel:fuel-coroutines", version.ref = "fuelVersion" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocket" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
+lz4 = { module = "net.jpountz.lz4:lz4", version.ref = "lz4" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+material3 = { module = "androidx.compose.material3:material3" }
+prov = { module = "com.madgag.spongycastle:prov", version.ref = "prov" }
+rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxbinding" }
+volley = { module = "com.android.volley:volley", version.ref = "volley" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+
+[plugins]
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+

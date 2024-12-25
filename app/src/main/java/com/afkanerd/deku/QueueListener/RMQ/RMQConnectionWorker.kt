@@ -128,8 +128,7 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
         conversation.thread_id = threadId.toString()
         conversation.status = Telephony.Sms.STATUS_PENDING
 
-        databaseConnector.threadedConversationsDao()
-                .insertThreadAndConversation(context, conversation)
+        databaseConnector.conversationDao()._insert(conversation)
         SMSDatabaseWrapper.send_text(context, conversation, bundle)
         Log.d(javaClass.name, "SMS sent...")
     }

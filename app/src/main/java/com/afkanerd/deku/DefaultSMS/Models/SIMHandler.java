@@ -4,6 +4,7 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static androidx.core.content.ContextCompat.getSystemService;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.telephony.CellInfo;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
@@ -25,6 +26,7 @@ public class SIMHandler {
         return manager.getPhoneCount() > 1;
     }
 
+
     private static String getSimStateString(int simState) {
         switch (simState) {
             case TelephonyManager.SIM_STATE_ABSENT:
@@ -42,10 +44,13 @@ public class SIMHandler {
                 return "Unknown";
         }
     }
-    public static int getDefaultSimSubscription(Context context) {
+
+    public static Integer getDefaultSimSubscription(Context context) {
+        // TODO: check if there's even a simcard and handle it accordingly
         int subId = SubscriptionManager.getDefaultSmsSubscriptionId();
         if(subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID)
-            return getSimCardInformation(context).get(0).getSubscriptionId();
+//            return getSimCardInformation(context).get(0).getSubscriptionId();
+            return null;
         return subId;
     }
 
@@ -54,9 +59,20 @@ public class SIMHandler {
 
         for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
             if(subscriptionInfo.getSubscriptionId() == subscriptionId) {
-                if(subscriptionInfo.getCarrierName() != null)
+                if(subscriptionInfo.getCarrierName() != null) {
                     return subscriptionInfo.getDisplayName().toString();
+                }
             }
         return "";
+    }
+
+    public static Bitmap getSubscriptionBitmap(Context context, int subscriptionId) {
+        List<SubscriptionInfo> subscriptionInfos = getSimCardInformation(context);
+
+        for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
+            if(subscriptionInfo.getSubscriptionId() == subscriptionId) {
+                return subscriptionInfo.createIconBitmap(context);
+            }
+        return null;
     }
 }

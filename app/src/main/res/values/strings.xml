@@ -11,8 +11,8 @@
     <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
     <string name="message_failed_notifications_descriptions">Get notifications when messages fail</string>
 
-    <string name="gateway_client_service_notification_id">100000000</string>
-    <string name="message_failed_notification_id">100000001</string>
+    <string name="gateway_client_service_notification_id" translatable="false">100000000</string>
+    <string name="message_failed_notification_id" translatable="false">100000001</string>
 
 
     <string name="incoming_messages_channel_id" translatable="false">@string/incoming_messages_channel_name</string>
@@ -196,7 +196,7 @@
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">Delete</string>
-    <string name="conversation_menu_unarchive">unarchive</string>
+    <string name="conversation_menu_unarchive">Unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
     <string name="conversation_menu_export">Export</string>
@@ -225,7 +225,7 @@
     <string name="conversation_secure_popup_request_menu_yes">Send</string>
     <string name="conversation_secure_popup_request_menu_cancel">Cancel</string>
     <string name="conversation_secure_popup_request_menu_title">Secure Conversation Request</string>
-    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
+    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to this contact. \n\nThey will need have Deku SMS installed to receive this request.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
 
     <string name="conversation_shortcode_description">Can\'t reply to this short code</string>
@@ -239,10 +239,13 @@
     <!-- settings language -->
     <string name="language_english">English</string>
     <string name="language_french">French</string>
-    <string name="language_russian" translatable="false">Русский</string>
+    <string name="language_russian">Russian</string>
+    <string name="language_german">German</string>
+
     <string name="language_english_value" translatable="false">en</string>
     <string name="language_french_value" translatable="false">fr</string>
     <string name="language_russian_value" translatable="false">ru</string>
+    <string name="language_german_value" translatable="false">de</string>
 
 
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
@@ -280,5 +283,68 @@
     <string name="compose_new_message_title">New conversation</string>
     <string name="this_message_failed_to_send">This message failed to send.</string>
     <string name="try_again">Try Again</string>
+    <string name="request">Send request</string>
+    <string name="secure_communication_requested">-- Secure communication request sent --</string>
+    <string name="secure_communications_request_received">-- Secure communications request received --</string>
+    <string name="secured">Secured</string>
+    <string name="search_messages">Search messages</string>
+    <string name="open_menu">Open menu</string>
+    <string name="compose_new_message">Compose new message</string>
+    <string name="open_side_menu">Open side menu</string>
+    <string name="call">Call</string>
+    <string name="text_message">Text message</string>
+    <string name="send_message">Send message</string>
+    <string name="copy_message">copy message</string>
+    <string name="delete_message">delete message</string>
+    <string name="share_message">share message</string>
+    <string name="forward_message">forward message</string>
+    <string name="request_secure_communication">Request secure communication</string>
+    <string name="go_back">Go back</string>
+    <string name="type_names_or_phone_numbers">Type names or phone numbers</string>
+    <string name="selected">selected</string>
+    <string name="cancel_selection">Cancel selection</string>
+    <string name="sms">SMS</string>
+    <string name="folders">Folders</string>
+    <string name="inbox_folder">Inbox Folder</string>
+    <string name="archive_folder">Archive folder</string>
+    <string name="encrypted_folder">Encrypted folder</string>
+    <string name="blocked_folder">Blocked Folder</string>
+    <string name="move_search_backwards">Move search backwards</string>
+    <string name="move_search_forwards">Move search forwards</string>
+    <string name="results_found">results found</string>
+    <string name="down_to_latest_content">Down to latest content</string>
+    <string name="cancel_selected_messages">Cancel selected messages</string>
+    <string name="cancel_search">Cancel search</string>
+    <string name="unarchive_messages">Unarchive messages</string>
+    <string name="thread_muted">Thread muted</string>
+    <string name="secure_request">Secure request</string>
+    <string name="resend_message">Resend message</string>
+    <string name="delete_message1">Delete message</string>
+    <string name="send_to">"Send to "</string>
+    <string name="choose_sim_card">Choose sim card</string>
+    <string name="conversation_is_secured">Conversation is secured</string>
+    <string name="compose_new">Compose new</string>
+    <string name="compose">Compose</string>
+
+    <string name="notifications">Notifications</string>
+    <string name="block_report_spam"><![CDATA[Block & report spam]]></string>
+    <string name="end_to_end_encryption">End-to-end encryption</string>
+    <string name="end_to_end_encrypt">"End-to-end encryption: "</string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">End-to-end encryption isn\'t available in this conversation.</string>
+    <string name="end_to_end_encryption_is_available_in_this_conversation">End-to-End Encryption is available in this conversation</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="phone_number_copied_to_clipboard">Copied \'%1$s\' to clipboard</string>
+    <string name="contact_is_blocked">Contact is blocked</string>
+    <string name="conversation_menu_import">Import</string>
+    <string name="conversations">"Conversations: "</string>
+    <string name="threads">"Threads: "</string>
+    <string name="archive">Archive</string>
+    <string name="select_a_conversation_from_the_list_on_the_left">Select a conversation from the list on the left</string>
+    <string name="import_conversations">Import Conversations</string>
+    <string name="reset_and_import">Reset and Import</string>
+
+    <string name="block">Block</string>
+    <string name="unblock">Unblock</string>
 
 </resources>

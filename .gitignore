@@ -23,3 +23,5 @@ venv/*
 /release.properties
 *.sw*
 gradle.properties
+*.tmp.sh
+*.logs

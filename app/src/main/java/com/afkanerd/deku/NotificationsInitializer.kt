@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.startup.Initializer
 import com.afkanerd.deku.DefaultSMS.R
@@ -27,6 +28,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
     var notificationsChannelNames: ArrayList<String> = ArrayList()
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(context: Context, notificationManager: NotificationManager) {
         notificationsChannelIds.add(context.getString(R.string.incoming_messages_channel_id))
         notificationsChannelNames.add(context.getString(R.string.incoming_messages_channel_name))
@@ -45,6 +47,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         createNotificationChannelReconnectGatewayListeners(context, notificationManager)
         createNotificationChannelFailedMessages(context, notificationManager)
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelIncomingMessage(context: Context,
                                                          notificationManager: NotificationManager) {
         val importance = NotificationManager.IMPORTANCE_HIGH
@@ -52,7 +55,8 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         val channel = NotificationChannel(
             notificationsChannelIds[0],
             notificationsChannelNames[0],
-            importance )
+            importance
+        )
         channel.description = context.getString(R.string.incoming_messages_channel_description)
         channel.enableLights(true)
         channel.lightColor = R.color.md_theme_primary
@@ -61,6 +65,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         notificationManager.createNotificationChannel(channel)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelRunningGatewayListeners(context: Context,
                                                                  notificationManager: NotificationManager) {
         val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -74,6 +79,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         notificationManager.createNotificationChannel(channel)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelReconnectGatewayListeners(context: Context,
                                                                    notificationManager: NotificationManager) {
         val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -88,8 +94,9 @@ class NotificationsInitializer : Initializer<NotificationManager> {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelFailedMessages(context: Context,
-                                                                   notificationManager: NotificationManager) {
+                                                        notificationManager: NotificationManager) {
         val importance = NotificationManager.IMPORTANCE_DEFAULT
         val channel = NotificationChannel( notificationsChannelIds[3],
                 notificationsChannelNames[3],
