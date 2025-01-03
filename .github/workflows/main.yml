@@ -21,7 +21,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && ("${{ github.event.pull_request.base.ref }}" == "staging") ]]; then
-              /root/digitalocean_ci_cd_app_releases/start.sh
+              cd /root/digitalocean_ci_cd_app_releases && start.sh
             else
               echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
               exit 1
