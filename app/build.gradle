@@ -296,5 +296,7 @@ dependencies {
     // Needed to use lifecycleScope to collect the WindowLayoutInfo flow
     implementation libs.androidx.lifecycle.runtime.ktx
 
+    implementation(libs.autolinktext)
+
 }
 
