@@ -21,7 +21,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && ("${{ github.event.pull_request.base.ref }}" == "staging") ]]; then
-              deku_stage_0
+              source ~/.bashrc && deku_stage_0
             else
               echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
               exit 1
