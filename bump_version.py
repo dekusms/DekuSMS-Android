@@ -57,12 +57,14 @@ def bump_version(filename, flavour):
     if tagVersion is None:
         raise ValueError("Could not find tagVersion in file")
 
+    """
     if flavour == "refs/heads/master":
         releaseVersion = int(releaseVersion) + 1
         stagingVersion = 0
         nightlyVersion = 0
+    """
 
-    elif flavour == "refs/heads/staging":
+    if flavour == "refs/heads/staging" or flavour == "refs/heads/master":
         stagingVersion = int(stagingVersion) + 1
         nightlyVersion = 0
 
