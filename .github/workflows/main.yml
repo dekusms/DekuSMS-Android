@@ -25,6 +25,7 @@ jobs:
                 cd /root/digitalocean_ci_cd_app_releases && ./start.sh
               elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
                 cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
+              fi
             else
               echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
               exit 1
