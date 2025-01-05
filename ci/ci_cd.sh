@@ -6,6 +6,6 @@ cd Deku-SMS-Android && \
 	git checkout staging && \
 	git submodule update --init --recursive && \
 	cp /root/release.properties . && \
-	cp /root/app/keys/app-release-key.jks app/keys/ && \
+	cp /root/app-release-key.jks app/keys/ && \
 	make clean && \
 	make release-cd jks_pass="$1" && cd .. \
