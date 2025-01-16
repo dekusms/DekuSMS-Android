@@ -1,7 +1,9 @@
 package com.afkanerd.deku.DefaultSMS
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ComponentCaller
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,6 +11,7 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.provider.Telephony
 import android.text.Layout
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -64,6 +67,7 @@ import java.io.InputStreamReader
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -105,6 +109,12 @@ class MainActivity : AppCompatActivity(){
                     }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        this.intent = intent
+        navController.navigate(HomeScreen)
     }
 
     private fun checkLoadNatives() {

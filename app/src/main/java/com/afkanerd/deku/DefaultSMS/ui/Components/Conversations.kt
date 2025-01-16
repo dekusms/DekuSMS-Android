@@ -26,11 +26,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import sh.calvin.autolinktext.rememberAutoLinkText
 
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
@@ -134,7 +141,14 @@ private fun ConversationReceived(
                     )
             ) {
                 Text(
-                    text=text,
+                    text= AnnotatedString.rememberAutoLinkText(
+                        text,
+                        defaultLinkStyles = TextLinkStyles(
+                            SpanStyle(
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
                     color = colorResource(R.color.md_theme_onBackground)
@@ -210,7 +224,14 @@ private fun ConversationSent(
                     )
             ) {
                 Text(
-                    text=text,
+                    text= AnnotatedString.rememberAutoLinkText(
+                        text,
+                        defaultLinkStyles = TextLinkStyles(
+                            SpanStyle(
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
                     color = if(isSelected) MaterialTheme.colorScheme.onPrimaryContainer

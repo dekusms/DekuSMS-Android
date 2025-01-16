@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -27,6 +28,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -40,6 +42,7 @@ import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
+import com.google.android.material.color.MaterialColors
 
 object Notifications {
     const val KEY_TEXT_REPLY = "KEY_TEXT_REPLY"
@@ -103,11 +106,15 @@ object Notifications {
                     getString(context, R.string.notifications_reply_label),
                     replyPendingIntent
                 )
-                    .addRemoteInput(remoteInput)
-                    .setAllowGeneratedReplies(true)
+                    .addRemoteInput(RemoteInput.Builder("extra_remote_reply").setLabel("").build())
                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
                     .setShowsUserInterface(false)
                     .build()
+//                    .addRemoteInput(remoteInput)
+//                    .setAllowGeneratedReplies(true)
+//                    .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+//                    .setShowsUserInterface(false)
+//                    .build()
 
         var muteAction: NotificationCompat.Action? = if(mutePendingIntent == null) null else
             NotificationCompat.Action.Builder(
@@ -168,6 +175,7 @@ object Notifications {
 
         return NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_name)
+            .setColor(context.getColor(R.color.md_theme_primary))
             .setContentTitle(title)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -176,9 +184,9 @@ object Notifications {
             .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
             .setAllowSystemGeneratedContextualActions(true)
-            .addAction(replyAction)
             .addAction(muteAction)
             .addAction(markAsReadAction)
+            .addAction(replyAction)
             .setShortcutId(address)
             .setBubbleMetadata(bubbleMetadata)
             .setLocusId(
@@ -191,9 +199,15 @@ object Notifications {
                     NotificationCompat.MessagingStyle(title)
                         .addMessage(text, System.currentTimeMillis(), address)
                 } else {
-                    NotificationCompat.MessagingStyle(user)
-//                        .setConversationTitle(title)
-                        .addMessage(text, System.currentTimeMillis(), user)
+//                    NotificationCompat.MessagingStyle(user)
+//                        .addMessage(text, System.currentTimeMillis(), user)
+                    NotificationCompat.MessagingStyle(user).addMessage(
+                        NotificationCompat.MessagingStyle.Message(
+                            text,
+                            System.currentTimeMillis(),
+                            user
+                        )
+                    )
                 }
             )
     }

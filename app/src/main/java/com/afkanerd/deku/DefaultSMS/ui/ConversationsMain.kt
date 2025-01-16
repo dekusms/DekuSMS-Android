@@ -175,53 +175,54 @@ private fun getContentType(
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
     if(index == 0) {
-        if(Helpers.isSameHour(conversation.date!!.toLong(),
-                conversations[index + 1].date!!.toLong())) {
-            if(conversation.type == conversations[index + 1].type) {
-                if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                        conversations[index + 1].date!!.toLong())) {
-                    return ConversationPositionTypes.END
-                }
+        if(conversation.type == conversations[1].type) {
+            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+                return ConversationPositionTypes.END
             }
-            return ConversationPositionTypes.NORMAL
+        }
+        if(!Helpers.isSameHour(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+            return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
     }
-    else if(index == conversations.size - 1) {
-        if(conversation.type == conversations[index - 1].type) {
-            if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                    conversations[index - 1].date!!.toLong())) {
-                return ConversationPositionTypes.START_TIMESTAMP
-            }
+    if(index == conversations.size - 1) {
+        if(conversation.type == conversations.last().type && Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+            return ConversationPositionTypes.START_TIMESTAMP
         }
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
-    else {
-        if(Helpers.isSameHour(conversation.date!!.toLong(),
-                conversations[index + 1].date!!.toLong())) {
-            if(conversation.type == conversations[index - 1].type) {
+
+    if(index + 1 < conversations.size && index - 1 > -1 ) {
+        if(conversation.type == conversations[index - 1].type && conversation.type == conversations[index + 1].type) {
+            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
                 if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                        conversations[index - 1].date!!.toLong())) {
-                    if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                            conversations[index + 1].date!!.toLong())) {
-                        return ConversationPositionTypes.MIDDLE
-                    }
-                    return ConversationPositionTypes.START
-                } else {
-                    if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                            conversations[index + 1].date!!.toLong())) {
-                        return ConversationPositionTypes.END
-                    }
-                    return ConversationPositionTypes.NORMAL
+                        conversations[index -1].date!!.toLong()) &&
+                    Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+                    return ConversationPositionTypes.MIDDLE
                 }
-            }
-        } else {
-            if(conversation.type == conversations[index + 1].type) {
-                if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                        conversations[index - 1].date!!.toLong())) {
-                    return ConversationPositionTypes.START_TIMESTAMP
+                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+                    return ConversationPositionTypes.START
                 }
             }
         }
+
+        if(conversation.type == conversations[index + 1].type ) {
+            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+                    return ConversationPositionTypes.END
+                }
+            }
+            return ConversationPositionTypes.NORMAL_TIMESTAMP
+        }
+
+        if(conversation.type == conversations[index - 1].type ) {
+            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+                if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+                    return ConversationPositionTypes.START_TIMESTAMP
+                }
+                return ConversationPositionTypes.START
+            }
+        }
+
     }
     return ConversationPositionTypes.NORMAL
 }
@@ -893,13 +894,17 @@ fun Conversations(
                                     } else ""
                         }) }
 
+                    val position by remember {
+                        mutableStateOf(getContentType(index, conversation, items))
+                    }
+
                     ConversationsCard(
                         text= if(conversation.text.isNullOrBlank()) ""
                         else conversation.text!!,
                         timestamp = timestamp,
                         type= conversation.type,
                         status = ConversationStatusTypes.fromInt(conversation.status)!!,
-                        position = getContentType(index, conversation, items),
+                        position = position,
                         date = date,
                         showDate = showDate,
                         onClickCallback = {
