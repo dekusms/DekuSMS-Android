@@ -2,7 +2,9 @@ package com.afkanerd.deku.DefaultSMS.ui
 
 import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.provider.Telephony
@@ -10,6 +12,7 @@ import android.text.InputType
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.expandIn
@@ -132,7 +135,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
-import com.afkanerd.deku.DefaultSMS.Models.ExportImportHandlers
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
@@ -149,6 +151,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.FileOutputStream
+import java.io.InputStreamReader
 import kotlin.math.exp
 
 enum class InboxType(val value: Int) {
@@ -414,10 +419,60 @@ fun ModalDrawerSheetLayout(
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = false,
-    importCallback: (() -> Unit)? = null,
+    conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        println(uri)
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                with(context.contentResolver.openFileDescriptor(uri, "w")) {
+                    this?.fileDescriptor.let { fd ->
+                        val fileOutputStream = FileOutputStream(fd);
+                        fileOutputStream.write(conversationViewModel
+                            .getAllExport(context).encodeToByteArray());
+                        // Let the document provider know you're done by closing the stream.
+                        fileOutputStream.close();
+                    }
+                    this?.close();
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Toast.makeText(context,
+                            context.getString(R.string.conversations_exported_complete),
+                            Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()) { uri ->
+        println(uri)
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                val stringBuilder = StringBuilder()
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                        var line: String? = reader.readLine()
+                        while (line != null) {
+                            stringBuilder.append(line)
+                            line = reader.readLine()
+                        }
+                    }
+                }
+                conversationViewModel.importDetails = stringBuilder.toString()
+                CoroutineScope(Dispatchers.Main).launch {
+                    Toast.makeText(context,
+                        context.getString(R.string.conversations_import_complete),
+                        Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
 
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -470,7 +525,8 @@ private fun MainDropDownMenu(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-                    ExportImportHandlers.exportInbox(context)
+                    val filename = "Deku_SMS_All_Backup" + System.currentTimeMillis() + ".json";
+                    exportLauncher.launch(filename)
                 }
             )
 
@@ -484,8 +540,7 @@ private fun MainDropDownMenu(
                     },
                     onClick = {
                         dismissCallback?.let { it(false) }
-//                        ExportImportHandlers.importInbox(context)
-                        importCallback?.invoke()
+                        importLauncher.launch("application/json")
                     }
                 )
 
@@ -508,6 +563,8 @@ private fun MainDropDownMenu(
         }
     }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class
@@ -630,9 +687,6 @@ fun ThreadConversationLayout(
 
     MainDropDownMenu(
         expanded=rememberMenuExpanded,
-        importCallback = {
-            ExportImportHandlers.importInbox(context)
-        }
     ) {
         rememberMenuExpanded = it
     }

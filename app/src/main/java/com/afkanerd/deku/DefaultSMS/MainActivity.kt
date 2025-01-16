@@ -51,7 +51,6 @@ import androidx.window.layout.WindowLayoutInfo
 import androidx.window.layout.WindowMetricsCalculator
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
-import com.afkanerd.deku.DefaultSMS.Models.ExportImportHandlers
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
@@ -133,60 +132,6 @@ class MainActivity : AppCompatActivity(){
     override fun onResume() {
         super.onResume()
         checkIsDefault()
-    }
-
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        if(resultCode == RESULT_OK) {
-            resultData?.let {
-                val uri: Uri? = resultData.data
-                // Perform operations on the document using its URI.
-
-                uri?.let {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        if (requestCode == ExportImportHandlers.exportRequestCode) {
-                            with(contentResolver.openFileDescriptor(uri, "w")) {
-                                this?.fileDescriptor.let { fd ->
-                                    val fileOutputStream = FileOutputStream(fd);
-                                    fileOutputStream.write(conversationViewModel
-                                        .getAllExport(applicationContext).encodeToByteArray());
-                                    // Let the document provider know you're done by closing the stream.
-                                    fileOutputStream.close();
-                                }
-                                this?.close();
-
-                                runOnUiThread {
-                                    Toast.makeText(applicationContext,
-                                        getString(R.string.conversations_exported_complete),
-                                        Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        }
-                        else if(requestCode == ExportImportHandlers.importRequestCode) {
-                            val stringBuilder = StringBuilder()
-                            contentResolver.openInputStream(uri)?.use { inputStream ->
-                                BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                                    var line: String? = reader.readLine()
-                                    while (line != null) {
-                                        stringBuilder.append(line)
-                                        line = reader.readLine()
-                                    }
-                                }
-                            }
-                            conversationViewModel.importDetails = stringBuilder.toString()
-//                            conversationViewModel.importAll(applicationContext,
-//                                stringBuilder.toString())
-//                            runOnUiThread {
-//                                Toast.makeText(applicationContext,
-//                                    getString(R.string.conversations_exported_complete),
-//                                    Toast.LENGTH_LONG).show();
-//                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
