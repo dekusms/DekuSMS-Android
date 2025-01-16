@@ -890,6 +890,7 @@ fun ThreadConversationLayout(
                             }
                             var firstName = message.address
                             var lastName = ""
+                            val isSelected = selectedItems.contains(message)
                             if (!contactName.isNullOrEmpty()) {
                                 contactName!!.split(" ").let {
                                     firstName = it[0]
@@ -981,7 +982,7 @@ fun ThreadConversationLayout(
                                             selectedItems.add(message)
                                         }
                                     ),
-                                    isSelected = selectedItems.contains(message),
+                                    isSelected = isSelected,
                                     isMuted = isMute,
                                     type = message.type
                                 )
