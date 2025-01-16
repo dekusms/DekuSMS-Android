@@ -7,6 +7,7 @@ import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.text.InputType
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
@@ -213,21 +214,34 @@ fun processIntents(
 ): Triple<String?, String?, String?>?{
     if(intent.action != null &&
         ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
+        val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body")
+        else if(intent.hasExtra("android.intent.extra.TEXT")) {
+            intent.getStringExtra("android.intent.extra.TEXT")
+        } else ""
+
         val sendToString = intent.dataString
-        val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body") else ""
-        if (sendToString != null &&
-            (sendToString.contains("smsto:") || sendToString.contains("sms:"))
+
+        if ((
+                    sendToString != null &&
+                            (sendToString.contains("smsto:") ||
+                                    sendToString.contains("sms:"))) ||
+            intent.hasExtra("address")
         ) {
-            val address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion)
+
+            val address = Helpers.getFormatCompleteNumber(
+                if(intent.hasExtra("address")) intent.getStringExtra("address")
+                else sendToString, defaultRegion)
+
             val threadId =
                 ThreadedConversationsHandler.get(context, address)
                     .thread_id
-
             return Triple(address, threadId, text)
         }
     }
     else if(intent.hasExtra("address")) {
-        var text = ""
+        var text = if(intent.hasExtra("android.intent.extra.TEXT"))
+            intent.getStringExtra("android.intent.extra.TEXT") else ""
+
         val address = intent.getStringExtra("address")
         val threadId = intent.getStringExtra("thread_id")
         return Triple(address, threadId, text)
@@ -510,12 +524,14 @@ fun ThreadConversationLayout(
     val context = LocalContext.current
 
     intent?.let {
+//        conversationsViewModel.text = ""
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
         processIntents(context, intent, defaultRegion)?.let {
             intent.apply {
                 removeExtra("address")
                 removeExtra("thread_id")
                 removeExtra("sms_body")
+                removeExtra("android.intent.extra.TEXT")
                 data = null
             }
             it.first?.let{ address ->
@@ -534,7 +550,6 @@ fun ThreadConversationLayout(
             }
         }
     }
-    conversationsViewModel.text = ""
 
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 
