@@ -74,6 +74,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.afkanerd.deku.DefaultSMS.ui.DefaultCheckMain
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
 @Serializable
 object HomeScreen
@@ -97,8 +101,6 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        checkLoadNatives()
-
         lifecycleScope.launch(Dispatchers.Main) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 WindowInfoTracker.getOrCreate(this@MainActivity)
@@ -116,24 +118,8 @@ class MainActivity : AppCompatActivity(){
         navController.navigate(HomeScreen)
     }
 
-    private fun checkLoadNatives() {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), false)){
-            CoroutineScope(Dispatchers.Default).launch {
-                conversationViewModel.reset(applicationContext)
-            }
-            sharedPreferences.edit()
-                .putBoolean(getString(R.string.configs_load_natives), false)
-                .apply()
-        }
 
-    }
-
-    override fun onResume() {
-        super.onResume()
-        checkIsDefault()
-    }
-
+    @OptIn(ExperimentalPermissionsApi::class)
     fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
         conversationViewModel.newLayoutInfo = newLayoutInfo
         setContent {
@@ -190,7 +176,9 @@ class MainActivity : AppCompatActivity(){
                                 }
                             }
                         }
+
                     }
+
                 }
             }
         }
@@ -261,17 +249,13 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    fun checkIsDefault() {
+    fun checkIsDefault(): Boolean {
         val defaultName = Telephony.Sms.getDefaultSmsPackage(applicationContext)
         if(defaultName.isNullOrBlank() || packageName != defaultName) {
-            when {
-                ContextCompat.checkSelfPermission(applicationContext,
-                    Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED -> {
-                    startActivity(Intent(this, DefaultCheckActivity::class.java))
-                    finish()
-                }
-            }
+            return ContextCompat.checkSelfPermission(applicationContext,
+                Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
         }
+        return false
     }
 
 }

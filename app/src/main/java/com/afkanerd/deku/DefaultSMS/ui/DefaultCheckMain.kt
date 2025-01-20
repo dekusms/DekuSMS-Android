@@ -1,5 +1,17 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.app.Activity.RESULT_OK
+import android.app.role.RoleManager
+import android.content.Context
+import android.content.Context.ROLE_SERVICE
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Telephony
+import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -21,11 +33,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Preview(showBackground = true)
 @Composable
-fun DefaultCheckMain() {
+fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
+    val context = LocalContext.current
+    val getDefaultPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                sharedPreferences.edit()
+                    .putBoolean(context.getString(R.string.configs_load_natives), true)
+                    .apply()
+                permissionGrantedCallback?.invoke()
+            }
+        }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -47,14 +77,16 @@ fun DefaultCheckMain() {
             Spacer(Modifier.size(32.dp))
 
             Button(onClick = {
-
+                getDefaultPermission.launch(makeDefault(context))
             }) {
                 Text(stringResource(R.string.default_check_btn_text))
             }
 
         }
         TextButton(onClick = {
-
+            val url = context.getString(R.string.privacy_policy_url)
+            val shareIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            context.startActivity(shareIntent)
         }) {
             Text(
                 stringResource(R.string.privacy_policy_url),
@@ -63,3 +95,19 @@ fun DefaultCheckMain() {
         }
     }
 }
+
+fun makeDefault(context: Context): Intent {
+    // TODO: replace this with checking other permissions - since this gives null in level 35
+    return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val roleManager = context.getSystemService(ROLE_SERVICE) as RoleManager
+        roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS).apply {
+            putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
+        }
+    } else {
+        Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT).apply {
+            putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
+        }
+    }
+}
+
+

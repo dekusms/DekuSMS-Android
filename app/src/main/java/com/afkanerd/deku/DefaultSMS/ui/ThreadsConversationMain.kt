@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.ContextWrapper
@@ -36,6 +37,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.DismissDirection
+import androidx.compose.material.DrawerState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.ListItem
@@ -147,6 +149,9 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ImportDetails
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -415,6 +420,7 @@ fun ModalDrawerSheetLayout(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Preview(showBackground = true)
 @Composable
 private fun MainDropDownMenu(
@@ -423,6 +429,7 @@ private fun MainDropDownMenu(
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val defaultPermission = rememberPermissionState(Manifest.permission.READ_SMS)
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -516,33 +523,35 @@ private fun MainDropDownMenu(
                 }
             )
 
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.conversation_menu_export),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.let { it(false) }
-                    val filename = "Deku_SMS_All_Backup" + System.currentTimeMillis() + ".json";
-                    exportLauncher.launch(filename)
-                }
-            )
-
-            if(BuildConfig.DEBUG)
+            if(defaultPermission.status.isGranted || LocalInspectionMode.current) {
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text= stringResource(R.string.conversation_menu_import),
+                            text = stringResource(R.string.conversation_menu_export),
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     },
                     onClick = {
                         dismissCallback?.let { it(false) }
-                        importLauncher.launch("application/json")
+                        val filename = "Deku_SMS_All_Backup" + System.currentTimeMillis() + ".json";
+                        exportLauncher.launch(filename)
                     }
                 )
+
+                if(BuildConfig.DEBUG)
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text= stringResource(R.string.conversation_menu_import),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        onClick = {
+                            dismissCallback?.let { it(false) }
+                            importLauncher.launch("application/json")
+                        }
+                    )
+            }
 
             DropdownMenuItem(
                 text = {
@@ -565,9 +574,14 @@ private fun MainDropDownMenu(
 }
 
 
+private fun loadNatives(context: Context, conversationViewModel: ConversationsViewModel) {
+    CoroutineScope(Dispatchers.Default).launch {
+        conversationViewModel.reset(context)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class
 )
 @Composable
 fun ThreadConversationLayout(
@@ -579,6 +593,8 @@ fun ThreadConversationLayout(
 
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
+
+    val defaultPermission = rememberPermissionState(Manifest.permission.READ_SMS)
 
     intent?.let {
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
@@ -629,7 +645,7 @@ fun ThreadConversationLayout(
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    var drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     var selectedItems = remember { mutableStateListOf<Conversation>() }
     var slideDeleteItem = remember { mutableStateOf("") }
@@ -655,7 +671,7 @@ fun ThreadConversationLayout(
     }
 
     LaunchedEffect(inboxType) {
-        if(inboxType == InboxType.BLOCKED) {
+        if(inboxType == InboxType.BLOCKED && defaultPermission.status.isGranted) {
             coroutineScope.launch {
                 items.forEach {
                     if(BlockedNumberContract.isBlocked(context, it.address)) blockedItems.add(it)
@@ -737,13 +753,15 @@ fun ThreadConversationLayout(
                             }
                         },
                         actions = {
-                            IconButton(onClick = {
-                                navController.navigate(SearchThreadScreen)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Search,
-                                    contentDescription = stringResource(R.string.search_messages)
-                                )
+                            if(defaultPermission.status.isGranted || inPreviewMode) {
+                                IconButton(onClick = {
+                                    navController.navigate(SearchThreadScreen)
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = stringResource(R.string.search_messages)
+                                    )
+                                }
                             }
                             IconButton(onClick = {
                                 rememberMenuExpanded = !rememberMenuExpanded
@@ -872,224 +890,232 @@ fun ThreadConversationLayout(
                 }
             },
             floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        navController.navigate(ComposeNewMessageScreen)
-                    },
-                    icon = { Icon( Icons.AutoMirrored.Default.Message,
-                        stringResource(R.string.compose_new_message)) },
-                    text = { Text(text = stringResource(R.string.compose)) },
-                    expanded = listState.isScrollingUp()
-                )
+                if(defaultPermission.status.isGranted || inPreviewMode) {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            navController.navigate(ComposeNewMessageScreen)
+                        },
+                        icon = { Icon( Icons.AutoMirrored.Default.Message,
+                            stringResource(R.string.compose_new_message)) },
+                        text = { Text(text = stringResource(R.string.compose)) },
+                        expanded = listState.isScrollingUp()
+                    )
+                }
             }
         ) { innerPadding ->
             Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
-
-                when(inboxType) {
-                    InboxType.INBOX -> {
-                        if(items.isEmpty())
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    stringResource(R.string.homepage_no_message),
-                                    fontSize = 24.sp
-                                )
-                            }
+                if(!defaultPermission.status.isGranted) {
+                    DefaultCheckMain {
+                        loadNatives(context, conversationsViewModel)
                     }
-                    InboxType.ARCHIVED -> {
-                        if(archivedItems.isEmpty())
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    stringResource(R.string.homepage_archive_no_message),
-                                    fontSize = 24.sp
-                                )
-                            }
-                    }
-                    InboxType.ENCRYPTED -> {}
-                    InboxType.BLOCKED -> {}
-                    InboxType.DRAFTS -> {}
-                    InboxType.MUTED -> {}
                 }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState
-                )  {
-                    itemsIndexed(
-                        items = if(inPreviewMode) _items else when(inboxType) {
-                            InboxType.INBOX -> items
-                            InboxType.ARCHIVED -> archivedItems
-                            InboxType.ENCRYPTED -> encryptedItems
-                            InboxType.BLOCKED -> blockedItems
-                            InboxType.DRAFTS -> draftsItems
-                            InboxType.MUTED -> mutedItems
-                        },
-                        key = { index, message -> message.thread_id!! }
-                    ) { index, message ->
-                        message.address?.let { address ->
-                            val isBlocked by remember { mutableStateOf(BlockedNumberContract
-                                .isBlocked(context, message.address)) }
-                            val contactName: String? by remember { mutableStateOf(Contacts
-                                .retrieveContactName(context, message.address))
-                            }
-                            var firstName = message.address
-                            var lastName = ""
-                            val isSelected = selectedItems.contains(message)
-                            if (!contactName.isNullOrEmpty()) {
-                                contactName!!.split(" ").let {
-                                    firstName = it[0]
-                                    if (it.size > 1)
-                                        lastName = it[1]
-                                }
-                            }
-
-                            var isMute by remember { mutableStateOf( false) }
-                            LaunchedEffect(message.thread_id) {
-                                coroutineScope.launch {
-                                    isMute = conversationsViewModel.isMuted(context,
-                                        message.thread_id)
-                                }
-                            }
-
-                            val dismissState = rememberSwipeToDismissBoxState(
-                                confirmValueChange = {
-                                    when(it) {
-                                        SwipeToDismissBoxValue.StartToEnd -> {
-                                            slideDeleteItem.value = message.thread_id!!
-                                            rememberDeleteMenu = true
-                                            return@rememberSwipeToDismissBoxState false
-                                        }
-                                        SwipeToDismissBoxValue.EndToStart -> {
-                                            coroutineScope.launch {
-                                                when(inboxType) {
-                                                    InboxType.ARCHIVED ->
-                                                        conversationsViewModel.unArchive(context,
-                                                            message.thread_id)
-                                                    else -> conversationsViewModel.archive(context,
-                                                        message.thread_id)
-                                                }
-                                            }
-                                            return@rememberSwipeToDismissBoxState true
-                                        }
-                                        SwipeToDismissBoxValue.Settled ->
-                                            return@rememberSwipeToDismissBoxState false
-                                        else -> {}
-                                    }
-                                    return@rememberSwipeToDismissBoxState true
-                                },
-                                positionalThreshold = { it * .75f }
-                            )
-
-                            SwipeToDismissBox(
-                                state = dismissState,
-                                backgroundContent = {
-                                    SwipeToDeleteBackground(
-                                        dismissState,
-                                        inboxType == InboxType.ARCHIVED
+                else {
+                    when(inboxType) {
+                        InboxType.INBOX -> {
+                            if(items.isEmpty())
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        stringResource(R.string.homepage_no_message),
+                                        fontSize = 24.sp
                                     )
                                 }
-                            ) {
-                                ThreadConversationCard(
-                                    id = message.thread_id!!,
-                                    firstName = firstName!!,
-                                    lastName = lastName,
-                                    phoneNumber = address,
-                                    content = if(message.text.isNullOrBlank())
-                                        stringResource(R.string.conversation_threads_secured_content)
-                                    else message.text!!,
-                                    date =
-                                    if(!message.date.isNullOrBlank())
-                                        Helpers.formatDate(context, message.date!!.toLong())
-                                    else "Tues",
-                                    isRead = message.isRead,
-                                    isContact = !contactName.isNullOrBlank(),
-                                    isBlocked = isBlocked,
-                                    modifier = Modifier.combinedClickable(
-                                        onClick = {
-                                            if(selectedItems.isEmpty()) {
-                                                navigateToConversation(
-                                                    conversationsViewModel = conversationsViewModel,
-                                                    address = message.address!!,
-                                                    threadId = message.thread_id!!,
-                                                    subscriptionId =
-                                                    SIMHandler.getDefaultSimSubscription(context),
-                                                    navController = navController,
-                                                )
-                                            } else {
-                                                if(selectedItems.contains(message))
-                                                    selectedItems.remove(message)
-                                                else
-                                                    selectedItems.add(message)
+                        }
+                        InboxType.ARCHIVED -> {
+                            if(archivedItems.isEmpty())
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        stringResource(R.string.homepage_archive_no_message),
+                                        fontSize = 24.sp
+                                    )
+                                }
+                        }
+                        InboxType.ENCRYPTED -> {}
+                        InboxType.BLOCKED -> {}
+                        InboxType.DRAFTS -> {}
+                        InboxType.MUTED -> {}
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        state = listState
+                    )  {
+                        itemsIndexed(
+                            items = if(inPreviewMode) _items else when(inboxType) {
+                                InboxType.INBOX -> items
+                                InboxType.ARCHIVED -> archivedItems
+                                InboxType.ENCRYPTED -> encryptedItems
+                                InboxType.BLOCKED -> blockedItems
+                                InboxType.DRAFTS -> draftsItems
+                                InboxType.MUTED -> mutedItems
+                            },
+                            key = { index, message -> message.thread_id!! }
+                        ) { index, message ->
+                            message.address?.let { address ->
+                                val isBlocked by remember { mutableStateOf(BlockedNumberContract
+                                    .isBlocked(context, message.address)) }
+                                val contactName: String? by remember { mutableStateOf(Contacts
+                                    .retrieveContactName(context, message.address))
+                                }
+                                var firstName = message.address
+                                var lastName = ""
+                                val isSelected = selectedItems.contains(message)
+                                if (!contactName.isNullOrEmpty()) {
+                                    contactName!!.split(" ").let {
+                                        firstName = it[0]
+                                        if (it.size > 1)
+                                            lastName = it[1]
+                                    }
+                                }
+
+                                var isMute by remember { mutableStateOf( false) }
+                                LaunchedEffect(message.thread_id) {
+                                    coroutineScope.launch {
+                                        isMute = conversationsViewModel.isMuted(context,
+                                            message.thread_id)
+                                    }
+                                }
+
+                                val dismissState = rememberSwipeToDismissBoxState(
+                                    confirmValueChange = {
+                                        when(it) {
+                                            SwipeToDismissBoxValue.StartToEnd -> {
+                                                slideDeleteItem.value = message.thread_id!!
+                                                rememberDeleteMenu = true
+                                                return@rememberSwipeToDismissBoxState false
                                             }
-                                        },
-                                        onLongClick = {
-                                            selectedItems.add(message)
+                                            SwipeToDismissBoxValue.EndToStart -> {
+                                                coroutineScope.launch {
+                                                    when(inboxType) {
+                                                        InboxType.ARCHIVED ->
+                                                            conversationsViewModel.unArchive(context,
+                                                                message.thread_id)
+                                                        else -> conversationsViewModel.archive(context,
+                                                            message.thread_id)
+                                                    }
+                                                }
+                                                return@rememberSwipeToDismissBoxState true
+                                            }
+                                            SwipeToDismissBoxValue.Settled ->
+                                                return@rememberSwipeToDismissBoxState false
+                                            else -> {}
                                         }
-                                    ),
-                                    isSelected = isSelected,
-                                    isMuted = isMute,
-                                    type = message.type
+                                        return@rememberSwipeToDismissBoxState true
+                                    },
+                                    positionalThreshold = { it * .75f }
                                 )
+
+                                SwipeToDismissBox(
+                                    state = dismissState,
+                                    backgroundContent = {
+                                        SwipeToDeleteBackground(
+                                            dismissState,
+                                            inboxType == InboxType.ARCHIVED
+                                        )
+                                    }
+                                ) {
+                                    ThreadConversationCard(
+                                        id = message.thread_id!!,
+                                        firstName = firstName!!,
+                                        lastName = lastName,
+                                        phoneNumber = address,
+                                        content = if(message.text.isNullOrBlank())
+                                            stringResource(R.string.conversation_threads_secured_content)
+                                        else message.text!!,
+                                        date =
+                                        if(!message.date.isNullOrBlank())
+                                            Helpers.formatDate(context, message.date!!.toLong())
+                                        else "Tues",
+                                        isRead = message.isRead,
+                                        isContact = !contactName.isNullOrBlank(),
+                                        isBlocked = isBlocked,
+                                        modifier = Modifier.combinedClickable(
+                                            onClick = {
+                                                if(selectedItems.isEmpty()) {
+                                                    navigateToConversation(
+                                                        conversationsViewModel = conversationsViewModel,
+                                                        address = message.address!!,
+                                                        threadId = message.thread_id!!,
+                                                        subscriptionId =
+                                                        SIMHandler.getDefaultSimSubscription(context),
+                                                        navController = navController,
+                                                    )
+                                                } else {
+                                                    if(selectedItems.contains(message))
+                                                        selectedItems.remove(message)
+                                                    else
+                                                        selectedItems.add(message)
+                                                }
+                                            },
+                                            onLongClick = {
+                                                selectedItems.add(message)
+                                            }
+                                        ),
+                                        isSelected = isSelected,
+                                        isMuted = isMute,
+                                        type = message.type
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                if(rememberDeleteMenu) {
-                    DeleteConfirmationAlert(
-                        confirmCallback = {
-                            coroutineScope.launch {
-                                val threads: List<String> = selectedItems.map { it.thread_id!! }
-                                conversationsViewModel.deleteThreads(context,
-                                    if(threads.isNotEmpty()) threads
-                                    else listOf<String>(slideDeleteItem.value)
-                                )
-                                selectedItems.clear()
-                                rememberDeleteMenu = false
+                    if(rememberDeleteMenu) {
+                        DeleteConfirmationAlert(
+                            confirmCallback = {
+                                coroutineScope.launch {
+                                    val threads: List<String> = selectedItems.map { it.thread_id!! }
+                                    conversationsViewModel.deleteThreads(context,
+                                        if(threads.isNotEmpty()) threads
+                                        else listOf<String>(slideDeleteItem.value)
+                                    )
+                                    selectedItems.clear()
+                                    rememberDeleteMenu = false
+                                }
                             }
+                        ) {
+                            rememberDeleteMenu = false
+                            selectedItems.clear()
                         }
-                    ) {
-                        rememberDeleteMenu = false
-                        selectedItems.clear()
                     }
-                }
 
-                if(rememberImportMenuExpanded) {
-                    val importConversations by remember { mutableStateOf(conversationsViewModel
-                        .importAll(context, detailsOnly = true)) }
-                    val numThreads by remember { mutableStateOf(
-                        importConversations.map { it.thread_id }.toSet()
-                    ) }
-                    ImportDetails(
-                        numOfConversations = importConversations.size,
-                        numOfThreads = numThreads.size,
-                        resetConfirmCallback = {
-                            coroutineScope.launch {
-                                conversationsViewModel.clear(context)
-                                conversationsViewModel.importAll(context)
-                                conversationsViewModel.importDetails = ""
-                            }
-                        },
-                        confirmCallback = {
-                            coroutineScope.launch {
-                                conversationsViewModel.importAll(context)
-                                conversationsViewModel.importDetails = ""
-                            }
-                    }) {
+                    if(rememberImportMenuExpanded) {
+                        val importConversations by remember { mutableStateOf(conversationsViewModel
+                            .importAll(context, detailsOnly = true)) }
+                        val numThreads by remember { mutableStateOf(
+                            importConversations.map { it.thread_id }.toSet()
+                        ) }
+                        ImportDetails(
+                            numOfConversations = importConversations.size,
+                            numOfThreads = numThreads.size,
+                            resetConfirmCallback = {
+                                coroutineScope.launch {
+                                    conversationsViewModel.clear(context)
+                                    conversationsViewModel.importAll(context)
+                                    conversationsViewModel.importDetails = ""
+                                }
+                            },
+                            confirmCallback = {
+                                coroutineScope.launch {
+                                    conversationsViewModel.importAll(context)
+                                    conversationsViewModel.importDetails = ""
+                                }
+                            }) {
 //                        rememberImportMenuExpanded = false
-                        conversationsViewModel.importDetails = ""
+                            conversationsViewModel.importDetails = ""
+                        }
                     }
-                }
 
+                }
             }
         }
 

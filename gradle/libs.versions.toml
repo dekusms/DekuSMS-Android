@@ -1,4 +1,6 @@
 [versions]
+accompanistPermissions = "<version>"
+accompanistPermissionsVersion = "0.37.0"
 activityCompose = "1.10.0"
 amqpClient = "5.20.0"
 androidMail = "1.6.2"
@@ -56,6 +58,7 @@ activity = "1.10.0"
 x25519 = "2.0"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
 amqp-client = { module = "com.rabbitmq:amqp-client", version.ref = "amqpClient" }
 android-activation = { module = "com.sun.mail:android-activation", version.ref = "androidMail" }
 android-mail = { module = "com.sun.mail:android-mail", version.ref = "androidMail" }
