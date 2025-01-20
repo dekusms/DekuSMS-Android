@@ -347,5 +347,6 @@
 
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
+    <string name="welcome_image">Welcome image</string>
 
 </resources>

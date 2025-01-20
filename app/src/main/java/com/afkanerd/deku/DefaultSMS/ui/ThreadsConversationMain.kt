@@ -581,7 +581,6 @@ fun ThreadConversationLayout(
     val context = LocalContext.current
 
     intent?.let {
-//        conversationsViewModel.text = ""
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
         processIntents(context, intent, defaultRegion)?.let {
             intent.apply {
