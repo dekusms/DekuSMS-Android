@@ -7,7 +7,7 @@
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=com.afkanerd.deku)
 
-![deku-sms-screenshots](https://github.com/user-attachments/assets/42ed23f8-54fe-470d-ba5a-b9e45a5a1668)
+![deku-sms-screenshots](https://github.com/user-attachments/assets/17cf85c1-adff-4a1f-85d6-3a2d864e61a8)
 
 <b>Contents</b>
 
