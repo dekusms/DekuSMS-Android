@@ -1,6 +1,7 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,10 +27,12 @@ import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
 import com.afkanerd.deku.RemoteListeners.components.ConnectionCards
 import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
-import org.intellij.lang.annotations.JdkConstants
+import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,37 +48,53 @@ fun RMQMain(
     val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
     else gatewayClientViewModel.get(context).observeAsState(emptyList()).value
 
+    var showRemoteListenerModal by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(8.dp)
                 .padding(innerPadding)
         ) {
-            if( remoteListeners.isEmpty()) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("No remote listeners")
+            Column {
+                if( remoteListeners.isEmpty()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("No remote listeners")
+                    }
                 }
-            }
-            else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState
-                ) {
-                    itemsIndexed(
-                        items = remoteListeners,
-                        key = { index, remoteListener -> remoteListener.id}
-                    ) { index, remoteListener ->
-                        ConnectionCards(remoteListener) {
-                            TODO("Need to start adding queues")
-                            TODO("Should be modal")
+                else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        state = listState
+                    ) {
+                        itemsIndexed(
+                            items = remoteListeners,
+                            key = { index, remoteListener -> remoteListener.id}
+                        ) { index, remoteListener ->
+                            ConnectionCards(remoteListener) {
+                                TODO("Need to start adding queues")
+                                TODO("Should be modal")
+
+                            }
                         }
                     }
+                }
+            }
+
+            if(showRemoteListenerModal) {
+                RemoteListenerModal(
+                    showModal = showRemoteListenerModal,
+                    addQueueCallback = {},
+                    editCallback = {},
+                    deleteCallback = {}
+                ) {
+                    showRemoteListenerModal = false
                 }
             }
         }
