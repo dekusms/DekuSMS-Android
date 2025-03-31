@@ -39,6 +39,7 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
 import androidx.preference.PreferenceManager
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
@@ -106,15 +107,15 @@ object Notifications {
                     getString(context, R.string.notifications_reply_label),
                     replyPendingIntent
                 )
-                    .addRemoteInput(RemoteInput.Builder("extra_remote_reply").setLabel("").build())
+                    .addRemoteInput(
+                        RemoteInput.Builder(
+                            IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
+                            .setLabel("")
+                            .build()
+                    )
                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
                     .setShowsUserInterface(false)
                     .build()
-//                    .addRemoteInput(remoteInput)
-//                    .setAllowGeneratedReplies(true)
-//                    .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
-//                    .setShowsUserInterface(false)
-//                    .build()
 
         var muteAction: NotificationCompat.Action? = if(mutePendingIntent == null) null else
             NotificationCompat.Action.Builder(
@@ -184,9 +185,9 @@ object Notifications {
             .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
             .setAllowSystemGeneratedContextualActions(true)
-            .addAction(muteAction)
-            .addAction(markAsReadAction)
             .addAction(replyAction)
+            .addAction(markAsReadAction)
+            .addAction(muteAction)
             .setShortcutId(address)
             .setBubbleMetadata(bubbleMetadata)
             .setLocusId(
