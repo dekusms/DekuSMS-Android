@@ -9,7 +9,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity;
 
 public class DevelopersFragment extends PreferenceFragmentCompat {
     @Override

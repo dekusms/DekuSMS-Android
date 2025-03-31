@@ -1,4 +1,4 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

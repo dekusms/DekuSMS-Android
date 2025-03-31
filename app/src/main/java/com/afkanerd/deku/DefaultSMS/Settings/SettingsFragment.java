@@ -1,9 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.Settings;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.app.LocaleManager;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
@@ -20,8 +17,6 @@ import com.afkanerd.deku.DefaultSMS.Fragments.DevelopersFragment;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 //import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
 import java.util.Locale;
 

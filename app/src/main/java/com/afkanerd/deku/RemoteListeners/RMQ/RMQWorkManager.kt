@@ -1,9 +1,9 @@
-package com.afkanerd.deku.QueueListener.RMQ
+package com.afkanerd.deku.RemoteListeners.RMQ
 
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 
 
 class RMQWorkManager(context: Context, workerParams: WorkerParameters)

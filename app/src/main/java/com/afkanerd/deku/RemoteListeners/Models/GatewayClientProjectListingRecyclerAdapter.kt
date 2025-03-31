@@ -1,18 +1,14 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
-import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddModalFragment
 
 class GatewayClientProjectListingRecyclerAdapter :
     RecyclerView.Adapter<GatewayClientProjectListingRecyclerAdapter.ViewHolder>() {

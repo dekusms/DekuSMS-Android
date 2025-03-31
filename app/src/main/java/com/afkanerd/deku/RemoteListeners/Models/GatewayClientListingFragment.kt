@@ -1,4 +1,4 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -56,7 +55,7 @@ class GatewayClientListingFragment : Fragment(R.layout.fragment_gateway_client_l
             }
         })
 
-        gatewayClientViewModel.getGatewayClientList(view.context).observe(this,
+        gatewayClientViewModel.get(view.context).observe(this,
                 Observer {
                     if (it.isNullOrEmpty())
                         view.findViewById<View>(R.id.gateway_client_no_gateway_client_label)

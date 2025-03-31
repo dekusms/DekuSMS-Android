@@ -91,11 +91,11 @@
             android:name=".AboutActivity"
             android:exported="false"/>
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
+            android:name="com.afkanerd.deku.RemoteListeners.Models.GatewayClientAddActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity" />
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
+            android:name="com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity"
             android:exported="false"
             android:parentActivityName=".SettingsActivity" />
         <activity
@@ -178,7 +178,7 @@
             </intent-filter>
         </service>
         <service
-            android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
+            android:name="com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" /> <!-- <meta-data -->
@@ -200,7 +200,7 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionServiceInitializer"
+                android:name="com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionServiceInitializer"
                 android:value="androidx.startup" />
         </provider>
     </application>

@@ -1,7 +1,6 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.RemoteListeners.Models;
 
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 

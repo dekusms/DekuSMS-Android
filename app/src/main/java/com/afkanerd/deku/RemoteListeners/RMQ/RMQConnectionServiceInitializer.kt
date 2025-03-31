@@ -1,4 +1,4 @@
-package com.afkanerd.deku.QueueListener.RMQ
+package com.afkanerd.deku.RemoteListeners.RMQ
 
 import android.content.Context
 import android.content.Intent

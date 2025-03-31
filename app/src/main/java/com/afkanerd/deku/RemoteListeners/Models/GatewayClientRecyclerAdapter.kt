@@ -1,9 +1,5 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
-import android.app.ActivityManager
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.ServiceHandler
 import com.afkanerd.deku.DefaultSMS.R
 
 class GatewayClientRecyclerAdapter :

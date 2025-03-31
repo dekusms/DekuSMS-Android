@@ -1,24 +1,21 @@
-package com.afkanerd.deku.QueueListener.RMQ
+package com.afkanerd.deku.RemoteListeners.RMQ
 
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity
 
 class RMQConnectionService : Service() {
     private var nConnected = 0

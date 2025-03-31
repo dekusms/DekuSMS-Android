@@ -1,12 +1,10 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
 import androidx.recyclerview.widget.DiffUtil
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import org.apache.commons.codec.digest.MurmurHash3
-import java.nio.charset.StandardCharsets
 
 @Entity
 class GatewayClient {

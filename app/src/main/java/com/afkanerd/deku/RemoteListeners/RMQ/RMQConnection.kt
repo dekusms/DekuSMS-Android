@@ -1,10 +1,7 @@
-package com.afkanerd.deku.QueueListener.RMQ
+package com.afkanerd.deku.RemoteListeners.RMQ
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
-import com.rabbitmq.client.DeliverCallback
-import okhttp3.internal.toImmutableMap
-import java.io.IOException
 
 class RMQConnection(var id: Long, var connection: Connection) {
     private val autoDelete: Boolean = false

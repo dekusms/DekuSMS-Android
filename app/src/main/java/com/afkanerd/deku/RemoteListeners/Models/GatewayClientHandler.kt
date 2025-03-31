@@ -1,4 +1,4 @@
-package com.afkanerd.deku.QueueListener.GatewayClients
+package com.afkanerd.deku.RemoteListeners.Models
 
 import android.content.Context
 import android.util.Log
@@ -15,7 +15,7 @@ import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
-import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import java.util.concurrent.TimeUnit
 
 class GatewayClientHandler(context: Context?) {

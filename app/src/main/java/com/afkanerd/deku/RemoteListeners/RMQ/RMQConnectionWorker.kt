@@ -1,4 +1,4 @@
-package com.afkanerd.deku.QueueListener.RMQ
+package com.afkanerd.deku.RemoteListeners.RMQ
 
 import android.app.Activity
 import android.content.BroadcastReceiver
@@ -17,9 +17,9 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientProjects
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import org.hamcrest.CoreMatchers.anyOf
 import org.junit.Assert
 import java.io.IOException
 import java.nio.charset.StandardCharsets
