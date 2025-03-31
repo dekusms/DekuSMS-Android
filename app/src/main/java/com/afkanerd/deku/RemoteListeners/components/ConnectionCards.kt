@@ -32,9 +32,9 @@ fun ConnectionCards(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("username")
+            Text(remoteListeners.username!!)
             Text(
-                remoteListeners.username!!,
+                remoteListeners.hostUrl!!,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )

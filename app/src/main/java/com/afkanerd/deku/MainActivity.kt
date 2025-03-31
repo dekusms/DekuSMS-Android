@@ -1,40 +1,26 @@
-package com.afkanerd.deku.DefaultSMS
+package com.afkanerd.deku
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.ComponentCaller
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.provider.Telephony
-import android.text.Layout
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -43,12 +29,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.preference.PreferenceManager
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
-import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
-import androidx.window.layout.WindowMetricsCalculator
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
@@ -59,36 +41,19 @@ import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import java.io.BufferedReader
-import java.io.FileOutputStream
-import java.io.InputStreamReader
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.afkanerd.deku.DefaultSMS.ui.DefaultCheckMain
+import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
+import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 
-@Serializable
-object HomeScreen
-@Serializable
-object ConversationsScreen
-@Serializable
-object ComposeNewMessageScreen
-@Serializable
-object SearchThreadScreen
-@Serializable
-object ContactDetailsScreen
+
 
 class MainActivity : AppCompatActivity(){
 
@@ -96,6 +61,7 @@ class MainActivity : AppCompatActivity(){
 
     val conversationViewModel: ConversationsViewModel by viewModels()
     val searchViewModel: SearchViewModel by viewModels()
+    val remoteListenersViewModel: GatewayClientViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,7 +83,6 @@ class MainActivity : AppCompatActivity(){
         this.intent = intent
         navController.navigate(HomeScreen)
     }
-
 
     @OptIn(ExperimentalPermissionsApi::class)
     fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
@@ -152,35 +117,43 @@ class MainActivity : AppCompatActivity(){
                             composable<ContactDetailsScreen>{
                                 ContactDetailsScreenComposable()
                             }
+                            composable<RemoteListenersScreen>{
+                                RMQMainComposable(
+                                    remoteListenerViewModel = remoteListenersViewModel,
+                                    navController = navController
+                                )
+                            }
                         }
                         else {
                             composable<HomeScreen>{
-                                Row {
-                                    Column(modifier = Modifier.fillMaxWidth(0.5f)){
-                                        HomeScreenComposable()
-                                    }
-
-
-                                    if(conversationViewModel.address.isNotEmpty() &&
-                                        conversationViewModel.threadId.isNotEmpty()
-                                    )
-                                        Column { ConversationScreenComposable() }
-                                    else
-                                        Column(
-                                            modifier = Modifier.fillMaxSize(),
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            NoMessageSelected()
-                                        }
-                                }
+                                Folded()
                             }
                         }
-
                     }
-
                 }
             }
+        }
+    }
+
+    @Composable
+    fun Folded() {
+        Row {
+            Column(modifier = Modifier.fillMaxWidth(0.5f)){
+                HomeScreenComposable()
+            }
+
+            if(conversationViewModel.address.isNotEmpty() &&
+                conversationViewModel.threadId.isNotEmpty()
+            )
+                Column { ConversationScreenComposable() }
+            else
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    NoMessageSelected()
+                }
         }
     }
 
@@ -189,7 +162,8 @@ class MainActivity : AppCompatActivity(){
     @Composable
     fun NoMessageSelected() {
         Text(
-            stringResource(R.string
+            stringResource(
+                R.string
                 .select_a_conversation_from_the_list_on_the_left),
             fontSize = 12.sp,
             textAlign = TextAlign.Center

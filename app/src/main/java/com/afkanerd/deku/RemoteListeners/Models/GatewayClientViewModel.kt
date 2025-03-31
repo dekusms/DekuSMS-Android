@@ -13,7 +13,7 @@ class GatewayClientViewModel : ViewModel() {
 
     fun get(context: Context): LiveData<List<GatewayClient>> {
         datastore = Datastore.getDatastore(context)
-        if(!gatewayClientList.isInitialized) {
+        if(!::gatewayClientList.isInitialized) {
             gatewayClientList = loadGatewayClients()
         }
         return gatewayClientList

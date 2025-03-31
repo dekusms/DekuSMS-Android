@@ -1,59 +1,38 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.Manifest
-import android.app.Activity.RESULT_OK
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
-import android.net.Uri
 import android.provider.BlockedNumberContract
-import android.provider.ContactsContract
-import android.provider.Telephony
-import android.text.InputType
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.expandIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DrawerState
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.ListItem
-import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.outlined.InsertComment
-import androidx.compose.material.icons.automirrored.twotone.InsertComment
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Drafts
-import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -61,12 +40,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.rememberDismissState
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
@@ -81,7 +54,6 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
@@ -94,59 +66,45 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.RemoteInput
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.preference.PreferenceManager
-import androidx.room.util.TableInfo
-import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.ComposeNewMessageScreen
-import com.afkanerd.deku.DefaultSMS.ConversationsScreen
+import com.afkanerd.deku.ComposeNewMessageScreen
+import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
-import com.afkanerd.deku.DefaultSMS.HomeScreen
-import com.afkanerd.deku.DefaultSMS.Models.Archive
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
-import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
+import com.afkanerd.deku.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
-import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.ImportDetails
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
+import com.afkanerd.deku.RemoteListenersScreen
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -154,12 +112,10 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.io.InputStreamReader
-import kotlin.math.exp
 
 enum class InboxType(val value: Int) {
     INBOX(0),
@@ -421,11 +377,11 @@ fun ModalDrawerSheetLayout(
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
-@Preview(showBackground = true)
 @Composable
 private fun MainDropDownMenu(
     expanded: Boolean = false,
     conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
+    navController: NavController,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -489,22 +445,7 @@ private fun MainDropDownMenu(
             expanded = expanded,
             onDismissRequest = { dismissCallback?.let{ it(false) } },
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.homepage_menu_routed),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.let { it(false) }
-                    context.startActivity(
-                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
-                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-                        }
-                    )
-                }
-            )
+
 
             DropdownMenuItem(
                 text = {
@@ -552,6 +493,36 @@ private fun MainDropDownMenu(
                         }
                     )
             }
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.homepage_menu_routed),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= stringResource(R.string.remote_listeners),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    navController.navigate(RemoteListenersScreen)
+                }
+            )
 
             DropdownMenuItem(
                 text = {
@@ -702,6 +673,7 @@ fun ThreadConversationLayout(
 
     MainDropDownMenu(
         expanded=rememberMenuExpanded,
+        navController=navController
     ) {
         rememberMenuExpanded = it
     }

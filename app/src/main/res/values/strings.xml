@@ -348,5 +348,6 @@
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
     <string name="welcome_image">Welcome image</string>
+    <string name="remote_listeners">Remote listeners</string>
 
 </resources>

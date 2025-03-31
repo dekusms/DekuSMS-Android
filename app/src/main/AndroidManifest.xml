@@ -38,7 +38,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
-            android:name=".MainActivity"
+            android:name="com.afkanerd.deku.MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleInstance"
             android:exported="true" >
@@ -163,7 +163,7 @@
         </receiver>
 
         <service
-            android:name=".MainActivity"
+            android:name="com.afkanerd.deku.MainActivity"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>

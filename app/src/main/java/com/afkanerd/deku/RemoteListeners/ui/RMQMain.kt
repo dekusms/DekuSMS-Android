@@ -36,9 +36,9 @@ import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RMQMain(
+fun RMQMainComposable(
     _remoteListeners: List<GatewayClient> = emptyList<GatewayClient>(),
-    gatewayClientViewModel: GatewayClientViewModel,
+    remoteListenerViewModel: GatewayClientViewModel,
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -46,7 +46,7 @@ fun RMQMain(
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
-    else gatewayClientViewModel.get(context).observeAsState(emptyList()).value
+    else remoteListenerViewModel.get(context).observeAsState(emptyList()).value
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
@@ -77,11 +77,7 @@ fun RMQMain(
                             items = remoteListeners,
                             key = { index, remoteListener -> remoteListener.id}
                         ) { index, remoteListener ->
-                            ConnectionCards(remoteListener) {
-                                TODO("Need to start adding queues")
-                                TODO("Should be modal")
-
-                            }
+                            ConnectionCards(remoteListener) { showRemoteListenerModal = true }
                         }
                     }
                 }
@@ -111,7 +107,7 @@ fun ConnectionCards_Preview() {
         gatewayClient.virtualHost = "/"
         gatewayClient.port = 5671
         gatewayClient.username = "example_user"
-        RMQMain(
+        RMQMainComposable(
             listOf(gatewayClient),
             GatewayClientViewModel(),
             rememberNavController(),

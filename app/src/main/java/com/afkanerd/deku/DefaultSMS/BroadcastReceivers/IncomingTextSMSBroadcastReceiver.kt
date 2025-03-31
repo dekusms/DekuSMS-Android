@@ -1,7 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,18 +9,15 @@ import android.util.Base64
 import android.util.Log
 import android.util.Pair
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.MainActivity
+import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
@@ -30,8 +26,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     /*
