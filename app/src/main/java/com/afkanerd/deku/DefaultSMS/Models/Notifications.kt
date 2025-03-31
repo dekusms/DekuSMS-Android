@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
-import android.app.Activity.RESULT_OK
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -8,42 +7,22 @@ import android.content.Intent
 import android.content.LocusId
 import android.content.pm.PackageManager
 import android.content.pm.ShortcutInfo
-import android.graphics.drawable.Icon
 import android.os.Build
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import androidx.core.graphics.drawable.RoundedBitmapDrawable
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
-import androidx.core.graphics.drawable.toBitmap
-import androidx.preference.PreferenceManager
-import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
-import com.google.android.material.color.MaterialColors
 
 object Notifications {
     const val KEY_TEXT_REPLY = "KEY_TEXT_REPLY"
@@ -60,12 +39,6 @@ object Notifications {
         markAsRead: Intent? = null,
     ) : NotificationCompat.Builder {
         val channelId = getString(context, R.string.incoming_messages_channel_id)
-
-        var replyLabel = getString(context, R.string.notifications_reply_label)
-        var remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
-            setLabel(replyLabel)
-            build()
-        }
 
         var pendingIntent = PendingIntent
             .getActivity(
@@ -100,6 +73,8 @@ object Notifications {
                 PendingIntent.FLAG_MUTABLE
             )
 
+
+        val replyLabel: String? = context.resources.getString(R.string.notifications_reply_label)
         var replyAction: NotificationCompat.Action? =
             if(replyPendingIntent == null || Helpers.isShortCode(address)) null else
                 NotificationCompat.Action.Builder(
@@ -110,7 +85,7 @@ object Notifications {
                     .addRemoteInput(
                         RemoteInput.Builder(
                             IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
-                            .setLabel("")
+                            .setLabel(replyLabel)
                             .build()
                     )
                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
