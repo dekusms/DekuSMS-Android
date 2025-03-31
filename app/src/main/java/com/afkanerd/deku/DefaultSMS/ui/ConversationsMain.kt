@@ -96,6 +96,8 @@ import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
@@ -561,6 +563,7 @@ fun Conversations(
         if(searchIndexes.isNotEmpty() && searchIndex == 0)
             listState.animateScrollToItem(searchIndexes.first())
 
+        Notifications.cancel(context, viewModel.threadId.toInt())
     }
 
     LaunchedEffect(viewModel.address){
