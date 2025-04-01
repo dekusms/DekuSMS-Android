@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 fun RemoteListenerAddQueuesModal(
     showModal: Boolean,
     remoteListener: GatewayClient,
-    remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
+    remoteListenerQueuesViewModel: RemoteListenerQueuesViewModel,
     dismissCallback: () -> Unit,
 ) {
     val state = rememberStandardBottomSheetState(
@@ -132,7 +132,7 @@ fun RemoteListenerAddQueuesModal(
                     remoteListenerQueues.gatewayClientId = remoteListener.id
 
                     CoroutineScope(Dispatchers.Default).launch {
-                        remoteListenerProjectsViewModel.insert(remoteListenerQueues)
+                        remoteListenerQueuesViewModel.insert(remoteListenerQueues)
                         dismissCallback()
                     }
                 }, enabled = exchange.isNotBlank() && sim1Queue.isNotEmpty()) {

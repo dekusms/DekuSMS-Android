@@ -1,7 +1,5 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,25 +22,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.components.ConnectionCards
-import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.components.ConnectionCards
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListenersAdd
@@ -50,27 +46,26 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RMQMainComposable(
-    _remoteListeners: List<GatewayClient> = emptyList<GatewayClient>(),
-    remoteListenerViewModel: RemoteListenersViewModel,
-    remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
-    navController: NavController,
+fun RMQQueuesComposable(
+    _remoteListenersQueues: List<RemoteListenersQueues> = emptyList<RemoteListenersQueues>(),
+    remoteListenersQueuesViewModel: RemoteListenerQueuesViewModel,
+    remoteListenersViewModel: RemoteListenersViewModel,
+    navController: NavController
 ) {
-    val context = LocalContext.current
-    val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
+    val context = LocalContext.current
 
-    val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
-    else remoteListenerViewModel.get(context).observeAsState(emptyList()).value
+    var showRemoteListenerAddQueuesModal by remember { mutableStateOf(false) }
 
-    var showRemoteListenerModal by remember { mutableStateOf(false) }
-
-    BackHandler {
-        remoteListenerViewModel.remoteListener = null
-        navController.popBackStack()
-    }
+    val remoteListenersQueues: List<RemoteListenersQueues> =
+        if(LocalInspectionMode.current) _remoteListenersQueues
+        else remoteListenersQueuesViewModel.get(context,
+            remoteListenersViewModel.remoteListener!!.id)
+            .observeAsState(emptyList()).value
 
     Scaffold(
         topBar = {
@@ -78,7 +73,6 @@ fun RMQMainComposable(
                 title = { Text("Remote listeners") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        remoteListenerViewModel.remoteListener = null
                         navController.popBackStack()
                     }) {
                         Icon(
@@ -89,7 +83,6 @@ fun RMQMainComposable(
                 },
                 actions = {
                     IconButton(onClick = {
-                        remoteListenerViewModel.remoteListener = null
                         navController.navigate(RemoteListenersAdd)
                     }) {
                         Icon(
@@ -111,13 +104,13 @@ fun RMQMainComposable(
                 .fillMaxSize(),
         ) {
             Column {
-                if( remoteListeners.isEmpty()) {
+                if( remoteListenersQueues.isEmpty()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        Text("No remote listeners",
+                        Text("No queues added",
                             style = MaterialTheme.typography.titleMedium)
                     }
                 }
@@ -126,61 +119,23 @@ fun RMQMainComposable(
                         state = listState
                     ) {
                         itemsIndexed(
-                            items = remoteListeners,
-                            key = { _, remoteListener -> remoteListener.id}
-                        ) { _, remoteListener ->
-                            ConnectionCards(
-                                remoteListener,
-                                Modifier.combinedClickable(
-                                    onClick = {},
-                                    onLongClick = {
-                                        remoteListenerViewModel.remoteListener = remoteListener
-                                        showRemoteListenerModal = true
-                                    }
-                                )
-                            )
+                            items = remoteListenersQueues,
+                            key = { _, remoteListenerQueue -> remoteListenerQueue.id}
+                        ) { _, remoteListenerQueue ->
                         }
                     }
                 }
             }
 
-            if(showRemoteListenerModal) {
-                RemoteListenerModal(
-                    showModal = showRemoteListenerModal,
-                    editCallback = {
-                        showRemoteListenerModal = false
-                        navController.navigate(RemoteListenersAdd)
-                    },
-                    deleteCallback = {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            remoteListenerProjectsViewModel.delete(
-                                remoteListenerViewModel.remoteListener!!.id
-                            )
-                        }
-                    }
+            if(showRemoteListenerAddQueuesModal) {
+                RemoteListenerAddQueuesModal(
+                    showModal = showRemoteListenerAddQueuesModal,
+                    remoteListener = remoteListenersViewModel.remoteListener!!,
+                    remoteListenerQueuesViewModel = remoteListenersQueuesViewModel
                 ) {
-                    showRemoteListenerModal = false
+                    showRemoteListenerAddQueuesModal = false
                 }
             }
         }
-    }
-}
-
-@Composable
-@Preview
-fun ConnectionCards_Preview() {
-    AppTheme {
-        val gatewayClient = GatewayClient()
-        gatewayClient.id = 0
-        gatewayClient.hostUrl = "amqp://example.com"
-        gatewayClient.virtualHost = "/"
-        gatewayClient.port = 5671
-        gatewayClient.username = "example_user"
-        RMQMainComposable(
-            listOf(gatewayClient),
-            RemoteListenersViewModel(),
-            RemoteListenerQueuesViewModel(),
-            rememberNavController(),
-        )
     }
 }

@@ -53,6 +53,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
+import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 
 
 class MainActivity : AppCompatActivity(){
@@ -130,6 +131,13 @@ class MainActivity : AppCompatActivity(){
                                 RMQAddComposable(
                                     navController = navController,
                                     remoteListenerViewModel = remoteListenersViewModel
+                                )
+                            }
+                            composable<RemoteListenersAddQueueScreen>{
+                                RMQQueuesComposable(
+                                    remoteListenersQueuesViewModel = remoteListenersProjectsViewModel,
+                                    remoteListenersViewModel = remoteListenersViewModel,
+                                    navController = navController
                                 )
                             }
                         }

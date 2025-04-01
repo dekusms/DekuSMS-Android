@@ -9,6 +9,7 @@ import androidx.room.DatabaseConfiguration;
 import androidx.room.DeleteColumn;
 import androidx.room.DeleteTable;
 import androidx.room.InvalidationTracker;
+import androidx.room.RenameTable;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.AutoMigrationSpec;
@@ -40,7 +41,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         Conversation.class,
         GatewayClient.class,
         ThreadsConfigurations.class},
-        version = 21,
+        version = 22,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -53,7 +54,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 17, to = 18),
         @AutoMigration(from = 18, to = 19),
         @AutoMigration(from = 19, to = 20, spec = Datastore.Migrate19To20.class),
-        @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class)
+        @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class),
+        @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class)
 })
 
 
@@ -118,4 +120,12 @@ public abstract class Datastore extends RoomDatabase {
             @DeleteTable(tableName = "ConversationsThreadsEncryption")
     )
     static class Migrate20To21 implements AutoMigrationSpec { }
+
+    @RenameTable.Entries(
+            @RenameTable(
+                    fromTableName = "GatewayClientProjects",
+                    toTableName = "RemoteListenersQueues"
+            )
+    )
+    static class Migrate21To22 implements AutoMigrationSpec { }
 }
