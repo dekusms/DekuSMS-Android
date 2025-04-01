@@ -10,10 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
 import com.example.compose.AppTheme
@@ -40,7 +42,7 @@ fun ConnectionCards(
             )
             Row {
                 Text(
-                    "Port: ",
+                    stringResource(R.string.port),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -54,7 +56,7 @@ fun ConnectionCards(
             Spacer(modifier = Modifier.padding(8.dp))
             Row {
                 Text(
-                    "Virtual host: ",
+                    stringResource(R.string.virtual_host),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )

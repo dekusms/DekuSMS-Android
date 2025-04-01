@@ -349,5 +349,7 @@
     <string name="unblock">Unblock</string>
     <string name="welcome_image">Welcome image</string>
     <string name="remote_listeners">Remote listeners</string>
+    <string name="port">"Port: "</string>
+    <string name="virtual_host">"Virtual host: "</string>
 
 </resources>
