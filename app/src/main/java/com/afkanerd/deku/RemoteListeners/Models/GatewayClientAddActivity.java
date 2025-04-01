@@ -166,7 +166,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    datastore.gatewayClientProjectDao().deleteGatewayClientId(id);
+                    datastore.remoteListenersQueuesDao().deleteGatewayClientId(id);
                 }
             });
 

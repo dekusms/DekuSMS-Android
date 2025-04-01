@@ -5,13 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
-class GatewayClientViewModel : ViewModel() {
+class RemoteListenersViewModel : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
 
     var remoteListener by mutableStateOf<GatewayClient?>(null)

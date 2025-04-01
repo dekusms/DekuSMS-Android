@@ -21,8 +21,8 @@ import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 
 class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
         Fragment(R.layout.fragment_modalsheet_gateway_client_project_listing_layout) {
-    private val gatewayClientProjectListingViewModel :
-            GatewayClientProjectListingViewModel by viewModels()
+    private val remoteListenerQueuesViewModel :
+            RemoteListenerQueuesViewModel by viewModels()
 
     override fun onCreateView( inflater: LayoutInflater, container: ViewGroup?,
                                savedInstanceState: Bundle? ): View? {
@@ -49,7 +49,7 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
                 }
             })
 
-        gatewayClientProjectListingViewModel.get(requireContext(), gatewayClientId)
+        remoteListenerQueuesViewModel.get(requireContext(), gatewayClientId)
                 .observe(viewLifecycleOwner, Observer {
                     gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(it)
                     if (it.isNullOrEmpty())
@@ -73,12 +73,12 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
 
     private var gatewayClient = GatewayClient()
 
-    private fun showAddGatewayClientModal(gatewayClientProjects: GatewayClientProjects? = null) {
+    private fun showAddGatewayClientModal(remoteListenersQueues: RemoteListenersQueues? = null) {
         val fragmentManager: FragmentManager = activity?.supportFragmentManager!!
         val fragmentTransaction = fragmentManager.beginTransaction()
         val gatewayClientProjectAddModalFragment =
-            GatewayClientProjectAddModalFragment(gatewayClientProjectListingViewModel,
-                gatewayClientId, gatewayClientProjects)
+            GatewayClientProjectAddModalFragment(remoteListenerQueuesViewModel,
+                gatewayClientId, remoteListenersQueues)
         fragmentTransaction.add(gatewayClientProjectAddModalFragment,
                 "gateway_client_add_edit")
         fragmentTransaction.show(gatewayClientProjectAddModalFragment)

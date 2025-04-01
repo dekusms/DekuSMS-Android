@@ -49,20 +49,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-
 
 
 class MainActivity : AppCompatActivity(){
 
-    lateinit var navController: NavHostController
+    private lateinit var navController: NavHostController
 
-    val conversationViewModel: ConversationsViewModel by viewModels()
-    val searchViewModel: SearchViewModel by viewModels()
-    val remoteListenersViewModel: GatewayClientViewModel by viewModels()
+    private val conversationViewModel: ConversationsViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
+    private val remoteListenersProjectsViewModel:
+            RemoteListenerQueuesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,8 +86,7 @@ class MainActivity : AppCompatActivity(){
         navController.navigate(HomeScreen)
     }
 
-    @OptIn(ExperimentalPermissionsApi::class)
-    fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
+    private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
         conversationViewModel.newLayoutInfo = newLayoutInfo
         setContent {
             AppTheme {
@@ -121,6 +121,8 @@ class MainActivity : AppCompatActivity(){
                             composable<RemoteListenersScreen>{
                                 RMQMainComposable(
                                     remoteListenerViewModel = remoteListenersViewModel,
+                                    remoteListenerProjectsViewModel =
+                                        remoteListenersProjectsViewModel,
                                     navController = navController
                                 )
                             }

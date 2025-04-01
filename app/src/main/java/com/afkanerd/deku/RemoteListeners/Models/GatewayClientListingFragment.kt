@@ -29,7 +29,7 @@ class GatewayClientListingFragment : Fragment(R.layout.fragment_gateway_client_l
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val gatewayClientViewModel: GatewayClientViewModel by viewModels()
+        val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
         val gatewayClientRecyclerAdapter = GatewayClientRecyclerAdapter()
 
         val linearLayoutManager = LinearLayoutManager(view.context)
@@ -55,7 +55,7 @@ class GatewayClientListingFragment : Fragment(R.layout.fragment_gateway_client_l
             }
         })
 
-        gatewayClientViewModel.get(view.context).observe(this,
+        remoteListenersViewModel.get(view.context).observe(this,
                 Observer {
                     if (it.isNullOrEmpty())
                         view.findViewById<View>(R.id.gateway_client_no_gateway_client_label)

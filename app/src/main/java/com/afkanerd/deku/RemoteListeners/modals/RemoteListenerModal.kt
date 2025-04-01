@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 @Composable
 fun RemoteListenerModal(
     showModal: Boolean,
-    addQueueCallback: () -> Unit,
     editCallback: () -> Unit,
     deleteCallback: () -> Unit,
     dismissCallback: () -> Unit,
@@ -56,9 +55,8 @@ fun RemoteListenerModal(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Button(onClick = addQueueCallback, modifier = Modifier.fillMaxWidth()) {
-                    Text("Add Queues")
-                }
+                Text("Configure Remote listener",
+                    style = MaterialTheme.typography.titleMedium)
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
@@ -78,6 +76,6 @@ fun RemoteListenerModal(
 @Preview
 fun RemoteListenersModal_Preview() {
     AppTheme {
-        RemoteListenerModal(true, {}, {}, {}) {}
+        RemoteListenerModal(true, {}, {}, {})
     }
 }

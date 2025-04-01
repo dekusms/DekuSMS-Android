@@ -14,11 +14,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 
-class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListingViewModel:
-                                           GatewayClientProjectListingViewModel,
+class GatewayClientProjectAddModalFragment(private val remoteListenerQueuesViewModel:
+                                           RemoteListenerQueuesViewModel,
                                            private val gatewayClientId: Long,
-                                           private var gatewayClientProjects:
-                                           GatewayClientProjects? = GatewayClientProjects()) :
+                                           private var remoteListenersQueues:
+                                           RemoteListenersQueues? = RemoteListenersQueues()
+) :
     BottomSheetDialogFragment(R.layout.fragment_modalsheet_gateway_client_project_add_edit) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,12 +56,12 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
                 .visibility = View.VISIBLE
         }
 
-        gatewayClientProjects?.let {
+        remoteListenersQueues?.let {
             activity?.runOnUiThread {
-                projectName.setText(gatewayClientProjects!!.name)
-                projectBinding.setText(gatewayClientProjects!!.binding1Name)
+                projectName.setText(remoteListenersQueues!!.name)
+                projectBinding.setText(remoteListenersQueues!!.binding1Name)
                 if (isDualSim) {
-                    projectBinding2.setText(gatewayClientProjects!!.binding2Name)
+                    projectBinding2.setText(remoteListenersQueues!!.binding2Name)
                 }
             }
         }
@@ -109,17 +110,18 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
             return
         }
 
-        if(gatewayClientProjects == null)
-            gatewayClientProjects = GatewayClientProjects()
+        if(remoteListenersQueues == null)
+            remoteListenersQueues =
+                RemoteListenersQueues()
 
-        gatewayClientProjects?.name = projectName.text.toString()
-        gatewayClientProjects?.binding1Name = projectBinding.text.toString()
-        gatewayClientProjects?.binding2Name = projectBinding2.text.toString()
-        gatewayClientProjects?.gatewayClientId = gatewayClientId
+        remoteListenersQueues?.name = projectName.text.toString()
+        remoteListenersQueues?.binding1Name = projectBinding.text.toString()
+        remoteListenersQueues?.binding2Name = projectBinding2.text.toString()
+        remoteListenersQueues?.gatewayClientId = gatewayClientId
 
         ThreadingPoolExecutor.executorService.execute {
             try {
-                gatewayClientProjectListingViewModel.insert(gatewayClientProjects!!)
+                remoteListenerQueuesViewModel.insert(remoteListenersQueues!!)
             } catch(e: Exception) {
                 e.printStackTrace()
             }

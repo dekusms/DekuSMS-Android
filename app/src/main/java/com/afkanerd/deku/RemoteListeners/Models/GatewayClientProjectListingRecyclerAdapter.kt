@@ -12,10 +12,10 @@ import com.afkanerd.deku.DefaultSMS.R
 
 class GatewayClientProjectListingRecyclerAdapter :
     RecyclerView.Adapter<GatewayClientProjectListingRecyclerAdapter.ViewHolder>() {
-    val mDiffer: AsyncListDiffer<GatewayClientProjects> = AsyncListDiffer(
-        this, GatewayClientProjects.DIFF_CALLBACK )
+    val mDiffer: AsyncListDiffer<RemoteListenersQueues> = AsyncListDiffer(
+        this, RemoteListenersQueues.DIFF_CALLBACK )
 
-    var onSelectedLiveData: MutableLiveData<GatewayClientProjects> = MutableLiveData()
+    var onSelectedLiveData: MutableLiveData<RemoteListenersQueues> = MutableLiveData()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -42,13 +42,13 @@ class GatewayClientProjectListingRecyclerAdapter :
         private var projectBinding2TextView: TextView =
             itemView.findViewById(R.id.gateway_client_project_listing_project_binding2)
 
-        fun bind(gatewayClientProjects: GatewayClientProjects,
-                 onSelectedLiveData: MutableLiveData<GatewayClientProjects>) {
-            projectNameTextView.text = gatewayClientProjects.name
-            projectBinding1TextView.text = gatewayClientProjects.binding1Name
-            projectBinding2TextView.text = gatewayClientProjects.binding2Name
+        fun bind(remoteListenersQueues: RemoteListenersQueues,
+                 onSelectedLiveData: MutableLiveData<RemoteListenersQueues>) {
+            projectNameTextView.text = remoteListenersQueues.name
+            projectBinding1TextView.text = remoteListenersQueues.binding1Name
+            projectBinding2TextView.text = remoteListenersQueues.binding2Name
 
-            cardView.setOnClickListener { onSelectedLiveData.value = gatewayClientProjects }
+            cardView.setOnClickListener { onSelectedLiveData.value = remoteListenersQueues }
         }
 
     }

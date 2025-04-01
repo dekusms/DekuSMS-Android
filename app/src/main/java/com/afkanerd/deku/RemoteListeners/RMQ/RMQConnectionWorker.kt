@@ -19,7 +19,7 @@ import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientProjects
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -187,7 +187,7 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
                     GatewayClientHandler.startWorkManager(context, gatewayClient)
             }
 
-            val gatewayClientProjectsList = databaseConnector.gatewayClientProjectDao()
+            val gatewayClientProjectsList = databaseConnector.remoteListenersQueuesDao()
                     .fetchGatewayClientIdList(gatewayClient.id)
 
             // TODO: try to match the operator code (carrier code) by the binding name
@@ -223,14 +223,14 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
     }
 
     private fun startChannelConsumption(rmqConnection: RMQConnection,
-                                channel: Channel,
-                                subscriptionId: Int,
-                                gatewayClientProjects: GatewayClientProjects,
-                                bindingName: String) {
+                                        channel: Channel,
+                                        subscriptionId: Int,
+                                        remoteListenersQueues: RemoteListenersQueues,
+                                        bindingName: String) {
         Log.d(javaClass.name, "Starting channel connection")
         channel.basicRecover(true)
         val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnection.id)
-        val queueName = rmqConnection.createQueue(gatewayClientProjects.name, bindingName, channel)
+        val queueName = rmqConnection.createQueue(remoteListenersQueues.name, bindingName, channel)
         val messagesCount = channel.messageCount(queueName)
 
         val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
@@ -241,7 +241,7 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
                             startChannelConsumption(rmqConnection,
                                     rmqConnection.createChannel(),
                                     subscriptionId,
-                                    gatewayClientProjects,
+                                    remoteListenersQueues,
                                     bindingName)
                         }
                     }

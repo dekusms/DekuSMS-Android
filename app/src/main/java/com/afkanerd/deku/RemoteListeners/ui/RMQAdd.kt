@@ -1,55 +1,66 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
-import android.inputmethodservice.Keyboard.Row
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.ui.ModalDrawerSheetLayout
 import com.example.compose.AppTheme
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListenersScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RMQAddComposable(
     navController: NavController,
-    remoteListenerViewModel: GatewayClientViewModel
+    remoteListenerViewModel: RemoteListenersViewModel
 ) {
 
     val remoteListener = remoteListenerViewModel.remoteListener
@@ -61,6 +72,8 @@ fun RMQAddComposable(
     var virtualHost by remember { mutableStateOf(remoteListener?.virtualHost ?: "/" ) }
     var port by remember { mutableIntStateOf(remoteListener?.port ?: 5672 ) }
 
+    var passwordVisible by remember { mutableStateOf(false) }
+
     val protocolOptions = listOf("amqp", "amqps")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(protocolOptions[0]) }
 
@@ -69,11 +82,33 @@ fun RMQAddComposable(
         navController.popBackStack()
     }
 
-    Scaffold(
+    val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("New remote listener")},
+                navigationIcon = {
+                    IconButton(onClick = {
+                        remoteListenerViewModel.remoteListener = null
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Return back"
+                        )
+                    }
+                },
+                actions = { },
+                scrollBehavior = scrollBehaviour
+            )
+        },
+        modifier = Modifier
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .imePadding()
                 .padding(innerPadding)
                 .padding(8.dp)
                 .verticalScroll(rememberScrollState())
@@ -81,8 +116,11 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = hostUrl,
                 onValueChange = { hostUrl = it },
-                placeholder = {
+                label = {
                     Text("Host Url")
+                },
+                placeholder = {
+                    Text("example.com")
                 },
                 prefix = {
                     Text("amqp(s)://")
@@ -98,7 +136,7 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                placeholder = {
+                label = {
                     Text("Username")
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -112,13 +150,24 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = {
+                label = {
                     Text("Password")
                 },
+                visualTransformation =
+                    if (passwordVisible) VisualTransformation.None
+                    else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
+
+                    val description = if(passwordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, description)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                )
             )
 
             Spacer(modifier = Modifier.padding(8.dp))
@@ -126,7 +175,7 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = friendlyName,
                 onValueChange = { friendlyName = it },
-                placeholder = {
+                label = {
                     Text("Friendly name")
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -140,7 +189,7 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = virtualHost,
                 onValueChange = { virtualHost = it },
-                placeholder = {
+                label = {
                     Text("Virtual host")
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -154,7 +203,7 @@ fun RMQAddComposable(
             OutlinedTextField(
                 value = port.toString(),
                 onValueChange = { port = it.toInt() },
-                placeholder = {
+                label = {
                     Text("Port")
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -234,6 +283,6 @@ fun RMQAddComposable(
 @Composable
 fun RMQAddComposable_Preview() {
     AppTheme {
-        RMQAddComposable( navController = rememberNavController(), GatewayClientViewModel())
+        RMQAddComposable( navController = rememberNavController(), RemoteListenersViewModel())
     }
 }

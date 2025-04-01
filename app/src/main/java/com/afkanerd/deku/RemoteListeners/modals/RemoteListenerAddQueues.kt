@@ -13,27 +13,35 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteListenerAddQueuesModal(
     showModal: Boolean,
+    remoteListener: GatewayClient,
+    remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
     dismissCallback: () -> Unit,
 ) {
     val state = rememberStandardBottomSheetState(
@@ -46,6 +54,13 @@ fun RemoteListenerAddQueuesModal(
     var exchange by remember { mutableStateOf("") }
     var sim1Queue by remember { mutableStateOf("") }
     var sim2Queue by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val inspectMode = LocalInspectionMode.current
+
+    val isDualSim by remember{
+        mutableStateOf(if(inspectMode) true else SIMHandler.isDualSim(context))
+    }
 
     if(showModal) {
         ModalBottomSheet(
@@ -62,6 +77,9 @@ fun RemoteListenerAddQueuesModal(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text("New Queues", style = MaterialTheme.typography.titleMedium)
+
+                Spacer(Modifier.padding(8.dp))
 
                 OutlinedTextField(
                     value = exchange,
@@ -74,29 +92,52 @@ fun RemoteListenerAddQueuesModal(
                         imeAction = ImeAction.Next,
                     )
                 )
+
+                Spacer(Modifier.padding(16.dp))
 
                 OutlinedTextField(
                     value = sim1Queue,
                     onValueChange = { sim1Queue = it },
-                    placeholder = {
-                        Text("Queue name")
+                    label = {
+                        Text("Sim 1 Queue name")
                     },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Next,
                     )
                 )
-                OutlinedTextField(
-                    value = exchange,
-                    onValueChange = { exchange = it },
-                    placeholder = {
-                        Text("Exchange")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next,
+
+                if(isDualSim) {
+                    OutlinedTextField(
+                        value = sim2Queue,
+                        onValueChange = { sim2Queue = it },
+                        label = {
+                            Text("Sim 2 Queue name")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                        )
                     )
-                )
+                }
+
+                Spacer(Modifier.padding(16.dp))
+
+                Button(onClick = {
+                    val remoteListenerQueues =
+                        RemoteListenersQueues()
+                    remoteListenerQueues.name = exchange
+                    remoteListenerQueues.binding1Name = sim1Queue
+                    remoteListenerQueues.binding1Name = sim2Queue
+                    remoteListenerQueues.gatewayClientId = remoteListener.id
+
+                    CoroutineScope(Dispatchers.Default).launch {
+                        remoteListenerProjectsViewModel.insert(remoteListenerQueues)
+                        dismissCallback()
+                    }
+                }, enabled = exchange.isNotBlank() && sim1Queue.isNotEmpty()) {
+                    Text("Add")
+                }
             }
         }
     }
@@ -106,6 +147,10 @@ fun RemoteListenerAddQueuesModal(
 @Preview
 fun RemoteListenersAddQueuesModal_Preview() {
     AppTheme {
-        RemoteListenerAddQueuesModal(true, {})
+        RemoteListenerAddQueuesModal(
+            true,
+            GatewayClient(),
+            RemoteListenerQueuesViewModel()
+        ){}
     }
 }

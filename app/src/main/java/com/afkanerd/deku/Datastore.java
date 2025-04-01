@@ -21,8 +21,8 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations;
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient;
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientDAO;
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientProjectDao;
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientProjects;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueuesDao;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -36,7 +36,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 @Database(entities = {
         Archive.class,
         GatewayServer.class,
-        GatewayClientProjects.class,
+        RemoteListenersQueues.class,
         Conversation.class,
         GatewayClient.class,
         ThreadsConfigurations.class},
@@ -78,7 +78,7 @@ public abstract class Datastore extends RoomDatabase {
     public abstract GatewayServerDAO gatewayServerDAO();
 
     public abstract GatewayClientDAO gatewayClientDAO();
-    public abstract GatewayClientProjectDao gatewayClientProjectDao();
+    public abstract RemoteListenersQueuesDao remoteListenersQueuesDao();
 
     public abstract ConversationDao conversationDao();
 
