@@ -38,7 +38,14 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 
-class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
+class RMQConnectionWorker(
+    val context: Context,
+    val gatewayClientId: Long
+) {
+
+    @Serializable
+    private data class SMSRequest(val text: String, val to: String, val sid: String, val id: Int)
+
     private lateinit var rmqConnection: RMQConnection
     private val factory = ConnectionFactory()
 
@@ -51,6 +58,7 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
     init {
         handleBroadcast()
     }
+
     fun start() {
         connectGatewayClient(gatewayClientId)
     }
@@ -98,8 +106,6 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
                 Context.RECEIVER_EXPORTED)
     }
 
-    @Serializable
-    private data class SMSRequest(val text: String, val to: String, val sid: String, val id: Int)
     private suspend fun sendSMS(smsRequest: SMSRequest,
                                 subscriptionId: Int,
                                 consumerTag: String,
@@ -131,8 +137,12 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
         SMSDatabaseWrapper.send_text(context, conversation, bundle)
         Log.d(javaClass.name, "SMS sent...")
     }
-    private fun getDeliverCallback(channel: Channel, subscriptionId: Int,
-                                   rmqConnectionId: Long): DeliverCallback {
+
+    private fun getDeliverCallback(
+        channel: Channel,
+        subscriptionId: Int,
+        rmqConnectionId: Long
+    ): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
             val message = String(delivery.body, StandardCharsets.UTF_8)
 
@@ -168,88 +178,6 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
         }
     }
 
-    private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
-        Log.d(javaClass.name, "Starting new connection...")
-
-        try {
-            val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
-                    gatewayClient.friendlyConnectionName)
-
-            rmqConnection = RMQConnection(gatewayClient.id, connection)
-
-            connection.addShutdownListener {
-                /**
-                 * The logic here, if the user has not deactivated this - which can be known
-                 * from the database connection state then reconnect this client.
-                 */
-                Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(gatewayClient.activated)
-                    GatewayClientHandler.startWorkManager(context, gatewayClient)
-            }
-
-            val gatewayClientProjectsList = databaseConnector.remoteListenersQueuesDao()
-                    .fetchGatewayClientIdList(gatewayClient.id)
-
-            // TODO: try to match the operator code (carrier code) by the binding name
-            // TODO: if enabled in settings
-            for (i in gatewayClientProjectsList.indices) {
-                for (j in subscriptionInfoList.indices) {
-                    val channel = rmqConnection.createChannel()
-                    val gatewayClientProjects = gatewayClientProjectsList[i]
-                    val subscriptionId = subscriptionInfoList[j].subscriptionId
-                    val bindingName = if (j > 0)
-                        gatewayClientProjects.binding2Name else gatewayClientProjects.binding1Name
-
-                    Log.d(javaClass.name, "Starting channel for sim slot $j in project #$i")
-                    startChannelConsumption(rmqConnection, channel, subscriptionId,
-                            gatewayClientProjects, bindingName)
-                }
-            }
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            when(e) {
-                is TimeoutException, is IOException -> {
-                    e.printStackTrace()
-                    Thread.sleep(3000)
-                    Log.d(javaClass.name, "Attempting a reconnect to the server...")
-                    startConnection(factory, gatewayClient)
-                }
-                else -> {
-                    Log.e(javaClass.name, "Exception connecting rmq", e)
-                }
-            }
-        }
-    }
-
-    private fun startChannelConsumption(rmqConnection: RMQConnection,
-                                        channel: Channel,
-                                        subscriptionId: Int,
-                                        remoteListenersQueues: RemoteListenersQueues,
-                                        bindingName: String) {
-        Log.d(javaClass.name, "Starting channel connection")
-        channel.basicRecover(true)
-        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnection.id)
-        val queueName = rmqConnection.createQueue(remoteListenersQueues.name, bindingName, channel)
-        val messagesCount = channel.messageCount(queueName)
-
-        val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
-                object : ConsumerShutdownSignalCallback {
-                    override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                        if (rmqConnection.connection.isOpen) {
-                            Log.e(javaClass.name, "Consumer error", sig)
-                            startChannelConsumption(rmqConnection,
-                                    rmqConnection.createChannel(),
-                                    subscriptionId,
-                                    remoteListenersQueues,
-                                    bindingName)
-                        }
-                    }
-                })
-        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
-        rmqConnection.bindChannelToTag(channel, consumerTag)
-    }
-
 
     private fun connectGatewayClient(gatewayClientId: Long) {
         Log.d(javaClass.name, "Starting new service connection...")
@@ -271,6 +199,96 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
             factory.isAutomaticRecoveryEnabled = false
             startConnection(factory, gatewayClient)
         }
+    }
+
+    private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
+        Log.d(javaClass.name, "Starting new connection...")
+
+        try {
+            val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
+                gatewayClient.friendlyConnectionName)
+
+            rmqConnection = RMQConnection(gatewayClient.id, connection)
+
+            connection.addShutdownListener {
+                /**
+                 * The logic here, if the user has not deactivated this - which can be known
+                 * from the database connection state then reconnect this client.
+                 */
+                Log.e(javaClass.name, "Connection shutdown cause: $it")
+                if(gatewayClient.activated)
+                    GatewayClientHandler.startWorkManager(context, gatewayClient)
+            }
+
+            val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()
+                .fetchGatewayClientIdList(gatewayClient.id)
+
+            // TODO: try to match the operator code (carrier code) by the binding name
+            // TODO: if enabled in settings
+            for (i in remoteListenerQueues.indices) {
+                for (j in subscriptionInfoList.indices) {
+                    val channel = rmqConnection.createChannel()
+                    val gatewayClientProjects = remoteListenerQueues[i]
+                    val subscriptionId = subscriptionInfoList[j].subscriptionId
+                    val bindingName = if (j > 0)
+                        gatewayClientProjects.binding2Name else gatewayClientProjects.binding1Name
+
+                    Log.d(javaClass.name, "Starting channel for sim slot $j in project #$i")
+                    startChannelConsumption(
+                        rmqConnection,
+                        channel,
+                        subscriptionId,
+                        gatewayClientProjects,
+                        bindingName
+                    )
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            when(e) {
+                is TimeoutException, is IOException -> {
+                    e.printStackTrace()
+                    Thread.sleep(3000)
+                    Log.d(javaClass.name, "Attempting a reconnect to the server...")
+                    startConnection(factory, gatewayClient)
+                }
+                else -> {
+                    Log.e(javaClass.name, "Exception connecting rmq", e)
+                }
+            }
+        }
+    }
+
+
+    private fun startChannelConsumption(
+        rmqConnection: RMQConnection,
+        channel: Channel,
+        subscriptionId: Int,
+        remoteListenersQueues: RemoteListenersQueues,
+        bindingName: String
+    ) {
+        Log.d(javaClass.name, "Starting channel connection")
+        channel.basicRecover(true)
+        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnection.id)
+        val queueName = rmqConnection.createQueue(remoteListenersQueues.name, bindingName, channel)
+        val messagesCount = channel.messageCount(queueName)
+
+        val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
+            object : ConsumerShutdownSignalCallback {
+                override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
+                    if (rmqConnection.connection.isOpen) {
+                        Log.e(javaClass.name, "Consumer error", sig)
+                        startChannelConsumption(rmqConnection,
+                            rmqConnection.createChannel(),
+                            subscriptionId,
+                            remoteListenersQueues,
+                            bindingName)
+                    }
+                }
+            })
+        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
+        rmqConnection.bindChannelToTag(channel, consumerTag)
     }
 
 }
