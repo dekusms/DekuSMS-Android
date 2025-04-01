@@ -1,10 +1,16 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
+import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.telephony.SmsManager
 import android.util.Base64
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -37,8 +43,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.SimCard
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +79,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -79,9 +89,15 @@ import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.MainActivity
 import com.jakewharton.rxbinding.view.RxMenuItem.icon
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
 
@@ -484,3 +500,109 @@ fun SimChooser(
         }
     }
 }
+
+@Preview
+@Composable
+fun ConversationCrudBottomBar(
+    viewModel: ConversationsViewModel = ConversationsViewModel(),
+    items: List<Conversation> = emptyList(),
+    onCompleted: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null,
+) {
+    val context = LocalContext.current
+    BottomAppBar (
+        actions = {
+            Row {
+                IconButton(onClick = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        onCancel?.let { it() }
+                    }
+                }) {
+                    Icon(Icons.Default.Close, stringResource(R.string.cancel_selected_messages))
+                }
+
+                Text(
+                    viewModel.selectedItems.size.toString(),
+                    fontSize = 24.sp,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                if(viewModel.selectedItems.size < 2) {
+                    IconButton(onClick = {
+                        val conversation = items.firstOrNull {
+                            it.message_id in viewModel.selectedItems
+                        }
+                        copyItem(context, conversation?.text!!)
+                        onCompleted?.invoke()
+                    }) {
+                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+                    }
+
+                    IconButton(onClick = {
+                        TODO("Implement forward message")
+                    }) {
+                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
+                            stringResource(R.string.forward_message)
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        val conversation = items.firstOrNull {
+                            it.message_id in viewModel.selectedItems
+                        }
+                        shareItem(context, conversation?.text!!)
+                        onCompleted?.let { it() }
+                    }) {
+                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
+                    }
+                }
+
+                IconButton(onClick = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        val conversations = items.filter {
+                            it.message_id in viewModel.selectedItems
+                        }
+                        viewModel.delete(context, conversations)
+                        onCompleted?.let { it() }
+                    }
+                }) {
+                    Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
+                }
+            }
+
+        }
+    )
+}
+
+private fun copyItem(context: Context, text: String) {
+    val clip = ClipData.newPlainText(text, text)
+    val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(clip)
+
+    Toast.makeText(
+        context, context.getString(R.string.conversation_copied),
+        Toast.LENGTH_SHORT
+    ).show()
+}
+
+private fun shareItem(context: Context, text: String) {
+    val sendIntent = Intent().apply {
+        setAction(Intent.ACTION_SEND)
+        putExtra(Intent.EXTRA_TEXT, text)
+        setType("text/plain")
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    // Only use for components you have control over
+    val excludedComponentNames = arrayOf(
+        ComponentName(
+            BuildConfig.APPLICATION_ID,
+            MainActivity::class.java.name
+        )
+    )
+    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
+    context.startActivity(shareIntent)
+}
+
