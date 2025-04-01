@@ -127,13 +127,13 @@ class MainActivity : AppCompatActivity(){
                                     navController = navController
                                 )
                             }
-                            composable<RemoteListenersAdd>{
+                            composable<RemoteListenersAddScreen>{
                                 RMQAddComposable(
                                     navController = navController,
                                     remoteListenerViewModel = remoteListenersViewModel
                                 )
                             }
-                            composable<RemoteListenersAddQueueScreen>{
+                            composable<RemoteListenersQueuesScreen>{
                                 RMQQueuesComposable(
                                     remoteListenersQueuesViewModel = remoteListenersProjectsViewModel,
                                     remoteListenersViewModel = remoteListenersViewModel,

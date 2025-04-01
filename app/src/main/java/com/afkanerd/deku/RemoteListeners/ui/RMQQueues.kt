@@ -1,6 +1,7 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
-import androidx.compose.foundation.combinedClickable
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,22 +33,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.components.ConnectionCards
+import com.afkanerd.deku.RemoteListeners.components.QueuesCards
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
-import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
-import com.afkanerd.deku.RemoteListenersAdd
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.afkanerd.deku.RemoteListenersScreen
+import com.example.compose.AppTheme
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RMQQueuesComposable(
     _remoteListenersQueues: List<RemoteListenersQueues> = emptyList<RemoteListenersQueues>(),
@@ -67,13 +66,20 @@ fun RMQQueuesComposable(
             remoteListenersViewModel.remoteListener!!.id)
             .observeAsState(emptyList()).value
 
+    BackHandler {
+        remoteListenersQueuesViewModel.remoteListenerQueues = null
+        navController.popBackStack(RemoteListenersScreen, false)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Remote listeners") },
+                title = { Text(
+                    "${remoteListenersViewModel.remoteListener?.username} Queues") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.popBackStack()
+                        remoteListenersQueuesViewModel.remoteListenerQueues = null
+                        navController.popBackStack(RemoteListenersScreen, false)
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
@@ -83,7 +89,7 @@ fun RMQQueuesComposable(
                 },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate(RemoteListenersAdd)
+                        showRemoteListenerAddQueuesModal = true
                     }) {
                         Icon(
                             imageVector = Icons.Rounded.AddCircleOutline,
@@ -122,6 +128,11 @@ fun RMQQueuesComposable(
                             items = remoteListenersQueues,
                             key = { _, remoteListenerQueue -> remoteListenerQueue.id}
                         ) { _, remoteListenerQueue ->
+                            QueuesCards( remoteListenersQueues = remoteListenerQueue, ) {
+                                remoteListenersQueuesViewModel.remoteListenerQueues =
+                                    remoteListenerQueue
+                                showRemoteListenerAddQueuesModal = true
+                            }
                         }
                     }
                 }
@@ -137,5 +148,19 @@ fun RMQQueuesComposable(
                 }
             }
         }
+    }
+}
+
+
+@Composable
+@Preview
+fun RMQQueuesComposable_Preview() {
+    AppTheme {
+        RMQQueuesComposable(
+            emptyList(),
+            RemoteListenerQueuesViewModel(),
+            RemoteListenersViewModel(),
+            rememberNavController()
+        )
     }
 }

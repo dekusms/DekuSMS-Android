@@ -10,54 +10,51 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.example.compose.AppTheme
 
 
 @Composable
-fun ConnectionCards(
-    remoteListeners: GatewayClient,
-    modifier: Modifier,
+fun QueuesCards(
+    remoteListenersQueues: RemoteListenersQueues,
+    onClickListener: () -> Unit
 ) {
-    Card( modifier = modifier ) {
+    Card(onClick = onClickListener ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(remoteListeners.username!!)
-            Text(
-                remoteListeners.hostUrl!!,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            Text(remoteListenersQueues.name)
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
             Row {
-                Text(
-                    stringResource(R.string.port),
+                Text( "SIM 1:",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    remoteListeners.port.toString(),
+                    remoteListenersQueues.binding1Name,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
+            Spacer(modifier = Modifier.padding(4.dp))
 
-            Spacer(modifier = Modifier.padding(8.dp))
             Row {
                 Text(
-                    stringResource(R.string.virtual_host),
+                    "SIM 2:",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    remoteListeners.virtualHost!!,
+                    remoteListenersQueues.binding2Name,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -69,14 +66,12 @@ fun ConnectionCards(
 
 @Composable
 @Preview
-fun ConnectionCards_Preview() {
-    val gatewayClient = GatewayClient()
-    gatewayClient.id = 0
-    gatewayClient.hostUrl = "amqp://example.com"
-    gatewayClient.virtualHost = "/"
-    gatewayClient.port = 5671
-    gatewayClient.username = "example_user"
+fun QueuesCards_Preview() {
+    val remoteListenersQueues = RemoteListenersQueues()
+    remoteListenersQueues.name = "Exchange"
+    remoteListenersQueues.binding1Name = "sim_1_binding"
+    remoteListenersQueues.binding2Name = "sim_2_binding"
     AppTheme {
-        ConnectionCards(gatewayClient, Modifier)
+        QueuesCards(remoteListenersQueues) {}
     }
 }

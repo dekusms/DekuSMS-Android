@@ -17,6 +17,6 @@ object ContactDetailsScreen
 @Serializable
 object RemoteListenersScreen
 @Serializable
-object RemoteListenersAddQueueScreen
+object RemoteListenersQueuesScreen
 @Serializable
-object RemoteListenersAdd
+object RemoteListenersAddScreen

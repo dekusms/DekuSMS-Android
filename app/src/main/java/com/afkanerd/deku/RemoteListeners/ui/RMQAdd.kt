@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListenersScreen
@@ -76,6 +78,15 @@ fun RMQAddComposable(
 
     val protocolOptions = listOf("amqp", "amqps")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(protocolOptions[0]) }
+
+    if(BuildConfig.DEBUG) {
+        LaunchedEffect(Unit) {
+            hostUrl = "staging.smswithoutborders.com"
+            username = "sherlock"
+            password = "asshole"
+            friendlyName = "android-emulator"
+        }
+    }
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null

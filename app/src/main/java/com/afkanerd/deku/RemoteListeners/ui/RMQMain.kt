@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,7 +35,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.components.ConnectionCards
+import com.afkanerd.deku.RemoteListeners.components.RemoteListenerCards
 import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,9 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
-import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
-import com.afkanerd.deku.RemoteListenersAdd
+import com.afkanerd.deku.RemoteListenersAddScreen
+import com.afkanerd.deku.RemoteListenersQueuesScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,7 +91,7 @@ fun RMQMainComposable(
                 actions = {
                     IconButton(onClick = {
                         remoteListenerViewModel.remoteListener = null
-                        navController.navigate(RemoteListenersAdd)
+                        navController.navigate(RemoteListenersAddScreen)
                     }) {
                         Icon(
                             imageVector = Icons.Rounded.AddCircleOutline,
@@ -122,6 +123,19 @@ fun RMQMainComposable(
                     }
                 }
                 else {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text("> Click to add queues",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.padding(4.dp))
+                        Text("> Press and hold to manage",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Spacer(Modifier.padding(8.dp))
+
                     LazyColumn(
                         state = listState
                     ) {
@@ -129,10 +143,13 @@ fun RMQMainComposable(
                             items = remoteListeners,
                             key = { _, remoteListener -> remoteListener.id}
                         ) { _, remoteListener ->
-                            ConnectionCards(
+                            RemoteListenerCards(
                                 remoteListener,
                                 Modifier.combinedClickable(
-                                    onClick = {},
+                                    onClick = {
+                                        remoteListenerViewModel.remoteListener = remoteListener
+                                        navController.navigate(RemoteListenersQueuesScreen)
+                                    },
                                     onLongClick = {
                                         remoteListenerViewModel.remoteListener = remoteListener
                                         showRemoteListenerModal = true
@@ -149,13 +166,21 @@ fun RMQMainComposable(
                     showModal = showRemoteListenerModal,
                     editCallback = {
                         showRemoteListenerModal = false
-                        navController.navigate(RemoteListenersAdd)
+                        navController.navigate(RemoteListenersAddScreen)
+                    },
+                    connectCallback = {
+                        TODO()
                     },
                     deleteCallback = {
                         CoroutineScope(Dispatchers.Default).launch {
                             remoteListenerProjectsViewModel.delete(
+                                context,
                                 remoteListenerViewModel.remoteListener!!.id
                             )
+                            remoteListenerViewModel.delete(
+                                remoteListenerViewModel.remoteListener!!
+                            )
+                            showRemoteListenerModal = false
                         }
                     }
                 ) {

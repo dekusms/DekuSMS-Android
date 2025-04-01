@@ -35,4 +35,8 @@ class RemoteListenersViewModel : ViewModel() {
         datastore.gatewayClientDAO().insert(gatewayClient)
     }
 
+    fun delete(gatewayClient: GatewayClient) {
+        datastore.gatewayClientDAO().delete(gatewayClient)
+    }
+
 }

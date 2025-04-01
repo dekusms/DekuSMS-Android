@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 fun RemoteListenerModal(
     showModal: Boolean,
     editCallback: () -> Unit,
+    connectCallback: () -> Unit,
     deleteCallback: () -> Unit,
     dismissCallback: () -> Unit,
 ) {
@@ -60,6 +61,11 @@ fun RemoteListenerModal(
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
+                Button(onClick = connectCallback, modifier = Modifier.fillMaxWidth()) {
+                    Text("Connect" )
+                }
+                Spacer(modifier = Modifier.padding(16.dp))
+
                 Button(onClick = editCallback, modifier = Modifier.fillMaxWidth()) {
                     Text("Edit" )
                 }
@@ -76,6 +82,6 @@ fun RemoteListenerModal(
 @Preview
 fun RemoteListenersModal_Preview() {
     AppTheme {
-        RemoteListenerModal(true, {}, {}, {})
+        RemoteListenerModal(true, {}, {}, {}) {}
     }
 }

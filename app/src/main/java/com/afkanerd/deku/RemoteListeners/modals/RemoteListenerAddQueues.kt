@@ -49,11 +49,13 @@ fun RemoteListenerAddQueuesModal(
         skipHiddenState = false
     )
 
+    val remoteListenersQueue = remoteListenerQueuesViewModel.remoteListenerQueues
+
     var showModal by remember { mutableStateOf(showModal) }
 
-    var exchange by remember { mutableStateOf("") }
-    var sim1Queue by remember { mutableStateOf("") }
-    var sim2Queue by remember { mutableStateOf("") }
+    var exchange by remember { mutableStateOf(remoteListenersQueue?.name ?: "") }
+    var sim1Queue by remember { mutableStateOf(remoteListenersQueue?.binding1Name ?: "") }
+    var sim2Queue by remember { mutableStateOf(remoteListenersQueue?.binding2Name ?: "") }
 
     val context = LocalContext.current
     val inspectMode = LocalInspectionMode.current
@@ -124,19 +126,21 @@ fun RemoteListenerAddQueuesModal(
                 Spacer(Modifier.padding(16.dp))
 
                 Button(onClick = {
-                    val remoteListenerQueues =
-                        RemoteListenersQueues()
-                    remoteListenerQueues.name = exchange
-                    remoteListenerQueues.binding1Name = sim1Queue
-                    remoteListenerQueues.binding1Name = sim2Queue
-                    remoteListenerQueues.gatewayClientId = remoteListener.id
+                    val newRemoteListenerQueues = remoteListenersQueue ?: RemoteListenersQueues()
+                    newRemoteListenerQueues.name = exchange
+                    newRemoteListenerQueues.binding1Name = sim1Queue
+                    newRemoteListenerQueues.binding2Name = sim2Queue
+                    newRemoteListenerQueues.gatewayClientId = remoteListener.id
 
                     CoroutineScope(Dispatchers.Default).launch {
-                        remoteListenerQueuesViewModel.insert(remoteListenerQueues)
+                        if(remoteListenersQueue != null)
+                            remoteListenerQueuesViewModel.update(newRemoteListenerQueues)
+                        else
+                            remoteListenerQueuesViewModel.insert(newRemoteListenerQueues)
                         dismissCallback()
                     }
                 }, enabled = exchange.isNotBlank() && sim1Queue.isNotEmpty()) {
-                    Text("Add")
+                    Text(if(remoteListenersQueue == null) "Add" else "Edit")
                 }
             }
         }

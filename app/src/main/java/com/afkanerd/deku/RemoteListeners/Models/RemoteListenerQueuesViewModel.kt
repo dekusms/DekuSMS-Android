@@ -12,7 +12,7 @@ import com.afkanerd.deku.Datastore
 class RemoteListenerQueuesViewModel : ViewModel() {
     private lateinit var datastore: Datastore
 
-    var remoteListenerQueuesViewModel by mutableStateOf<RemoteListenersQueues?>(null)
+    var remoteListenerQueues by mutableStateOf<RemoteListenersQueues?>(null)
 
     private lateinit var liveData : LiveData<List<RemoteListenersQueues>>
     fun get(context: Context, gatewayClientId: Long): LiveData<List<RemoteListenersQueues>>{
@@ -32,7 +32,7 @@ class RemoteListenerQueuesViewModel : ViewModel() {
         datastore.remoteListenersQueuesDao().update(remoteListenersQueues)
     }
 
-    fun delete(remoteListenerId: Long) {
-        datastore.remoteListenersQueuesDao().delete(remoteListenerId)
+    fun delete(context: Context, remoteListenerId: Long) {
+        Datastore.getDatastore(context).remoteListenersQueuesDao().delete(remoteListenerId)
     }
 }
