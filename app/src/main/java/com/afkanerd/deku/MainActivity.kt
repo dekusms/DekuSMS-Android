@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
+import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
@@ -121,6 +122,12 @@ class MainActivity : AppCompatActivity(){
                                 RMQMainComposable(
                                     remoteListenerViewModel = remoteListenersViewModel,
                                     navController = navController
+                                )
+                            }
+                            composable<RemoteListenersAdd>{
+                                RMQAddComposable(
+                                    navController = navController,
+                                    remoteListenerViewModel = remoteListenersViewModel
                                 )
                             }
                         }

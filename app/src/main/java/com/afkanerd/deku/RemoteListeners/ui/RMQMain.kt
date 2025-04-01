@@ -33,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
+import com.afkanerd.deku.RemoteListenersAdd
+import com.afkanerd.deku.RemoteListenersAddQueueScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +79,10 @@ fun RMQMainComposable(
                             items = remoteListeners,
                             key = { index, remoteListener -> remoteListener.id}
                         ) { index, remoteListener ->
-                            ConnectionCards(remoteListener) { showRemoteListenerModal = true }
+                            ConnectionCards(remoteListener) {
+                                remoteListenerViewModel.remoteListener = remoteListener
+                                showRemoteListenerModal = true
+                            }
                         }
                     }
                 }
@@ -86,8 +91,8 @@ fun RMQMainComposable(
             if(showRemoteListenerModal) {
                 RemoteListenerModal(
                     showModal = showRemoteListenerModal,
-                    addQueueCallback = {},
-                    editCallback = {},
+                    addQueueCallback = { navController.navigate(RemoteListenersAddQueueScreen) },
+                    editCallback = { navController.navigate(RemoteListenersAdd) },
                     deleteCallback = {}
                 ) {
                     showRemoteListenerModal = false

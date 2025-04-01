@@ -1,6 +1,7 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
 import android.inputmethodservice.Keyboard.Row
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,20 +49,29 @@ import kotlinx.coroutines.launch
 @Composable
 fun RMQAddComposable(
     navController: NavController,
-    gatewayClientViewModel: GatewayClientViewModel
+    remoteListenerViewModel: GatewayClientViewModel
 ) {
 
-    var hostUrl by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var friendlyName by remember { mutableStateOf("") }
-    var virtualHost by remember { mutableStateOf("/") }
-    var port by remember { mutableIntStateOf(5672) }
+    val remoteListener = remoteListenerViewModel.remoteListener
+
+    var hostUrl by remember { mutableStateOf(remoteListener?.hostUrl ?: "" ) }
+    var username by remember { mutableStateOf(remoteListener?.username ?: "" ) }
+    var password by remember { mutableStateOf(remoteListener?.password ?: "" ) }
+    var friendlyName by remember { mutableStateOf(remoteListener?.friendlyConnectionName ?: "" ) }
+    var virtualHost by remember { mutableStateOf(remoteListener?.virtualHost ?: "/" ) }
+    var port by remember { mutableIntStateOf(remoteListener?.port ?: 5672 ) }
 
     val protocolOptions = listOf("amqp", "amqps")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(protocolOptions[0]) }
 
-    Scaffold { innerPadding ->
+    BackHandler {
+        remoteListenerViewModel.remoteListener = null
+        navController.popBackStack()
+    }
+
+    Scaffold(
+
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -193,18 +203,24 @@ fun RMQAddComposable(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(onClick = {
-                    val remoteListener = GatewayClient()
-                    remoteListener.hostUrl = hostUrl
-                    remoteListener.username = username
-                    remoteListener.password = password
-                    remoteListener.friendlyConnectionName = friendlyName
-                    remoteListener.virtualHost = virtualHost
-                    remoteListener.port = port.toInt()
-                    remoteListener.protocol = selectedOption
+                    val newRemoteListener = remoteListener ?: GatewayClient()
+                    newRemoteListener.hostUrl = hostUrl
+                    newRemoteListener.username = username
+                    newRemoteListener.password = password
+                    newRemoteListener.friendlyConnectionName = friendlyName
+                    newRemoteListener.virtualHost = virtualHost
+                    newRemoteListener.port = port.toInt()
+                    newRemoteListener.protocol = selectedOption
 
                     CoroutineScope(Dispatchers.Default).launch {
-                        gatewayClientViewModel.insert(remoteListener)
-                        navController.popBackStack(RemoteListenersScreen, false)
+                        if(remoteListener != null)
+                            remoteListenerViewModel.update(newRemoteListener)
+                        else
+                            remoteListenerViewModel.insert(newRemoteListener)
+
+                        launch(Dispatchers.Main) {
+                            navController.popBackStack(RemoteListenersScreen, false)
+                        }
                     }
                 }, enabled = hostUrl.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
                     Text("Add")

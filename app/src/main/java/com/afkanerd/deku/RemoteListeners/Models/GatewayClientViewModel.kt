@@ -1,15 +1,20 @@
 package com.afkanerd.deku.RemoteListeners.Models
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 
 class GatewayClientViewModel : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
+
+    var remoteListener by mutableStateOf<GatewayClient?>(null)
 
     private lateinit var datastore: Datastore
 
@@ -26,9 +31,7 @@ class GatewayClientViewModel : ViewModel() {
     }
 
     fun update(gatewayClient: GatewayClient) {
-        ThreadingPoolExecutor.executorService.execute {
-            datastore.gatewayClientDAO().update(gatewayClient)
-        }
+        datastore.gatewayClientDAO().update(gatewayClient)
     }
 
     fun insert(gatewayClient: GatewayClient) {
