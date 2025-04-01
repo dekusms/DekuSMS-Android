@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 
 class GatewayClientListingFragment : Fragment(R.layout.fragment_gateway_client_listing) {
     override fun onCreateView(

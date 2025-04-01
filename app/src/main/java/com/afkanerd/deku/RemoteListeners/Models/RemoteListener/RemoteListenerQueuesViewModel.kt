@@ -1,4 +1,4 @@
-package com.afkanerd.deku.RemoteListeners.Models
+package com.afkanerd.deku.RemoteListeners.Models.RemoteListener
 
 import android.content.Context
 import androidx.compose.runtime.getValue
@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 
 class RemoteListenerQueuesViewModel : ViewModel() {
     private lateinit var datastore: Datastore

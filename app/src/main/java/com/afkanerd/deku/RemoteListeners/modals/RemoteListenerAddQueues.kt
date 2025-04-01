@@ -2,6 +2,7 @@ package com.afkanerd.deku.RemoteListeners.modals
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,8 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -85,7 +87,20 @@ fun RemoteListenerAddQueuesModal(
 
                 OutlinedTextField(
                     value = exchange,
-                    onValueChange = { exchange = it },
+                    supportingText = {
+                        Text("Defaulting to Topic exchange")
+                    },
+                    onValueChange = {
+                        exchange = GatewayClientHandler.getPublisherDetails(context, it)
+                            .let { details ->
+                                if(details.isNotEmpty()) {
+                                    sim1Queue = details[0]
+                                    if(details.getOrNull(1) != null)
+                                        sim2Queue = details[1]
+                                }
+                                it
+                            }
+                    },
                     placeholder = {
                         Text("Exchange")
                     },
@@ -97,11 +112,27 @@ fun RemoteListenerAddQueuesModal(
 
                 Spacer(Modifier.padding(16.dp))
 
+                Column(Modifier.fillMaxWidth()) {
+                    Row {
+                        Text(
+                            "Auto-filled to: ",
+                            style=MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text("{exchange}.{operator_country_code}.{operator_id}",
+                            style=MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+
                 OutlinedTextField(
                     value = sim1Queue,
                     onValueChange = { sim1Queue = it },
                     label = {
                         Text("Sim 1 Queue name")
+                    },
+                    supportingText = {
                     },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(

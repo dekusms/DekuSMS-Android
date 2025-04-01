@@ -22,7 +22,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations;
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient;
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientDAO;
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueuesDao;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;

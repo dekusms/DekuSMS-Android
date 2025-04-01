@@ -1,4 +1,4 @@
-package com.afkanerd.deku.RemoteListeners.Models
+package com.afkanerd.deku.RemoteListeners.Models.RemoteListener
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 
 class RemoteListenersViewModel : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>

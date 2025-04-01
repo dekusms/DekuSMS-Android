@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 
 class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
         Fragment(R.layout.fragment_modalsheet_gateway_client_project_listing_layout) {

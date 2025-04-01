@@ -1,4 +1,4 @@
-package com.afkanerd.deku.RemoteListeners.Models
+package com.afkanerd.deku.RemoteListeners.Models.RemoteListener
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 
 @Dao
 interface RemoteListenersQueuesDao {

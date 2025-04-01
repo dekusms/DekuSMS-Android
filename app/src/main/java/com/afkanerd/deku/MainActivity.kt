@@ -49,8 +49,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerQueuesViewModel
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
