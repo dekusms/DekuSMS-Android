@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 class GatewayClientViewModel : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
@@ -27,6 +29,10 @@ class GatewayClientViewModel : ViewModel() {
         ThreadingPoolExecutor.executorService.execute {
             datastore.gatewayClientDAO().update(gatewayClient)
         }
+    }
+
+    fun insert(gatewayClient: GatewayClient) {
+        datastore.gatewayClientDAO().insert(gatewayClient)
     }
 
 }

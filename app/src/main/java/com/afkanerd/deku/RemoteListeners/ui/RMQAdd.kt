@@ -33,22 +33,30 @@ import com.afkanerd.deku.DefaultSMS.ui.ModalDrawerSheetLayout
 import com.example.compose.AppTheme
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientViewModel
+import com.afkanerd.deku.RemoteListenersScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun RMQAddComposable(
-    navController: NavController
+    navController: NavController,
+    gatewayClientViewModel: GatewayClientViewModel
 ) {
 
     var hostUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var exchange by remember { mutableStateOf("") }
+    var friendlyName by remember { mutableStateOf("") }
     var virtualHost by remember { mutableStateOf("/") }
-    var port by remember { mutableStateOf("5672") }
+    var port by remember { mutableIntStateOf(5672) }
 
     val protocolOptions = listOf("amqp", "amqps")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(protocolOptions[0]) }
@@ -57,6 +65,7 @@ fun RMQAddComposable(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             OutlinedTextField(
@@ -105,10 +114,10 @@ fun RMQAddComposable(
             Spacer(modifier = Modifier.padding(8.dp))
 
             OutlinedTextField(
-                value = exchange,
-                onValueChange = { exchange = it },
+                value = friendlyName,
+                onValueChange = { friendlyName = it },
                 placeholder = {
-                    Text("Exchange")
+                    Text("Friendly name")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -133,14 +142,15 @@ fun RMQAddComposable(
             Spacer(modifier = Modifier.padding(8.dp))
 
             OutlinedTextField(
-                value = port,
-                onValueChange = { port = it },
+                value = port.toString(),
+                onValueChange = { port = it.toInt() },
                 placeholder = {
                     Text("Port")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Number
                 )
             )
 
@@ -183,8 +193,20 @@ fun RMQAddComposable(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(onClick = {
-                    TODO("Save this input")
-                }) {
+                    val remoteListener = GatewayClient()
+                    remoteListener.hostUrl = hostUrl
+                    remoteListener.username = username
+                    remoteListener.password = password
+                    remoteListener.friendlyConnectionName = friendlyName
+                    remoteListener.virtualHost = virtualHost
+                    remoteListener.port = port.toInt()
+                    remoteListener.protocol = selectedOption
+
+                    CoroutineScope(Dispatchers.Default).launch {
+                        gatewayClientViewModel.insert(remoteListener)
+                        navController.popBackStack(RemoteListenersScreen, false)
+                    }
+                }, enabled = hostUrl.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
                     Text("Add")
                 }
             }
@@ -196,6 +218,6 @@ fun RMQAddComposable(
 @Composable
 fun RMQAddComposable_Preview() {
     AppTheme {
-        RMQAddComposable( navController = rememberNavController())
+        RMQAddComposable( navController = rememberNavController(), GatewayClientViewModel())
     }
 }
