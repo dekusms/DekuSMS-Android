@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException
 
 class RMQWorkManager(
     context: Context,
-    workerParams: WorkerParameters
+    workerParams: WorkerParameters,
 ) : Worker(context, workerParams) {
     override fun doWork(): Result {
         val gatewayClientId = inputData.getLong(GatewayClient.GATEWAY_CLIENT_ID, -1)

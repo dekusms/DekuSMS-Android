@@ -5,10 +5,12 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -17,6 +19,10 @@ import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class RMQConnectionService : Service() {
     private lateinit var gatewayClientListLiveData: LiveData<List<GatewayClient>>
@@ -29,6 +35,8 @@ class RMQConnectionService : Service() {
     private var numberWaitingToStart = 0
     private var numberStarting = 0
     private var numberStarted = 0
+
+    private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
     private val remoteListenerObserver = Observer<List<GatewayClient>> {
         it.forEach { remoteListener ->
@@ -56,7 +64,7 @@ class RMQConnectionService : Service() {
                     numberStarting += 1
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    numberStarted += 1
+//                    numberStarted +=1
                 }
                 WorkInfo.State.FAILED -> {
                     numberFailedToStart += 1
@@ -67,17 +75,37 @@ class RMQConnectionService : Service() {
         }
         this.numberFailedToStart = numberFailedToStart
         this.numberWaitingToStart = numberWaitingToStart
-        this.numberStarted = numberStarted
+//        this.numberStarted = numberStarted
         this.numberStarting = numberStarting
         createForegroundNotification()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    fun putRmqConnection(rmqConnection: RMQConnectionHandler) {
+        var list = (rmqConnectionHandlers.value ?: mutableListOf()).plus(rmqConnection)
+        rmqConnectionHandlers.postValue(list)
+    }
+
+    // Binder given to clients.
+    private val binder = LocalBinder()
+    /**
+     * Class used for the client Binder. Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    inner class LocalBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods.
+        fun getService(): RMQConnectionService = this@RMQConnectionService
+    }
+
+    override fun onBind(intent: Intent): IBinder {
+        return binder
     }
 
     override fun onCreate() {
         super.onCreate()
+        rmqConnectionHandlers.observeForever {
+            numberStarted = rmqConnectionHandlers.value?.size ?: 0
+            createForegroundNotification()
+        }
         createForegroundNotification()
     }
 
@@ -118,8 +146,8 @@ class RMQConnectionService : Service() {
             .plus("$numberWaitingToStart\n")
             .plus("# Starting: ")
             .plus("$numberStarting\n")
-            .plus("# Started: ")
-            .plus("$numberStarted")
+            .plus("# Connected: ")
+            .plus(numberStarted)
 
         val notification =
                 NotificationCompat.Builder(

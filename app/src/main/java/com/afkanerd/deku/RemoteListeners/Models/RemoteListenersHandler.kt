@@ -15,6 +15,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQLongRunningConnectionWorker
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
