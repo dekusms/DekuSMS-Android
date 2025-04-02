@@ -110,9 +110,7 @@ class RMQConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        val title = "$numberOfActiveRemoteListeners " +
-                "remote listener${if(numberOfActiveRemoteListeners > 1) "s" else ""} " +
-                "active"
+        val title = "$numberOfActiveRemoteListeners Active..."
         val description = ""
             .plus("# Failed to start: ")
             .plus("$numberFailedToStart\n")
