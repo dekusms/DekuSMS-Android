@@ -9,14 +9,14 @@ import android.os.Bundle
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
+import android.widget.Toast
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
@@ -36,6 +36,8 @@ import kotlinx.serialization.json.Json
 import org.junit.Assert
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
 
 class RMQConnectionWorker(
@@ -43,17 +45,24 @@ class RMQConnectionWorker(
     val gatewayClientId: Long
 ) {
 
+    /**
+     * - Start connection
+     * - Create channels (per simcard per queue)
+     * - Connect to exchange (create if not exist)
+     * - Connect to queues (create if not exist)
+     */
+
     @Serializable
     private data class SMSRequest(val text: String, val to: String, val sid: String, val id: Int)
 
-    private lateinit var rmqConnection: RMQConnection
+    private lateinit var rmqConnectionHandler: RMQConnectionHandler
     private val factory = ConnectionFactory()
 
     private val databaseConnector: Datastore = Datastore.getDatastore(context)
-    private val subscriptionInfoList: List<SubscriptionInfo> =
-            SIMHandler.getSimCardInformation(context)
 
     private lateinit var messageStateChangedBroadcast: BroadcastReceiver
+
+    val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
     init {
         handleBroadcast()
@@ -70,28 +79,28 @@ class RMQConnectionWorker(
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action != null && intentFilter.hasAction(intent.action)) {
                     Log.d(javaClass.name, "Received incoming broadcast")
-                    if (intent.hasExtra(RMQConnection.MESSAGE_SID) &&
-                            intent.hasExtra(RMQConnection.RMQ_DELIVERY_TAG)) {
+                    if (intent.hasExtra(RMQConnectionHandler.MESSAGE_SID) &&
+                            intent.hasExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG)) {
 
-                        val sid = intent.getStringExtra(RMQConnection.MESSAGE_SID)
+                        val sid = intent.getStringExtra(RMQConnectionHandler.MESSAGE_SID)
                         val messageId = intent.getStringExtra(NativeSMSDB.ID)
 
-                        val consumerTag = intent.getStringExtra(RMQConnection.RMQ_CONSUMER_TAG)
+                        val consumerTag = intent.getStringExtra(RMQConnectionHandler.RMQ_CONSUMER_TAG)
                         val deliveryTag =
-                                intent.getLongExtra(RMQConnection.RMQ_DELIVERY_TAG, -1)
+                                intent.getLongExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG, -1)
 
                         Assert.assertTrue(!consumerTag.isNullOrEmpty())
                         Assert.assertTrue(deliveryTag != -1L)
 
-                        rmqConnection.findChannelByTag(consumerTag!!)?.let {
+                        rmqConnectionHandler.findChannelByTag(consumerTag!!)?.let {
                             Log.d(javaClass.name, "Received an ACK of the message...")
                             if (resultCode == Activity.RESULT_OK) {
-                                ThreadingPoolExecutor.executorService.execute {
+                                CoroutineScope(Dispatchers.Default).launch {
                                     if (it.isOpen) it.basicAck(deliveryTag, false)
                                 }
                             } else {
                                 Log.w(javaClass.name, "Rejecting message sent")
-                                ThreadingPoolExecutor.executorService.execute {
+                                CoroutineScope(Dispatchers.Default).launch {
                                     if (it.isOpen) it.basicReject(deliveryTag, true)
                                 }
                             }
@@ -118,10 +127,10 @@ class RMQConnectionWorker(
         val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
 
         val bundle = Bundle()
-        bundle.putString(RMQConnection.MESSAGE_SID, smsRequest.sid)
-        bundle.putString(RMQConnection.RMQ_CONSUMER_TAG, consumerTag)
-        bundle.putLong(RMQConnection.RMQ_DELIVERY_TAG, deliveryTag)
-        bundle.putLong(RMQConnection.RMQ_ID, rmqConnectionId)
+        bundle.putString(RMQConnectionHandler.MESSAGE_SID, smsRequest.sid)
+        bundle.putString(RMQConnectionHandler.RMQ_CONSUMER_TAG, consumerTag)
+        bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
+        bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
 
         val conversation = Conversation()
         conversation.message_id = messageId.toString()
@@ -182,7 +191,7 @@ class RMQConnectionWorker(
     private fun connectGatewayClient(gatewayClientId: Long) {
         Log.d(javaClass.name, "Starting new service connection...")
 
-        ThreadingPoolExecutor.executorService.execute {
+        CoroutineScope(Dispatchers.Default).launch {
             val gatewayClient = Datastore.getDatastore(context).gatewayClientDAO()
                     .fetch(gatewayClientId)
 
@@ -201,14 +210,14 @@ class RMQConnectionWorker(
         }
     }
 
-    private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
+    private fun startConnection(factory: ConnectionFactory, remoteListener: GatewayClient) {
         Log.d(javaClass.name, "Starting new connection...")
 
         try {
-            val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
-                gatewayClient.friendlyConnectionName)
-
-            rmqConnection = RMQConnection(gatewayClient.id, connection)
+            val connection = factory.newConnection(
+                executorService,
+                remoteListener.friendlyConnectionName
+            )
 
             connection.addShutdownListener {
                 /**
@@ -216,45 +225,70 @@ class RMQConnectionWorker(
                  * from the database connection state then reconnect this client.
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(gatewayClient.activated)
-                    GatewayClientHandler.startWorkManager(context, gatewayClient)
+                if(it.isInitiatedByApplication) {
+                    // TODO: Stop work manager
+                }
+                else if(remoteListener.activated)
+                    GatewayClientHandler.startWorkManager(context, remoteListener)
             }
 
             val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()
-                .fetchGatewayClientIdList(gatewayClient.id)
+                .fetchRemoteListenersQueues(remoteListener.id)
 
-            // TODO: try to match the operator code (carrier code) by the binding name
-            // TODO: if enabled in settings
-            for (i in remoteListenerQueues.indices) {
-                for (j in subscriptionInfoList.indices) {
-                    val channel = rmqConnection.createChannel()
-                    val gatewayClientProjects = remoteListenerQueues[i]
-                    val subscriptionId = subscriptionInfoList[j].subscriptionId
-                    val bindingName = if (j > 0)
-                        gatewayClientProjects.binding2Name else gatewayClientProjects.binding1Name
+            val subscriptionInfoList: List<SubscriptionInfo> =
+                SIMHandler.getSimCardInformation(context)
 
-                    Log.d(javaClass.name, "Starting channel for sim slot $j in project #$i")
+            rmqConnectionHandler = RMQConnectionHandler(remoteListener.id, connection)
+
+            remoteListenerQueues.forEachIndexed { i, remoteListenerQueue ->
+                subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
+                    // TODO: try to match the operator code (carrier code) by the binding name
+                    // TODO: if enabled in settings
+                    val channel = rmqConnectionHandler.createChannel().apply {
+                        basicRecover(true)
+                        if(i == 0) {
+                            rmqConnectionHandler
+                                .createExchange(remoteListenerQueue.name, this)
+                        }
+                    }
+                    val subscriptionId = subscriptionInfoList[simSlot].subscriptionId
+                    val bindingName = when (simSlot) {
+                        0 -> remoteListenerQueue.binding1Name
+                        else -> remoteListenerQueue.binding2Name
+                    }
+
+                    Log.i(javaClass.name,
+                        "Starting channel for sim slot $simSlot in project #$i")
+
                     startChannelConsumption(
-                        rmqConnection,
+                        rmqConnectionHandler,
                         channel,
                         subscriptionId,
-                        gatewayClientProjects,
+                        remoteListenerQueue,
                         bindingName
                     )
                 }
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
             when(e) {
-                is TimeoutException, is IOException -> {
+                is TimeoutException -> {
                     e.printStackTrace()
                     Thread.sleep(3000)
                     Log.d(javaClass.name, "Attempting a reconnect to the server...")
-                    startConnection(factory, gatewayClient)
+                    startConnection(factory, remoteListener)
+                }
+                is IOException -> {
+                    // TODO: Should send a notification
+                    rmqConnectionHandler.close()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Toast.makeText(context, e.cause?.message ?: "", Toast.LENGTH_LONG).show()
+                    }
+//                    throw e
                 }
                 else -> {
                     Log.e(javaClass.name, "Exception connecting rmq", e)
+//                    throw e
                 }
             }
         }
@@ -262,33 +296,34 @@ class RMQConnectionWorker(
 
 
     private fun startChannelConsumption(
-        rmqConnection: RMQConnection,
+        rmqConnectionHandler: RMQConnectionHandler,
         channel: Channel,
         subscriptionId: Int,
         remoteListenersQueues: RemoteListenersQueues,
         bindingName: String
     ) {
-        Log.d(javaClass.name, "Starting channel connection")
-        channel.basicRecover(true)
-        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnection.id)
-        val queueName = rmqConnection.createQueue(remoteListenersQueues.name, bindingName, channel)
+        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnectionHandler.id)
+        val queueName = rmqConnectionHandler.createQueue(
+            exchangeName = remoteListenersQueues.name,
+            bindingKey = bindingName,
+            channel = channel
+        )
         val messagesCount = channel.messageCount(queueName)
 
-        val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
+        val consumerTag = channel.basicConsume(
+            queueName,
+            false,
+            deliverCallback,
             object : ConsumerShutdownSignalCallback {
                 override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                    if (rmqConnection.connection.isOpen) {
+                    if (rmqConnectionHandler.connection.isOpen) {
                         Log.e(javaClass.name, "Consumer error", sig)
-                        startChannelConsumption(rmqConnection,
-                            rmqConnection.createChannel(),
-                            subscriptionId,
-                            remoteListenersQueues,
-                            bindingName)
+                        // TODO: handle channel shutdowns
                     }
                 }
             })
         Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
-        rmqConnection.bindChannelToTag(channel, consumerTag)
+//        rmqConnectionHandler.bindChannelToTag(channel, consumerTag)
     }
 
 }

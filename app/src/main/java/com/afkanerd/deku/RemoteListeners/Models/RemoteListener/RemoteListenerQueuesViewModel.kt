@@ -20,7 +20,7 @@ class RemoteListenerQueuesViewModel : ViewModel() {
         datastore = Datastore.getDatastore(context)
         if(!::liveData.isInitialized) {
             liveData = MutableLiveData()
-            liveData = datastore.remoteListenersQueuesDao().fetchGatewayClientId(gatewayClientId)
+            liveData = datastore.remoteListenersQueuesDao().fetchRemoteListenerQueue(gatewayClientId)
         }
         return liveData
     }

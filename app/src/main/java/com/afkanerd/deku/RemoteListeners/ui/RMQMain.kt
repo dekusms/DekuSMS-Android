@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListenersAddScreen
@@ -169,7 +170,13 @@ fun RMQMainComposable(
                         navController.navigate(RemoteListenersAddScreen)
                     },
                     connectCallback = {
-                        TODO()
+                        val remoteListener = remoteListenerViewModel.remoteListener!!
+                        remoteListener.activated = true
+                        GatewayClientHandler.startListening(
+                            context,
+                            remoteListener
+                        )
+                        showRemoteListenerModal = false
                     },
                     deleteCallback = {
                         CoroutineScope(Dispatchers.Default).launch {

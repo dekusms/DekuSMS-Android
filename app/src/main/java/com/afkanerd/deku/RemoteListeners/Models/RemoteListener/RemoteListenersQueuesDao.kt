@@ -24,16 +24,16 @@ interface RemoteListenersQueuesDao {
     fun fetchLiveData(id: Long): LiveData<RemoteListenersQueues>
 
     @Query("SELECT * FROM RemoteListenersQueues WHERE gatewayClientId = :gatewayClientId")
-    fun fetchGatewayClientId(gatewayClientId: Long): LiveData<List<RemoteListenersQueues>>
+    fun fetchRemoteListenerQueue(gatewayClientId: Long): LiveData<List<RemoteListenersQueues>>
 
     @Query("SELECT * FROM RemoteListenersQueues WHERE gatewayClientId = :gatewayClientId")
-    fun fetchGatewayClientIdList(gatewayClientId: Long): List<RemoteListenersQueues>
+    fun fetchRemoteListenersQueues(gatewayClientId: Long): List<RemoteListenersQueues>
 
     @Update
     fun update(remoteListenersQueues: RemoteListenersQueues)
 
     @Query("DELETE FROM RemoteListenersQueues WHERE gatewayClientId = :id")
-    fun deleteGatewayClientId(id: Long)
+    fun deleteRemoteListenerQueue(id: Long)
 
     @Query("DELETE FROM RemoteListenersQueues WHERE id = :id")
     fun delete(id: Long)

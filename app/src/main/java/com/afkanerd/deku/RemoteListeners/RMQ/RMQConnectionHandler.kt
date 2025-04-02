@@ -1,9 +1,11 @@
 package com.afkanerd.deku.RemoteListeners.RMQ
 
+import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 
-class RMQConnection(var id: Long, var connection: Connection) {
+class RMQConnectionHandler(var id: Long, var connection: Connection) {
     private val autoDelete: Boolean = false
     private val exclusive: Boolean = false
     private val durable: Boolean = true
@@ -36,9 +38,23 @@ class RMQConnection(var id: Long, var connection: Connection) {
             connection.close()
     }
 
-    fun createQueue(exchangeName: String, bindingKey: String, channel: Channel,
-                    queueName: String = bindingKey.replace("\\.".toRegex(), "_")) :
-            String {
+    fun createExchange(
+        exchangeName: String,
+        channel: Channel,
+    ): AMQP.Exchange.DeclareOk? {
+        return channel.exchangeDeclare(
+            exchangeName,
+            BuiltinExchangeType.TOPIC,
+            true
+        )
+    }
+
+    fun createQueue(
+        exchangeName: String,
+        bindingKey: String,
+        channel: Channel,
+        queueName: String = bindingKey.replace("\\.".toRegex(), "_")
+    ) : String {
         channel.queueDeclare(queueName, durable, exclusive, autoDelete, null)
         channel.queueBind(queueName, exchangeName, bindingKey)
 
