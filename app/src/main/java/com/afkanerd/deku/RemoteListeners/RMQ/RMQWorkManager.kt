@@ -15,4 +15,8 @@ class RMQWorkManager(
         RMQConnectionWorker(applicationContext, gatewayClientId).start()
         return Result.success()
     }
+
+    override fun onStopped() {
+        super.onStopped()
+    }
 }

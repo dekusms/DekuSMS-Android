@@ -14,9 +14,13 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.uuid.Uuid
 
 class GatewayClientHandler(context: Context?) {
     var databaseConnector: Datastore = Datastore.getDatastore(context)
@@ -71,8 +75,8 @@ class GatewayClientHandler(context: Context?) {
     }
 
     companion object {
-        const val MIGRATIONS: String = "MIGRATIONS"
-        const val MIGRATIONS_TO_11: String = "MIGRATIONS_TO_11"
+        const val UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID
+        const val UNIQUE_WORK_MANAGER_TAG = BuildConfig.APPLICATION_ID
 
         fun getPublisherDetails(context: Context?, projectName: String): List<String> {
             val simcards = SIMHandler.getSimCardInformation(context)
@@ -93,18 +97,33 @@ class GatewayClientHandler(context: Context?) {
             return operatorDetails
         }
 
-        fun startListening(context: Context, gatewayClient: GatewayClient) {
-            ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                override fun run() {
-                    Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient)
-                    Log.d(javaClass.name, "Gateway client: " + gatewayClient.activated)
-                    if (gatewayClient.activated)
-                        startWorkManager(context, gatewayClient)
-                }
-            })
+        fun generateUuidFromLong(input: Long): UUID {
+            // Generate a UUID from the long by using the input directly
+            // for the most significant bits and setting the least significant bits to 0.
+            val mostSigBits = input
+            val leastSigBits = 0L // You can modify this if you want to use more of the long
+
+            return UUID(mostSigBits, leastSigBits)
         }
 
-        val UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID
+        fun stopListening(context: Context, remoteListener: GatewayClient) {
+            CoroutineScope(Dispatchers.Default).launch {
+                TODO("Stop any active connections first")
+                Datastore.getDatastore(context).gatewayClientDAO().update(remoteListener)
+                val workManager = WorkManager.getInstance(context)
+                workManager.getWorkInfoById(generateUuidFromLong(remoteListener.id)).apply {
+                    cancel(true)
+                }
+            }
+        }
+
+        fun startListening(context: Context, gatewayClient: GatewayClient) {
+            CoroutineScope(Dispatchers.Default).launch {
+                Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient)
+                if (gatewayClient.activated) startWorkManager(context, gatewayClient)
+            }
+        }
+
 
         fun startWorkManager(context: Context, gatewayClient: GatewayClient) : WorkManager {
             val constraints : Constraints = Constraints.Builder()
@@ -113,23 +132,26 @@ class GatewayClientHandler(context: Context?) {
 
             val workManager = WorkManager.getInstance(context)
             Log.d(javaClass.name, "WorkManager: ${gatewayClient.id}:${gatewayClient.hostUrl}")
+
             val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
-                    .setConstraints(constraints)
-                    .setBackoffCriteria(
-                            BackoffPolicy.LINEAR,
-                            WorkRequest.MIN_BACKOFF_MILLIS,
-                            TimeUnit.MILLISECONDS
-                    )
-                    .setInputData(Data.Builder()
-                            .putLong(GatewayClient.GATEWAY_CLIENT_ID, gatewayClient.id)
-                            .build())
-                    .addTag(GatewayClient::class.java.name)
-                    .build();
+                .setConstraints(constraints)
+                .setId(generateUuidFromLong(gatewayClient.id))
+                .setBackoffCriteria(
+                    BackoffPolicy.LINEAR,
+                    WorkRequest.MIN_BACKOFF_MILLIS,
+                    TimeUnit.MILLISECONDS
+                )
+                .setInputData(Data.Builder()
+                    .putLong(GatewayClient.GATEWAY_CLIENT_ID, gatewayClient.id)
+                    .build()
+                )
+                .addTag("$UNIQUE_WORK_MANAGER_TAG.$gatewayClient.id")
+                .build();
 
             workManager.enqueueUniqueWork(
-                    UNIQUE_WORK_MANAGER_NAME,
-                    ExistingWorkPolicy.KEEP,
-                    gatewayClientListenerWorker
+                "$UNIQUE_WORK_MANAGER_NAME.$gatewayClient.id",
+                ExistingWorkPolicy.KEEP,
+                gatewayClientListenerWorker
             )
             return workManager
         }

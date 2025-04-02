@@ -18,20 +18,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteListenerModal(
     showModal: Boolean,
+    activated: Boolean,
     editCallback: () -> Unit,
-    connectCallback: () -> Unit,
+    connectionCallback: () -> Unit,
     deleteCallback: () -> Unit,
     dismissCallback: () -> Unit,
 ) {
@@ -61,9 +62,17 @@ fun RemoteListenerModal(
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
-                Button(onClick = connectCallback, modifier = Modifier.fillMaxWidth()) {
-                    Text("Connect" )
+                Button(onClick = connectionCallback, modifier = Modifier.fillMaxWidth()) {
+                    Text(if(activated) "Deactivate" else "Activate")
                 }
+                Text(
+                    if(activated)
+                        "Deactivating stops the remote listener and tries to kill all remote connections."
+                    else "Activating begins the service that tries to connect this remote listener",
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary
+                )
                 Spacer(modifier = Modifier.padding(16.dp))
 
                 Button(onClick = editCallback, modifier = Modifier.fillMaxWidth()) {
@@ -82,6 +91,6 @@ fun RemoteListenerModal(
 @Preview
 fun RemoteListenersModal_Preview() {
     AppTheme {
-        RemoteListenerModal(true, {}, {}, {}) {}
+        RemoteListenerModal(true, true, {}, {}, {}) {}
     }
 }

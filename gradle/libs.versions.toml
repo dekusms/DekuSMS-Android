@@ -5,6 +5,8 @@ activityCompose = "1.10.0"
 amqpClient = "5.20.0"
 androidMail = "1.6.2"
 appcompat = "1.7.0"
+atomfingerTouuid = "1.0.1"
+atomfingerTouuidVersion = "1.0.1"
 autolinktext = "2.0.0"
 avatarviewCoil = "1.0.7"
 coilCompose = "3.0.4"
@@ -109,6 +111,7 @@ androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", versi
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
 androidx-work-rxjava2 = { module = "androidx.work:work-rxjava2", version.ref = "workRuntime" }
 androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "workRuntime" }
+atomfinger-touuid = { module = "io.github.atomfinger:atomfinger-touuid", version.ref = "atomfingerTouuidVersion" }
 autolinktext = { module = "sh.calvin.autolinktext:autolinktext", version.ref = "autolinktext" }
 avatarview-coil = { module = "io.getstream:avatarview-coil", version.ref = "avatarviewCoil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }

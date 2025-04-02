@@ -115,11 +115,13 @@ class RMQConnectionWorker(
                 Context.RECEIVER_EXPORTED)
     }
 
-    private suspend fun sendSMS(smsRequest: SMSRequest,
-                                subscriptionId: Int,
-                                consumerTag: String,
-                                deliveryTag: Long,
-                                rmqConnectionId: Long) {
+    private suspend fun sendSMS(
+        smsRequest: SMSRequest,
+        subscriptionId: Int,
+        consumerTag: String,
+        deliveryTag: Long,
+        rmqConnectionId: Long
+    ) {
         SemaphoreManager.resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
         SemaphoreManager.resourceSemaphore.release()

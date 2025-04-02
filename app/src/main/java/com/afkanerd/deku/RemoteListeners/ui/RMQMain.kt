@@ -165,17 +165,26 @@ fun RMQMainComposable(
             if(showRemoteListenerModal) {
                 RemoteListenerModal(
                     showModal = showRemoteListenerModal,
+                    activated = remoteListenerViewModel.remoteListener?.activated == true,
                     editCallback = {
                         showRemoteListenerModal = false
                         navController.navigate(RemoteListenersAddScreen)
                     },
-                    connectCallback = {
+                    connectionCallback = {
                         val remoteListener = remoteListenerViewModel.remoteListener!!
-                        remoteListener.activated = true
-                        GatewayClientHandler.startListening(
-                            context,
-                            remoteListener
-                        )
+                        if(remoteListenerViewModel.remoteListener?.activated == true) {
+                            remoteListener.activated = false
+                            GatewayClientHandler.stopListening(
+                                context,
+                                remoteListener
+                            )
+                        } else {
+                            remoteListener.activated = true
+                            GatewayClientHandler.startListening(
+                                context,
+                                remoteListener
+                            )
+                        }
                         showRemoteListenerModal = false
                     },
                     deleteCallback = {

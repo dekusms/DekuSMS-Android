@@ -299,6 +299,5 @@ dependencies {
     implementation(libs.autolinktext)
 
     implementation libs.accompanist.permissions
-
 }
 

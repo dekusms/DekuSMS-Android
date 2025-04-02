@@ -10,7 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.R
@@ -29,7 +32,11 @@ fun RemoteListenerCards(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(remoteListeners.username!!)
+            Text(remoteListeners.username!!,
+                color = if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary,
+                fontWeight = if(remoteListeners.activated) FontWeight.SemiBold else null
+            )
             Text(
                 remoteListeners.hostUrl!!,
                 style = MaterialTheme.typography.bodySmall,
@@ -61,6 +68,21 @@ fun RemoteListenerCards(
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
+
+            Row {
+                Text(
+                    "status: ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    if(remoteListeners.activated) "Activated" else "Deactivated",
+                    style = MaterialTheme.typography.bodySmall,
+                    color =
+                        if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 }
@@ -75,6 +97,7 @@ fun ConnectionCards_Preview() {
     gatewayClient.virtualHost = "/"
     gatewayClient.port = 5671
     gatewayClient.username = "example_user"
+    gatewayClient.activated = true
     AppTheme {
         RemoteListenerCards(gatewayClient, Modifier)
     }
