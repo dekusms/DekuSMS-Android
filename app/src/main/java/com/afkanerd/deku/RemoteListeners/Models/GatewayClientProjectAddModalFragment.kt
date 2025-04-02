@@ -75,7 +75,7 @@ class GatewayClientProjectAddModalFragment(private val remoteListenerQueuesViewM
             }
 
             override fun afterTextChanged(s: Editable) {
-                val projectBindings = GatewayClientHandler
+                val projectBindings = RemoteListenersHandler
                     .getPublisherDetails( view.context, s.toString())
 
                 projectBinding.setText(projectBindings[0])

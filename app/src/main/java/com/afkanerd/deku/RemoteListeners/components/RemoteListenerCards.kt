@@ -9,7 +9,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -18,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.example.compose.AppTheme
 
 
@@ -26,6 +31,7 @@ fun RemoteListenerCards(
     remoteListeners: GatewayClient,
     modifier: Modifier,
 ) {
+    val context = LocalContext.current
     Card( modifier = modifier ) {
         Column(
             modifier = Modifier
@@ -37,11 +43,13 @@ fun RemoteListenerCards(
                 else MaterialTheme.colorScheme.secondary,
                 fontWeight = if(remoteListeners.activated) FontWeight.SemiBold else null
             )
+            Spacer(modifier = Modifier.padding(2.dp))
             Text(
                 remoteListeners.hostUrl!!,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
+            Spacer(modifier = Modifier.padding(2.dp))
             Row {
                 Text(
                     stringResource(R.string.port),
@@ -54,8 +62,7 @@ fun RemoteListenerCards(
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
-
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(2.dp))
             Row {
                 Text(
                     stringResource(R.string.virtual_host),
@@ -69,6 +76,26 @@ fun RemoteListenerCards(
                 )
             }
 
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            Row {
+                Text(
+                    "state: ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    if(remoteListeners.activated) "Activated" else "Deactivated",
+                    style = MaterialTheme.typography.bodySmall,
+                    color =
+                        if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.secondary
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(2.dp))
+
             Row {
                 Text(
                     "status: ",
@@ -76,7 +103,7 @@ fun RemoteListenerCards(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    if(remoteListeners.activated) "Activated" else "Deactivated",
+                    "Activated",
                     style = MaterialTheme.typography.bodySmall,
                     color =
                         if(remoteListeners.activated) MaterialTheme.colorScheme.primary

@@ -31,7 +31,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +91,7 @@ fun RemoteListenerAddQueuesModal(
                         Text("Defaulting to Topic exchange")
                     },
                     onValueChange = {
-                        exchange = GatewayClientHandler.getPublisherDetails(context, it)
+                        exchange = RemoteListenersHandler.getPublisherDetails(context, it)
                             .let { details ->
                                 if(details.isNotEmpty()) {
                                     sim1Queue = details[0]

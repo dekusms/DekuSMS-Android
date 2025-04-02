@@ -9,7 +9,6 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity;
 
 public class DevelopersFragment extends PreferenceFragmentCompat {
     @Override
@@ -17,13 +16,13 @@ public class DevelopersFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.developer_preferences, rootKey);
 
         Preference smsListeningSMSWithoutBorders = findPreference("settings_sms_listening_gateway_clients");
-        smsListeningSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(@NonNull Preference preference) {
-                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
-                return true;
-            }
-        });
+//        smsListeningSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+//            @Override
+//            public boolean onPreferenceClick(@NonNull Preference preference) {
+//                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
+//                return true;
+//            }
+//        });
 
     }
 }

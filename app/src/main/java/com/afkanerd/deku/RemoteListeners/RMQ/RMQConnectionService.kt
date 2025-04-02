@@ -1,5 +1,6 @@
 package com.afkanerd.deku.RemoteListeners.RMQ
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -11,44 +12,63 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 
 class RMQConnectionService : Service() {
-    private var nConnected = 0
-    private var nEnqueued = 0
-    private var nReconnecting = 0
-
     private lateinit var gatewayClientListLiveData: LiveData<List<GatewayClient>>
-
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
 
-    private val gatewayClientObserver = Observer<List<GatewayClient>> {
-        it.forEach {gatewayClient ->
-            if(gatewayClient.activated) {
-                println("Starting work manager")
-                GatewayClientHandler.startWorkManager(applicationContext, gatewayClient)
+    private val remoteListenersViewModel: RemoteListenersViewModel = RemoteListenersViewModel()
+
+    private var numberOfActiveRemoteListeners = 0
+    private var numberFailedToStart = 0
+    private var numberWaitingToStart = 0
+    private var numberStarting = 0
+    private var numberStarted = 0
+
+    private val remoteListenerObserver = Observer<List<GatewayClient>> {
+        it.forEach { remoteListener ->
+            if(remoteListener.activated) {
+                numberOfActiveRemoteListeners += 1
+                createForegroundNotification()
+                RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
             }
         }
     }
 
+    // TODO: use this for more insights but not sure if here is the best place
     private val workManagerObserver = Observer<List<WorkInfo>> {
-        nConnected = 0
-        nEnqueued = 0
-        nReconnecting = 0
+        var numberFailedToStart = 0
+        var numberWaitingToStart = 0
+        var numberStarting = 0
+        var numberStarted = 0
+
         it.forEach { workInfo ->
             when(workInfo.state) {
-                WorkInfo.State.ENQUEUED -> ++nEnqueued
-                WorkInfo.State.RUNNING -> ++nReconnecting
-                WorkInfo.State.SUCCEEDED -> ++nConnected
-                WorkInfo.State.FAILED -> {}
+                WorkInfo.State.ENQUEUED -> {
+                    numberWaitingToStart += 1
+                }
+                WorkInfo.State.RUNNING -> {
+                    numberStarting += 1
+                }
+                WorkInfo.State.SUCCEEDED -> {
+                    numberStarted += 1
+                }
+                WorkInfo.State.FAILED -> {
+                    numberFailedToStart += 1
+                }
                 WorkInfo.State.BLOCKED -> {}
                 WorkInfo.State.CANCELLED -> {}
             }
         }
+        this.numberFailedToStart = numberFailedToStart
+        this.numberWaitingToStart = numberWaitingToStart
+        this.numberStarted = numberStarted
+        this.numberStarting = numberStarting
         createForegroundNotification()
     }
 
@@ -56,54 +76,70 @@ class RMQConnectionService : Service() {
         return null
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        createForegroundNotification()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 
         workManagerLiveData.removeObserver(workManagerObserver)
-        gatewayClientListLiveData.removeObserver(gatewayClientObserver)
+        gatewayClientListLiveData.removeObserver(remoteListenerObserver)
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        workManagerLiveData = WorkManager.getInstance(applicationContext)
-                .getWorkInfosByTagLiveData(GatewayClient::class.java.name)
-
-        workManagerLiveData.observeForever(workManagerObserver)
-
-        gatewayClientListLiveData = Datastore.getDatastore(applicationContext)
-                .gatewayClientDAO().fetch()
-        gatewayClientListLiveData.observeForever(gatewayClientObserver)
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        createForegroundNotification()
+        // Put content in intent which can be used to kill this in future
+        workManagerLiveData = WorkManager.getInstance(applicationContext)
+            .getWorkInfosByTagLiveData(RemoteListenersHandler.UNIQUE_WORK_MANAGER_TAG).apply {
+                observeForever(workManagerObserver)
+            }
+
+        gatewayClientListLiveData = remoteListenersViewModel.get(applicationContext).apply {
+            observeForever(remoteListenerObserver)
+        }
         return START_STICKY
     }
 
     private fun createForegroundNotification() {
-        val notificationIntent = Intent(applicationContext, GatewayClientListingActivity::class.java)
+        val notificationIntent = Intent(applicationContext, MainActivity::class.java)
         val pendingIntent = PendingIntent
                 .getActivity(applicationContext,
                         0,
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        val description = "$nEnqueued ${getString(R.string.gateway_client_enqueue_description)}\n" +
-                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
-
-        val title = "$nConnected ${getString(R.string.gateway_client_running_description)}"
+        val title = "$numberOfActiveRemoteListeners " +
+                "remote listener${if(numberOfActiveRemoteListeners > 1) "s" else ""} " +
+                "active"
+        val description = ""
+            .plus("# Failed to start: ")
+            .plus("$numberFailedToStart\n")
+            .plus("# Waiting to start: ")
+            .plus("$numberWaitingToStart\n")
+            .plus("# Starting: ")
+            .plus("$numberStarting\n")
+            .plus("# Started: ")
+            .plus("$numberStarted")
 
         val notification =
-                NotificationCompat.Builder(applicationContext,
-                        getString(R.string.running_gateway_clients_channel_id))
-                        .setContentTitle(title)
-                        .setSmallIcon(R.drawable.ic_stat_name)
-                        .setPriority(NotificationCompat.DEFAULT_ALL)
-                        .setSilent(true)
-                        .setOngoing(true)
-                        .setContentText(description)
-                        .setContentIntent(pendingIntent)
-                        .build()
+                NotificationCompat.Builder(
+                    applicationContext,
+                    getString(R.string.running_gateway_clients_channel_id))
+                    .setContentTitle(title)
+                    .setContentText("Status")
+                    .setSmallIcon(R.drawable.ic_stat_name)
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .setSilent(true)
+                    .setOngoing(true)
+                    .setContentIntent(pendingIntent)
+                    .setStyle(NotificationCompat.BigTextStyle()
+                        .bigText(description))
+                    .build()
+                    .apply {
+                        flags = Notification.FLAG_ONGOING_EVENT
+                    }
 
         val notificationId = getString(R.string.gateway_client_service_notification_id).toInt()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

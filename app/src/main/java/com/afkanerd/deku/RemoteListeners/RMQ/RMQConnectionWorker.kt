@@ -18,7 +18,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClientHandler
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
@@ -62,14 +62,15 @@ class RMQConnectionWorker(
 
     private lateinit var messageStateChangedBroadcast: BroadcastReceiver
 
-    val executorService: ExecutorService = Executors.newFixedThreadPool(4)
+    private val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
     init {
         handleBroadcast()
     }
 
-    fun start() {
+    fun start() : RMQConnectionHandler {
         connectGatewayClient(gatewayClientId)
+        return rmqConnectionHandler
     }
 
     private fun handleBroadcast() {
@@ -193,23 +194,21 @@ class RMQConnectionWorker(
     private fun connectGatewayClient(gatewayClientId: Long) {
         Log.d(javaClass.name, "Starting new service connection...")
 
-        CoroutineScope(Dispatchers.Default).launch {
-            val gatewayClient = Datastore.getDatastore(context).gatewayClientDAO()
-                    .fetch(gatewayClientId)
+        val gatewayClient = Datastore.getDatastore(context).gatewayClientDAO()
+            .fetch(gatewayClientId)
 
-            factory.username = gatewayClient.username
-            factory.password = gatewayClient.password
-            factory.virtualHost = gatewayClient.virtualHost
-            factory.host = gatewayClient.hostUrl
-            factory.port = gatewayClient.port
-            factory.exceptionHandler = DefaultExceptionHandler()
+        factory.username = gatewayClient.username
+        factory.password = gatewayClient.password
+        factory.virtualHost = gatewayClient.virtualHost
+        factory.host = gatewayClient.hostUrl
+        factory.port = gatewayClient.port
+        factory.exceptionHandler = DefaultExceptionHandler()
 
-            /**
-             * Increase connectivity sensitivity
-             */
-            factory.isAutomaticRecoveryEnabled = false
-            startConnection(factory, gatewayClient)
-        }
+        /**
+         * Increase connectivity sensitivity
+         */
+        factory.isAutomaticRecoveryEnabled = false
+        startConnection(factory, gatewayClient)
     }
 
     private fun startConnection(factory: ConnectionFactory, remoteListener: GatewayClient) {
@@ -231,7 +230,7 @@ class RMQConnectionWorker(
                     // TODO: Stop work manager
                 }
                 else if(remoteListener.activated)
-                    GatewayClientHandler.startWorkManager(context, remoteListener)
+                    RemoteListenersHandler.startWorkManager(context, remoteListener)
             }
 
             val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()
@@ -273,26 +272,8 @@ class RMQConnectionWorker(
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            when(e) {
-                is TimeoutException -> {
-                    e.printStackTrace()
-                    Thread.sleep(3000)
-                    Log.d(javaClass.name, "Attempting a reconnect to the server...")
-                    startConnection(factory, remoteListener)
-                }
-                is IOException -> {
-                    // TODO: Should send a notification
-                    rmqConnectionHandler.close()
-                    CoroutineScope(Dispatchers.Main).launch {
-                        Toast.makeText(context, e.cause?.message ?: "", Toast.LENGTH_LONG).show()
-                    }
-//                    throw e
-                }
-                else -> {
-                    Log.e(javaClass.name, "Exception connecting rmq", e)
-//                    throw e
-                }
-            }
+            rmqConnectionHandler.close()
+            throw e
         }
     }
 
