@@ -38,17 +38,23 @@ class RMQConnectionService : Service() {
 
     private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
+    private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> {
+        numberStarted = it.filter { it.connection.isOpen }.size
+        createForegroundNotification()
+    }
+
     private val remoteListenerObserver = Observer<List<GatewayClient>> {
+        var numberOfActiveRemoteListeners = 0
         it.forEach { remoteListener ->
             if(remoteListener.activated) {
                 numberOfActiveRemoteListeners += 1
-                createForegroundNotification()
                 RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
             }
         }
+        this.numberOfActiveRemoteListeners = numberOfActiveRemoteListeners
+        createForegroundNotification()
     }
 
-    // TODO: use this for more insights but not sure if here is the best place
     private val workManagerObserver = Observer<List<WorkInfo>> {
         var numberFailedToStart = 0
         var numberWaitingToStart = 0
@@ -102,23 +108,6 @@ class RMQConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        rmqConnectionHandlers.observeForever {
-            numberStarted = rmqConnectionHandlers.value?.size ?: 0
-            createForegroundNotification()
-        }
-        createForegroundNotification()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        workManagerLiveData.removeObserver(workManagerObserver)
-        gatewayClientListLiveData.removeObserver(remoteListenerObserver)
-    }
-
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Put content in intent which can be used to kill this in future
         workManagerLiveData = WorkManager.getInstance(applicationContext)
             .getWorkInfosByTagLiveData(RemoteListenersHandler.UNIQUE_WORK_MANAGER_TAG).apply {
                 observeForever(workManagerObserver)
@@ -127,6 +116,23 @@ class RMQConnectionService : Service() {
         gatewayClientListLiveData = remoteListenersViewModel.get(applicationContext).apply {
             observeForever(remoteListenerObserver)
         }
+
+        rmqConnectionHandlers.observeForever(rmqConnectionHandlerObserver)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        workManagerLiveData.removeObserver(workManagerObserver)
+        gatewayClientListLiveData.removeObserver(remoteListenerObserver)
+        rmqConnectionHandlers.value?.forEach {  it.close() }
+        rmqConnectionHandlers.removeObserver(rmqConnectionHandlerObserver)
+    }
+
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Put content in intent which can be used to kill this in future
+        createForegroundNotification()
         return START_STICKY
     }
 

@@ -1,6 +1,8 @@
 package com.afkanerd.deku.RemoteListeners.Models
 
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -15,6 +17,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQLongRunningConnectionWorker
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import com.google.common.util.concurrent.ListenableFuture
@@ -58,7 +61,6 @@ object RemoteListenersHandler {
 
     fun stopListening(context: Context, remoteListener: GatewayClient) {
         CoroutineScope(Dispatchers.Default).launch {
-            TODO("Stop any active connections first")
             Datastore.getDatastore(context).gatewayClientDAO().update(remoteListener)
             val workManager = WorkManager.getInstance(context)
             workManager.getWorkInfoById(generateUuidFromLong(remoteListener.id)).apply {
@@ -70,13 +72,13 @@ object RemoteListenersHandler {
     fun startListening(context: Context, gatewayClient: GatewayClient) {
         CoroutineScope(Dispatchers.Default).launch {
             Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient)
-            if (gatewayClient.activated) startWorkManager(context, gatewayClient)
+            val intent = Intent(context, RMQConnectionService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
-    }
-
-    fun getStatus(context: Context, remoteListener: GatewayClient) : ListenableFuture<WorkInfo?>{
-        val workManager = WorkManager.getInstance(context)
-        return workManager.getWorkInfoById(generateUuidFromLong(remoteListener.id))
     }
 
     /**
@@ -105,10 +107,12 @@ object RemoteListenersHandler {
             .addTag(UNIQUE_WORK_MANAGER_TAG)
             .build();
 
-        workManager.enqueueUniqueWork(
+        val operation = workManager.enqueueUniqueWork(
             "$UNIQUE_WORK_MANAGER_NAME.$gatewayClient.id",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             gatewayClientListenerWorker
         )
+
+        println(operation.state.value)
     }
 }

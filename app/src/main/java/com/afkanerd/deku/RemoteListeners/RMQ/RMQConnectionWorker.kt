@@ -107,9 +107,13 @@ class RMQConnectionWorker(
          * Increase connectivity sensitivity
          */
         factory.isAutomaticRecoveryEnabled = false
-        startConnection(factory, gatewayClient)
 
-        mService.putRmqConnection(rmqConnectionHandler)
+        startConnection(factory, gatewayClient)
+        try {
+            mService.putRmqConnection(rmqConnectionHandler)
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
 
         return rmqConnectionHandler
     }
