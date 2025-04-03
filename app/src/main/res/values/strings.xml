@@ -351,5 +351,6 @@
     <string name="remote_listeners">Remote listeners</string>
     <string name="port">"Port: "</string>
     <string name="virtual_host">"Virtual host: "</string>
+    <string name="no_queues_added">No queues added</string>
 
 </resources>

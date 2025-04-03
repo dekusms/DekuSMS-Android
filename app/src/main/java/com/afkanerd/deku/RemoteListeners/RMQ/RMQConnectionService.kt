@@ -20,6 +20,9 @@ import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RMQConnectionService : Service() {
     private lateinit var remoteListenersLiveData: LiveData<List<GatewayClient>>
@@ -43,11 +46,18 @@ class RMQConnectionService : Service() {
     private val remoteListenerObserver = Observer<List<GatewayClient>> {
         var numberOfActiveRemoteListeners = 0
         it.forEach { remoteListener ->
+            val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}
             if(remoteListener.activated) {
                 numberOfActiveRemoteListeners += 1
-                val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}
                 if(rl == null || !rl.connection.isOpen)
                     RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
+            }
+            else {
+                rl?.let {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        if(it.connection.isOpen) it.close()
+                    }
+                }
             }
         }
         this.numberOfActiveRemoteListeners = numberOfActiveRemoteListeners

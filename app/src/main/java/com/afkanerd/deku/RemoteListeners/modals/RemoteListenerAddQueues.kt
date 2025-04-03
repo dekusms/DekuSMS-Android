@@ -42,16 +42,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun RemoteListenerAddQueuesModal(
     showModal: Boolean,
+    remoteListenersQueue: RemoteListenersQueues?,
     remoteListener: GatewayClient,
-    remoteListenerQueuesViewModel: RemoteListenerQueuesViewModel,
+    onClickCallback: (RemoteListenersQueues) -> Unit,
     dismissCallback: () -> Unit,
 ) {
     val state = rememberStandardBottomSheetState(
         initialValue = if(BuildConfig.DEBUG) SheetValue.Expanded else SheetValue.Hidden,
         skipHiddenState = false
     )
-
-    val remoteListenersQueue = remoteListenerQueuesViewModel.remoteListenerQueues
 
     var showModal by remember { mutableStateOf(showModal) }
 
@@ -156,20 +155,20 @@ fun RemoteListenerAddQueuesModal(
 
                 Spacer(Modifier.padding(16.dp))
 
+                if(remoteListenersQueue != null) {
+                    Text("Editing a queue, would restart the connection",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
                 Button(onClick = {
-                    val newRemoteListenerQueues = remoteListenersQueue ?: RemoteListenersQueues()
-                    newRemoteListenerQueues.name = exchange
-                    newRemoteListenerQueues.binding1Name = sim1Queue
-                    newRemoteListenerQueues.binding2Name = sim2Queue
-                    newRemoteListenerQueues.gatewayClientId = remoteListener.id
+                    val rlq = RemoteListenersQueues()
+                    rlq.name = exchange
+                    rlq.binding1Name = sim1Queue
+                    rlq.binding2Name = sim2Queue
+                    rlq.gatewayClientId = remoteListener.id
 
-                    CoroutineScope(Dispatchers.Default).launch {
-                        if(remoteListenersQueue != null)
-                            remoteListenerQueuesViewModel.update(newRemoteListenerQueues)
-                        else
-                            remoteListenerQueuesViewModel.insert(newRemoteListenerQueues)
-                        dismissCallback()
-                    }
+                    onClickCallback(rlq)
                 }, enabled = exchange.isNotBlank() && sim1Queue.isNotEmpty()) {
                     Text(if(remoteListenersQueue == null) "Add" else "Edit")
                 }
@@ -184,8 +183,9 @@ fun RemoteListenersAddQueuesModal_Preview() {
     AppTheme {
         RemoteListenerAddQueuesModal(
             true,
+            RemoteListenersQueues(),
             GatewayClient(),
-            RemoteListenerQueuesViewModel()
+            {}
         ){}
     }
 }

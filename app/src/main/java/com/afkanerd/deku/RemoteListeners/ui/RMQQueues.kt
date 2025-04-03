@@ -33,23 +33,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.components.QueuesCards
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
 import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RMQQueuesComposable(
-    _remoteListenersQueues: List<RemoteListenersQueues> = emptyList<RemoteListenersQueues>(),
+    _remoteListenersQueues: List<RemoteListenersQueues> = emptyList(),
     remoteListenersQueuesViewModel: RemoteListenerQueuesViewModel,
     remoteListenersViewModel: RemoteListenersViewModel,
     navController: NavController
@@ -116,7 +122,8 @@ fun RMQQueuesComposable(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        Text("No queues added",
+                        Text(
+                            stringResource(R.string.no_queues_added),
                             style = MaterialTheme.typography.titleMedium)
                     }
                 }
@@ -141,8 +148,37 @@ fun RMQQueuesComposable(
             if(showRemoteListenerAddQueuesModal) {
                 RemoteListenerAddQueuesModal(
                     showModal = showRemoteListenerAddQueuesModal,
+                    remoteListenersQueue = remoteListenersQueuesViewModel.remoteListenerQueues,
                     remoteListener = remoteListenersViewModel.remoteListener!!,
-                    remoteListenerQueuesViewModel = remoteListenersQueuesViewModel
+                    onClickCallback = {
+                        val newRemoteListenerQueues = it
+                        remoteListenersQueuesViewModel.remoteListenerQueues?.let {
+                            newRemoteListenerQueues.id = it.id
+                        }
+
+                        CoroutineScope(Dispatchers.Default).launch {
+                            if(remoteListenersQueuesViewModel.remoteListenerQueues != null)
+                                remoteListenersQueuesViewModel.update(newRemoteListenerQueues)
+                            else
+                                remoteListenersQueuesViewModel.insert(newRemoteListenerQueues)
+
+                            showRemoteListenerAddQueuesModal = false
+
+                            if(remoteListenersViewModel.remoteListener?.activated!!) {
+                                remoteListenersViewModel.remoteListener!!.activated = false
+                                remoteListenersViewModel.update(
+                                    remoteListenersViewModel.remoteListener!!
+                                )
+                                Thread.sleep(1000)
+
+                                remoteListenersViewModel.remoteListener!!.activated = true
+                                remoteListenersViewModel.update(
+                                    remoteListenersViewModel.remoteListener!!
+                                )
+                            }
+
+                        }
+                    },
                 ) {
                     showRemoteListenerAddQueuesModal = false
                 }
@@ -155,9 +191,15 @@ fun RMQQueuesComposable(
 @Composable
 @Preview
 fun RMQQueuesComposable_Preview() {
+    val rlq = RemoteListenersQueues()
+    rlq.id = 0
+    rlq.name = "rlq"
+    rlq.binding1Name = "binding1"
+    rlq.binding2Name = "binding2"
+
     AppTheme {
         RMQQueuesComposable(
-            emptyList(),
+            listOf(rlq),
             RemoteListenerQueuesViewModel(),
             RemoteListenersViewModel(LocalContext.current),
             rememberNavController()
