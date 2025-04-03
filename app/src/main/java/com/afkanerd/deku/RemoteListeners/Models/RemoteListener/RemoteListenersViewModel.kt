@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.IBinder
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -14,6 +15,9 @@ import androidx.compose.runtime.getValue
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RemoteListenersViewModel(context: Context) : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
@@ -23,12 +27,14 @@ class RemoteListenersViewModel(context: Context) : ViewModel() {
 
     private lateinit var datastore: Datastore
 
+    private lateinit var binder: RMQConnectionService.LocalBinder
+
     /** Defines callbacks for service binding, passed to bindService().  */
     val connection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            val binder = service as RMQConnectionService.LocalBinder
+            binder = service as RMQConnectionService.LocalBinder
             rmqConnectionHandlers = binder.getService().getRmqConnections()
         }
 
@@ -44,6 +50,10 @@ class RemoteListenersViewModel(context: Context) : ViewModel() {
 
     fun getRmqConnections(): LiveData<Set<RMQConnectionHandler>> {
         return rmqConnectionHandlers
+    }
+
+    fun changes(rmqConnectionHandler: RMQConnectionHandler) {
+        binder.getService().changes(rmqConnectionHandler)
     }
 
     fun get(context: Context): LiveData<List<GatewayClient>> {

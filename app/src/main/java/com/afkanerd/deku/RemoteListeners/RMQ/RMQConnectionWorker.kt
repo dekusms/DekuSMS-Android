@@ -133,8 +133,8 @@ class RMQConnectionWorker(
                  * from the database connection state then reconnect this client.
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(it.isInitiatedByApplication) {
-                    TODO("This came from the server")
+                if(it.isInitiatedByApplication ) {
+                    mService.changes(rmqConnectionHandler)
                 }
                 else if(remoteListener.activated) {
                     mService.changes(rmqConnectionHandler)

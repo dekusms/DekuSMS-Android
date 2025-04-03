@@ -194,6 +194,10 @@ fun RMQMainComposable(
                                 context,
                                 remoteListener
                             )
+                            val rmqConnectionHandler: RMQConnectionHandler? =
+                                rmqConnectionHandlers.find { it.id == remoteListener.id }?.apply {
+                                    this.close()
+                                }
                         } else {
                             //Activating
                             remoteListener.activated = true
