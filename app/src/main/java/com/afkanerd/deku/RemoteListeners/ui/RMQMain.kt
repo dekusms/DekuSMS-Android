@@ -194,10 +194,11 @@ fun RMQMainComposable(
                                 context,
                                 remoteListener
                             )
-                            val rmqConnectionHandler: RMQConnectionHandler? =
-                                rmqConnectionHandlers.find { it.id == remoteListener.id }?.apply {
-                                    this.close()
+                            rmqConnectionHandlers.find { it.id == remoteListener.id }?.let {
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    it.close()
                                 }
+                            }
                         } else {
                             //Activating
                             remoteListener.activated = true

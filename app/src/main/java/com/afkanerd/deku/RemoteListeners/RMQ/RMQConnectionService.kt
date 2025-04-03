@@ -19,13 +19,9 @@ import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 class RMQConnectionService : Service() {
-    private lateinit var gatewayClientListLiveData: LiveData<List<GatewayClient>>
+    private lateinit var remoteListenersLiveData: LiveData<List<GatewayClient>>
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
     private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
 
@@ -128,32 +124,33 @@ class RMQConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        workManagerLiveData = WorkManager.getInstance(applicationContext)
-            .getWorkInfosByTagLiveData(RemoteListenersHandler.UNIQUE_WORK_MANAGER_TAG).apply {
-                observeForever(workManagerObserver)
-            }
-
         remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
-        gatewayClientListLiveData = remoteListenersViewModel.get(applicationContext).apply {
-            observeForever(remoteListenerObserver)
-        }
-
-        rmqConnectionHandlers.observeForever(rmqConnectionHandlerObserver)
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
         workManagerLiveData.removeObserver(workManagerObserver)
-        gatewayClientListLiveData.removeObserver(remoteListenerObserver)
-        rmqConnectionHandlers.value?.forEach {  it.close() }
         rmqConnectionHandlers.removeObserver(rmqConnectionHandlerObserver)
+        remoteListenersLiveData.removeObserver(remoteListenerObserver)
+        rmqConnectionHandlers.value?.forEach {  it.close() }
     }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Put content in intent which can be used to kill this in future
         createForegroundNotification()
+        workManagerLiveData = WorkManager.getInstance(applicationContext)
+            .getWorkInfosByTagLiveData(RemoteListenersHandler.UNIQUE_WORK_MANAGER_TAG).apply {
+                observeForever(workManagerObserver)
+            }
+
+        remoteListenersLiveData = remoteListenersViewModel.get(applicationContext).apply {
+            observeForever(remoteListenerObserver)
+        }
+
+        rmqConnectionHandlers.observeForever(rmqConnectionHandlerObserver)
+
         return START_STICKY
     }
 
