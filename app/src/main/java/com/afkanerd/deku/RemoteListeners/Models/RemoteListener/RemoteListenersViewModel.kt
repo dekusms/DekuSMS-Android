@@ -19,7 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class RemoteListenersViewModel(context: Context) : ViewModel() {
+class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
     private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
 
@@ -43,8 +43,10 @@ class RemoteListenersViewModel(context: Context) : ViewModel() {
     }
 
     init {
-        Intent(context, RMQConnectionService::class.java).also { intent ->
-            context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        context?.let {
+            Intent(context, RMQConnectionService::class.java).also { intent ->
+                context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            }
         }
     }
 

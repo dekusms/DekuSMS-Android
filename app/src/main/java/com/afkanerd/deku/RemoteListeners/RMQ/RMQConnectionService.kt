@@ -37,7 +37,6 @@ class RMQConnectionService : Service() {
     // TODO: when the state changes in here, you should know - else would have false readings
     private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rl ->
         numberStarted = rl.filter { it.connection.isOpen }.size
-        println(rl)
         createForegroundNotification()
     }
 
@@ -46,7 +45,9 @@ class RMQConnectionService : Service() {
         it.forEach { remoteListener ->
             if(remoteListener.activated) {
                 numberOfActiveRemoteListeners += 1
-                RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
+                val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}
+                if(rl == null || !rl.connection.isOpen)
+                    RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
             }
         }
         this.numberOfActiveRemoteListeners = numberOfActiveRemoteListeners
@@ -85,14 +86,14 @@ class RMQConnectionService : Service() {
     }
 
     fun changes(rmqConnection: RMQConnectionHandler) {
-        rmqConnectionHandlers.value?.find{ rmqConnection.id == it.id }.let {
-            it?.let {
-                rmqConnectionHandlers.postValue(
-                    rmqConnectionHandlers.value!!
-                        .minusElement(it)
-                        .plusElement(rmqConnection)
-                )
+        rmqConnectionHandlers.value?.toMutableList()?.let { mutableList ->
+            val index = mutableList.indexOfFirst { it.id == rmqConnection.id }
+            if (index != -1) {
+                mutableList[index] = rmqConnection
+            } else {
+                mutableList.add(rmqConnection)
             }
+            rmqConnectionHandlers.postValue(mutableList)
         }
     }
 

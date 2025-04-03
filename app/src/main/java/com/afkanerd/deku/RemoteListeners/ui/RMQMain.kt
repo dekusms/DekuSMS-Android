@@ -9,8 +9,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -78,10 +80,6 @@ fun RMQMainComposable(
     val rmqConnectionHandlers: List<RMQConnectionHandler> =
         if(LocalInspectionMode.current) emptyList<RMQConnectionHandler>()
     else remoteListenerViewModel.getRmqConnections().observeAsState(emptyList()).value
-
-    LaunchedEffect(rmqConnectionHandlers) {
-        println(rmqConnectionHandlers.size)
-    }
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
@@ -154,7 +152,8 @@ fun RMQMainComposable(
                     Spacer(Modifier.padding(8.dp))
 
                     LazyColumn(
-                        state = listState
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
                             items = remoteListeners,
@@ -162,6 +161,7 @@ fun RMQMainComposable(
                         ) { _, remoteListener ->
                             RemoteListenerCards(
                                 remoteListener,
+                                if(LocalInspectionMode.current) true else
                                 rmqConnectionHandlers.find{ remoteListener.id == it.id}
                                     ?.connection?.isOpen == true,
                                 Modifier.combinedClickable(
@@ -242,9 +242,17 @@ fun ConnectionCards_Preview() {
         gatewayClient.virtualHost = "/"
         gatewayClient.port = 5671
         gatewayClient.username = "example_user"
+
+        val gatewayClient1 = GatewayClient()
+        gatewayClient1.id = 1
+        gatewayClient1.hostUrl = "amqp://example.com"
+        gatewayClient1.virtualHost = "/"
+        gatewayClient1.port = 5671
+        gatewayClient1.username = "example_user"
+
         RMQMainComposable(
-            listOf(gatewayClient),
-            RemoteListenersViewModel(LocalContext.current),
+            listOf(gatewayClient, gatewayClient1),
+            RemoteListenersViewModel(),
             RemoteListenerQueuesViewModel(),
             rememberNavController(),
         )
