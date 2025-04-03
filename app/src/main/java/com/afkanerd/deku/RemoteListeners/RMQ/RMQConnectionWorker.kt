@@ -134,10 +134,10 @@ class RMQConnectionWorker(
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
                 if(it.isInitiatedByApplication) {
-                    // TODO: Stop work manager - does not attempt retry sequence
+                    TODO("This came from the server")
                 }
                 else if(remoteListener.activated) {
-
+                    mService.changes(rmqConnectionHandler)
                 }
             }
 

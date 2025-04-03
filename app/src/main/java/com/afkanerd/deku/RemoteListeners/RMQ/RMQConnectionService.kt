@@ -39,8 +39,8 @@ class RMQConnectionService : Service() {
     private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
 
     // TODO: when the state changes in here, you should know - else would have false readings
-    private val rmqConnectionHandlerObserver = Observer<Set<RMQConnectionHandler>> {
-        numberStarted = it.filter { it.connection.isOpen }.size
+    private val rmqConnectionHandlerObserver = Observer<Set<RMQConnectionHandler>> { rl ->
+        numberStarted = rl.filter { it.connection.isOpen }.size
         createForegroundNotification()
     }
 
@@ -90,15 +90,18 @@ class RMQConnectionService : Service() {
     fun changes(rmqConnection: RMQConnectionHandler) {
         rmqConnectionHandlers.value?.find{ rmqConnection.id == it.id }.let {
             it?.let {
-                rmqConnectionHandlers.value!!.minusElement(it)
-                rmqConnectionHandlers
+                rmqConnectionHandlers.postValue(
+                    rmqConnectionHandlers.value!!
+                        .minusElement(it)
+                        .plusElement(rmqConnection)
+                )
             }
         }
     }
 
     fun putRmqConnection(rmqConnection: RMQConnectionHandler) {
-        var list = (rmqConnectionHandlers.value ?: mutableSetOf()).plus(rmqConnection)
-        rmqConnectionHandlers.postValue(list)
+        rmqConnectionHandlers.postValue((rmqConnectionHandlers.value ?: mutableSetOf())
+            .plus(rmqConnection))
     }
 
     fun getRmqConnection(remoteListenerId: Long) : RMQConnectionHandler? {
