@@ -67,12 +67,12 @@ class RMQConnectionWorker(
 
     private val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
-    private lateinit var mService: RMQConnectionService
 
     init {
         handleBroadcast()
     }
 
+    private lateinit var mService: RMQConnectionService
     /** Defines callbacks for service binding, passed to bindService().  */
     private val connection = object : ServiceConnection {
 

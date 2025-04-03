@@ -29,9 +29,9 @@ import com.example.compose.AppTheme
 @Composable
 fun RemoteListenerCards(
     remoteListeners: GatewayClient,
+    status: Boolean,
     modifier: Modifier,
 ) {
-    val context = LocalContext.current
     Card( modifier = modifier ) {
         Column(
             modifier = Modifier
@@ -103,10 +103,13 @@ fun RemoteListenerCards(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    "Activated",
+                    if(status) "Connected" else "Disconnected",
                     style = MaterialTheme.typography.bodySmall,
                     color =
-                        if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                        if(remoteListeners.activated) {
+                            if(status) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.error
+                        }
                         else MaterialTheme.colorScheme.secondary
                 )
             }
@@ -126,6 +129,6 @@ fun ConnectionCards_Preview() {
     gatewayClient.username = "example_user"
     gatewayClient.activated = true
     AppTheme {
-        RemoteListenerCards(gatewayClient, Modifier)
+        RemoteListenerCards(gatewayClient, false, Modifier)
     }
 }

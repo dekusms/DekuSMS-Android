@@ -1,5 +1,10 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -25,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
@@ -73,6 +80,27 @@ fun RMQMainComposable(
         remoteListenerViewModel.remoteListener = null
         navController.popBackStack()
     }
+
+    var mService: RMQConnectionService? = null
+    /** Defines callbacks for service binding, passed to bindService().  */
+    val connection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance.
+            val binder = service as RMQConnectionService.LocalBinder
+            mService = binder.getService()
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        Intent(context, RMQConnectionService::class.java).also { intent ->
+            context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -144,8 +172,12 @@ fun RMQMainComposable(
                             items = remoteListeners,
                             key = { _, remoteListener -> remoteListener.id}
                         ) { _, remoteListener ->
+                            val rmqConnectionHandler by remember {
+                                mutableStateOf(mService?.getRmqConnection(remoteListener.id))
+                            }
                             RemoteListenerCards(
                                 remoteListener,
+                                rmqConnectionHandler?.connection?.isOpen == true,
                                 Modifier.combinedClickable(
                                     onClick = {
                                         remoteListenerViewModel.remoteListener = remoteListener
@@ -173,12 +205,14 @@ fun RMQMainComposable(
                     connectionCallback = {
                         val remoteListener = remoteListenerViewModel.remoteListener!!
                         if(remoteListenerViewModel.remoteListener?.activated == true) {
+                            //Deactivating
                             remoteListener.activated = false
                             RemoteListenersHandler.stopListening(
                                 context,
                                 remoteListener
                             )
                         } else {
+                            //Activating
                             remoteListener.activated = true
                             RemoteListenersHandler.startListening(
                                 context,
