@@ -75,9 +75,13 @@ fun RMQMainComposable(
     val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
     else remoteListenerViewModel.get(context).observeAsState(emptyList()).value
 
-    val rmqConnectionHandlers: Set<RMQConnectionHandler> =
-        if(LocalInspectionMode.current) emptySet<RMQConnectionHandler>()
-    else remoteListenerViewModel.getRmqConnections().observeAsState(emptySet()).value
+    val rmqConnectionHandlers: List<RMQConnectionHandler> =
+        if(LocalInspectionMode.current) emptyList<RMQConnectionHandler>()
+    else remoteListenerViewModel.getRmqConnections().observeAsState(emptyList()).value
+
+    LaunchedEffect(rmqConnectionHandlers) {
+        println(rmqConnectionHandlers.size)
+    }
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
@@ -156,11 +160,10 @@ fun RMQMainComposable(
                             items = remoteListeners,
                             key = { _, remoteListener -> remoteListener.id}
                         ) { _, remoteListener ->
-                            val rmqConnectionHandler: RMQConnectionHandler? =
-                                rmqConnectionHandlers.find { it.id == remoteListener.id }
                             RemoteListenerCards(
                                 remoteListener,
-                                rmqConnectionHandler?.connection?.isOpen == true,
+                                rmqConnectionHandlers.find{ remoteListener.id == it.id}
+                                    ?.connection?.isOpen == true,
                                 Modifier.combinedClickable(
                                     onClick = {
                                         remoteListenerViewModel.remoteListener = remoteListener

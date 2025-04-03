@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
@@ -23,7 +24,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 class RMQConnectionService : Service() {
     private lateinit var remoteListenersLiveData: LiveData<List<GatewayClient>>
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
-    private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
+    private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
 
@@ -34,8 +35,9 @@ class RMQConnectionService : Service() {
     private var numberStarted = 0
 
     // TODO: when the state changes in here, you should know - else would have false readings
-    private val rmqConnectionHandlerObserver = Observer<Set<RMQConnectionHandler>> { rl ->
+    private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rl ->
         numberStarted = rl.filter { it.connection.isOpen }.size
+        println(rl)
         createForegroundNotification()
     }
 
@@ -95,15 +97,18 @@ class RMQConnectionService : Service() {
     }
 
     fun putRmqConnection(rmqConnection: RMQConnectionHandler) {
-        rmqConnectionHandlers.postValue((rmqConnectionHandlers.value ?: mutableSetOf())
-            .plus(rmqConnection))
+        if(rmqConnectionHandlers.value != null) {
+            changes(rmqConnection)
+        } else {
+            rmqConnectionHandlers.postValue(listOf(rmqConnection))
+        }
     }
 
     fun getRmqConnection(remoteListenerId: Long) : RMQConnectionHandler? {
         return rmqConnectionHandlers.value?.find { it.id == remoteListenerId }
     }
 
-    fun getRmqConnections(): LiveData<Set<RMQConnectionHandler>> {
+    fun getRmqConnections(): LiveData<List<RMQConnectionHandler>> {
         return rmqConnectionHandlers
     }
 
@@ -120,6 +125,10 @@ class RMQConnectionService : Service() {
 
     override fun onBind(intent: Intent): IBinder {
         return binder
+    }
+
+    override fun unbindService(conn: ServiceConnection) {
+        super.unbindService(conn)
     }
 
     override fun onCreate() {
@@ -154,7 +163,17 @@ class RMQConnectionService : Service() {
         return START_STICKY
     }
 
+    private fun stopForegroundNotification() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
     private fun createForegroundNotification() {
+        if(numberOfActiveRemoteListeners < 1) {
+            stopSelf()
+            stopForegroundNotification()
+            return
+        }
+
         val notificationIntent = Intent(applicationContext, MainActivity::class.java)
         val pendingIntent = PendingIntent
                 .getActivity(applicationContext,

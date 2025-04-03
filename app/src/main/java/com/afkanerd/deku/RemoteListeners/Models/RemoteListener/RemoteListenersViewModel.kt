@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class RemoteListenersViewModel(context: Context) : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
-    private lateinit var rmqConnectionHandlers: LiveData<Set<RMQConnectionHandler>>
+    private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
 
     var remoteListener by mutableStateOf<GatewayClient?>(null)
 
@@ -48,7 +48,7 @@ class RemoteListenersViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun getRmqConnections(): LiveData<Set<RMQConnectionHandler>> {
+    fun getRmqConnections(): LiveData<List<RMQConnectionHandler>> {
         return rmqConnectionHandlers
     }
 

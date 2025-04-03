@@ -74,7 +74,7 @@ class RMQConnectionWorker(
 
     private lateinit var mService: RMQConnectionService
     /** Defines callbacks for service binding, passed to bindService().  */
-    private val connection = object : ServiceConnection {
+    private val serviceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
@@ -90,7 +90,7 @@ class RMQConnectionWorker(
         Log.d(javaClass.name, "Starting new service connection...")
 
         Intent(context, RMQConnectionService::class.java).also { intent ->
-            context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
 
         val gatewayClient = Datastore.getDatastore(context).gatewayClientDAO()
@@ -135,9 +135,11 @@ class RMQConnectionWorker(
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
                 if(it.isInitiatedByApplication ) {
                     mService.changes(rmqConnectionHandler)
+                    mService.unbindService(serviceConnection)
                 }
                 else if(remoteListener.activated) {
                     mService.changes(rmqConnectionHandler)
+                    mService.unbindService(serviceConnection)
                 }
             }
 
