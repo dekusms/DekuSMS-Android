@@ -159,7 +159,7 @@ fun RMQQueuesComposable_Preview() {
         RMQQueuesComposable(
             emptyList(),
             RemoteListenerQueuesViewModel(),
-            RemoteListenersViewModel(),
+            RemoteListenersViewModel(LocalContext.current),
             rememberNavController()
         )
     }

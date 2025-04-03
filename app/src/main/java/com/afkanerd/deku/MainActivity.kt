@@ -62,13 +62,16 @@ class MainActivity : AppCompatActivity(){
 
     private val conversationViewModel: ConversationsViewModel by viewModels()
     private val searchViewModel: SearchViewModel by viewModels()
-    private val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
+//    private val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
+    private lateinit var remoteListenersViewModel: RemoteListenersViewModel
     private val remoteListenersProjectsViewModel:
             RemoteListenerQueuesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
 
         lifecycleScope.launch(Dispatchers.Main) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

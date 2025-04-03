@@ -27,16 +27,15 @@ import kotlinx.coroutines.launch
 class RMQConnectionService : Service() {
     private lateinit var gatewayClientListLiveData: LiveData<List<GatewayClient>>
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
+    private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
 
-    private val remoteListenersViewModel: RemoteListenersViewModel = RemoteListenersViewModel()
+    private lateinit var remoteListenersViewModel: RemoteListenersViewModel
 
     private var numberOfActiveRemoteListeners = 0
     private var numberFailedToStart = 0
     private var numberWaitingToStart = 0
     private var numberStarting = 0
     private var numberStarted = 0
-
-    private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
 
     // TODO: when the state changes in here, you should know - else would have false readings
     private val rmqConnectionHandlerObserver = Observer<Set<RMQConnectionHandler>> { rl ->
@@ -108,6 +107,10 @@ class RMQConnectionService : Service() {
         return rmqConnectionHandlers.value?.find { it.id == remoteListenerId }
     }
 
+    fun getRmqConnections(): LiveData<Set<RMQConnectionHandler>> {
+        return rmqConnectionHandlers
+    }
+
     // Binder given to clients.
     private val binder = LocalBinder()
     /**
@@ -130,6 +133,7 @@ class RMQConnectionService : Service() {
                 observeForever(workManagerObserver)
             }
 
+        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
         gatewayClientListLiveData = remoteListenersViewModel.get(applicationContext).apply {
             observeForever(remoteListenerObserver)
         }

@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -294,6 +295,8 @@ fun RMQAddComposable(
 @Composable
 fun RMQAddComposable_Preview() {
     AppTheme {
-        RMQAddComposable( navController = rememberNavController(), RemoteListenersViewModel())
+        RMQAddComposable( navController = rememberNavController(), RemoteListenersViewModel(
+            LocalContext.current
+        ))
     }
 }

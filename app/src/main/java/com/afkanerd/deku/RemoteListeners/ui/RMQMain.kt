@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListenersAddScreen
@@ -74,33 +75,16 @@ fun RMQMainComposable(
     val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
     else remoteListenerViewModel.get(context).observeAsState(emptyList()).value
 
+    val rmqConnectionHandlers: Set<RMQConnectionHandler> =
+        if(LocalInspectionMode.current) emptySet<RMQConnectionHandler>()
+    else remoteListenerViewModel.getRmqConnections().observeAsState(emptySet()).value
+
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
         navController.popBackStack()
     }
-
-    var mService: RMQConnectionService? = null
-    /** Defines callbacks for service binding, passed to bindService().  */
-    val connection = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            val binder = service as RMQConnectionService.LocalBinder
-            mService = binder.getService()
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        Intent(context, RMQConnectionService::class.java).also { intent ->
-            context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-        }
-    }
-
 
     Scaffold(
         topBar = {
@@ -172,9 +156,8 @@ fun RMQMainComposable(
                             items = remoteListeners,
                             key = { _, remoteListener -> remoteListener.id}
                         ) { _, remoteListener ->
-                            val rmqConnectionHandler by remember {
-                                mutableStateOf(mService?.getRmqConnection(remoteListener.id))
-                            }
+                            val rmqConnectionHandler: RMQConnectionHandler? =
+                                rmqConnectionHandlers.find { it.id == remoteListener.id }
                             RemoteListenerCards(
                                 remoteListener,
                                 rmqConnectionHandler?.connection?.isOpen == true,
@@ -253,7 +236,7 @@ fun ConnectionCards_Preview() {
         gatewayClient.username = "example_user"
         RMQMainComposable(
             listOf(gatewayClient),
-            RemoteListenersViewModel(),
+            RemoteListenersViewModel(LocalContext.current),
             RemoteListenerQueuesViewModel(),
             rememberNavController(),
         )
