@@ -108,7 +108,7 @@ object RemoteListenersHandler {
             .build();
 
         val operation = workManager.enqueueUniqueWork(
-            "$UNIQUE_WORK_MANAGER_NAME.$gatewayClient.id",
+            "$UNIQUE_WORK_MANAGER_NAME.${gatewayClient.id}",
             ExistingWorkPolicy.REPLACE,
             gatewayClientListenerWorker
         )
