@@ -134,10 +134,11 @@ class RMQConnectionWorker(
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
                 if(it.isInitiatedByApplication) {
-                    // TODO: Stop work manager
+                    // TODO: Stop work manager - does not attempt retry sequence
                 }
-                else if(remoteListener.activated)
-                    RemoteListenersHandler.startWorkManager(context, remoteListener)
+                else if(remoteListener.activated) {
+
+                }
             }
 
             val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()

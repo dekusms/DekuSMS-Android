@@ -36,9 +36,10 @@ class RMQConnectionService : Service() {
     private var numberStarting = 0
     private var numberStarted = 0
 
-    private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
+    private var rmqConnectionHandlers : MutableLiveData<Set<RMQConnectionHandler>> = MutableLiveData()
 
-    private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> {
+    // TODO: when the state changes in here, you should know - else would have false readings
+    private val rmqConnectionHandlerObserver = Observer<Set<RMQConnectionHandler>> {
         numberStarted = it.filter { it.connection.isOpen }.size
         createForegroundNotification()
     }
@@ -86,9 +87,22 @@ class RMQConnectionService : Service() {
         createForegroundNotification()
     }
 
+    fun changes(rmqConnection: RMQConnectionHandler) {
+        rmqConnectionHandlers.value?.find{ rmqConnection.id == it.id }.let {
+            it?.let {
+                rmqConnectionHandlers.value!!.minusElement(it)
+                rmqConnectionHandlers
+            }
+        }
+    }
+
     fun putRmqConnection(rmqConnection: RMQConnectionHandler) {
-        var list = (rmqConnectionHandlers.value ?: mutableListOf()).plus(rmqConnection)
+        var list = (rmqConnectionHandlers.value ?: mutableSetOf()).plus(rmqConnection)
         rmqConnectionHandlers.postValue(list)
+    }
+
+    fun getRmqConnection(remoteListenerId: Long) : RMQConnectionHandler? {
+        return rmqConnectionHandlers.value?.find { it.id == remoteListenerId }
     }
 
     // Binder given to clients.
