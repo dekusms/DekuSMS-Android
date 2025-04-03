@@ -352,5 +352,12 @@
     <string name="port">"Port: "</string>
     <string name="virtual_host">"Virtual host: "</string>
     <string name="no_queues_added">No queues added</string>
+    <string name="friendly_name">"Friendly name: "</string>
+    <string name="state">"state: "</string>
+    <string name="activated">Activated</string>
+    <string name="deactivated">Deactivated</string>
+    <string name="status">"status: "</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
 
 </resources>

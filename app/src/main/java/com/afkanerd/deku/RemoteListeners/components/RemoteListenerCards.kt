@@ -50,7 +50,22 @@ fun RemoteListenerCards(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
-            Spacer(modifier = Modifier.padding(2.dp))
+
+            Spacer(modifier = Modifier.padding(8.dp))
+            remoteListeners.friendlyConnectionName?.let {
+                Row {
+                    Text(
+                        stringResource(R.string.friendly_name),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                Spacer(modifier = Modifier.padding(2.dp))
+            }
             Row {
                 Text(
                     stringResource(R.string.port),
@@ -79,15 +94,15 @@ fun RemoteListenerCards(
 
 
             Spacer(modifier = Modifier.padding(8.dp))
-
             Row {
                 Text(
-                    "state: ",
+                    stringResource(R.string.state),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    if(remoteListeners.activated) "Activated" else "Deactivated",
+                    if(remoteListeners.activated) stringResource(R.string.activated)
+                    else stringResource(R.string.deactivated),
                     style = MaterialTheme.typography.bodySmall,
                     color =
                         if(remoteListeners.activated) MaterialTheme.colorScheme.primary
@@ -99,12 +114,13 @@ fun RemoteListenerCards(
 
             Row {
                 Text(
-                    "status: ",
+                    stringResource(R.string.status),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    if(status) "Connected" else "Disconnected",
+                    if(status) stringResource(R.string.connected)
+                    else stringResource(R.string.disconnected),
                     style = MaterialTheme.typography.bodySmall,
                     color =
                         if(remoteListeners.activated) {
@@ -129,6 +145,7 @@ fun ConnectionCards_Preview() {
     gatewayClient.port = 5671
     gatewayClient.username = "example_user"
     gatewayClient.activated = true
+    gatewayClient.friendlyConnectionName = "frieren"
     AppTheme {
         RemoteListenerCards(gatewayClient, false, Modifier)
     }
