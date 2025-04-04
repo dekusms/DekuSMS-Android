@@ -56,7 +56,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun RMQQueuesComposable(
     _remoteListenersQueues: List<RemoteListenersQueues> = emptyList(),
-    remoteListenersQueuesViewModel: RemoteListenerQueuesViewModel,
     remoteListenersViewModel: RemoteListenersViewModel,
     navController: NavController
 ) {
@@ -65,6 +64,7 @@ fun RMQQueuesComposable(
     val context = LocalContext.current
 
     var showRemoteListenerAddQueuesModal by remember { mutableStateOf(false) }
+    val remoteListenersQueuesViewModel = RemoteListenerQueuesViewModel()
 
     val remoteListenersQueues: List<RemoteListenersQueues> =
         if(LocalInspectionMode.current) _remoteListenersQueues
@@ -201,7 +201,6 @@ fun RMQQueuesComposable_Preview() {
     AppTheme {
         RMQQueuesComposable(
             listOf(rlq),
-            RemoteListenerQueuesViewModel(),
             RemoteListenersViewModel(LocalContext.current),
             rememberNavController()
         )

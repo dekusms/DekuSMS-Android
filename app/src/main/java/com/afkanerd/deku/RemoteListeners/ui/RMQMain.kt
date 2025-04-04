@@ -164,14 +164,16 @@ fun RMQMainComposable(
                                 if(LocalInspectionMode.current) true else
                                 rmqConnectionHandlers.find{ remoteListener.id == it.id}
                                     ?.connection?.isOpen == true,
-                                onClickCallback = {
-                                    remoteListenerViewModel.remoteListener = it
-                                    navController.navigate(RemoteListenersQueuesScreen)
-                                },
-                                onLongClickCallback = {
-                                    remoteListenerViewModel.remoteListener = it
-                                    showRemoteListenerModal = true
-                                }
+                                modifier = Modifier.combinedClickable(
+                                    onClick = {
+                                        remoteListenerViewModel.remoteListener = remoteListener
+                                        navController.navigate(RemoteListenersQueuesScreen)
+                                    },
+                                    onLongClick = {
+                                        remoteListenerViewModel.remoteListener = remoteListener
+                                        showRemoteListenerModal = true
+                                    }
+                                ),
                             )
                         }
                     }

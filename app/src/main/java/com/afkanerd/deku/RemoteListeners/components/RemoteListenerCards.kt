@@ -34,23 +34,14 @@ import com.example.compose.AppTheme
 fun RemoteListenerCards(
     remoteListeners: GatewayClient,
     status: Boolean,
-    onClickCallback: (GatewayClient) -> Unit,
-    onLongClickCallback: (GatewayClient) -> Unit,
+    modifier: Modifier
 ) {
     val remoteListeners by remember { mutableStateOf(remoteListeners) }
-    Card {
+    Card(modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .combinedClickable(
-                    onClick = {
-                        onClickCallback(remoteListeners)
-                    },
-                    onLongClick = {
-                        onLongClickCallback(remoteListeners)
-                    }
-                )
         ) {
             Text(remoteListeners.username!!,
                 color = if(remoteListeners.activated) MaterialTheme.colorScheme.primary
@@ -160,6 +151,6 @@ fun ConnectionCards_Preview() {
     gatewayClient.activated = true
     gatewayClient.friendlyConnectionName = "frieren"
     AppTheme {
-        RemoteListenerCards(gatewayClient, false, {}) {}
+        RemoteListenerCards(gatewayClient, false, Modifier)
     }
 }
