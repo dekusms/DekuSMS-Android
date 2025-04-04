@@ -129,7 +129,8 @@ fun RMQQueuesComposable(
                 }
                 else {
                     LazyColumn(
-                        state = listState
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
                             items = remoteListenersQueues,

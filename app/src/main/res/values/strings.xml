@@ -359,5 +359,15 @@
     <string name="status">"status: "</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
+    <string name="add">Add</string>
+    <string name="edit">Edit</string>
+    <string name="sim_2_binding">Sim 2 Binding</string>
+    <string name="queue_name">Queue name: </string>
+    <string name="editing_a_queue_would_restart_the_connection">Editing a queue, would restart the connection</string>
+    <string name="sim_1_binding">Sim 1 Binding</string>
+    <string name="auto_filled_to">"Auto-filled to: "</string>
+    <string name="exchange">Exchange</string>
+    <string name="defaulting_to_topic_exchange">Defaulting to Topic exchange</string>
+    <string name="new_queues">New Queues</string>
 
 </resources>

@@ -23,7 +23,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
     private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
 
-    var remoteListener by mutableStateOf<GatewayClient?>(null)
+    var remoteListener: GatewayClient? = null
 
     private lateinit var datastore: Datastore
 

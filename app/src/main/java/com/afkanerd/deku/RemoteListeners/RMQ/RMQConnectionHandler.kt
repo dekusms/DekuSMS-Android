@@ -56,7 +56,7 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         exchangeName: String,
         bindingKey: String,
         channel: Channel,
-        queueName: String = bindingKey.replace("\\.".toRegex(), "_")
+        queueName: String = getQueueName(bindingKey)
     ) : String {
         channel.queueDeclare(queueName, durable, exclusive, autoDelete, null)
         channel.queueBind(queueName, exchangeName, bindingKey)
@@ -70,5 +70,11 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         const val RMQ_ID: String = "RMQ_ID"
         const val RMQ_DELIVERY_TAG: String = "RMQ_DELIVERY_TAG"
         const val RMQ_CONSUMER_TAG: String = "RMQ_CONSUMER_TAG"
+
+        fun getQueueName(binding: String): String {
+            return binding.replace("\\.".toRegex(), "_")
+        }
+
+
     }
 }
