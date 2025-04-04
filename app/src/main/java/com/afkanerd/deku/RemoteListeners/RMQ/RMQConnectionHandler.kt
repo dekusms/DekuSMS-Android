@@ -18,8 +18,11 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         channelList.remove(channel)
     }
 
-    fun createChannel(): Channel {
-        return connection.createChannel().apply {
+    fun createChannel(channelNumber: Int? = null): Channel {
+        val channel =  if(channelNumber != null) connection.createChannel(channelNumber)
+        else connection.createChannel()
+
+        return channel.apply {
             val prefetchCount = 1
             basicQos(prefetchCount)
         }

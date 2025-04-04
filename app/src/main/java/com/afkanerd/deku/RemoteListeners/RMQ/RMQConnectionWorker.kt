@@ -133,23 +133,27 @@ class RMQConnectionWorker(
                  * from the database connection state then reconnect this client.
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(it.isInitiatedByApplication ) {
+                if (it.isInitiatedByApplication) {
                     mService.changes(rmqConnectionHandler)
                     mService.unbindService(serviceConnection)
-                }
-                else if(remoteListener.activated) {
+                } else if (remoteListener.activated) {
                     mService.changes(rmqConnectionHandler)
                     mService.unbindService(serviceConnection)
                 }
             }
 
+            rmqConnectionHandler = RMQConnectionHandler(remoteListener.id, connection)
+        } catch(e: Exception) {
+            e.printStackTrace()
+            rmqConnectionHandler.close()
+        }
+
+        try {
             val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()
                 .fetchRemoteListenersQueues(remoteListener.id)
 
             val subscriptionInfoList: List<SubscriptionInfo> =
                 SIMHandler.getSimCardInformation(context)
-
-            rmqConnectionHandler = RMQConnectionHandler(remoteListener.id, connection)
 
             remoteListenerQueues.forEachIndexed { i, remoteListenerQueue ->
                 subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
@@ -158,8 +162,7 @@ class RMQConnectionWorker(
                     val channel = rmqConnectionHandler.createChannel().apply {
                         basicRecover(true)
                         if(i == 0) {
-                            rmqConnectionHandler
-                                .createExchange(remoteListenerQueue.name, this)
+                            rmqConnectionHandler.createExchange(remoteListenerQueue.name, this)
                         }
                     }
                     val subscriptionId = subscriptionInfoList[simSlot].subscriptionId
@@ -182,7 +185,6 @@ class RMQConnectionWorker(
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            rmqConnectionHandler.close()
             throw e
         }
     }
