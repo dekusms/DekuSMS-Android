@@ -155,32 +155,41 @@ class RMQConnectionWorker(
             val subscriptionInfoList: List<SubscriptionInfo> =
                 SIMHandler.getSimCardInformation(context)
 
-            remoteListenerQueues.forEachIndexed { i, remoteListenerQueue ->
-                subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
-                    // TODO: try to match the operator code (carrier code) by the binding name
-                    // TODO: if enabled in settings
-                    val channel = rmqConnectionHandler.createChannel().apply {
-                        basicRecover(true)
-                        if(i == 0) {
-                            rmqConnectionHandler.createExchange(remoteListenerQueue.name, this)
-                        }
-                    }
-                    val subscriptionId = subscriptionInfoList[simSlot].subscriptionId
-                    val bindingName = when (simSlot) {
-                        0 -> remoteListenerQueue.binding1Name
-                        else -> remoteListenerQueue.binding2Name
+            /**
+             * Due to prefetch count, we need just one channel per simcard
+             * - High number of throughput would overwhelm sending and lead to massive failures
+             */
+
+            /**
+             * Channels need to persist across connections and use that to deliver messages,
+             * because prefetch defines that. You either have 1 giant connection or nothing - even
+             * across distributed systems
+             */
+            subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
+                // TODO: try to match the operator code (carrier code) by the binding name
+                // TODO: if enabled in settings
+                val channel = rmqConnectionHandler.createChannel(subscriptionInfo.subscriptionId)
+                    .apply { basicRecover(true) }
+
+                remoteListenerQueues.forEachIndexed { i, rlq ->
+                    val bindingName: String? = run {
+                        if(i == simSlot && i == 0) return@run rlq.binding1Name
+                        else if(i == simSlot && i == 1) return@run rlq.binding2Name
+                        null
                     }
 
                     Log.i(javaClass.name,
-                        "Starting channel for sim slot $simSlot in project #$i")
+                        "Starting channel for sim slot $simSlot in project #$i and binding $bindingName")
 
-                    startChannelConsumption(
-                        rmqConnectionHandler,
-                        channel,
-                        subscriptionId,
-                        remoteListenerQueue,
-                        bindingName
-                    )
+                    bindingName?.let {
+                        startChannelConsumption(
+                            rmqConnectionHandler,
+                            channel,
+                            subscriptionInfo.subscriptionId,
+                            rlq,
+                            bindingName
+                        )
+                    }
                 }
             }
         } catch (e: Exception) {
