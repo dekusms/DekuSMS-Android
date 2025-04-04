@@ -1,5 +1,7 @@
 package com.afkanerd.deku.RemoteListeners.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,17 +29,28 @@ import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.example.compose.AppTheme
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RemoteListenerCards(
     remoteListeners: GatewayClient,
     status: Boolean,
-    modifier: Modifier,
+    onClickCallback: (GatewayClient) -> Unit,
+    onLongClickCallback: (GatewayClient) -> Unit,
 ) {
-    Card( modifier = modifier ) {
+    val remoteListeners by remember { mutableStateOf(remoteListeners) }
+    Card {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .combinedClickable(
+                    onClick = {
+                        onClickCallback(remoteListeners)
+                    },
+                    onLongClick = {
+                        onLongClickCallback(remoteListeners)
+                    }
+                )
         ) {
             Text(remoteListeners.username!!,
                 color = if(remoteListeners.activated) MaterialTheme.colorScheme.primary
@@ -147,6 +160,6 @@ fun ConnectionCards_Preview() {
     gatewayClient.activated = true
     gatewayClient.friendlyConnectionName = "frieren"
     AppTheme {
-        RemoteListenerCards(gatewayClient, false, Modifier)
+        RemoteListenerCards(gatewayClient, false, {}) {}
     }
 }
