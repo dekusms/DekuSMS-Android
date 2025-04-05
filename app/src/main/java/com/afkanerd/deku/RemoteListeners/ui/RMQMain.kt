@@ -189,20 +189,19 @@ fun RMQMainComposable(
                         navController.navigate(RemoteListenersAddScreen)
                     },
                     connectionCallback = {
-                        val remoteListener = remoteListenerViewModel.remoteListener!!
                         if(remoteListenerViewModel.remoteListener?.activated == true) {
                             //Deactivating
-                            remoteListener.activated = false
+                            remoteListenerViewModel.remoteListener?.activated = false
                             RemoteListenersHandler.stopListening(
                                 context,
-                                remoteListener
+                                remoteListenerViewModel.remoteListener!!
                             )
                         } else {
                             //Activating
-                            remoteListener.activated = true
+                            remoteListenerViewModel.remoteListener?.activated = true
                             RemoteListenersHandler.startListening(
                                 context,
-                                remoteListener
+                                remoteListenerViewModel.remoteListener!!
                             )
                         }
                         showRemoteListenerModal = false
