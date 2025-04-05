@@ -2,6 +2,7 @@ package com.afkanerd.deku.RemoteListeners.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -43,11 +45,29 @@ fun RemoteListenerCards(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(remoteListeners.username!!,
-                color = if(remoteListeners.activated) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.secondary,
-                fontWeight = if(remoteListeners.activated) FontWeight.SemiBold else null
-            )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(remoteListeners.username!!,
+                    color = if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.secondary,
+                    fontWeight = if(remoteListeners.activated) FontWeight.SemiBold else null
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                Row {
+                    Text(
+                        if(remoteListeners.activated) stringResource(R.string.activated)
+                        else stringResource(R.string.deactivated),
+                        style = MaterialTheme.typography.bodySmall,
+                        color =
+                            if(remoteListeners.activated) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
             Spacer(modifier = Modifier.padding(2.dp))
             Text(
                 remoteListeners.hostUrl!!,
@@ -98,24 +118,6 @@ fun RemoteListenerCards(
 
 
             Spacer(modifier = Modifier.padding(8.dp))
-            Row {
-                Text(
-                    stringResource(R.string.state),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    if(remoteListeners.activated) stringResource(R.string.activated)
-                    else stringResource(R.string.deactivated),
-                    style = MaterialTheme.typography.bodySmall,
-                    color =
-                        if(remoteListeners.activated) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.secondary
-                )
-            }
-
-            Spacer(modifier = Modifier.padding(2.dp))
-
             Row {
                 Text(
                     stringResource(R.string.status),
