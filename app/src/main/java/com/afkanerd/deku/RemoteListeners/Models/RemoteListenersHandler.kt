@@ -3,6 +3,7 @@ package com.afkanerd.deku.RemoteListeners.Models
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.telephony.SubscriptionInfo
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -28,14 +29,14 @@ object RemoteListenersHandler {
     const val UNIQUE_WORK_MANAGER_TAG = BuildConfig.APPLICATION_ID + ".REMOTE_LISTENERS"
 
     fun getPublisherDetails(context: Context?, projectName: String): List<String> {
-        val simcards = SIMHandler.getSimCardInformation(context)
+        val simCards = SIMHandler.getSimCardInformation(context)
 
         val operatorCountry = Helpers.getUserCountry(context)
 
         val operatorDetails: MutableList<String> = ArrayList()
-        for (i in simcards.indices) {
-            val mcc = simcards[i].mcc.toString()
-            val _mnc = simcards[i].mnc
+        for (i in simCards.indices) {
+            val mcc = simCards[i].mcc.toString()
+            val _mnc = simCards[i].mnc
             val mnc = if (_mnc < 10) "0$_mnc" else _mnc.toString()
             val carrierId = mcc + mnc
 
@@ -44,6 +45,14 @@ object RemoteListenersHandler {
         }
 
         return operatorDetails
+    }
+
+    fun getCarrierId(subscriptionInformation: SubscriptionInfo) : Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            subscriptionInformation.carrierId
+        } else {
+            "${subscriptionInformation.mcc}${subscriptionInformation.mnc}".toInt()
+        }
     }
 
     fun generateUuidFromLong(input: Long): UUID {

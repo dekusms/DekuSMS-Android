@@ -20,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
@@ -159,7 +160,8 @@ class RMQConnectionWorker(
             subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
                 // TODO: try to match the operator code (carrier code) by the binding name
                 // TODO: if enabled in settings
-                val channel = rmqConnectionHandler.createChannel(subscriptionInfo.subscriptionId)
+                val channel = rmqConnectionHandler
+                    .createChannel(RemoteListenersHandler.getCarrierId(subscriptionInfo) )
                     .apply { basicRecover(true) }
 
                 remoteListenerQueues.forEachIndexed { i, rlq ->
