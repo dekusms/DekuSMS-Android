@@ -369,5 +369,7 @@
     <string name="exchange">Exchange</string>
     <string name="defaulting_to_topic_exchange">Defaulting to Topic exchange</string>
     <string name="new_queues">New Queues</string>
+    <string name="no_remote_listeners">No remote listeners</string>
+    <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Only 1 connection at a time - due to the bottleneck between channels and phone radios (ability to SMS messages in parallel).</string>
 
 </resources>

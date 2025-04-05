@@ -7,20 +7,26 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,6 +57,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
@@ -133,22 +141,50 @@ fun RMQMainComposable(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        Text("No remote listeners",
+                        Text(
+                            stringResource(R.string.no_remote_listeners),
                             style = MaterialTheme.typography.titleMedium)
                     }
                 }
                 else {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("> Click to add queues",
+                        Text("\u2022 Click to add queues",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Spacer(Modifier.padding(4.dp))
-                        Text("> Press and hold to manage",
+                        Text("\u2022 Press and hold to manage",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
+
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Icon(imageVector =  Icons.Outlined.Info, "")
+                                Text(
+                                    stringResource(R.string.only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(Modifier.padding(8.dp))
 
                     LazyColumn(
