@@ -127,6 +127,7 @@ fun RemoteListenerCards(
                     if(status) stringResource(R.string.connected)
                     else stringResource(R.string.disconnected),
                     style = MaterialTheme.typography.bodySmall,
+                    fontWeight = if(status) FontWeight.SemiBold else null,
                     color =
                         if(remoteListeners.activated) {
                             if(status) MaterialTheme.colorScheme.primary
