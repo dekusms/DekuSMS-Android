@@ -12,7 +12,6 @@ import android.os.IBinder
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
-import android.widget.Toast
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -21,7 +20,6 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
@@ -37,11 +35,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.junit.Assert
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeoutException
 
 class RMQConnectionWorker(
     val context: Context,
@@ -93,7 +89,7 @@ class RMQConnectionWorker(
             context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
 
-        val gatewayClient = Datastore.getDatastore(context).gatewayClientDAO()
+        val gatewayClient = Datastore.getDatastore(context).remoteListenerDAO()
             .fetch(gatewayClientId)
 
         factory.username = gatewayClient.username
@@ -160,11 +156,6 @@ class RMQConnectionWorker(
              * - High number of throughput would overwhelm sending and lead to massive failures
              */
 
-            /**
-             * Channels need to persist across connections and use that to deliver messages,
-             * because prefetch defines that. You either have 1 giant connection or nothing - even
-             * across distributed systems
-             */
             subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
                 // TODO: try to match the operator code (carrier code) by the binding name
                 // TODO: if enabled in settings
@@ -211,6 +202,7 @@ class RMQConnectionWorker(
             bindingKey = bindingName,
             channel = channel
         )
+        rmqConnectionHandler.createExchange(remoteListenersQueues.name, channel)
         val messagesCount = channel.messageCount(queueName)
 
         val consumerTag = channel.basicConsume(

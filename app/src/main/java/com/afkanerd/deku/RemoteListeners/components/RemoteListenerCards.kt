@@ -38,7 +38,6 @@ fun RemoteListenerCards(
     status: Boolean,
     modifier: Modifier
 ) {
-    val remoteListeners by remember { mutableStateOf(remoteListeners) }
     Card(modifier) {
         Column(
             modifier = Modifier

@@ -3,14 +3,12 @@ package com.afkanerd.deku.RemoteListeners.Models
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
@@ -18,9 +16,7 @@ import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQLongRunningConnectionWorker
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
-import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,7 +57,7 @@ object RemoteListenersHandler {
 
     fun stopListening(context: Context, remoteListener: GatewayClient) {
         CoroutineScope(Dispatchers.Default).launch {
-            Datastore.getDatastore(context).gatewayClientDAO().update(remoteListener)
+            Datastore.getDatastore(context).remoteListenerDAO().update(remoteListener)
             val workManager = WorkManager.getInstance(context)
             workManager.getWorkInfoById(generateUuidFromLong(remoteListener.id)).apply {
                 cancel(true)
@@ -69,9 +65,16 @@ object RemoteListenersHandler {
         }
     }
 
-    fun startListening(context: Context, gatewayClient: GatewayClient) {
+    fun toggleRemoteListeners(context: Context, remoteListener: GatewayClient? = null) {
+        val gatewayClients = Datastore.getDatastore(context).remoteListenerDAO().all
+        gatewayClients.forEach { it.activated = remoteListener?.id == it.id }
+        Datastore.getDatastore(context).remoteListenerDAO().update(gatewayClients)
+    }
+
+    fun startListening(context: Context, remoteListener: GatewayClient) {
         CoroutineScope(Dispatchers.Default).launch {
-            Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient)
+            toggleRemoteListeners(context, remoteListener)
+
             val intent = Intent(context, RMQConnectionService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)

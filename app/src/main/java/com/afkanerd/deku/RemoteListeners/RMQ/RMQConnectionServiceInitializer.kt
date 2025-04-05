@@ -6,8 +6,8 @@ import android.os.Build
 import androidx.startup.Initializer
 import androidx.work.WorkManagerInitializer
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.NotificationsInitializer
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,8 +17,11 @@ class RMQConnectionServiceInitializer : Initializer<Intent> {
         val intent = Intent(context, RMQConnectionService::class.java)
 
         CoroutineScope(Dispatchers.Default).launch {
-            if(!Datastore.getDatastore(context).gatewayClientDAO()
-                .fetchActivated().isNullOrEmpty()) {
+            Datastore.getDatastore(context).remoteListenerDAO().all.apply {
+                this.forEach {
+                    if(it.activated)
+                        RemoteListenersHandler.toggleRemoteListeners(context, it)
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(intent)
                 } else {

@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.IBinder
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -15,9 +14,6 @@ import androidx.compose.runtime.getValue
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
@@ -67,19 +63,19 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     }
 
     private fun loadGatewayClients() : LiveData<List<GatewayClient>> {
-        return datastore.gatewayClientDAO().fetch()
+        return datastore.remoteListenerDAO().fetch()
     }
 
     fun update(gatewayClient: GatewayClient) {
-        datastore.gatewayClientDAO().update(gatewayClient)
+        datastore.remoteListenerDAO().update(gatewayClient)
     }
 
     fun insert(gatewayClient: GatewayClient) {
-        datastore.gatewayClientDAO().insert(gatewayClient)
+        datastore.remoteListenerDAO().insert(gatewayClient)
     }
 
     fun delete(gatewayClient: GatewayClient) {
-        datastore.gatewayClientDAO().delete(gatewayClient)
+        datastore.remoteListenerDAO().delete(gatewayClient)
     }
 
 }

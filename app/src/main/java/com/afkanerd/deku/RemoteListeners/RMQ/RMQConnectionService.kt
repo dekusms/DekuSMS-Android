@@ -60,6 +60,11 @@ class RMQConnectionService : Service() {
                 }
             }
         }
+
+
+        /**
+         * RemoteListener has been deleted
+         */
         rmqConnectionHandlers.value?.forEach { rc ->
             if(it.find{ rc.id == it.id} == null) {
                 CoroutineScope(Dispatchers.Default).launch {
