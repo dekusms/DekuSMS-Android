@@ -47,6 +47,17 @@ class RMQConnectionService : Service() {
         var numberOfActiveRemoteListeners = 0
         it.forEach { remoteListener ->
             val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}
+            /**
+             * RemoteListener has been deleted
+             */
+            rmqConnectionHandlers.value?.forEach { rc ->
+                if(it.find{ rc.id == it.id} == null) {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        rc.connection.close()
+                    }
+                }
+            }
+
             if(remoteListener.activated) {
                 numberOfActiveRemoteListeners += 1
                 if(rl == null || !rl.connection.isOpen)
@@ -62,16 +73,6 @@ class RMQConnectionService : Service() {
         }
 
 
-        /**
-         * RemoteListener has been deleted
-         */
-        rmqConnectionHandlers.value?.forEach { rc ->
-            if(it.find{ rc.id == it.id} == null) {
-                CoroutineScope(Dispatchers.Default).launch {
-                    rc.connection.close()
-                }
-            }
-        }
         this.numberOfActiveRemoteListeners = numberOfActiveRemoteListeners
         createForegroundNotification()
     }
