@@ -38,8 +38,15 @@ class RMQConnectionService : Service() {
     private var numberStarted = 0
 
     // TODO: when the state changes in here, you should know - else would have false readings
-    private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rl ->
-        numberStarted = rl.filter { it.connection.isOpen }.size
+    private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rch ->
+        numberStarted = rch.filter { it.connection.isOpen }.size
+
+        val remoteListeners = remoteListenersViewModel.get(applicationContext).value
+        rch.filter{ !it.connection.isOpen }.forEach { rch ->
+            remoteListeners?.find { rch.id == it.id }?.let {
+                RemoteListenersHandler.startWorkManager(applicationContext, it)
+            }
+        }
         createForegroundNotification()
     }
 

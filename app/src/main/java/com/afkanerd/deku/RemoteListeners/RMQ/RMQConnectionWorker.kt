@@ -215,10 +215,7 @@ class RMQConnectionWorker(
             deliverCallback,
             object : ConsumerShutdownSignalCallback {
                 override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                    if (rmqConnectionHandler.connection.isOpen) {
-                        Log.e(javaClass.name, "Consumer error", sig)
-                        // TODO: handle channel shutdowns
-                    }
+                    Log.e(javaClass.name, "Consumer error", sig)
                 }
             })
         Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
