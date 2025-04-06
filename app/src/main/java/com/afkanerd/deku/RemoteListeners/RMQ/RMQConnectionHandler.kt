@@ -33,24 +33,31 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
             ?.find { it.channelNumber == channelNumber }
     }
 
+    /**
+     * Channel numbers cannot go beyond the max - connection.channelMax - current 2047
+     * https://github.com/rabbitmq/amqp-0.9.1-spec/blob/main/docs/amqp-0-9-1-reference.md#--------tune------------------------------------shortchannel-max----------------------------------------------------longframe-max----------------------------------------------------shortheartbeat------------------------tune-ok------------
+     */
     fun createChannel(
         remoteListenersQueues: RemoteListenersQueues,
         channelNumber: Int? = null
-    ): Channel {
-        val channel =  (if(channelNumber != null) connection.createChannel(channelNumber)
-        else connection.createChannel()).apply {
-            val prefetchCount = 1
-            basicQos(prefetchCount)
+    ): Channel? {
+        val prefetchCount = 1
+        val channel =  (
+                if(channelNumber != null)
+                    connection.createChannel(channelNumber)
+                else connection.createChannel()
+        )
+        channel?.let {
+            it.basicQos(prefetchCount)
+            val channels = remoteListenersChannelLiveData.value ?: mutableMapOf()
+            if(channels.isEmpty() || !channels.containsKey(remoteListenersQueues))
+                channels.put(remoteListenersQueues, listOf(channel))
+            else {
+                channels[remoteListenersQueues] = channels[remoteListenersQueues]!!
+                    .plusElement(channel)
+            }
+            remoteListenersChannelLiveData.postValue(channels)
         }
-
-        val channels = remoteListenersChannelLiveData.value ?: mutableMapOf()
-        if(channels.isEmpty() || !channels.containsKey(remoteListenersQueues))
-            channels.put(remoteListenersQueues, listOf(channel))
-        else {
-            channels[remoteListenersQueues] = channels[remoteListenersQueues]!!
-                .plusElement(channel)
-        }
-        remoteListenersChannelLiveData.postValue(channels)
 
         return channel
     }

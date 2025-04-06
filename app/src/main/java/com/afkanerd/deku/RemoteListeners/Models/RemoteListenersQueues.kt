@@ -28,25 +28,6 @@ class RemoteListenersQueues {
         return false
     }
 
-    companion object {
-        val DIFF_CALLBACK: DiffUtil.ItemCallback<RemoteListenersQueues?> =
-            object : DiffUtil.ItemCallback<RemoteListenersQueues?>() {
-                override fun areItemsTheSame(
-                    oldItem: RemoteListenersQueues,
-                    newItem: RemoteListenersQueues
-                ): Boolean {
-                    return oldItem.id == newItem.id
-                }
-
-                override fun areContentsTheSame(
-                    oldItem: RemoteListenersQueues,
-                    newItem: RemoteListenersQueues
-                ): Boolean {
-                    return oldItem == newItem
-                }
-            }
-    }
-
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + gatewayClientId.hashCode()

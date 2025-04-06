@@ -164,10 +164,13 @@ class RMQConnectionWorker(
                         rmqConnectionHandler.createChannel(
                             rlq,
                             channelNumber,
-                        ) .apply { basicRecover(true) }
+                        ) .apply { this?.basicRecover(true) }
                     }?.let { channel ->
                         val bindingName: String? = when(simSlot) {
-                            0 -> rlq.binding1Name
+                            0 -> {
+                                rmqConnectionHandler.createExchange(rlq.name!!, channel)
+                                rlq.binding1Name
+                            }
                             1 -> rlq.binding2Name
                             else -> null
                         }

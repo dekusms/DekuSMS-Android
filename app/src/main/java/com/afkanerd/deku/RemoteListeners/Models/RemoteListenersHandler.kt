@@ -49,9 +49,11 @@ object RemoteListenersHandler {
 
     fun getCarrierId(subscriptionInformation: SubscriptionInfo) : Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            subscriptionInformation.carrierId
+//            subscriptionInformation.carrierId
+//            (subscriptionInformation.mccString + subscriptionInformation.mncString).toInt()
+            subscriptionInformation.mncString?.toInt() ?: -1
         } else {
-            "${subscriptionInformation.mcc}${subscriptionInformation.mnc}".toInt()
+            "${subscriptionInformation.mnc}".toInt()
         }
     }
 
