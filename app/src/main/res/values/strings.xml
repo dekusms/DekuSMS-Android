@@ -376,5 +376,6 @@
     <string name="channel_number">"Channel number: "</string>
     <string name="sim_1_queue">"SIM 1 queue: "</string>
     <string name="sim_1">SIM 1:</string>
+    <string name="messages">"# Messages: "</string>
 
 </resources>

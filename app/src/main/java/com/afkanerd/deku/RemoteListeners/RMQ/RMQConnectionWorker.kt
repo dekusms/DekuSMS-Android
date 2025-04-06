@@ -166,6 +166,10 @@ class RMQConnectionWorker(
                             channelNumber,
                         ) .apply { this?.basicRecover(true) }
                     }?.let { channel ->
+                        channel.addShutdownListener {
+                            Log.e(javaClass.name, "Channel shutdown cause: $it")
+                        }
+
                         val bindingName: String? = when(simSlot) {
                             0 -> {
                                 rmqConnectionHandler.createExchange(rlq.name!!, channel)

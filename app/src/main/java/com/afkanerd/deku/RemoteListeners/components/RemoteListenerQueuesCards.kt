@@ -13,8 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.example.compose.AppTheme
 
 
@@ -35,86 +38,99 @@ fun RemoteListenersQueuesCard(
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            Column {
-                Row {
-                    Text(
-                        stringResource(R.string.channel_number),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        channel1Number.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-                Row {
-                    Text(
-                        stringResource(R.string.sim_1),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        remoteListenersQueues.binding1Name!!,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-                Row {
-                    Text(
-                        stringResource(R.string.sim_1_queue),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        remoteListenersQueues.binding1Name!!,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.padding(4.dp))
+            Row(
+                Modifier.fillMaxWidth()
+            ) {
+                QueueComponent(
+                    bindingName = remoteListenersQueues.binding1Name!!,
+                    queueName = RMQConnectionHandler
+                        .getQueueName(remoteListenersQueues.binding1Name!!,),
+                    channelNumber = if(channel1Number > 0) channel1Number.toString()
+                    else stringResource(R.string.disconnected),
+                    messageCount = "0",
+                    status = channel1Number > 0
+                )
+                Spacer(Modifier.weight(1f))
 
-            channel2Number?.let {
-                Column {
-                    Row {
-                        Text(
-                            stringResource(R.string.channel_number),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            channel2Number.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    Row {
-                        Text(
-                            stringResource(R.string.sim_2),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            remoteListenersQueues.binding2Name!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    Row {
-                        Text(
-                            stringResource(R.string.sim_2_queue),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            remoteListenersQueues.binding2Name!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
+                channel2Number?.let {
+                    QueueComponent(
+                        bindingName = remoteListenersQueues.binding2Name!!,
+                        queueName = RMQConnectionHandler
+                            .getQueueName(remoteListenersQueues.binding2Name!!,),
+                        channelNumber = if(channel2Number > 0) channel2Number.toString()
+                        else stringResource(R.string.disconnected),
+                        messageCount = "0",
+                        status = channel2Number > 0
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun QueueComponent(
+    bindingName: String,
+    queueName: String,
+    channelNumber: String,
+    messageCount: String,
+    status: Boolean,
+) {
+    Column {
+        Row {
+            Text(
+                stringResource(R.string.sim_1),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                bindingName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+        Row {
+            Text(
+                stringResource(R.string.sim_1_queue),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                queueName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
+        Spacer(Modifier.padding(8.dp))
+        Row {
+            Text(
+                stringResource(R.string.channel_number),
+                style = MaterialTheme.typography.labelSmall,
+                color = if(status) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.secondary,
+            )
+            Text(
+                channelNumber,
+                style = MaterialTheme.typography.bodySmall,
+                color = if(status) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.secondary,
+            )
+        }
+
+        Row {
+            Text(
+                stringResource(R.string.messages),
+                style = MaterialTheme.typography.labelSmall,
+                color = if(status) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.secondary,
+            )
+            Text(
+                messageCount,
+                style = MaterialTheme.typography.bodySmall,
+                color = if(status) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.secondary,
+            )
         }
     }
 }
@@ -128,6 +144,6 @@ fun QueuesCards_Preview() {
     remoteListenersQueues.binding1Name = "sim_1_binding"
     remoteListenersQueues.binding2Name = "sim_2_binding"
     AppTheme {
-        RemoteListenersQueuesCard(remoteListenersQueues, 1, 2) {}
+        RemoteListenersQueuesCard(remoteListenersQueues, 1, 0) {}
     }
 }
