@@ -9,13 +9,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.rabbitmq.client.Channel
 
 class RemoteListenerQueuesViewModel : ViewModel() {
     private lateinit var datastore: Datastore
 
     var remoteListenerQueues by mutableStateOf<RemoteListenersQueues?>(null)
-
     private lateinit var liveData : LiveData<List<RemoteListenersQueues>>
+    private lateinit var channelsLiveData : LiveData<MutableMap<RemoteListenersQueues,
+            List<Channel>>>
+
     fun get(context: Context, gatewayClientId: Long): LiveData<List<RemoteListenersQueues>>{
         datastore = Datastore.getDatastore(context)
         if(!::liveData.isInitialized) {
@@ -35,5 +39,22 @@ class RemoteListenerQueuesViewModel : ViewModel() {
 
     fun delete(context: Context, remoteListenerId: Long) {
         Datastore.getDatastore(context).remoteListenersQueuesDao().delete(remoteListenerId)
+    }
+
+    fun getChannels(
+        binder: RMQConnectionService.LocalBinder?,
+        remoteListenersQueuesId: Long
+    ) : LiveData<MutableMap<RemoteListenersQueues, List<Channel>>> {
+        if(!::channelsLiveData.isInitialized) {
+            binder?.let {
+                channelsLiveData = MutableLiveData()
+                val remoteConnectionHandler = binder
+                    .getService().getRmqConnection(remoteListenersQueuesId)
+                remoteConnectionHandler?.let {
+                    channelsLiveData = it.getChannelsLiveData()
+                }
+            }
+        }
+        return channelsLiveData
     }
 }

@@ -38,15 +38,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.work.multiprocess.RemoteWorkerService
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
-import com.afkanerd.deku.RemoteListeners.components.QueuesCards
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.afkanerd.deku.RemoteListeners.components.RemoteListenersQueuesCard
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
 import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
+import com.rabbitmq.client.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,8 +71,15 @@ fun RMQQueuesComposable(
     val remoteListenersQueues: List<RemoteListenersQueues> =
         if(LocalInspectionMode.current) _remoteListenersQueues
         else remoteListenersQueuesViewModel.get(context,
-            remoteListenersViewModel.remoteListener!!.id)
-            .observeAsState(emptyList()).value
+            remoteListenersViewModel.remoteListener!!.id
+        ).observeAsState(emptyList()).value
+
+    val remoteListenersQueuesChannels: Map<RemoteListenersQueues, List<Channel>> =
+        if(LocalInspectionMode.current) emptyMap()
+        else remoteListenersQueuesViewModel.getChannels(
+            remoteListenersViewModel.binder,
+            remoteListenersViewModel.remoteListener!!.id
+        ).observeAsState(emptyMap()).value
 
     BackHandler {
         remoteListenersQueuesViewModel.remoteListenerQueues = null
@@ -136,7 +145,13 @@ fun RMQQueuesComposable(
                             items = remoteListenersQueues,
                             key = { _, remoteListenerQueue -> remoteListenerQueue.id}
                         ) { _, remoteListenerQueue ->
-                            QueuesCards( remoteListenersQueues = remoteListenerQueue, ) {
+                            val channel = remoteListenersQueuesChannels[remoteListenerQueue]
+                            RemoteListenersQueuesCard(
+                                remoteListenersQueues = remoteListenerQueue,
+                                channel1Number = if(LocalInspectionMode.current) 0
+                                else channel?.first()?.channelNumber ?: -1,
+                                channel2Number = channel?.getOrNull(1)?.channelNumber,
+                            ) {
                                 remoteListenersQueuesViewModel.remoteListenerQueues =
                                     remoteListenerQueue
                                 showRemoteListenerAddQueuesModal = true

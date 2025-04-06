@@ -371,5 +371,10 @@
     <string name="new_queues">New Queues</string>
     <string name="no_remote_listeners">No remote listeners</string>
     <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Only 1 connection at a time - due to the bottleneck between channels and the phone\'s radio (ability to SMS messages in parallel).</string>
+    <string name="sim_2_queue">SIM 2 queue:</string>
+    <string name="sim_2">SIM 2:</string>
+    <string name="channel_number">"Channel number: "</string>
+    <string name="sim_1_queue">"SIM 1 queue: "</string>
+    <string name="sim_1">SIM 1:</string>
 
 </resources>

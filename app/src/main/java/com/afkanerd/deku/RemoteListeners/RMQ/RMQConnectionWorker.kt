@@ -64,7 +64,6 @@ class RMQConnectionWorker(
 
     private val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
-
     init {
         handleBroadcast()
     }
@@ -156,32 +155,32 @@ class RMQConnectionWorker(
              * Due to prefetch count, we need just one channel per simcard
              * - High number of throughput would overwhelm sending and lead to massive failures
              */
-
-            subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
-                // TODO: try to match the operator code (carrier code) by the binding name
-                // TODO: if enabled in settings
-                val channel = rmqConnectionHandler
-                    .createChannel(RemoteListenersHandler.getCarrierId(subscriptionInfo) )
-                    .apply { basicRecover(true) }
-
-                remoteListenerQueues.forEachIndexed { i, rlq ->
-                    val bindingName: String? = run {
-                        if(i == simSlot && i == 0) return@run rlq.binding1Name
-                        else if(i == simSlot && i == 1) return@run rlq.binding2Name
-                        null
-                    }
-
-                    Log.i(javaClass.name,
-                        "Starting channel for sim slot $simSlot in project #$i and binding $bindingName")
-
-                    bindingName?.let {
-                        startChannelConsumption(
-                            rmqConnectionHandler,
-                            channel,
-                            subscriptionInfo.subscriptionId,
+            remoteListenerQueues.forEachIndexed { i, rlq ->
+                subscriptionInfoList.forEachIndexed { simSlot, subscriptionInfo ->
+                    val channelNumber = RemoteListenersHandler.getCarrierId(subscriptionInfo)
+                    if(rmqConnectionHandler.hasChannel(rlq, channelNumber)) {
+                        rmqConnectionHandler.getChannel(rlq, channelNumber)
+                    } else {
+                        rmqConnectionHandler.createChannel(
                             rlq,
-                            bindingName
-                        )
+                            channelNumber,
+                        ) .apply { basicRecover(true) }
+                    }?.let { channel ->
+                        val bindingName: String? = when(simSlot) {
+                            0 -> rlq.binding1Name
+                            1 -> rlq.binding2Name
+                            else -> null
+                        }
+
+                        bindingName?.let {
+                            startChannelConsumption(
+                                rmqConnectionHandler,
+                                channel,
+                                subscriptionInfo.subscriptionId,
+                                rlq,
+                                bindingName
+                            )
+                        }
                     }
                 }
             }
@@ -200,11 +199,11 @@ class RMQConnectionWorker(
     ) {
         val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnectionHandler.id)
         val queueName = rmqConnectionHandler.createQueue(
-            exchangeName = remoteListenersQueues.name,
+            exchangeName = remoteListenersQueues.name!!,
             bindingKey = bindingName,
-            channel = channel
+            channel = channel,
         )
-        rmqConnectionHandler.createExchange(remoteListenersQueues.name, channel)
+        rmqConnectionHandler.createExchange(remoteListenersQueues.name!!, channel)
         val messagesCount = channel.messageCount(queueName)
 
         val consumerTag = channel.basicConsume(

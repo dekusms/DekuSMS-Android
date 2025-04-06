@@ -1,5 +1,8 @@
 package com.afkanerd.deku.RemoteListeners.RMQ
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.Channel
@@ -13,19 +16,47 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
     private val channelList: MutableList<Channel> = ArrayList()
     private val channelTagMap = mutableMapOf<String, Channel>()
 
+    private val remoteListenersChannelLiveData:
+            MutableLiveData<MutableMap<RemoteListenersQueues, List<Channel>>> = MutableLiveData()
 
     fun removeChannel(channel: Channel) {
         channelList.remove(channel)
     }
 
-    fun createChannel(channelNumber: Int? = null): Channel {
-        val channel =  if(channelNumber != null) connection.createChannel(channelNumber)
-        else connection.createChannel()
+    fun hasChannel(remoteListenersQueues: RemoteListenersQueues, channelNumber: Int): Boolean {
+        return remoteListenersChannelLiveData.value?.get(remoteListenersQueues)
+            ?.find { it.channelNumber == channelNumber } != null
+    }
 
-        return channel.apply {
+    fun getChannel(remoteListenersQueues: RemoteListenersQueues, channelNumber: Int) : Channel? {
+        return remoteListenersChannelLiveData.value?.get(remoteListenersQueues)
+            ?.find { it.channelNumber == channelNumber }
+    }
+
+    fun createChannel(
+        remoteListenersQueues: RemoteListenersQueues,
+        channelNumber: Int? = null
+    ): Channel {
+        val channel =  (if(channelNumber != null) connection.createChannel(channelNumber)
+        else connection.createChannel()).apply {
             val prefetchCount = 1
             basicQos(prefetchCount)
         }
+
+        val channels = remoteListenersChannelLiveData.value ?: mutableMapOf()
+        if(channels.isEmpty() || !channels.containsKey(remoteListenersQueues))
+            channels.put(remoteListenersQueues, listOf(channel))
+        else {
+            channels[remoteListenersQueues] = channels[remoteListenersQueues]!!
+                .plusElement(channel)
+        }
+        remoteListenersChannelLiveData.postValue(channels)
+
+        return channel
+    }
+
+    fun getChannelsLiveData(): LiveData<MutableMap<RemoteListenersQueues, List<Channel>>> {
+        return remoteListenersChannelLiveData
     }
 
     fun bindChannelToTag(channel: Channel, channelTag: String)  {
@@ -56,7 +87,7 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         exchangeName: String,
         bindingKey: String,
         channel: Channel,
-        queueName: String = getQueueName(bindingKey)
+        queueName: String = getQueueName(bindingKey),
     ) : String {
         channel.queueDeclare(queueName, durable, exclusive, autoDelete, null)
         channel.queueBind(queueName, exchangeName, bindingKey)

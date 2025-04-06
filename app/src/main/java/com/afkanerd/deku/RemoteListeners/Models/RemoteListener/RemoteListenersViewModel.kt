@@ -23,7 +23,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
 
     private lateinit var datastore: Datastore
 
-    private lateinit var binder: RMQConnectionService.LocalBinder
+    lateinit var binder: RMQConnectionService.LocalBinder
 
     /** Defines callbacks for service binding, passed to bindService().  */
     val connection = object : ServiceConnection {
