@@ -135,10 +135,6 @@ class RMQConnectionService : Service() {
         }
     }
 
-    fun getRmqConnection(remoteListenerId: Long) : RMQConnectionHandler? {
-        return rmqConnectionHandlers.value?.find { it.id == remoteListenerId }
-    }
-
     fun getRmqConnections(): LiveData<List<RMQConnectionHandler>> {
         return rmqConnectionHandlers
     }
@@ -175,7 +171,6 @@ class RMQConnectionService : Service() {
         remoteListenersLiveData.removeObserver(remoteListenerObserver)
         rmqConnectionHandlers.value?.forEach {  it.close() }
     }
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Put content in intent which can be used to kill this in future

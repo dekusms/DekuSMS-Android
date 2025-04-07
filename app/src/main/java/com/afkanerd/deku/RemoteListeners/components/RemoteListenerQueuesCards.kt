@@ -10,6 +10,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,6 +22,9 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.example.compose.AppTheme
 import com.rabbitmq.client.Channel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -43,19 +47,46 @@ fun RemoteListenersQueuesCard(
             Column(
                 Modifier.fillMaxWidth()
             ) {
+                val queue1Name = RMQConnectionHandler
+                    .getQueueName(remoteListenersQueues.binding1Name!!,)
+
+                var channel1MessageCount = -1L
+                LaunchedEffect(Unit) {
+                    launch(Dispatchers.Default) {
+                        try {
+                            channel1MessageCount = channel1?.messageCount(queue1Name) ?: -1
+                        } catch(e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+
                 QueueComponent(
                     bindingName = remoteListenersQueues.binding1Name!!,
-                    queueName = RMQConnectionHandler
-                        .getQueueName(remoteListenersQueues.binding1Name!!,),
+                    queueName = queue1Name,
                     channelNumber =
                         if(channel1?.isOpen == true)
                             channel1.channelNumber.toString()
                         else stringResource(R.string.disconnected),
-                    messageCount = "0",
+                    messageCount = channel1MessageCount.toString(),
                     status = channel1?.isOpen == true
                 )
 
                 if(!remoteListenersQueues.binding2Name.isNullOrBlank()) {
+                    val queue2Name = RMQConnectionHandler
+                        .getQueueName(remoteListenersQueues.binding2Name!!)
+
+                    var channel2MessageCount = -1L
+                    LaunchedEffect(Unit) {
+                        launch(Dispatchers.Default) {
+                            try {
+                                channel2MessageCount = channel1?.messageCount(queue2Name) ?: -1
+                            } catch(e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+
                     Spacer(Modifier.padding(8.dp))
                     HorizontalDivider()
                     Spacer(Modifier.padding(8.dp))
@@ -68,7 +99,7 @@ fun RemoteListenersQueuesCard(
                             if(channel2?.isOpen == true)
                                 channel2.channelNumber.toString()
                             else stringResource(R.string.disconnected),
-                        messageCount = "0",
+                        messageCount = channel2MessageCount.toString(),
                         status = channel2?.isOpen == true
                     )
                 }
