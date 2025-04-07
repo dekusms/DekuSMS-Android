@@ -316,10 +316,10 @@ class RMQConnectionWorker(
     ): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
             val message = String(delivery.body, StandardCharsets.UTF_8)
+            val smsRequest = Json.decodeFromString<SMSRequest>(message)
 
             CoroutineScope(Dispatchers.Default).launch {
                 try {
-                    val smsRequest = Json.decodeFromString<SMSRequest>(message)
                     sendSMS(smsRequest,
                         subscriptionId,
                         consumerTag,
