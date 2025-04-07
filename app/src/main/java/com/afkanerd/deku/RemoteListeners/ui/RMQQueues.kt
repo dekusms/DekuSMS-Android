@@ -1,5 +1,8 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +41,9 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.work.multiprocess.RemoteWorkerService
@@ -54,7 +61,6 @@ import com.rabbitmq.client.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -75,6 +81,32 @@ fun RMQQueuesComposable(
         else remoteListenersQueuesViewModel.get(context,
             remoteListenersViewModel.remoteListener!!.id
         ).observeAsState(emptyList()).value
+
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    var channelsObserver: MutableLiveData<MutableMap<RemoteListenersQueues, List<Channel>>> =
+        MutableLiveData()
+
+    val channels by channelsObserver
+        .observeAsState(emptyMap<RemoteListenersQueues, List<Channel>>())
+
+    LaunchedEffect(channels) {
+        channels.forEach {
+            it.value.forEach {
+                println("RMQ channel number: ${it.channelNumber}")
+            }
+        }
+    }
+
+    if(!LocalInspectionMode.current)
+    remoteListenersViewModel.binder.getService().getRmqConnections()
+        .observe(lifeCycleOwner) {
+            it.find { it.id == remoteListenersViewModel.remoteListener!!.id }.let {
+                it!!.getChannelsLiveData().observe(lifeCycleOwner) { queueChannels ->
+                    channelsObserver.postValue(queueChannels)
+                    println("RMQ pushing: $queueChannels")
+                }
+            }
+        }
 
     BackHandler {
         remoteListenersQueuesViewModel.remoteListenerQueues = null
@@ -140,16 +172,15 @@ fun RMQQueuesComposable(
                             items = remoteListenersQueues,
                             key = { _, remoteListenerQueue -> remoteListenerQueue.id}
                         ) { _, remoteListenerQueue ->
-//                            val channel = remoteListenersQueuesChannels[remoteListenerQueue]
-//                            RemoteListenersQueuesCard(
-//                                remoteListenersQueues = remoteListenerQueue,
-//                                channel1 = channel?.getOrNull(0),
-//                                channel2 = channel?.getOrNull(1),
-//                            ) {
-//                                remoteListenersQueuesViewModel.remoteListenerQueues =
-//                                    remoteListenerQueue
-//                                showRemoteListenerAddQueuesModal = true
-//                            }
+                            RemoteListenersQueuesCard(
+                                remoteListenersQueues = remoteListenerQueue,
+                                channel1 = channels[remoteListenerQueue]?.getOrNull(0),
+                                channel2 = channels[remoteListenerQueue]?.getOrNull(1),
+                            ) {
+                                remoteListenersQueuesViewModel.remoteListenerQueues =
+                                    remoteListenerQueue
+                                showRemoteListenerAddQueuesModal = true
+                            }
                         }
                     }
                 }

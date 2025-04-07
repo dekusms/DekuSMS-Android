@@ -25,7 +25,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
 
     lateinit var binder: RMQConnectionService.LocalBinder
 
-    /** Defines callbacks for service binding, passed to bindService().  */
+    /** Defines callbacks for service binding, passed to bindService().  **/
     val connection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {

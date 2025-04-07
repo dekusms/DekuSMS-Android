@@ -143,6 +143,7 @@ class RMQConnectionWorker(
             e.printStackTrace()
             if(::rmqConnectionHandler.isInitialized)
                 rmqConnectionHandler.close()
+            throw e
         }
 
         try {
