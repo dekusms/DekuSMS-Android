@@ -23,6 +23,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.afkanerd.deku.RemoteListeners.components.RemoteListenersQueuesCard
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
@@ -73,13 +75,6 @@ fun RMQQueuesComposable(
         else remoteListenersQueuesViewModel.get(context,
             remoteListenersViewModel.remoteListener!!.id
         ).observeAsState(emptyList()).value
-
-    val remoteListenersQueuesChannels: Map<RemoteListenersQueues, List<Channel>> =
-        if(LocalInspectionMode.current) emptyMap()
-        else remoteListenersQueuesViewModel.getChannels(
-            remoteListenersViewModel.binder,
-            remoteListenersViewModel.remoteListener!!.id
-        ).observeAsState(emptyMap()).value
 
     BackHandler {
         remoteListenersQueuesViewModel.remoteListenerQueues = null
@@ -145,17 +140,16 @@ fun RMQQueuesComposable(
                             items = remoteListenersQueues,
                             key = { _, remoteListenerQueue -> remoteListenerQueue.id}
                         ) { _, remoteListenerQueue ->
-                            val channel = remoteListenersQueuesChannels[remoteListenerQueue]
-                            RemoteListenersQueuesCard(
-                                remoteListenersQueues = remoteListenerQueue,
-                                channel1Number = if(LocalInspectionMode.current) 0
-                                else channel?.first()?.channelNumber ?: -1,
-                                channel2Number = channel?.getOrNull(1)?.channelNumber,
-                            ) {
-                                remoteListenersQueuesViewModel.remoteListenerQueues =
-                                    remoteListenerQueue
-                                showRemoteListenerAddQueuesModal = true
-                            }
+//                            val channel = remoteListenersQueuesChannels[remoteListenerQueue]
+//                            RemoteListenersQueuesCard(
+//                                remoteListenersQueues = remoteListenerQueue,
+//                                channel1 = channel?.getOrNull(0),
+//                                channel2 = channel?.getOrNull(1),
+//                            ) {
+//                                remoteListenersQueuesViewModel.remoteListenerQueues =
+//                                    remoteListenerQueue
+//                                showRemoteListenerAddQueuesModal = true
+//                            }
                         }
                     }
                 }
@@ -180,19 +174,8 @@ fun RMQQueuesComposable(
 
                             showRemoteListenerAddQueuesModal = false
 
-                            if(remoteListenersViewModel.remoteListener?.activated!!) {
-                                remoteListenersViewModel.remoteListener!!.activated = false
-                                remoteListenersViewModel.update(
-                                    remoteListenersViewModel.remoteListener!!
-                                )
-                                Thread.sleep(1000)
-
-                                remoteListenersViewModel.remoteListener!!.activated = true
-                                remoteListenersViewModel.update(
-                                    remoteListenersViewModel.remoteListener!!
-                                )
-                            }
-
+                            RemoteListenersHandler.onOffAgain(context,
+                                remoteListenersViewModel.remoteListener!!)
                         }
                     },
                 ) {

@@ -46,13 +46,16 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListenersScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +98,7 @@ fun RMQAddComposable(
     }
 
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -279,12 +283,17 @@ fun RMQAddComposable(
                         else
                             remoteListenerViewModel.insert(newRemoteListener)
 
+                        RemoteListenersHandler.onOffAgain(context, remoteListener!!)
+
                         launch(Dispatchers.Main) {
                             navController.popBackStack(RemoteListenersScreen, false)
                         }
                     }
                 }, enabled = hostUrl.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
-                    Text("Add")
+                    Text(
+                        if(remoteListener == null) stringResource(R.string.add)
+                        else stringResource(R.string.edit)
+                    )
                 }
             }
         }

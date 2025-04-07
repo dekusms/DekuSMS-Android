@@ -50,10 +50,6 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         return rmqConnectionHandlers
     }
 
-    fun changes(rmqConnectionHandler: RMQConnectionHandler) {
-        binder.getService().changes(rmqConnectionHandler)
-    }
-
     fun get(context: Context): LiveData<List<GatewayClient>> {
         datastore = Datastore.getDatastore(context)
         if(!::gatewayClientList.isInitialized) {

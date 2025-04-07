@@ -19,13 +19,14 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.example.compose.AppTheme
+import com.rabbitmq.client.Channel
 
 
 @Composable
 fun RemoteListenersQueuesCard(
     remoteListenersQueues: RemoteListenersQueues,
-    channel1Number: Int,
-    channel2Number: Int? = null,
+    channel1: Channel? = null,
+    channel2: Channel? = null,
     onClickListener: () -> Unit
 ) {
     Card(onClick = onClickListener ) {
@@ -45,22 +46,25 @@ fun RemoteListenersQueuesCard(
                     bindingName = remoteListenersQueues.binding1Name!!,
                     queueName = RMQConnectionHandler
                         .getQueueName(remoteListenersQueues.binding1Name!!,),
-                    channelNumber = if(channel1Number > 0) channel1Number.toString()
+                    channelNumber = if(channel1?.channelNumber != null && channel1.channelNumber > 0)
+                        channel1.channelNumber.toString()
                     else stringResource(R.string.disconnected),
                     messageCount = "0",
-                    status = channel1Number > 0
+                    status = channel1?.isOpen == true
                 )
                 Spacer(Modifier.weight(1f))
 
-                channel2Number?.let {
+                if(!remoteListenersQueues.binding2Name.isNullOrBlank()) {
                     QueueComponent(
                         bindingName = remoteListenersQueues.binding2Name!!,
                         queueName = RMQConnectionHandler
                             .getQueueName(remoteListenersQueues.binding2Name!!,),
-                        channelNumber = if(channel2Number > 0) channel2Number.toString()
+                        channelNumber =
+                            if(channel2?.channelNumber != null && channel2.channelNumber > 0)
+                            channel2.channelNumber.toString()
                         else stringResource(R.string.disconnected),
                         messageCount = "0",
-                        status = channel2Number > 0
+                        status = channel2?.isOpen == true
                     )
                 }
             }
@@ -144,6 +148,6 @@ fun QueuesCards_Preview() {
     remoteListenersQueues.binding1Name = "sim_1_binding"
     remoteListenersQueues.binding2Name = "sim_2_binding"
     AppTheme {
-        RemoteListenersQueuesCard(remoteListenersQueues, 1, 0) {}
+        RemoteListenersQueuesCard(remoteListenersQueues, null, null) {}
     }
 }

@@ -13,15 +13,10 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
     private val exclusive: Boolean = false
     private val durable: Boolean = true
 
-    private val channelList: MutableList<Channel> = ArrayList()
     private val channelTagMap = mutableMapOf<String, Channel>()
 
     private val remoteListenersChannelLiveData:
             MutableLiveData<MutableMap<RemoteListenersQueues, List<Channel>>> = MutableLiveData()
-
-    fun removeChannel(channel: Channel) {
-        channelList.remove(channel)
-    }
 
     fun hasChannel(remoteListenersQueues: RemoteListenersQueues, channelNumber: Int): Boolean {
         return remoteListenersChannelLiveData.value?.get(remoteListenersQueues)
@@ -31,6 +26,28 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
     fun getChannel(remoteListenersQueues: RemoteListenersQueues, channelNumber: Int) : Channel? {
         return remoteListenersChannelLiveData.value?.get(remoteListenersQueues)
             ?.find { it.channelNumber == channelNumber }
+    }
+
+    fun updateChannel(remoteListenersQueues: RemoteListenersQueues, channel: Channel)  {
+        remoteListenersChannelLiveData.value?.get(remoteListenersQueues).let { channels ->
+            if(channels?.find { channel == it } != null) {
+                val channels: MutableMap<RemoteListenersQueues, List<Channel>>? =
+                    remoteListenersChannelLiveData.value
+
+                channels?.get(remoteListenersQueues)?.toMutableList().let {
+                    it?.let {
+                        val index = it.indexOf(channel)
+                        val listChannels: MutableList<Channel> = it
+                        listChannels[index] = channel
+
+                        remoteListenersChannelLiveData.value?.let { rlChannels ->
+                            rlChannels[remoteListenersQueues] = it
+                            remoteListenersChannelLiveData.postValue(rlChannels)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -112,7 +129,5 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         fun getQueueName(binding: String): String {
             return binding.replace("\\.".toRegex(), "_")
         }
-
-
     }
 }

@@ -141,7 +141,8 @@ class RMQConnectionWorker(
             rmqConnectionHandler = RMQConnectionHandler(remoteListener.id, connection)
         } catch(e: Exception) {
             e.printStackTrace()
-            rmqConnectionHandler.close()
+            if(::rmqConnectionHandler.isInitialized)
+                rmqConnectionHandler.close()
         }
 
         try {
@@ -220,6 +221,10 @@ class RMQConnectionWorker(
             object : ConsumerShutdownSignalCallback {
                 override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
                     Log.e(javaClass.name, "Consumer error", sig)
+                    rmqConnectionHandler.updateChannel(
+                        remoteListenersQueues,
+                        channel
+                    )
                 }
             })
         Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")

@@ -76,6 +76,17 @@ object RemoteListenersHandler {
         }
     }
 
+    fun onOffAgain(context: Context, remoteListener: GatewayClient) {
+        if(remoteListener.activated) {
+            remoteListener.activated = false
+            Datastore.getDatastore(context).remoteListenerDAO().update(remoteListener)
+            Thread.sleep(1000)
+
+            remoteListener.activated = true
+            Datastore.getDatastore(context).remoteListenerDAO().update(remoteListener)
+        }
+    }
+
     fun toggleRemoteListeners(context: Context, remoteListener: GatewayClient? = null) {
         val gatewayClients = Datastore.getDatastore(context).remoteListenerDAO().all
         gatewayClients.forEach { it.activated = remoteListener?.id == it.id }
