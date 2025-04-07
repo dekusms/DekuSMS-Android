@@ -46,9 +46,10 @@ fun RemoteListenersQueuesCard(
                     bindingName = remoteListenersQueues.binding1Name!!,
                     queueName = RMQConnectionHandler
                         .getQueueName(remoteListenersQueues.binding1Name!!,),
-                    channelNumber = if(channel1?.channelNumber != null && channel1.channelNumber > 0)
-                        channel1.channelNumber.toString()
-                    else stringResource(R.string.disconnected),
+                    channelNumber =
+                        if(channel1?.isOpen == true)
+                            channel1.channelNumber.toString()
+                        else stringResource(R.string.disconnected),
                     messageCount = "0",
                     status = channel1?.isOpen == true
                 )
@@ -60,9 +61,9 @@ fun RemoteListenersQueuesCard(
                         queueName = RMQConnectionHandler
                             .getQueueName(remoteListenersQueues.binding2Name!!,),
                         channelNumber =
-                            if(channel2?.channelNumber != null && channel2.channelNumber > 0)
-                            channel2.channelNumber.toString()
-                        else stringResource(R.string.disconnected),
+                            if(channel2?.isOpen == true)
+                                channel2.channelNumber.toString()
+                            else stringResource(R.string.disconnected),
                         messageCount = "0",
                         status = channel2?.isOpen == true
                     )

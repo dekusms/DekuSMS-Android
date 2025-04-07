@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeoutException
 
 
@@ -27,7 +28,7 @@ class RMQWorkManager(
         } catch(e: Exception) {
             e.printStackTrace()
             when(e) {
-                is TimeoutException -> {
+                is TimeoutException, is UnknownHostException -> {
                     e.printStackTrace()
                     return Result.retry()
                 }

@@ -61,6 +61,7 @@ import com.rabbitmq.client.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -92,21 +93,25 @@ fun RMQQueuesComposable(
     LaunchedEffect(channels) {
         channels.forEach {
             it.value.forEach {
-                println("RMQ channel number: ${it.channelNumber}")
+                println("LE - RMQ channel number: ${it.channelNumber} ${it.isOpen}")
             }
         }
     }
 
     if(!LocalInspectionMode.current)
-    remoteListenersViewModel.binder.getService().getRmqConnections()
-        .observe(lifeCycleOwner) {
-            it.find { it.id == remoteListenersViewModel.remoteListener!!.id }.let {
-                it!!.getChannelsLiveData().observe(lifeCycleOwner) { queueChannels ->
-                    channelsObserver.postValue(queueChannels)
-                    println("RMQ pushing: $queueChannels")
+        remoteListenersViewModel.binder.getService().getRmqConnections()
+            .observe(lifeCycleOwner) {
+                it.find { it.id == remoteListenersViewModel.remoteListener!!.id }.let {
+                    it!!.getChannelsLiveData().observe(lifeCycleOwner) { queueChannels ->
+                        channelsObserver.value = queueChannels
+                        queueChannels.forEach {
+                            it.value.forEach {
+                                println("RMQ channel number: ${it.channelNumber} ${it.isOpen}")
+                            }
+                        }
+                    }
                 }
             }
-        }
 
     BackHandler {
         remoteListenersQueuesViewModel.remoteListenerQueues = null

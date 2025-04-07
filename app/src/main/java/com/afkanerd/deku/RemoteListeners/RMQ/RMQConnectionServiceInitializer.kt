@@ -22,10 +22,14 @@ class RMQConnectionServiceInitializer : Initializer<Intent> {
                     if(it.activated)
                         RemoteListenersHandler.toggleRemoteListeners(context, it)
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent)
-                } else {
-                    context.startService(intent)
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                } catch(e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
