@@ -91,8 +91,8 @@ fun RMQQueuesComposable(
         .observeAsState(emptyMap<RemoteListenersQueues, List<Channel>>())
 
     if(!LocalInspectionMode.current)
-        remoteListenersViewModel.binder.getService().getRmqConnections()
-            .observe(lifeCycleOwner) {
+        remoteListenersViewModel.binder?.getService()?.getRmqConnections()
+            ?.observe(lifeCycleOwner) {
                 it.find { it.id == remoteListenersViewModel.remoteListener!!.id }.let {
                     it!!.getChannelsLiveData().observe(lifeCycleOwner) { queueChannels ->
                         channelsObserver.value = queueChannels

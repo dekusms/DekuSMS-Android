@@ -24,7 +24,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
 
     private lateinit var datastore: Datastore
 
-    lateinit var binder: RMQConnectionService.LocalBinder
+    var binder: RMQConnectionService.LocalBinder? = null
 
     /** Defines callbacks for service binding, passed to bindService().  **/
     val connection = object : ServiceConnection {
@@ -32,7 +32,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
             binder = service as RMQConnectionService.LocalBinder
-            rmqConnectionHandlers = binder.getService().getRmqConnections()
+            rmqConnectionHandlers = binder!!.getService().getRmqConnections()
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
