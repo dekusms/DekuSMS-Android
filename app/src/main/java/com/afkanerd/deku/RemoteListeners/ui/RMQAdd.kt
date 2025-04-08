@@ -285,7 +285,7 @@ fun RMQAddComposable(
                         else
                             remoteListenerViewModel.insert(newRemoteListener)
 
-                        RemoteListenersHandler.onOffAgain(context, remoteListener!!)
+                        RemoteListenersHandler.onOffAgain(context, newRemoteListener)
 
                         launch(Dispatchers.Main) {
                             navController.popBackStack(RemoteListenersScreen, false)
