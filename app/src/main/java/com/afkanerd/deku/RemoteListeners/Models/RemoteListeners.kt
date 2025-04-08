@@ -7,7 +7,7 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
 @Entity
-class GatewayClient {
+class RemoteListeners {
     @Ignore
     var connectionStatus: String? = null
 
@@ -49,13 +49,13 @@ class GatewayClient {
     var state = 0
 
     companion object {
-        val DIFF_CALLBACK: DiffUtil.ItemCallback<GatewayClient> =
-                object : DiffUtil.ItemCallback<GatewayClient>() {
-                    override fun areItemsTheSame(oldItem: GatewayClient, newItem: GatewayClient):
+        val DIFF_CALLBACK: DiffUtil.ItemCallback<RemoteListeners> =
+                object : DiffUtil.ItemCallback<RemoteListeners>() {
+                    override fun areItemsTheSame(oldItem: RemoteListeners, newItem: RemoteListeners):
                             Boolean {
                         return oldItem.id == newItem.id
                     }
-                    override fun areContentsTheSame(oldItem: GatewayClient, newItem: GatewayClient):
+                    override fun areContentsTheSame(oldItem: RemoteListeners, newItem: RemoteListeners):
                             Boolean {
                         return oldItem == newItem
                     }

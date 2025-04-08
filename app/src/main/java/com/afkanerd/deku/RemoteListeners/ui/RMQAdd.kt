@@ -53,7 +53,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListenersScreen
@@ -268,7 +268,7 @@ fun RMQAddComposable(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(onClick = {
-                    val newRemoteListener = remoteListener ?: GatewayClient()
+                    val newRemoteListener = remoteListener ?: RemoteListeners()
                     newRemoteListener.hostUrl = hostUrl
                     newRemoteListener.username = username
                     newRemoteListener.password = password

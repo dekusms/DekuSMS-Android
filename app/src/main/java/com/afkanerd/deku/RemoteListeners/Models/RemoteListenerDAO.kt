@@ -10,33 +10,33 @@ import androidx.room.Update
 
 @Dao
 interface RemoteListenerDAO {
-    @get:Query("SELECT * FROM GatewayClient")
-    val all: List<GatewayClient>
+    @get:Query("SELECT * FROM RemoteListeners")
+    val all: List<RemoteListeners>
 
-    @Query("SELECT * FROM GatewayClient")
-    fun fetch(): LiveData<List<GatewayClient>>
+    @Query("SELECT * FROM RemoteListeners")
+    fun fetch(): LiveData<List<RemoteListeners>>
 
-    @Query("SELECT * FROM GatewayClient WHERE activated = 1")
-    fun fetchActivated(): List<GatewayClient>
-
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    fun insert(gatewayClient: GatewayClient): Long
+    @Query("SELECT * FROM RemoteListeners WHERE activated = 1")
+    fun fetchActivated(): List<RemoteListeners>
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    fun insert(gatewayClients: List<GatewayClient>)
+    fun insert(remoteListeners: RemoteListeners): Long
+
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    fun insert(remoteListeners: List<RemoteListeners>)
 
     @Delete
-    fun delete(gatewayClient: GatewayClient): Int
+    fun delete(remoteListeners: RemoteListeners): Int
 
     @Delete
-    fun delete(gatewayClients: List<GatewayClient>)
+    fun delete(remoteListeners: List<RemoteListeners>)
 
-    @Query("SELECT * FROM GatewayClient WHERE id=:id")
-    fun fetch(id: Long): GatewayClient
-
-    @Update
-    fun update(gatewayClient: GatewayClient)
+    @Query("SELECT * FROM RemoteListeners WHERE id=:id")
+    fun fetch(id: Long): RemoteListeners
 
     @Update
-    fun update(gatewayClient: List<GatewayClient>)
+    fun update(remoteListeners: RemoteListeners)
+
+    @Update
+    fun update(remoteListeners: List<RemoteListeners>)
 }

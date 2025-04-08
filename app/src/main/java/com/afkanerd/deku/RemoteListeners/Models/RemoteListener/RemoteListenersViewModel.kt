@@ -11,15 +11,15 @@ import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 
 class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
-    private lateinit var gatewayClientList: LiveData<List<GatewayClient>>
+    private lateinit var remoteListenersList: LiveData<List<RemoteListeners>>
     private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
 
-    var remoteListener by mutableStateOf<GatewayClient?>(null)
+    var remoteListener by mutableStateOf<RemoteListeners?>(null)
 
     private lateinit var datastore: Datastore
 
@@ -50,28 +50,28 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         return rmqConnectionHandlers
     }
 
-    fun get(context: Context): LiveData<List<GatewayClient>> {
+    fun get(context: Context): LiveData<List<RemoteListeners>> {
         datastore = Datastore.getDatastore(context)
-        if(!::gatewayClientList.isInitialized) {
-            gatewayClientList = loadGatewayClients()
+        if(!::remoteListenersList.isInitialized) {
+            remoteListenersList = loadGatewayClients()
         }
-        return gatewayClientList
+        return remoteListenersList
     }
 
-    private fun loadGatewayClients() : LiveData<List<GatewayClient>> {
+    private fun loadGatewayClients() : LiveData<List<RemoteListeners>> {
         return datastore.remoteListenerDAO().fetch()
     }
 
-    fun update(gatewayClient: GatewayClient) {
-        datastore.remoteListenerDAO().update(gatewayClient)
+    fun update(remoteListeners: RemoteListeners) {
+        datastore.remoteListenerDAO().update(remoteListeners)
     }
 
-    fun insert(gatewayClient: GatewayClient) {
-        datastore.remoteListenerDAO().insert(gatewayClient)
+    fun insert(remoteListeners: RemoteListeners) {
+        datastore.remoteListenerDAO().insert(remoteListeners)
     }
 
-    fun delete(gatewayClient: GatewayClient) {
-        datastore.remoteListenerDAO().delete(gatewayClient)
+    fun delete(remoteListeners: RemoteListeners) {
+        datastore.remoteListenerDAO().delete(remoteListeners)
     }
 
 }

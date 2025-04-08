@@ -66,7 +66,7 @@ object RemoteListenersHandler {
         return UUID(mostSigBits, leastSigBits)
     }
 
-    fun stopListening(context: Context, remoteListener: GatewayClient) {
+    fun stopListening(context: Context, remoteListener: RemoteListeners) {
         CoroutineScope(Dispatchers.Default).launch {
             Datastore.getDatastore(context).remoteListenerDAO().update(remoteListener)
             val workManager = WorkManager.getInstance(context)
@@ -76,7 +76,7 @@ object RemoteListenersHandler {
         }
     }
 
-    fun onOffAgain(context: Context, remoteListener: GatewayClient) {
+    fun onOffAgain(context: Context, remoteListener: RemoteListeners) {
         if(remoteListener.activated) {
             remoteListener.activated = false
             Datastore.getDatastore(context).remoteListenerDAO().update(remoteListener)
@@ -87,13 +87,13 @@ object RemoteListenersHandler {
         }
     }
 
-    fun toggleRemoteListeners(context: Context, remoteListener: GatewayClient? = null) {
+    fun toggleRemoteListeners(context: Context, remoteListener: RemoteListeners? = null) {
         val gatewayClients = Datastore.getDatastore(context).remoteListenerDAO().all
         gatewayClients.forEach { it.activated = remoteListener?.id == it.id }
         Datastore.getDatastore(context).remoteListenerDAO().update(gatewayClients)
     }
 
-    fun startListening(context: Context, remoteListener: GatewayClient) {
+    fun startListening(context: Context, remoteListener: RemoteListeners) {
         CoroutineScope(Dispatchers.Default).launch {
             toggleRemoteListeners(context, remoteListener)
 
@@ -110,32 +110,32 @@ object RemoteListenersHandler {
      * This would get queued up until the the constraints are met - once it can execute it is done
      * Don't use this for any long running metrics - just a constraints metrics
      */
-    fun startWorkManager(context: Context, gatewayClient: GatewayClient) {
+    fun startWorkManager(context: Context, remoteListeners: RemoteListeners) {
         val constraints : Constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build();
 
         val workManager = WorkManager.getInstance(context)
 
-        val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
+        val remoteListenersListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
             .setConstraints(constraints)
-            .setId(generateUuidFromLong(gatewayClient.id))
+            .setId(generateUuidFromLong(remoteListeners.id))
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
                 WorkRequest.MIN_BACKOFF_MILLIS,
                 TimeUnit.MILLISECONDS
             )
             .setInputData(Data.Builder()
-                .putLong(GatewayClient.GATEWAY_CLIENT_ID, gatewayClient.id)
+                .putLong(RemoteListeners.GATEWAY_CLIENT_ID, remoteListeners.id)
                 .build()
             )
             .addTag(UNIQUE_WORK_MANAGER_TAG)
             .build();
 
         val operation = workManager.enqueueUniqueWork(
-            "$UNIQUE_WORK_MANAGER_NAME.${gatewayClient.id}",
+            "$UNIQUE_WORK_MANAGER_NAME.${remoteListeners.id}",
             ExistingWorkPolicy.REPLACE,
-            gatewayClientListenerWorker
+            remoteListenersListenerWorker
         )
 
         println(operation.state.value)

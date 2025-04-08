@@ -20,7 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations;
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
@@ -39,9 +39,9 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         GatewayServer.class,
         RemoteListenersQueues.class,
         Conversation.class,
-        GatewayClient.class,
+        RemoteListeners.class,
         ThreadsConfigurations.class},
-        version = 22,
+        version = 23,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -55,7 +55,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 18, to = 19),
         @AutoMigration(from = 19, to = 20, spec = Datastore.Migrate19To20.class),
         @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class),
-        @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class)
+        @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class),
+        @AutoMigration(from = 22, to = 23, spec = Datastore.Migrate22To23.class)
 })
 
 
@@ -128,4 +129,12 @@ public abstract class Datastore extends RoomDatabase {
             )
     )
     static class Migrate21To22 implements AutoMigrationSpec { }
+
+    @RenameTable.Entries(
+            @RenameTable(
+                    fromTableName = "GatewayClient",
+                    toTableName = "RemoteListeners"
+            )
+    )
+    static class Migrate22To23 implements AutoMigrationSpec { }
 }

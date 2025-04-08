@@ -33,21 +33,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteListenerAddQueuesModal(
     showModal: Boolean,
     remoteListenersQueue: RemoteListenersQueues?,
-    remoteListener: GatewayClient,
+    remoteListener: RemoteListeners,
     onClickCallback: (RemoteListenersQueues) -> Unit,
     dismissCallback: () -> Unit,
 ) {
@@ -227,7 +223,7 @@ fun RemoteListenersAddQueuesModal_Preview() {
         RemoteListenerAddQueuesModal(
             true,
             RemoteListenersQueues(),
-            GatewayClient(),
+            RemoteListeners(),
             {}
         ){}
     }

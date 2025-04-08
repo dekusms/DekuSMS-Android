@@ -17,7 +17,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class RMQConnectionService : Service() {
-    private lateinit var remoteListenersLiveData: LiveData<List<GatewayClient>>
+    private lateinit var remoteListenersLiveData: LiveData<List<RemoteListeners>>
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
     private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
@@ -50,7 +50,7 @@ class RMQConnectionService : Service() {
         createForegroundNotification()
     }
 
-    private val remoteListenerObserver = Observer<List<GatewayClient>> {
+    private val remoteListenerObserver = Observer<List<RemoteListeners>> {
         var numberOfActiveRemoteListeners = 0
         it.forEach { remoteListener ->
             val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}

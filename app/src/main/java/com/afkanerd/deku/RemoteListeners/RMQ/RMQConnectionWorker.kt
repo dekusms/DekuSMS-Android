@@ -19,7 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.SemaphoreManager
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.rabbitmq.client.Channel
@@ -114,7 +114,7 @@ class RMQConnectionWorker(
         return rmqConnectionHandler
     }
 
-    private fun startConnection(factory: ConnectionFactory, remoteListener: GatewayClient) {
+    private fun startConnection(factory: ConnectionFactory, remoteListener: RemoteListeners) {
         Log.d(javaClass.name, "Starting new connection...")
 
         try {

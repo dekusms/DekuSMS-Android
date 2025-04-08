@@ -1,7 +1,6 @@
 package com.afkanerd.deku.RemoteListeners.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,29 +11,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.example.compose.AppTheme
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RemoteListenerCards(
-    remoteListeners: GatewayClient,
+    remoteListeners: RemoteListeners,
     status: Boolean,
     modifier: Modifier
 ) {
@@ -144,15 +135,15 @@ fun RemoteListenerCards(
 @Composable
 @Preview
 fun ConnectionCards_Preview() {
-    val gatewayClient = GatewayClient()
-    gatewayClient.id = 0
-    gatewayClient.hostUrl = "amqp://example.com"
-    gatewayClient.virtualHost = "/"
-    gatewayClient.port = 5671
-    gatewayClient.username = "example_user"
-    gatewayClient.activated = true
-    gatewayClient.friendlyConnectionName = "frieren"
+    val remoteListeners = RemoteListeners()
+    remoteListeners.id = 0
+    remoteListeners.hostUrl = "amqp://example.com"
+    remoteListeners.virtualHost = "/"
+    remoteListeners.port = 5671
+    remoteListeners.username = "example_user"
+    remoteListeners.activated = true
+    remoteListeners.friendlyConnectionName = "frieren"
     AppTheme {
-        RemoteListenerCards(gatewayClient, false, Modifier)
+        RemoteListenerCards(remoteListeners, false, Modifier)
     }
 }

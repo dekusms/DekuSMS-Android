@@ -1,19 +1,12 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Arrangement.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +30,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -47,7 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.RemoteListeners.Models.GatewayClient
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.components.RemoteListenerCards
 import com.example.compose.AppTheme
@@ -62,7 +53,6 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
@@ -73,7 +63,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RMQMainComposable(
-    _remoteListeners: List<GatewayClient> = emptyList<GatewayClient>(),
+    _remoteListeners: List<RemoteListeners> = emptyList<RemoteListeners>(),
     remoteListenerViewModel: RemoteListenersViewModel,
     remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
     navController: NavController,
@@ -82,7 +72,7 @@ fun RMQMainComposable(
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    val remoteListeners: List<GatewayClient> = if(LocalInspectionMode.current) _remoteListeners
+    val remoteListeners: List<RemoteListeners> = if(LocalInspectionMode.current) _remoteListeners
     else remoteListenerViewModel.get(context).observeAsState(emptyList()).value
 
     val rmqConnectionHandlers: List<RMQConnectionHandler> =
@@ -267,22 +257,22 @@ fun RMQMainComposable(
 @Preview
 fun ConnectionCards_Preview() {
     AppTheme {
-        val gatewayClient = GatewayClient()
-        gatewayClient.id = 0
-        gatewayClient.hostUrl = "amqp://example.com"
-        gatewayClient.virtualHost = "/"
-        gatewayClient.port = 5671
-        gatewayClient.username = "example_user"
+        val remoteListeners = RemoteListeners()
+        remoteListeners.id = 0
+        remoteListeners.hostUrl = "amqp://example.com"
+        remoteListeners.virtualHost = "/"
+        remoteListeners.port = 5671
+        remoteListeners.username = "example_user"
 
-        val gatewayClient1 = GatewayClient()
-        gatewayClient1.id = 1
-        gatewayClient1.hostUrl = "amqp://example.com"
-        gatewayClient1.virtualHost = "/"
-        gatewayClient1.port = 5671
-        gatewayClient1.username = "example_user"
+        val remoteListeners1 = RemoteListeners()
+        remoteListeners1.id = 1
+        remoteListeners1.hostUrl = "amqp://example.com"
+        remoteListeners1.virtualHost = "/"
+        remoteListeners1.port = 5671
+        remoteListeners1.username = "example_user"
 
         RMQMainComposable(
-            listOf(gatewayClient, gatewayClient1),
+            listOf(remoteListeners, remoteListeners1),
             RemoteListenersViewModel(),
             RemoteListenerQueuesViewModel(),
             rememberNavController(),
