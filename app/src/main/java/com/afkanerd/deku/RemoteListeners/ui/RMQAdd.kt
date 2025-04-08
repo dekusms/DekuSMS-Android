@@ -103,7 +103,7 @@ fun RMQAddComposable(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New remote listener")},
+                title = { Text(stringResource(R.string.new_remote_listener))},
                 navigationIcon = {
                     IconButton(onClick = {
                         remoteListenerViewModel.remoteListener = null
@@ -111,7 +111,7 @@ fun RMQAddComposable(
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Return back"
+                            contentDescription = stringResource(R.string.return_back)
                         )
                     }
                 },
@@ -133,10 +133,10 @@ fun RMQAddComposable(
                 value = hostUrl,
                 onValueChange = { hostUrl = it },
                 label = {
-                    Text("Host Url")
+                    Text(stringResource(R.string.host_url))
                 },
                 placeholder = {
-                    Text("example.com")
+                    Text(stringResource(R.string.example_com))
                 },
                 prefix = {
                     Text("amqp(s)://")
@@ -153,7 +153,7 @@ fun RMQAddComposable(
                 value = username,
                 onValueChange = { username = it },
                 label = {
-                    Text("Username")
+                    Text(stringResource(R.string.username))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -167,7 +167,7 @@ fun RMQAddComposable(
                 value = password,
                 onValueChange = { password = it },
                 label = {
-                    Text("Password")
+                    Text(stringResource(R.string.password))
                 },
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None
@@ -178,7 +178,9 @@ fun RMQAddComposable(
                         Icons.Filled.Visibility
                     else Icons.Filled.VisibilityOff
 
-                    val description = if(passwordVisible) "Hide password" else "Show password"
+                    val description =
+                        if(passwordVisible) stringResource(R.string.hide_password)
+                        else stringResource( R.string.show_password )
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, description)
                     }
@@ -192,7 +194,7 @@ fun RMQAddComposable(
                 value = friendlyName,
                 onValueChange = { friendlyName = it },
                 label = {
-                    Text("Friendly name")
+                    Text(stringResource(R.string.friendly_name))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -206,7 +208,7 @@ fun RMQAddComposable(
                 value = virtualHost,
                 onValueChange = { virtualHost = it },
                 label = {
-                    Text("Virtual host")
+                    Text(stringResource(R.string.virtual_host))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -220,7 +222,7 @@ fun RMQAddComposable(
                 value = port.toString(),
                 onValueChange = { port = it.toInt() },
                 label = {
-                    Text("Port")
+                    Text(stringResource(R.string.port))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -231,7 +233,7 @@ fun RMQAddComposable(
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            Text("Choose protocol")
+            Text(stringResource(R.string.choose_protocol))
 
             Column(Modifier.selectableGroup()) {
                 protocolOptions.forEach { text ->

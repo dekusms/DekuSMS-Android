@@ -89,7 +89,7 @@ fun RMQMainComposable(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Remote listeners") },
+                title = { Text(stringResource(R.string.remote_listeners)) },
                 navigationIcon = {
                     IconButton(onClick = {
                         remoteListenerViewModel.remoteListener = null
@@ -97,7 +97,7 @@ fun RMQMainComposable(
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Return back"
+                            contentDescription = stringResource(R.string.return_back)
                         )
                     }
                 },
@@ -108,7 +108,7 @@ fun RMQMainComposable(
                     }) {
                         Icon(
                             imageVector = Icons.Rounded.AddCircleOutline,
-                            contentDescription = "New remote listener"
+                            contentDescription = stringResource(R.string.new_remote_listener)
                         )
                     }
                 },
@@ -138,12 +138,14 @@ fun RMQMainComposable(
                 }
                 else {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("\u2022 Click to add queues",
+                        Text(
+                            stringResource(R.string.click_to_add_queues),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Spacer(Modifier.padding(4.dp))
-                        Text("\u2022 Press and hold to manage",
+                        Text(
+                            stringResource(R.string.press_and_hold_to_manage),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary
                         )

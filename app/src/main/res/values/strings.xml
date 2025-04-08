@@ -379,5 +379,17 @@
     <string name="sim_1_queue">"SIM 1 queue: "</string>
     <string name="sim_1">SIM 1:</string>
     <string name="messages">"# Messages: "</string>
+    <string name="new_remote_listener">New remote listener</string>
+    <string name="return_back">Return back</string>
+    <string name="host_url">Host Url</string>
+    <string name="example_com">example.com</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
+    <string name="choose_protocol">Choose protocol</string>
+    <string name="click_to_add_queues">• Click to add queues</string>
+    <string name="press_and_hold_to_manage">• Press and hold to manage</string>
+    <string name="queues">%1$s Queues</string>
 
 </resources>

@@ -90,25 +90,12 @@ fun RMQQueuesComposable(
     val channels by channelsObserver
         .observeAsState(emptyMap<RemoteListenersQueues, List<Channel>>())
 
-    LaunchedEffect(channels) {
-        channels.forEach {
-            it.value.forEach {
-                println("LE - RMQ channel number: ${it.channelNumber} ${it.isOpen}")
-            }
-        }
-    }
-
     if(!LocalInspectionMode.current)
         remoteListenersViewModel.binder.getService().getRmqConnections()
             .observe(lifeCycleOwner) {
                 it.find { it.id == remoteListenersViewModel.remoteListener!!.id }.let {
                     it!!.getChannelsLiveData().observe(lifeCycleOwner) { queueChannels ->
                         channelsObserver.value = queueChannels
-                        queueChannels.forEach {
-                            it.value.forEach {
-                                println("RMQ channel number: ${it.channelNumber} ${it.isOpen}")
-                            }
-                        }
                     }
                 }
             }
@@ -122,7 +109,11 @@ fun RMQQueuesComposable(
         topBar = {
             TopAppBar(
                 title = { Text(
-                    "${remoteListenersViewModel.remoteListener?.username} Queues") },
+                    stringResource(
+                        R.string.queues,
+                        remoteListenersViewModel.remoteListener?.username!!
+                    )
+                ) },
                 navigationIcon = {
                     IconButton(onClick = {
                         remoteListenersQueuesViewModel.remoteListenerQueues = null
@@ -130,7 +121,7 @@ fun RMQQueuesComposable(
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Return back"
+                            contentDescription = stringResource(R.string.return_back)
                         )
                     }
                 },
@@ -140,7 +131,7 @@ fun RMQQueuesComposable(
                     }) {
                         Icon(
                             imageVector = Icons.Rounded.AddCircleOutline,
-                            contentDescription = "New remote listener"
+                            contentDescription = stringResource(R.string.new_remote_listener)
                         )
                     }
                 },
