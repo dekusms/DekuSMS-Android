@@ -11,19 +11,20 @@ import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.MutableLiveData
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 
 class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var remoteListenersList: LiveData<List<RemoteListeners>>
-    private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
+    private var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
     var remoteListener by mutableStateOf<RemoteListeners?>(null)
 
     private lateinit var datastore: Datastore
 
-    lateinit var binder: RMQConnectionService.LocalBinder
+    var binder: RMQConnectionService.LocalBinder? = null
 
     /** Defines callbacks for service binding, passed to bindService().  **/
     val connection = object : ServiceConnection {
@@ -31,7 +32,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
             binder = service as RMQConnectionService.LocalBinder
-            rmqConnectionHandlers = binder.getService().getRmqConnections()
+            rmqConnectionHandlers = binder!!.getService().getRmqConnections()
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
