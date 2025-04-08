@@ -6,10 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.DatabaseConfiguration;
-import androidx.room.Delete;
 import androidx.room.DeleteColumn;
 import androidx.room.DeleteTable;
 import androidx.room.InvalidationTracker;
+import androidx.room.RenameTable;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.AutoMigrationSpec;
@@ -19,14 +19,11 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadsConfigurationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectDao;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao;
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -40,11 +37,11 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 @Database(entities = {
         Archive.class,
         GatewayServer.class,
-        GatewayClientProjects.class,
+        RemoteListenersQueues.class,
         Conversation.class,
-        GatewayClient.class,
+        RemoteListeners.class,
         ThreadsConfigurations.class},
-        version = 21,
+        version = 23,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -57,7 +54,9 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 17, to = 18),
         @AutoMigration(from = 18, to = 19),
         @AutoMigration(from = 19, to = 20, spec = Datastore.Migrate19To20.class),
-        @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class)
+        @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class),
+        @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class),
+        @AutoMigration(from = 22, to = 23, spec = Datastore.Migrate22To23.class)
 })
 
 
@@ -81,8 +80,8 @@ public abstract class Datastore extends RoomDatabase {
 
     public abstract GatewayServerDAO gatewayServerDAO();
 
-    public abstract GatewayClientDAO gatewayClientDAO();
-    public abstract GatewayClientProjectDao gatewayClientProjectDao();
+    public abstract RemoteListenerDAO remoteListenerDAO();
+    public abstract RemoteListenersQueuesDao remoteListenersQueuesDao();
 
     public abstract ConversationDao conversationDao();
 
@@ -122,4 +121,20 @@ public abstract class Datastore extends RoomDatabase {
             @DeleteTable(tableName = "ConversationsThreadsEncryption")
     )
     static class Migrate20To21 implements AutoMigrationSpec { }
+
+    @RenameTable.Entries(
+            @RenameTable(
+                    fromTableName = "GatewayClientProjects",
+                    toTableName = "RemoteListenersQueues"
+            )
+    )
+    static class Migrate21To22 implements AutoMigrationSpec { }
+
+    @RenameTable.Entries(
+            @RenameTable(
+                    fromTableName = "GatewayClient",
+                    toTableName = "RemoteListeners"
+            )
+    )
+    static class Migrate22To23 implements AutoMigrationSpec { }
 }

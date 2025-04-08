@@ -5,7 +5,7 @@ buildscript {
 //        kotlin_version = '1.9.23'
         kotlin_version = '2.0.0'
         agp_version = '8.5.0'
-        agp_version1 = '8.7.3'
+        agp_version1 = '8.8.0'
     }
     repositories {
         google()
