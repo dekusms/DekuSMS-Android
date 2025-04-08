@@ -24,12 +24,4 @@
 <!--            app:summary="@string/settings_security_category_end_to_end_encryption_summary"-->
 <!--            app:title="@string/settings_security_category_end_to_end_encryption" />-->
 <!--    </PreferenceCategory>-->
-
-    <PreferenceCategory
-        app:title="@string/settings_advanced_category_title">
-        <Preference
-            app:key="@string/settings_advanced_developers_key"
-            app:title="@string/settings_developer_category_title"/>
-    </PreferenceCategory>
-
 </PreferenceScreen>

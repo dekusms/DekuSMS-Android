@@ -5,32 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-import android.util.Log;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.ConsumerShutdownSignalCallback;
-import com.rabbitmq.client.DeliverCallback;
-import com.rabbitmq.client.Delivery;
-import com.rabbitmq.client.ShutdownSignalException;
-import com.rabbitmq.client.impl.DefaultExceptionHandler;
-
-import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 
 @RunWith(AndroidJUnit4.class)
 public class RMQConnectionTest {

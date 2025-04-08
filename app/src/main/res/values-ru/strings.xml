@@ -198,6 +198,7 @@
     <string name="conversations_navigation_view_inbox">Входящие</string>
 
     <string name="conversations_exported_complete">Экспорт завершён!</string>
+    <string name="conversations_import_complete">Импорт завершен!</string>
     <string name="gateway_client_project_listing_project_name_title">Имя проекта</string>
     <string name="gateway_client_project_listing_no_projects_added">Нет добавленных проектов</string>
 
@@ -305,4 +306,47 @@
     <string name="reset_and_import">Сбросить и импортировать</string>
     <string name="message_failed_notifications_descriptions">Получать уведомления о сбоях отправки сообщений</string>
     <string name="messages_thread_encrypted_content_label">Защищено</string>
+    <string name="language_polish">польский</string>
+    <string name="welcome_image">Приветственное изображение</string>
+    <string name="remote_listeners">Удаленные слушатели</string>
+    <string name="port">Порт:</string>
+    <string name="virtual_host">Виртуальный хост:</string>
+    <string name="no_queues_added">Очереди не добавлены</string>
+    <string name="friendly_name">Дружественное имя:</string>
+    <string name="state">состояние:</string>
+    <string name="activated">Активировано</string>
+    <string name="deactivated">Деактивировано</string>
+    <string name="status">статус:</string>
+    <string name="connected">Подключено</string>
+    <string name="disconnected">Отключено</string>
+    <string name="add">Добавить</string>
+    <string name="edit">Редактировать</string>
+    <string name="sim_2_binding">Привязка SIM 2</string>
+    <string name="queue_name">Имя очереди:</string>
+    <string name="editing_a_queue_would_restart_the_connection">Редактирование очереди приведет к перезапуску соединения</string>
+    <string name="sim_1_binding">Привязка SIM 1</string>
+    <string name="auto_filled_to">Автоматически заполнено до:</string>
+    <string name="exchange">Обмен</string>
+    <string name="defaulting_to_topic_exchange">По умолчанию используется обмен типа Topic</string>
+    <string name="new_queues">Новые очереди</string>
+    <string name="no_remote_listeners">Нет удаленных слушателей</string>
+    <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Только 1 соединение одновременно — из-за узкого места между каналами и радиомодулем телефона (возможность параллельной отправки SMS-сообщений).</string>
+    <string name="sim_2_queue">Очередь SIM 2:</string>
+    <string name="sim_2">SIM 2:</string>
+    <string name="channel_number">Номер канала:</string>
+    <string name="sim_1_queue">Очередь SIM 1:</string>
+    <string name="sim_1">SIM 1:</string>
+    <string name="messages"># Сообщения:</string>
+    <string name="new_remote_listener">Новый удаленный прослушиватель</string>
+    <string name="return_back">Вернуться назад</string>
+    <string name="host_url">URL хоста</string>
+    <string name="example_com">example.com</string>
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="hide_password">Скрыть пароль</string>
+    <string name="show_password">Показать пароль</string>
+    <string name="choose_protocol">Выберите протокол</string>
+    <string name="click_to_add_queues">• Нажмите, чтобы добавить очереди</string>
+    <string name="press_and_hold_to_manage">• Нажмите и удерживайте для управления</string>
+    <string name="queues">%1$s очередей</string>
 </resources>

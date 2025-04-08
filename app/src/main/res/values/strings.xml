@@ -241,11 +241,13 @@
     <string name="language_french">French</string>
     <string name="language_russian">Russian</string>
     <string name="language_german">German</string>
+    <string name="language_polish">Polish</string>
 
     <string name="language_english_value" translatable="false">en</string>
     <string name="language_french_value" translatable="false">fr</string>
     <string name="language_russian_value" translatable="false">ru</string>
     <string name="language_german_value" translatable="false">de</string>
+    <string name="language_polish_value" translatable="false">pl</string>
 
 
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
@@ -260,6 +262,7 @@
 
     <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
     <string name="conversations_exported_complete">Export Complete!</string>
+    <string name="conversations_import_complete">Import Complete!</string>
     <string name="gateway_client_project_listing_project_name_title">Project name</string>
     <string name="gateway_client_project_listing_no_projects_added">No Projects added</string>
     <!-- TODO: Remove or change this placeholder text -->
@@ -346,5 +349,47 @@
 
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
+    <string name="welcome_image">Welcome image</string>
+    <string name="remote_listeners">Remote listeners</string>
+    <string name="port">"Port: "</string>
+    <string name="virtual_host">"Virtual host: "</string>
+    <string name="no_queues_added">No queues added</string>
+    <string name="friendly_name">"Friendly name: "</string>
+    <string name="state">"state: "</string>
+    <string name="activated">Activated</string>
+    <string name="deactivated">Deactivated</string>
+    <string name="status">"status: "</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="add">Add</string>
+    <string name="edit">Edit</string>
+    <string name="sim_2_binding">Sim 2 Binding</string>
+    <string name="queue_name">Queue name: </string>
+    <string name="editing_a_queue_would_restart_the_connection">Editing a queue, would restart the connection</string>
+    <string name="sim_1_binding">Sim 1 Binding</string>
+    <string name="auto_filled_to">"Auto-filled to: "</string>
+    <string name="exchange">Exchange</string>
+    <string name="defaulting_to_topic_exchange">Defaulting to Topic exchange</string>
+    <string name="new_queues">New Queues</string>
+    <string name="no_remote_listeners">No remote listeners</string>
+    <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Only 1 connection at a time - due to the bottleneck between channels and the phone\'s radio (ability to SMS messages in parallel).</string>
+    <string name="sim_2_queue">SIM 2 queue:</string>
+    <string name="sim_2">SIM 2:</string>
+    <string name="channel_number">"Channel number: "</string>
+    <string name="sim_1_queue">"SIM 1 queue: "</string>
+    <string name="sim_1">SIM 1:</string>
+    <string name="messages">"# Messages: "</string>
+    <string name="new_remote_listener">New remote listener</string>
+    <string name="return_back">Return back</string>
+    <string name="host_url">Host Url</string>
+    <string name="example_com">example.com</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
+    <string name="choose_protocol">Choose protocol</string>
+    <string name="click_to_add_queues">• Click to add queues</string>
+    <string name="press_and_hold_to_manage">• Press and hold to manage</string>
+    <string name="queues">%1$s Queues</string>
 
 </resources>

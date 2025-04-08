@@ -1,17 +1,11 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,14 +27,9 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -75,7 +63,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,24 +71,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
+import com.afkanerd.deku.ContactDetailsScreen
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.ContactDetailsScreen
-import com.afkanerd.deku.DefaultSMS.HomeScreen
-import com.afkanerd.deku.DefaultSMS.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
+import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationCrudBottomBar
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
@@ -112,27 +95,17 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
 import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.SimChooser
+import com.afkanerd.deku.SearchThreadScreen
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 
-private fun copyItem(context: Context, text: String) {
-    val clip = ClipData.newPlainText(text, text)
-    val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(clip)
 
-    Toast.makeText(
-        context, context.getString(R.string.conversation_copied),
-        Toast.LENGTH_SHORT
-    ).show()
-}
 
 private fun sendSMS(
     context: Context,
@@ -165,6 +138,24 @@ private fun sendSMS(
     )
 }
 
+enum class PredefinedTypes {
+    OUTGOING,
+    INCOMING
+}
+
+private fun getPredefinedType(type: Int) : PredefinedTypes? {
+    when(type) {
+        Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+        Telephony.Sms.MESSAGE_TYPE_QUEUED,
+        Telephony.Sms.MESSAGE_TYPE_SENT -> {
+            return PredefinedTypes.OUTGOING
+        }
+        Telephony.Sms.MESSAGE_TYPE_INBOX, -> {
+            return PredefinedTypes.INCOMING
+        }
+    }
+    return null
+}
 
 private fun getContentType(
     index: Int,
@@ -175,7 +166,7 @@ private fun getContentType(
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
     if(index == 0) {
-        if(conversation.type == conversations[1].type) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[1].type)) {
             if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
                 return ConversationPositionTypes.END
             }
@@ -185,14 +176,21 @@ private fun getContentType(
         }
     }
     if(index == conversations.size - 1) {
-        if(conversation.type == conversations.last().type && Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations.last().type) &&
+            Helpers.isSameMinute(
+                conversation.date!!.toLong(),
+                conversations[index -1].date!!.toLong())
+            ) {
             return ConversationPositionTypes.START_TIMESTAMP
         }
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
 
     if(index + 1 < conversations.size && index - 1 > -1 ) {
-        if(conversation.type == conversations[index - 1].type && conversation.type == conversations[index + 1].type) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type)
+            &&
+            getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type)
+        ) {
             if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
                 if(Helpers.isSameMinute(conversation.date!!.toLong(),
                         conversations[index -1].date!!.toLong()) &&
@@ -205,18 +203,28 @@ private fun getContentType(
             }
         }
 
-        if(conversation.type == conversations[index + 1].type ) {
-            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
-                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type))
+        {
+            if(Helpers.isSameHour(
+                    conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+            ) {
+                if(Helpers.isSameMinute(
+                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                ) {
                     return ConversationPositionTypes.END
                 }
             }
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
 
-        if(conversation.type == conversations[index - 1].type ) {
-            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
-                if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type))
+        {
+            if(Helpers.isSameMinute(
+                    conversation.date!!.toLong(), conversations[index -1].date!!.toLong())
+            ) {
+                if(Helpers.isSameHour(
+                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                ) {
                     return ConversationPositionTypes.START_TIMESTAMP
                 }
                 return ConversationPositionTypes.START
@@ -225,101 +233,6 @@ private fun getContentType(
 
     }
     return ConversationPositionTypes.NORMAL
-}
-
-@Preview
-@Composable
-private fun ConversationCrudBottomBar(
-    viewModel: ConversationsViewModel = ConversationsViewModel(),
-    items: List<Conversation> = emptyList(),
-    onCompleted: (() -> Unit)? = null,
-    onCancel: (() -> Unit)? = null,
-) {
-    val context = LocalContext.current
-    BottomAppBar (
-        actions = {
-            Row {
-                IconButton(onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        onCancel?.let { it() }
-                    }
-                }) {
-                    Icon(Icons.Default.Close, stringResource(R.string.cancel_selected_messages))
-                }
-
-                Text(
-                    viewModel.selectedItems.size.toString(),
-                    fontSize = 24.sp,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-
-                Spacer(Modifier.weight(1f))
-
-                if(viewModel.selectedItems.size < 2) {
-                    IconButton(onClick = {
-                        val conversation = items.firstOrNull {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        copyItem(context, conversation?.text!!)
-                        onCompleted?.invoke()
-                    }) {
-                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
-                    }
-
-                    IconButton(onClick = {
-                        TODO("Implement forward message")
-                    }) {
-                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
-                            stringResource(R.string.forward_message)
-                        )
-                    }
-
-                    IconButton(onClick = {
-                        val conversation = items.firstOrNull {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        shareItem(context, conversation?.text!!)
-                        onCompleted?.let { it() }
-                    }) {
-                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
-                    }
-                }
-
-                IconButton(onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        val conversations = items.filter {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        viewModel.delete(context, conversations)
-                        onCompleted?.let { it() }
-                    }
-                }) {
-                    Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
-                }
-            }
-
-        }
-    )
-}
-
-
-private fun shareItem(context: Context, text: String) {
-    val sendIntent = Intent().apply {
-        setAction(Intent.ACTION_SEND)
-        putExtra(Intent.EXTRA_TEXT, text)
-        setType("text/plain")
-    }
-
-    val shareIntent = Intent.createChooser(sendIntent, null)
-    // Only use for components you have control over
-    val excludedComponentNames = arrayOf(
-        ComponentName(
-            BuildConfig.APPLICATION_ID,
-            MainActivity::class.java.name
-        )
-    )
-    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
-    context.startActivity(shareIntent)
 }
 
 private fun call(context: Context, address: String) {
@@ -561,6 +474,7 @@ fun Conversations(
         if(searchIndexes.isNotEmpty() && searchIndex == 0)
             listState.animateScrollToItem(searchIndexes.first())
 
+        Notifications.cancel(context, viewModel.threadId.toInt())
     }
 
     LaunchedEffect(viewModel.address){

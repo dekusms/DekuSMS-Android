@@ -12,14 +12,12 @@ import androidx.core.app.RemoteInput
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.MainActivity
+import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -146,6 +144,6 @@ class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
         var REPLY_SUBSCRIPTION_ID: String = "REPLY_SUBSCRIPTION_ID"
 
         // Key for the string that's delivered in the action's intent.
-        const val KEY_TEXT_REPLY: String = "KEY_TEXT_REPLY"
+        const val KEY_TEXT_REPLY: String = "extra_remote_reply"
     }
 }

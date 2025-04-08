@@ -40,7 +40,7 @@ android {
             }
         }
 
-        resourceConfigurations += ["en", "fr", "ru", "de"]
+        resourceConfigurations += ["en", "fr", "ru", "de", "pl"]
     }
 
     buildFeatures {
@@ -298,5 +298,6 @@ dependencies {
 
     implementation(libs.autolinktext)
 
+    implementation libs.accompanist.permissions
 }
 
