@@ -166,10 +166,13 @@
             </intent-filter>
         </service>
         <service
-            android:name="com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService"
-            android:enabled="true"
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:exported="false"
-            android:foregroundServiceType="dataSync" /> <!-- <meta-data -->
+            android:foregroundServiceType="dataSync">
+            <intent-filter>
+                <action android:name="androidx.work.impl.foreground.SystemForegroundService" />
+            </intent-filter>
+        </service>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

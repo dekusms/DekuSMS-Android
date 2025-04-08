@@ -11,13 +11,14 @@ import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.MutableLiveData
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 
 class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var remoteListenersList: LiveData<List<RemoteListeners>>
-    private lateinit var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>>
+    private var rmqConnectionHandlers: LiveData<List<RMQConnectionHandler>> = MutableLiveData()
 
     var remoteListener by mutableStateOf<RemoteListeners?>(null)
 
