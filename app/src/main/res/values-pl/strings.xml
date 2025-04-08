@@ -247,6 +247,7 @@
     <string name="language_russian">Rosyjski</string>
     <string name="language_german">Niemiecki</string>
 
+    <string name="language_polish">Polski</string>
     <string name="language_english_value" translatable="false">en</string>
     <string name="language_french_value" translatable="false">fr</string>
     <string name="language_russian_value" translatable="false">ru</string>
@@ -264,6 +265,7 @@
 
     <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
     <string name="conversations_exported_complete">Eksport zakończony!</string>
+    <string name="conversations_import_complete">Import zakończony!</string>
     <string name="gateway_client_project_listing_project_name_title">Nazwa projektu</string>
     <string name="gateway_client_project_listing_no_projects_added">Brak dodanych projektów</string>
     <!-- TODO: Remove or change this placeholder text -->
@@ -312,6 +314,84 @@
     <string name="inbox_folder">Folder skrzynki odbiorczej</string>
     <string name="archive_folder">Folder archiwum</string>
     <string name="encrypted_folder">Folder zaszyfrow</string>
+    <string name="blocked_folder">Zablokowany folder</string>
+    <string name="move_search_backwards">Przesuń wyszukiwanie wstecz</string>
+    <string name="move_search_forwards">Przesuń wyszukiwanie do przodu</string>
+    <string name="results_found">znaleziono wyniki</string>
+    <string name="down_to_latest_content">Przejdź do najnowszej treści</string>
+    <string name="cancel_selected_messages">Anuluj wybrane wiadomości</string>
+    <string name="cancel_search">Anuluj wyszukiwanie</string>
+    <string name="unarchive_messages">Odarchiwizuj wiadomości</string>
+    <string name="thread_muted">Wątek wyciszony</string>
+    <string name="secure_request">Bezpieczne żądanie</string>
+    <string name="resend_message">Wyślij ponownie wiadomość</string>
+    <string name="delete_message1">Usuń wiadomość</string>
+    <string name="send_to">Wyślij do</string>
+    <string name="choose_sim_card">Wybierz kartę SIM</string>
+    <string name="conversation_is_secured">Rozmowa jest zabezpieczona</string>
+    <string name="compose_new">Utwórz nowy</string>
+    <string name="compose">Komponować</string>
+    <string name="notifications">Powiadomienia</string>
+    <string name="block_report_spam"><![CDATA[Zablokuj i zgłoś spam]]></string>
+    <string name="end_to_end_encryption">Szyfrowanie typu end-to-end</string>
+    <string name="end_to_end_encrypt">Szyfrowanie typu end-to-end:</string>
+    <string name="end_to_end_encryption_isn_t_available_in_this_conversation">W tej rozmowie nie jest dostępne szyfrowanie typu end-to-end.</string>
+    <string name="end_to_end_encryption_is_available_in_this_conversation">Szyfrowanie typu End-to-End jest dostępne w tej rozmowie</string>
+    <string name="on">NA</string>
+    <string name="off">Wyłączony</string>
+    <string name="phone_number_copied_to_clipboard">Skopiowano \'%1$s\' do schowka</string>
+    <string name="contact_is_blocked">Kontakt jest zablokowany</string>
+    <string name="conversation_menu_import">Import</string>
+    <string name="conversations">Rozmowy:</string>
+    <string name="threads">Wątki:</string>
+    <string name="archive">Archiwum</string>
+    <string name="select_a_conversation_from_the_list_on_the_left">Wybierz konwersację z listy po lewej stronie</string>
+    <string name="import_conversations">Importuj konwersacje</string>
+    <string name="reset_and_import">Resetuj i importuj</string>
+    <string name="block">Blok</string>
+    <string name="unblock">Odblokować</string>
+    <string name="welcome_image">Obraz powitalny</string>
+    <string name="remote_listeners">Zdalni słuchacze</string>
+    <string name="port">"Port: "</string>
+    <string name="virtual_host">Wirtualny host:</string>
+    <string name="no_queues_added">Nie dodano kolejek</string>
+    <string name="friendly_name">Nazwa przyjazna:</string>
+    <string name="state">stan:</string>
+    <string name="activated">Aktywowany</string>
+    <string name="deactivated">Dezaktywowany</string>
+    <string name="status">status:</string>
+    <string name="connected">Połączono</string>
+    <string name="disconnected">Rozłączono</string>
+    <string name="add">Dodaj</string>
+    <string name="edit">Edytuj</string>
+    <string name="sim_2_binding">Wiązanie SIM 2</string>
+    <string name="queue_name">Nazwa kolejki:</string>
+    <string name="editing_a_queue_would_restart_the_connection">Edytowanie kolejki spowoduje ponowne uruchomienie połączenia</string>
+    <string name="sim_1_binding">Wiązanie SIM 1</string>
+    <string name="auto_filled_to">Wypełniono automatycznie do:</string>
+    <string name="exchange">Wymiana</string>
+    <string name="defaulting_to_topic_exchange">Domyślnie wymiana typu Topic</string>
+    <string name="new_queues">Nowe kolejki</string>
+    <string name="no_remote_listeners">Brak zdalnych słuchaczy</string>
+    <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Tylko 1 połączenie naraz – ze względu na wąskie gardło między kanałami a radiem telefonu (możliwość równoległego wysyłania wiadomości SMS).</string>
+    <string name="sim_2_queue">Kolejka SIM 2:</string>
+    <string name="sim_2">SIM 2:</string>
+    <string name="channel_number">Numer kanału:</string>
+    <string name="sim_1_queue">Kolejka SIM 1:</string>
+    <string name="sim_1">SIM 1:</string>
+    <string name="messages"># Wiadomości:</string>
+    <string name="new_remote_listener">Nowy zdalny odbiornik</string>
+    <string name="return_back">Wróć</string>
+    <string name="host_url">Adres URL hosta</string>
+    <string name="example_com">example.com</string>
+    <string name="username">Nazwa użytkownika</string>
+    <string name="password">Hasło</string>
+    <string name="hide_password">Ukryj hasło</string>
+    <string name="show_password">Pokaż hasło</string>
+    <string name="choose_protocol">Wybierz protokół</string>
+    <string name="click_to_add_queues">• Kliknij, aby dodać kolejki</string>
+    <string name="press_and_hold_to_manage">• Naciśnij i przytrzymaj, aby zarządzać</string>
+    <string name="queues">%1$s kolejek</string>
 
 
 </resources>

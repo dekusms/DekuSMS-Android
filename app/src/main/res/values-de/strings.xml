@@ -205,6 +205,7 @@
     <string name="conversations_navigation_view_inbox">Posteingang</string>
     <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
     <string name="conversations_exported_complete">Export abgeschlossen!</string>
+    <string name="conversations_import_complete">Import abgeschlossen!</string>
     <string name="gateway_client_project_listing_project_name_title">Projektname</string>
     <string name="gateway_client_project_listing_no_projects_added">Keine Projekte hinzugefügt</string>
     <string name="conversations_secure_conversation_request"><b>John</b> hat eine sichere Unterhaltung angefordert.</string>
@@ -286,6 +287,49 @@
     <string name="reset_and_import">Zurücksetzen und importieren</string>
     <string name="block">Blockieren</string>
     <string name="unblock">Entsperren</string>
+    <string name="language_polish">Polieren</string>
+    <string name="welcome_image">Willkommensbild</string>
+    <string name="remote_listeners">Remote-Hörer</string>
+    <string name="port">"Port: "</string>
+    <string name="virtual_host">Virtueller Host:</string>
+    <string name="no_queues_added">Keine Warteschlangen hinzugefügt</string>
+    <string name="friendly_name">Freundlicher Name:</string>
+    <string name="state">Zustand:</string>
+    <string name="activated">Aktiviert</string>
+    <string name="deactivated">Deaktiviert</string>
+    <string name="status">Status:</string>
+    <string name="connected">Verbunden</string>
+    <string name="disconnected">Getrennt</string>
+    <string name="add">Hinzufügen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="sim_2_binding">SIM-2-Bindung</string>
+    <string name="queue_name">Warteschlangenname:</string>
+    <string name="editing_a_queue_would_restart_the_connection">Das Bearbeiten einer Warteschlange würde die Verbindung neu starten</string>
+    <string name="sim_1_binding">SIM-1-Bindung</string>
+    <string name="auto_filled_to">Automatisch ausgefüllt bis:</string>
+    <string name="exchange">Austausch</string>
+    <string name="defaulting_to_topic_exchange">Standardmäßig Topic-Austausch</string>
+    <string name="new_queues">Neue Warteschlangen</string>
+    <string name="no_remote_listeners">Keine Remote-Hörer</string>
+    <string name="only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel">Nur 1 Verbindung gleichzeitig – aufgrund des Engpasses zwischen den Kanälen und dem Funk des Telefons (Fähigkeit, SMS-Nachrichten parallel zu senden).</string>
+    <string name="sim_2_queue">SIM-2-Warteschlange:</string>
+    <string name="sim_2">SIM 2:</string>
+    <string name="channel_number">Kanalnummer:</string>
+    <string name="sim_1_queue">SIM-1-Warteschlange:</string>
+    <string name="sim_1">SIM 1:</string>
+    <string name="messages"># Nachrichten:</string>
+    <string name="new_remote_listener">Neuer Remote-Listener</string>
+    <string name="return_back">Zurückkehren</string>
+    <string name="host_url">Host-URL</string>
+    <string name="example_com">example.com</string>
+    <string name="username">Benutzername</string>
+    <string name="password">Passwort</string>
+    <string name="hide_password">Passwort ausblenden</string>
+    <string name="show_password">Passwort anzeigen</string>
+    <string name="choose_protocol">Protokoll auswählen</string>
+    <string name="click_to_add_queues">• Zum Hinzufügen von Warteschlangen klicken</string>
+    <string name="press_and_hold_to_manage">• Zum Verwalten gedrückt halten</string>
+    <string name="queues">%1$s Warteschlangen</string>
 
 
 </resources>
