@@ -91,14 +91,6 @@
             android:name=".AboutActivity"
             android:exported="false"/>
         <activity
-            android:name="com.afkanerd.deku.RemoteListeners.Models.GatewayClientAddActivity"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity" />
-        <activity
-            android:name="com.afkanerd.deku.RemoteListeners.Models.GatewayClientListingActivity"
-            android:exported="false"
-            android:parentActivityName=".SettingsActivity" />
-        <activity
             android:name=".SettingsActivity"
             android:exported="false"/>
         <activity
@@ -112,10 +104,6 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
             android:exported="false"/>
-        <activity
-            android:name=".DefaultCheckActivity"
-            android:exported="true">
-        </activity>
 
         <receiver
             android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
@@ -182,18 +170,6 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" /> <!-- <meta-data -->
-        <!-- android:name="preloaded_fonts" -->
-        <!-- android:resource="@array/preloaded_fonts" /> &lt;!&ndash; <provider &ndash;&gt; -->
-        <!-- android:name="androidx.startup.InitializationProvider" -->
-        <!-- android:authorities="${applicationId}.androidx-startup" -->
-        <!-- android:exported="false" -->
-        <!-- tools:node="merge"> -->
-        <!-- &lt;!&ndash; If you are using androidx.startup to initialize other components &ndash;&gt; -->
-        <!-- <meta-data -->
-        <!-- android:name="androidx.work.WorkManagerInitializer" -->
-        <!-- android:value="androidx.startup" -->
-        <!-- tools:node="remove" /> -->
-        <!-- </provider> -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
