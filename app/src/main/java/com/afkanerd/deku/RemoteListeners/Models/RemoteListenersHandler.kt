@@ -36,16 +36,18 @@ object RemoteListenersHandler {
         val simCards = SIMHandler.getSimCardInformation(context)
 
         val operatorCountry = Helpers.getUserCountry(context)
-        for (i in simCards.indices) {
-            val mcc = simCards[i].mcc.toString()
-            val _mnc = simCards[i].mnc
-            val mnc = if (_mnc < 10) "0$_mnc" else _mnc.toString()
-            val carrierId = mcc + mnc
+        simCards?.let {
+            for (i in simCards.indices) {
+                val mcc = simCards[i].mcc.toString()
+                val _mnc = simCards[i].mnc
+                val mnc = if (_mnc < 10) "0$_mnc" else _mnc.toString()
+                val carrierId = mcc + mnc
 
-            val publisherName = "$projectName.$operatorCountry.$carrierId"
-            operatorDetails.add(publisherName)
+                val publisherName = "$projectName.$operatorCountry.$carrierId"
+                operatorDetails.add(publisherName)
+            }
+
         }
-
         return operatorDetails
     }
 

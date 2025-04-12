@@ -74,6 +74,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
+import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -96,6 +97,7 @@ fun RMQMainComposable(
 ) {
     val requiredSMSPermissions = Manifest.permission.SEND_SMS
     val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
+    val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
 
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -111,6 +113,17 @@ fun RMQMainComposable(
     else remoteListenerViewModel.getRmqConnections().observeAsState(emptyList()).value
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
+
+    val getReadPhoneStatePermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
+            }
+        }
+
 
     val getNotificationsPermissionsLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -154,6 +167,9 @@ fun RMQMainComposable(
     var showPermissionModal by remember { mutableStateOf(!smsPermissions.status.isGranted) }
 
     val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
+
+    val readPhoneStatePermissions = rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
+    var showReadPhoneStatesPermissionModal by remember { mutableStateOf(false) }
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
@@ -282,6 +298,20 @@ fun RMQMainComposable(
                 }
             }
 
+            if(showReadPhoneStatesPermissionModal) {
+                RemoteListenersReadPhoneStatePermissionModal(
+                    showReadPhoneStatesPermissionModal,
+                    grantPermissionsCallback = {
+                        getReadPhoneStatePermissionsLauncher.launch(
+                            requiredReadPhoneStatePermissions
+                        )
+                        showReadPhoneStatesPermissionModal = false
+                    }
+                ) {
+                    showReadPhoneStatesPermissionModal = false
+                }
+            }
+
             if(showPermissionModal) {
                 RemoteListenerSMSPermissionsModal(
                     showModal = showPermissionModal,
@@ -328,6 +358,7 @@ fun RMQMainComposable(
                                     requiredSMSPermissions
                                 ) == PackageManager.PERMISSION_GRANTED -> {
                                     CoroutineScope(Dispatchers.Default).launch {
+
                                         if(remoteListenerQueuesViewModel
                                                 .getList(
                                                     context,
@@ -343,12 +374,18 @@ fun RMQMainComposable(
                                             }
                                         }
                                         else {
-                                            remoteListenerViewModel.remoteListener?.activated = true
-                                            launch(Dispatchers.Main) {
-                                                RemoteListenersHandler.startListening(
-                                                    context,
-                                                    remoteListenerViewModel.remoteListener!!
-                                                )
+                                            if(!readPhoneStatePermissions.status.isGranted) {
+                                                showReadPhoneStatesPermissionModal = true
+                                            }
+                                            else {
+                                                remoteListenerViewModel.remoteListener
+                                                    ?.activated = true
+                                                launch(Dispatchers.Main) {
+                                                    RemoteListenersHandler.startListening(
+                                                        context,
+                                                        remoteListenerViewModel.remoteListener!!
+                                                    )
+                                                }
                                             }
                                         }
                                     }
