@@ -99,10 +99,12 @@ object RemoteListenersHandler {
         CoroutineScope(Dispatchers.Default).launch {
             toggleRemoteListeners(context, remoteListener)
             val intent = Intent(context, RemoteListenerConnectionService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            launch(Dispatchers.Main) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
             }
         }
     }

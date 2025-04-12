@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -246,7 +247,8 @@ class RemoteListenerConnectionService : Service() {
                     .setContentIntent(pendingIntent)
                     .setStyle(
                         NotificationCompat.BigTextStyle()
-                        .bigText(description))
+                        .bigText(description)
+                    )
                     .build()
                     .apply {
                         flags = Notification.FLAG_ONGOING_EVENT
@@ -254,15 +256,14 @@ class RemoteListenerConnectionService : Service() {
 
         val notificationId = getString(R.string.gateway_client_service_notification_id).toInt()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(
-                notificationId,
-                notification,
+        ServiceCompat.startForeground(
+            this,
+            notificationId,
+            notification,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            startForeground(notificationId, notification)
-        }
+            } else { 0 }
+        )
     }
 
 }

@@ -332,7 +332,6 @@ fun RMQMainComposable(
                                     context,
                                     requiredSMSPermissions
                                 ) == PackageManager.PERMISSION_GRANTED -> {
-
                                     CoroutineScope(Dispatchers.Default).launch {
                                         if(remoteListenerQueuesViewModel
                                                 .getList(
