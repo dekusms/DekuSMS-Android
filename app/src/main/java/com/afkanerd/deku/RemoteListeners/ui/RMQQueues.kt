@@ -1,6 +1,10 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
+import android.Manifest
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,14 +51,20 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersVi
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.components.RemoteListenersQueuesCard
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
+import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
 import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.rabbitmq.client.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun RMQQueuesComposable(
     _remoteListenersQueues: List<RemoteListenersQueues> = emptyList(),
@@ -95,6 +105,19 @@ fun RMQQueuesComposable(
         remoteListenersQueuesViewModel.remoteListenerQueues = null
         navController.popBackStack(RemoteListenersScreen, false)
     }
+
+    val requiredPermissions = rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
+    var showPermissionsModals by remember { mutableStateOf(!requiredPermissions.status.isGranted) }
+
+    val getReadPhoneStatePermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
+            }
+        }
 
     Scaffold(
         topBar = {
@@ -170,6 +193,20 @@ fun RMQQueuesComposable(
                             }
                         }
                     }
+                }
+            }
+
+            if(showPermissionsModals) {
+                RemoteListenersReadPhoneStatePermissionModal(
+                    showPermissionsModals,
+                    grantPermissionsCallback = {
+                        getReadPhoneStatePermissionsLauncher.launch(
+                            Manifest.permission.READ_PHONE_STATE
+                        )
+                        showPermissionsModals = false
+                    }
+                ) {
+                  showPermissionsModals = false
                 }
             }
 

@@ -23,19 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
-import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.example.compose.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RemoteListenerSMSPermissionsModal(
+fun RemoteListenersReadPhoneStatePermissionModal(
     showModal: Boolean,
-    makeDefaultCallback: () -> Unit,
     grantPermissionsCallback: () -> Unit,
     dismissCallback: () -> Unit
 ) {
@@ -68,29 +62,21 @@ fun RemoteListenerSMSPermissionsModal(
                 Spacer(Modifier.padding(16.dp))
 
                 Text(
-                    "Remote listeners sends messages and listen for delivery reports. This requires permission to read and write SMS messages.",
+                    "Grant permission to detect how many SIM cards you have on your device",
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(Modifier.padding(8.dp))
                 Text(
-                    "You can make the app your default SMS app, or choose to grant the necessary permissions",
+                    "This would also auto fill useful information which can help you identify your various queues.",
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary
                 )
 
                 Spacer(Modifier.padding(12.dp))
-                Button(onClick = makeDefaultCallback) {
-                    Text("Make default")
-                }
-
-                Spacer(Modifier.padding(4.dp))
-                TextButton(onClick = grantPermissionsCallback) {
-                    Text(
-                        "Grant permissions",
-                        color= MaterialTheme.colorScheme.error
-                    )
+                Button(onClick = grantPermissionsCallback) {
+                    Text("Grant permission")
                 }
             }
         }
@@ -98,8 +84,9 @@ fun RemoteListenerSMSPermissionsModal(
 
 @Composable
 @Preview
-fun ConnectionCards_Preview() {
+fun RemoteListenerReadPhoneStatePermission_Preview() {
     AppTheme {
-        RemoteListenerSMSPermissionsModal(true, {}, {}){}
+        RemoteListenersReadPhoneStatePermissionModal(true, {}){}
     }
 }
+
