@@ -70,6 +70,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
@@ -89,11 +90,18 @@ import kotlinx.coroutines.launch
 fun RMQMainComposable(
     _remoteListeners: List<RemoteListeners> = emptyList<RemoteListeners>(),
     remoteListenerViewModel: RemoteListenersViewModel,
-    remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
+    remoteListenerQueuesViewModel: RemoteListenerQueuesViewModel,
     conversationsViewModel: ConversationsViewModel,
     navController: NavController,
 ) {
-    val requiredPermission = Manifest.permission.SEND_SMS
+    val requiredSMSPermissions = Manifest.permission.SEND_SMS
+    val requiredNotificationsPermissions =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC
+        } else {
+            Manifest.permission.FOREGROUND_SERVICE
+        }
+
     val context = LocalContext.current
     val activity = LocalActivity.current
 
@@ -108,6 +116,17 @@ fun RMQMainComposable(
     else remoteListenerViewModel.getRmqConnections().observeAsState(emptyList()).value
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
+
+    val getNotificationsPermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "We cannot do without this one...", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
 
     val getSMSPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -136,8 +155,10 @@ fun RMQMainComposable(
             }
         }
 
-    val requiredPermissions = rememberPermissionState(requiredPermission)
-    var showPermissionModal by remember { mutableStateOf(!requiredPermissions.status.isGranted) }
+    val smsPermissions = rememberPermissionState(requiredSMSPermissions)
+    var showPermissionModal by remember { mutableStateOf(!smsPermissions.status.isGranted) }
+
+    val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
@@ -274,7 +295,7 @@ fun RMQMainComposable(
                         showPermissionModal = false
                     },
                     grantPermissionsCallback = {
-                        getSMSPermissionLauncher.launch(requiredPermission)
+                        getSMSPermissionLauncher.launch(requiredSMSPermissions)
                         showPermissionModal = false
                     }
                 ) {
@@ -292,35 +313,61 @@ fun RMQMainComposable(
                         navController.navigate(RemoteListenersAddScreen)
                     },
                     connectionCallback = {
-                        if(activated) {
+                        if(!notificationPermission.status.isGranted) {
+                            getNotificationsPermissionsLauncher
+                                .launch(requiredNotificationsPermissions)
+                        }
+                        else if(activated) {
                             //Deactivating
                             remoteListenerViewModel.remoteListener?.activated = false
                             RemoteListenersHandler.stopListening(
                                 context,
                                 remoteListenerViewModel.remoteListener!!
                             )
-                        } else {
+                        }
+                        else {
                             //Activating
                             when {
                                 checkSelfPermission(
                                     context,
-                                    requiredPermission
+                                    requiredSMSPermissions
                                 ) == PackageManager.PERMISSION_GRANTED -> {
-                                    remoteListenerViewModel.remoteListener?.activated = true
-                                    RemoteListenersHandler.startListening(
-                                        context,
-                                        remoteListenerViewModel.remoteListener!!
-                                    )
+
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        if(remoteListenerQueuesViewModel
+                                                .getList(
+                                                    context,
+                                                    remoteListenerViewModel.remoteListener?.id!!
+                                                ).isEmpty()) {
+
+                                            launch(Dispatchers.Main) {
+                                                Toast
+                                                    .makeText(
+                                                        context,
+                                                        "Add queues to activate...",
+                                                        Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                        else {
+                                            remoteListenerViewModel.remoteListener?.activated = true
+                                            launch(Dispatchers.Main) {
+                                                RemoteListenersHandler.startListening(
+                                                    context,
+                                                    remoteListenerViewModel.remoteListener!!
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
 
                                 ActivityCompat.shouldShowRequestPermissionRationale(
                                     activity!!,
-                                    requiredPermission
+                                    requiredSMSPermissions
                                 ) -> {
                                     TODO()
                                 }
                                 else -> {
-                                    getSMSPermissionLauncher.launch(requiredPermission)
+                                    getSMSPermissionLauncher.launch(requiredSMSPermissions)
                                 }
                             }
                         }
@@ -328,7 +375,7 @@ fun RMQMainComposable(
                     },
                     deleteCallback = {
                         CoroutineScope(Dispatchers.Default).launch {
-                            remoteListenerProjectsViewModel.delete(
+                            remoteListenerQueuesViewModel.delete(
                                 context,
                                 remoteListenerViewModel.remoteListener!!.id
                             )

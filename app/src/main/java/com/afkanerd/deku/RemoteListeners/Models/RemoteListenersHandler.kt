@@ -112,21 +112,6 @@ object RemoteListenersHandler {
      * Don't use this for any long running metrics - just a constraints metrics
      */
     fun startWorkManager(context: Context, remoteListeners: RemoteListeners) {
-
-        val servicePermission = PermissionChecker.checkSelfPermission(
-            context,
-            Manifest.permission.READ_SMS
-        )
-
-        if(servicePermission != PermissionChecker.PERMISSION_GRANTED) {
-            Toast.makeText(
-                context,
-                "Foreground Permission not granted!",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-
         val constraints : Constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build();

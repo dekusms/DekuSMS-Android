@@ -1,11 +1,8 @@
 package com.afkanerd.deku
 
-import android.Manifest
 import android.app.ComponentCaller
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Telephony
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -47,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
@@ -125,7 +121,7 @@ class MainActivity : AppCompatActivity(){
                             composable<RemoteListenersScreen>{
                                 RMQMainComposable(
                                     remoteListenerViewModel = remoteListenersViewModel,
-                                    remoteListenerProjectsViewModel =
+                                    remoteListenerQueuesViewModel =
                                         remoteListenersProjectsViewModel,
                                     conversationsViewModel = conversationViewModel,
                                     navController = navController

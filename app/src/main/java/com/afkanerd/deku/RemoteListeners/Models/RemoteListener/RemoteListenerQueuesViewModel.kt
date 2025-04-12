@@ -30,6 +30,11 @@ class RemoteListenerQueuesViewModel( context: Context? = null ) : ViewModel() {
         return liveData
     }
 
+    fun getList(context: Context, gatewayClientId: Long): List<RemoteListenersQueues> {
+        datastore = Datastore.getDatastore(context)
+        return datastore.remoteListenersQueuesDao().fetchRemoteListenersQueues(gatewayClientId)
+    }
+
     fun insert(remoteListenersQueues: RemoteListenersQueues) {
         datastore.remoteListenersQueuesDao().insert(remoteListenersQueues)
     }
