@@ -249,13 +249,6 @@ public class NativeSMSDB {
             return outputs;
         }
 
-        protected static void _send_key(Context context, String messageId, String destinationAddress,
-                                             byte[] data, int subscriptionId, Bundle bundle) throws Exception {
-            PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
-            Transmissions.INSTANCE.sendDataSMS(destinationAddress, data,
-                    pendingIntents[0], pendingIntents[1], subscriptionId);
-        }
-
         private static String[] register_pending_data(Context context, String messageId,
                                                  String destinationAddress, String text, int subscriptionId) {
             ContentValues contentValues = new ContentValues();
