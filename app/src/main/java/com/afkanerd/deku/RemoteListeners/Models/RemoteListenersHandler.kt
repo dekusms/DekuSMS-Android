@@ -1,9 +1,12 @@
 package com.afkanerd.deku.RemoteListeners.Models
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.telephony.SubscriptionInfo
+import android.widget.Toast
+import androidx.core.content.PermissionChecker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -16,7 +19,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -96,8 +99,7 @@ object RemoteListenersHandler {
     fun startListening(context: Context, remoteListener: RemoteListeners) {
         CoroutineScope(Dispatchers.Default).launch {
             toggleRemoteListeners(context, remoteListener)
-
-            val intent = Intent(context, RMQConnectionService::class.java)
+            val intent = Intent(context, RemoteListenerConnectionService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
@@ -111,6 +113,21 @@ object RemoteListenersHandler {
      * Don't use this for any long running metrics - just a constraints metrics
      */
     fun startWorkManager(context: Context, remoteListeners: RemoteListeners) {
+
+        val servicePermission = PermissionChecker.checkSelfPermission(
+            context,
+            Manifest.permission.READ_SMS
+        )
+
+        if(servicePermission != PermissionChecker.PERMISSION_GRANTED) {
+            Toast.makeText(
+                context,
+                "Foreground Permission not granted!",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         val constraints : Constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build();

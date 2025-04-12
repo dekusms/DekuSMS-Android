@@ -127,6 +127,7 @@ class MainActivity : AppCompatActivity(){
                                     remoteListenerViewModel = remoteListenersViewModel,
                                     remoteListenerProjectsViewModel =
                                         remoteListenersProjectsViewModel,
+                                    conversationsViewModel = conversationViewModel,
                                     navController = navController
                                 )
                             }
@@ -241,14 +242,4 @@ class MainActivity : AppCompatActivity(){
                 conversationViewModel.insertDraft(applicationContext)
         }
     }
-
-    fun checkIsDefault(): Boolean {
-        val defaultName = Telephony.Sms.getDefaultSmsPackage(applicationContext)
-        if(defaultName.isNullOrBlank() || packageName != defaultName) {
-            return ContextCompat.checkSelfPermission(applicationContext,
-                Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
-        }
-        return false
-    }
-
 }

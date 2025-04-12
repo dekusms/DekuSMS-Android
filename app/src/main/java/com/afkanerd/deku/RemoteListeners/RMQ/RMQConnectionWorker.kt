@@ -22,6 +22,7 @@ import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -68,13 +69,13 @@ class RMQConnectionWorker(
         handleBroadcast()
     }
 
-    private lateinit var mService: RMQConnectionService
+    private lateinit var mService: RemoteListenerConnectionService
     /** Defines callbacks for service binding, passed to bindService().  */
     private val serviceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            val binder = service as RMQConnectionService.LocalBinder
+            val binder = service as RemoteListenerConnectionService.LocalBinder
             mService = binder.getService()
         }
 
@@ -85,7 +86,7 @@ class RMQConnectionWorker(
     fun start(): RMQConnectionHandler {
         Log.d(javaClass.name, "Starting new service connection...")
 
-        Intent(context, RMQConnectionService::class.java).also { intent ->
+        Intent(context, RemoteListenerConnectionService::class.java).also { intent ->
             context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
 

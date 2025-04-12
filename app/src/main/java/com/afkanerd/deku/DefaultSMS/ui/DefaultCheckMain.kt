@@ -38,20 +38,22 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
     val context = LocalContext.current
+
     val getDefaultPermission =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val sharedPreferences =
                     PreferenceManager.getDefaultSharedPreferences(context)
-                sharedPreferences.edit()
-                    .putBoolean(context.getString(R.string.configs_load_natives), true)
-                    .apply()
+                sharedPreferences.edit() {
+                    putBoolean(context.getString(R.string.configs_load_natives), true)
+                }
                 permissionGrantedCallback?.invoke()
             }
         }

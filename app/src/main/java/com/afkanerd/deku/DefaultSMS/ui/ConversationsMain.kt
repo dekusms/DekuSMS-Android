@@ -244,7 +244,7 @@ private fun call(context: Context, address: String) {
 }
 
 @Composable
-private fun MainDropDownMenu(
+private fun ConversationsMainDropDownMenu(
     expanded: Boolean = true,
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
@@ -530,7 +530,7 @@ fun Conversations(
         )
     }
 
-    MainDropDownMenu(
+    ConversationsMainDropDownMenu(
         rememberMenuExpanded,
         isMute = isMute,
         isBlocked = isBlocked,

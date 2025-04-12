@@ -1,6 +1,19 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
+import android.Manifest
+import android.app.Activity.RESULT_OK
+import android.app.role.RoleManager
+import android.content.Context
+import android.content.Context.ROLE_SERVICE
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Telephony
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -49,26 +62,41 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
+import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun RMQMainComposable(
     _remoteListeners: List<RemoteListeners> = emptyList<RemoteListeners>(),
     remoteListenerViewModel: RemoteListenersViewModel,
     remoteListenerProjectsViewModel: RemoteListenerQueuesViewModel,
+    conversationsViewModel: ConversationsViewModel,
     navController: NavController,
 ) {
+    val requiredPermission = Manifest.permission.SEND_SMS
     val context = LocalContext.current
+    val activity = LocalActivity.current
+
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -80,6 +108,36 @@ fun RMQMainComposable(
     else remoteListenerViewModel.getRmqConnections().observeAsState(emptyList()).value
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
+
+    val getSMSPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "I'd be back!", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    val getDefaultPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                sharedPreferences.edit() {
+                    putBoolean(context.getString(R.string.configs_load_natives), true)
+                }
+                CoroutineScope(Dispatchers.Default).launch {
+                    conversationsViewModel.reset(context)
+                    launch(Dispatchers.Main) {
+                        Toast.makeText(context, "Messages loaded!", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
+    val requiredPermissions = rememberPermissionState(requiredPermission)
+    var showPermissionModal by remember { mutableStateOf(!requiredPermissions.status.isGranted) }
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
@@ -208,6 +266,22 @@ fun RMQMainComposable(
                 }
             }
 
+            if(showPermissionModal) {
+                RemoteListenerSMSPermissionsModal(
+                    showModal = showPermissionModal,
+                    makeDefaultCallback = {
+                        getDefaultPermission.launch(makeDefault(context))
+                        showPermissionModal = false
+                    },
+                    grantPermissionsCallback = {
+                        getSMSPermissionLauncher.launch(requiredPermission)
+                        showPermissionModal = false
+                    }
+                ) {
+                    showPermissionModal = false
+                }
+            }
+
             if(showRemoteListenerModal) {
                 val activated = remoteListenerViewModel.remoteListener?.activated == true
                 RemoteListenerModal(
@@ -227,11 +301,28 @@ fun RMQMainComposable(
                             )
                         } else {
                             //Activating
-                            remoteListenerViewModel.remoteListener?.activated = true
-                            RemoteListenersHandler.startListening(
-                                context,
-                                remoteListenerViewModel.remoteListener!!
-                            )
+                            when {
+                                checkSelfPermission(
+                                    context,
+                                    requiredPermission
+                                ) == PackageManager.PERMISSION_GRANTED -> {
+                                    remoteListenerViewModel.remoteListener?.activated = true
+                                    RemoteListenersHandler.startListening(
+                                        context,
+                                        remoteListenerViewModel.remoteListener!!
+                                    )
+                                }
+
+                                ActivityCompat.shouldShowRequestPermissionRationale(
+                                    activity!!,
+                                    requiredPermission
+                                ) -> {
+                                    TODO()
+                                }
+                                else -> {
+                                    getSMSPermissionLauncher.launch(requiredPermission)
+                                }
+                            }
                         }
                         showRemoteListenerModal = false
                     },
@@ -251,6 +342,20 @@ fun RMQMainComposable(
                     showRemoteListenerModal = false
                 }
             }
+        }
+    }
+}
+
+fun makeDefault(context: Context): Intent {
+    // TODO: replace this with checking other permissions - since this gives null in level 35
+    return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val roleManager = context.getSystemService(ROLE_SERVICE) as RoleManager
+        roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS).apply {
+            putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
+        }
+    } else {
+        Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT).apply {
+            putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
         }
     }
 }
@@ -277,6 +382,7 @@ fun ConnectionCards_Preview() {
             listOf(remoteListeners, remoteListeners1),
             RemoteListenersViewModel(),
             RemoteListenerQueuesViewModel(),
+            ConversationsViewModel(),
             rememberNavController(),
         )
     }

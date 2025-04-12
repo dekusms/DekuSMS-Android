@@ -1,11 +1,17 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.provider.Telephony
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,21 +22,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Drafts
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -49,12 +69,30 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.room.util.TableInfo
 import coil3.compose.AsyncImage
+import com.afkanerd.deku.DefaultSMS.AboutActivity
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.afkanerd.deku.DefaultSMS.SettingsActivity
+import com.afkanerd.deku.DefaultSMS.ui.InboxType
+import com.afkanerd.deku.RemoteListenersScreen
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.FileOutputStream
+import java.io.InputStreamReader
 import java.nio.file.WatchEvent
 
 @Preview
@@ -310,4 +348,356 @@ fun ThreadConversationCard(
             ThreadConversationsAvatar(LocalContext.current, id, firstName, lastName, phoneNumber, isContact)
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ModalDrawerSheetLayout(
+    callback: ((InboxType) -> Unit)? = null,
+    selectedItemIndex: InboxType = InboxType.INBOX,
+    counts: ThreadsCount? = null,
+) {
+    ModalDrawerSheet {
+        Text(
+            stringResource(R.string.folders),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(16.dp))
+        HorizontalDivider()
+        Column(modifier = Modifier.padding(16.dp)) {
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Inbox,
+                        contentDescription = stringResource(R.string.inbox_folder)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_inbox ),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.unreadCount > 0)
+                            Text(counts.unreadCount.toString(), fontSize = 14.sp)
+                    }
+                },
+                selected = selectedItemIndex == InboxType.INBOX,
+                onClick = { callback?.let{ it(InboxType.INBOX) } }
+            )
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Archive,
+                        contentDescription = stringResource(R.string.archive_folder)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_archived ),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.archivedCount > 0)
+                            Text(counts.archivedCount.toString(), fontSize = 14.sp)
+                    }
+                },
+                selected = selectedItemIndex == InboxType.ARCHIVED,
+                onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
+            )
+            HorizontalDivider()
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Drafts,
+                        contentDescription = stringResource(R.string.thread_conversation_type_draft)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_drafts),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                    counts?.let {
+                        if(counts.draftsCount > 0)
+                            Text(counts.draftsCount.toString(), fontSize = 14.sp)
+                    }
+                },
+                selected = selectedItemIndex == InboxType.DRAFTS,
+                onClick = { callback?.let{ it(InboxType.DRAFTS) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Security,
+                        contentDescription = stringResource(R.string.encrypted_folder)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_encryption),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                },
+                selected = selectedItemIndex == InboxType.ENCRYPTED,
+                onClick = { callback?.let{ it(InboxType.ENCRYPTED) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.AutoMirrored.Default.VolumeOff,
+                        contentDescription = stringResource(R.string.conversation_menu_muted_label)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversation_menu_muted_label),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                },
+                selected = selectedItemIndex == InboxType.MUTED,
+                onClick = { callback?.let{ it(InboxType.MUTED) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Block,
+                        contentDescription = stringResource(R.string.blocked_folder)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.conversations_navigation_view_blocked),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                },
+                selected = selectedItemIndex == InboxType.BLOCKED,
+                onClick = { callback?.let{ it(InboxType.BLOCKED) } }
+            )
+
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun ThreadsMainDropDown(
+    expanded: Boolean = false,
+    conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
+    navController: NavController,
+    dismissCallback: ((Boolean) -> Unit)? = null,
+) {
+    val context = LocalContext.current
+    val defaultPermission = rememberPermissionState(Manifest.permission.READ_SMS)
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        println(uri)
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                with(context.contentResolver.openFileDescriptor(uri, "w")) {
+                    this?.fileDescriptor.let { fd ->
+                        val fileOutputStream = FileOutputStream(fd);
+                        fileOutputStream.write(conversationViewModel
+                            .getAllExport(context).encodeToByteArray());
+                        // Let the document provider know you're done by closing the stream.
+                        fileOutputStream.close();
+                    }
+                    this?.close();
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Toast.makeText(context,
+                            context.getString(R.string.conversations_exported_complete),
+                            Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()) { uri ->
+        println(uri)
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                val stringBuilder = StringBuilder()
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                        var line: String? = reader.readLine()
+                        while (line != null) {
+                            stringBuilder.append(line)
+                            line = reader.readLine()
+                        }
+                    }
+                }
+                conversationViewModel.importDetails = stringBuilder.toString()
+                CoroutineScope(Dispatchers.Main).launch {
+                    Toast.makeText(context,
+                        context.getString(R.string.conversations_import_complete),
+                        Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.TopEnd)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { dismissCallback?.let{ it(false) } },
+        ) {
+
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.settings_title),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, SettingsActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+
+            if(defaultPermission.status.isGranted || LocalInspectionMode.current) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.conversation_menu_export),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    onClick = {
+                        dismissCallback?.let { it(false) }
+                        val filename = "Deku_SMS_All_Backup" + System.currentTimeMillis() + ".json";
+                        exportLauncher.launch(filename)
+                    }
+                )
+
+                if(BuildConfig.DEBUG)
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text= stringResource(R.string.conversation_menu_import),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        onClick = {
+                            dismissCallback?.let { it(false) }
+                            importLauncher.launch("application/json")
+                        }
+                    )
+            }
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.homepage_menu_routed),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= stringResource(R.string.remote_listeners),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    navController.navigate(RemoteListenersScreen)
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.about_deku),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.let { it(false) }
+                    context.startActivity(
+                        Intent(context, AboutActivity::class.java).apply {
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                        }
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun SwipeToDeleteBackground(
+    dismissState: SwipeToDismissBoxState? = null,
+    inArchive: Boolean = false
+) {
+    var arrangement = Arrangement.End
+    val color = when(dismissState?.dismissDirection) {
+        SwipeToDismissBoxValue.StartToEnd -> {
+            arrangement = Arrangement.Start
+            MaterialTheme.colorScheme.error
+        }
+        SwipeToDismissBoxValue.EndToStart -> {
+            MaterialTheme.colorScheme.primary
+        }
+        SwipeToDismissBoxValue.Settled -> Color.Transparent
+        else -> Color.Transparent
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color)
+            .padding(12.dp, 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = arrangement
+    ) {
+        Icon(
+            when(dismissState?.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Delete
+                else -> {
+                    when {
+                        inArchive -> Icons.Default.Unarchive
+                        else -> Icons.Default.Archive
+                    }
+                }
+            },
+            tint = MaterialTheme.colorScheme.onPrimary,
+            contentDescription = stringResource(R.string.messages_threads_menu_archive)
+        )
+    }
 }
