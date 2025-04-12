@@ -256,14 +256,18 @@ class RemoteListenerConnectionService : Service() {
 
         val notificationId = getString(R.string.gateway_client_service_notification_id).toInt()
 
-        ServiceCompat.startForeground(
-            this,
-            notificationId,
-            notification,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            } else { 0 }
-        )
+        try {
+            ServiceCompat.startForeground(
+                this,
+                notificationId,
+                notification,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                } else { 0 }
+            )
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

@@ -95,12 +95,7 @@ fun RMQMainComposable(
     navController: NavController,
 ) {
     val requiredSMSPermissions = Manifest.permission.SEND_SMS
-    val requiredNotificationsPermissions =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC
-        } else {
-            Manifest.permission.FOREGROUND_SERVICE
-        }
+    val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
 
     val context = LocalContext.current
     val activity = LocalActivity.current
