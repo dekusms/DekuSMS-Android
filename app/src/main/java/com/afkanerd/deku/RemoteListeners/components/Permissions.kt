@@ -197,7 +197,7 @@ fun SMSPermissionComposable() {
                         TextButton(onClick = {
                             getSMSPermissionLauncher.launch(requiredReceiveSMSPermission)
                         }) {
-                            Text("Grant receive sms permission")
+                            Text("Grant read sms permission")
                         }
                     }
                 }

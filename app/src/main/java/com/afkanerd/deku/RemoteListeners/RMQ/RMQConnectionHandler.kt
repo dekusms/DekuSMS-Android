@@ -13,7 +13,7 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
     private val exclusive: Boolean = false
     private val durable: Boolean = true
 
-    private val channelTagMap = mutableMapOf<String, Channel>()
+    private val channelConsumerTags: MutableMap<String, Channel> = mutableMapOf()
 
     private val remoteListenersChannelLiveData:
             MutableLiveData<MutableMap<RemoteListenersQueues, List<Channel>>> = MutableLiveData()
@@ -83,12 +83,23 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         return remoteListenersChannelLiveData
     }
 
-    fun bindChannelToTag(channel: Channel, channelTag: String)  {
-        channelTagMap[channelTag] = channel
+    fun bindChannelConsumerTag(
+        consumerTag: String,
+        remoteListenersQueues: RemoteListenersQueues,
+        channel: Channel
+    ) {
+        channelConsumerTags[consumerTag] = remoteListenersChannelLiveData.value
+            ?.get(remoteListenersQueues)?.find{ it == channel }!!
     }
 
-    fun findChannelByTag(channelTag: String) : Channel? {
-        return channelTagMap[channelTag]
+    fun findChannelByTag( consumerTag: String ) : Channel? {
+        return channelConsumerTags[consumerTag]
+    }
+
+    fun findQueueByGatewayClientId(id: Long): RemoteListenersQueues? {
+        return remoteListenersChannelLiveData.value?.keys?.first {
+            it.gatewayClientId == id
+        }
     }
 
     fun close() {
@@ -121,10 +132,10 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
 
     companion object {
         const val MESSAGE_SID: String = "sid"
-
         const val RMQ_ID: String = "RMQ_ID"
         const val RMQ_DELIVERY_TAG: String = "RMQ_DELIVERY_TAG"
         const val RMQ_CONSUMER_TAG: String = "RMQ_CONSUMER_TAG"
+        const val REMOTE_LISTENER_QUEUE_ID: String = "REMOTE_LISTENER_QUEUE_ID"
 
         fun getQueueName(binding: String): String {
             return binding.replace("\\.".toRegex(), "_")

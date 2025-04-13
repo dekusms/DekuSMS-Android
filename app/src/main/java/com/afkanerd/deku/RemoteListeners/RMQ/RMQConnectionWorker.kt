@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -90,14 +91,14 @@ class RMQConnectionWorker(
             context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
 
-        val gatewayClient = Datastore.getDatastore(context).remoteListenerDAO()
+        val remoteListener = Datastore.getDatastore(context).remoteListenerDAO()
             .fetch(gatewayClientId)
 
-        factory.username = gatewayClient.username
-        factory.password = gatewayClient.password
-        factory.virtualHost = gatewayClient.virtualHost
-        factory.host = gatewayClient.hostUrl
-        factory.port = gatewayClient.port
+        factory.username = remoteListener.username
+        factory.password = remoteListener.password
+        factory.virtualHost = remoteListener.virtualHost
+        factory.host = remoteListener.hostUrl
+        factory.port = remoteListener.port
         factory.exceptionHandler = DefaultExceptionHandler()
 
         /**
@@ -105,7 +106,7 @@ class RMQConnectionWorker(
          */
         factory.isAutomaticRecoveryEnabled = false
 
-        startConnection(factory, gatewayClient)
+        startConnection(factory, remoteListener)
         try {
             mService.putRmqConnection(rmqConnectionHandler)
         } catch(e: Exception) {
@@ -207,14 +208,16 @@ class RMQConnectionWorker(
         remoteListenersQueues: RemoteListenersQueues,
         bindingName: String
     ) {
-        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnectionHandler.id)
+        val deliverCallback = getDeliverCallback(
+            subscriptionId,
+            rmqConnectionHandler.id
+        )
         val queueName = rmqConnectionHandler.createQueue(
             exchangeName = remoteListenersQueues.name!!,
             bindingKey = bindingName,
             channel = channel,
         )
         rmqConnectionHandler.createExchange(remoteListenersQueues.name!!, channel)
-        val messagesCount = channel.messageCount(queueName)
 
         val consumerTag = channel.basicConsume(
             queueName,
@@ -229,8 +232,12 @@ class RMQConnectionWorker(
                     )
                 }
             })
-        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
-//        rmqConnectionHandler.bindChannelToTag(channel, consumerTag)
+
+        rmqConnectionHandler.bindChannelConsumerTag(
+            consumerTag,
+            remoteListenersQueues,
+            channel
+        )
     }
 
     private fun handleBroadcast() {
@@ -239,7 +246,6 @@ class RMQConnectionWorker(
         messageStateChangedBroadcast = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action != null && intentFilter.hasAction(intent.action)) {
-                    Log.d(javaClass.name, "Received incoming broadcast")
                     if (intent.hasExtra(RMQConnectionHandler.MESSAGE_SID) &&
                         intent.hasExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG)) {
 
@@ -253,39 +259,46 @@ class RMQConnectionWorker(
                         Assert.assertTrue(!consumerTag.isNullOrEmpty())
                         Assert.assertTrue(deliveryTag != -1L)
 
-                        rmqConnectionHandler.findChannelByTag(consumerTag!!)?.let {
-                            Log.d(javaClass.name, "Received an ACK of the message...")
-                            if (resultCode == Activity.RESULT_OK) {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    if (it.isOpen) it.basicAck(deliveryTag, false)
-                                }
-                            } else {
-                                Log.w(javaClass.name, "Rejecting message sent")
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    if (it.isOpen) it.basicReject(deliveryTag, true)
+                        rmqConnectionHandler.findQueueByGatewayClientId(rmqConnectionHandler.id)
+                            ?.let { remoteListenerQueue ->
+                                rmqConnectionHandler.findChannelByTag(
+                                    consumerTag!!
+                                )?.let {
+                                    Log.d(javaClass.name, "Received an ACK of the message...")
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        try {
+                                            if (resultCode == Activity.RESULT_OK) {
+                                                if (it.isOpen) it.basicAck(deliveryTag, false)
+                                            } else {
+                                                if (it.isOpen) it.basicReject(deliveryTag, true)
+                                            }
+                                        } catch(e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
                                 }
                             }
-                        }
-
                     }
                 }
             }
         }
 
-        context.registerReceiver(messageStateChangedBroadcast, intentFilter,
-            Context.RECEIVER_EXPORTED)
+        ContextCompat.registerReceiver(
+            context,
+            messageStateChangedBroadcast,
+            intentFilter,
+            ContextCompat.RECEIVER_EXPORTED
+        )
     }
 
-    private suspend fun sendSMS(
+    private fun sendSMS(
         smsRequest: SMSRequest,
         subscriptionId: Int,
         consumerTag: String,
         deliveryTag: Long,
         rmqConnectionId: Long
     ) {
-        SemaphoreManager.resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
-        SemaphoreManager.resourceSemaphore.release()
 
         val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
 
@@ -311,44 +324,47 @@ class RMQConnectionWorker(
     }
 
     private fun getDeliverCallback(
-        channel: Channel,
         subscriptionId: Int,
         rmqConnectionId: Long
     ): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
-            val message = String(delivery.body, StandardCharsets.UTF_8)
-            val smsRequest = Json.decodeFromString<SMSRequest>(message)
+            rmqConnectionHandler.findChannelByTag(
+                consumerTag = consumerTag
+            )?.let { channel ->
+                val message = String(delivery.body, StandardCharsets.UTF_8)
+                val smsRequest = Json.decodeFromString<SMSRequest>(message)
 
-            CoroutineScope(Dispatchers.Default).launch {
-                try {
-                    sendSMS(smsRequest,
-                        subscriptionId,
-                        consumerTag,
-                        delivery.envelope.deliveryTag,
-                        rmqConnectionId)
-                } catch (e: Exception) {
-                    Log.e(javaClass.name, "", e)
-                    when(e) {
-                        is SerializationException -> {
-                            channel.let {
-                                if (it.isOpen)
-                                    it.basicReject(delivery.envelope.deliveryTag, false)
+                CoroutineScope(Dispatchers.Default).launch {
+                    try {
+                        sendSMS(
+                            smsRequest,
+                            subscriptionId,
+                            consumerTag,
+                            delivery.envelope.deliveryTag,
+                            rmqConnectionId
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        when(e) {
+                            is SerializationException -> {
+                                channel.let {
+                                    if (it.isOpen)
+                                        it.basicReject(delivery.envelope.deliveryTag, false)
+                                }
                             }
-                        }
-                        is IllegalArgumentException -> {
-                            channel.let {
-                                if (it.isOpen)
-                                    it.basicReject(delivery.envelope.deliveryTag, true)
+                            is IllegalArgumentException -> {
+                                channel.let {
+                                    if (it.isOpen)
+                                        it.basicReject(delivery.envelope.deliveryTag, true)
+                                }
                             }
-                        }
-                        else -> {
-                            e.printStackTrace()
+                            else -> {
+                                e.printStackTrace()
+                            }
                         }
                     }
                 }
             }
         }
     }
-
-
 }
