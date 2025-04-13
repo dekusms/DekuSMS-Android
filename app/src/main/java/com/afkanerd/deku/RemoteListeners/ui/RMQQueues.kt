@@ -16,8 +16,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -129,18 +131,18 @@ fun RMQQueuesComposable(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        showRemoteListenerAddQueuesModal = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.AddCircleOutline,
-                            contentDescription = stringResource(R.string.new_remote_listener)
-                        )
-                    }
-                },
                 scrollBehavior = scrollBehaviour
             )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(onClick = {
+                showRemoteListenerAddQueuesModal = true
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.new_remote_listener)
+                )
+            }
         },
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),

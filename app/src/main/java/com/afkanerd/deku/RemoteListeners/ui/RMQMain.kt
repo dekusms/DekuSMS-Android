@@ -30,9 +30,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -145,15 +148,6 @@ fun RMQMainComposable(
 
     var showPermissionModal by remember { mutableStateOf(false) }
 
-    val snackBarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(Unit) {
-        val result = snackBarHostState.showSnackbar(
-            message = context.getString(R.string.only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel),
-            withDismissAction = true,
-            duration = SnackbarDuration.Indefinite
-        )
-    }
-
     LaunchedEffect(remoteListeners) {
         if(remoteListeners.isNotEmpty() &&
             (!smsReadSMSState.status.isGranted || !smsSendSMSState.status.isGranted)) {
@@ -181,23 +175,19 @@ fun RMQMainComposable(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        remoteListenerViewModel.remoteListener = null
-                        navController.navigate(RemoteListenersAddScreen)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.AddCircleOutline,
-                            contentDescription = stringResource(R.string.new_remote_listener)
-                        )
-                    }
-                },
                 scrollBehavior = scrollBehaviour
             )
         },
-        snackbarHost = {
-            if(remoteListeners.isNotEmpty())
-                SnackbarHost(hostState = snackBarHostState)
+        floatingActionButton = {
+            ExtendedFloatingActionButton(onClick = {
+                remoteListenerViewModel.remoteListener = null
+                navController.navigate(RemoteListenersAddScreen)
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.new_remote_listener)
+                )
+            }
         },
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
