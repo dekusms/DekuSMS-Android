@@ -11,7 +11,6 @@ import android.provider.Settings
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -41,8 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -50,7 +49,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -87,6 +85,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+const val requiredSendSMSPermission = Manifest.permission.SEND_SMS
+const val requiredReadSMSPermission = Manifest.permission.READ_SMS
+
+const val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
+const val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
     ExperimentalPermissionsApi::class
 )
@@ -98,10 +102,6 @@ fun RMQMainComposable(
     conversationsViewModel: ConversationsViewModel,
     navController: NavController,
 ) {
-    val requiredSMSPermissions = Manifest.permission.SEND_SMS
-    val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
-    val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
-
     val context = LocalContext.current
 
     val listState = rememberLazyListState()
@@ -116,59 +116,11 @@ fun RMQMainComposable(
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
-    val getReadPhoneStatePermissionsLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-                isGranted ->
-            if(isGranted) {
-                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
-            }
-        }
+    val smsReadSMSState = rememberPermissionState(requiredReadSMSPermission)
+    val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
 
     val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
-    val snackbarHostState = remember { SnackbarHostState() }
-    var snackContextSettings by remember { mutableIntStateOf(0) }
-
-    val getNotificationsPermissionsLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-                isGranted ->
-            if(isGranted) {
-                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(context, "We cannot do without this one...", Toast.LENGTH_LONG)
-                    .show()
-                snackContextSettings += 1
-            }
-        }
-
-    LaunchedEffect(notificationPermission.status) {
-        snackContextSettings += 1
-    }
-
-    LaunchedEffect(snackContextSettings) {
-        if(!notificationPermission.status.isGranted) {
-            val result = snackbarHostState.showSnackbar(
-                message = "Enable notifications to monitor background activities",
-                actionLabel = if(snackContextSettings < 1) "Grant permission" else "Settings",
-                duration = SnackbarDuration.Indefinite
-            )
-            when(result) {
-                SnackbarResult.ActionPerformed -> {
-                    if(snackContextSettings < 1) {
-                        getNotificationsPermissionsLauncher.launch(requiredNotificationsPermissions)
-                    } else {
-                        openNotificationSettings(context)
-                        snackContextSettings += 1
-                    }
-                }
-                SnackbarResult.Dismissed -> {
-                   snackContextSettings += 1
-                }
-            }
-        }
-    }
-
+    val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
 
     val getSMSPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -180,7 +132,7 @@ fun RMQMainComposable(
             }
         }
 
-    val getDefaultPermission =
+    val getDefaultPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val sharedPreferences =
@@ -197,22 +149,27 @@ fun RMQMainComposable(
             }
         }
 
-    val smsPermissions = rememberPermissionState(requiredSMSPermissions)
     var showPermissionModal by remember { mutableStateOf(false) }
 
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        val result = snackBarHostState.showSnackbar(
+            message = context.getString(R.string.only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel),
+            withDismissAction = true,
+            duration = SnackbarDuration.Indefinite
+        )
+    }
 
-    val readPhoneStatePermissions = rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
-    var showReadPhoneStatesPermissionModal by remember { mutableStateOf(false) }
+    LaunchedEffect(remoteListeners) {
+        if(remoteListeners.isNotEmpty() &&
+            (!smsReadSMSState.status.isGranted || !smsSendSMSState.status.isGranted)) {
+            showPermissionModal = true
+        }
+    }
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
         navController.popBackStack()
-    }
-
-    LaunchedEffect(remoteListeners) {
-        if(remoteListeners.isNotEmpty()) {
-            showReadPhoneStatesPermissionModal = !readPhoneStatePermissions.status.isGranted
-        }
     }
 
     Scaffold(
@@ -244,9 +201,7 @@ fun RMQMainComposable(
                 scrollBehavior = scrollBehaviour
             )
         },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
     ) { innerPadding ->
@@ -269,47 +224,28 @@ fun RMQMainComposable(
                     }
                 }
                 else {
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(
-                            stringResource(R.string.click_to_add_queues),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Spacer(Modifier.padding(4.dp))
-                        Text(
-                            stringResource(R.string.press_and_hold_to_manage),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
+                    if(!notificationPermission.status.isGranted || LocalInspectionMode.current) {
+                        NotificationPermissionComposable()
                     }
 
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(imageVector =  Icons.Outlined.Info, "")
-                                Text(
-                                    stringResource(R.string.only_1_connection_at_a_time_due_to_the_bottleneck_between_channels_and_phone_radios_ability_to_sms_messages_in_parallel),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                )
-                            }
-                        }
+                    if(!readPhoneStatePermission.status.isGranted || LocalInspectionMode.current) {
+                        PhoneStatePermissionComposable()
+                    }
+
+                    if((!smsSendSMSState.status.isGranted || !smsReadSMSState.status.isGranted) ||
+                        LocalInspectionMode.current) {
+                        SMSPermissionComposable()
                     }
 
                     Spacer(Modifier.padding(8.dp))
+                    Text(
+                        "${stringResource(R.string.click_to_add_queues)}, " +
+                                stringResource(R.string.press_and_hold_to_manage),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(Modifier.padding(4.dp))
 
                     LazyColumn(
                         state = listState,
@@ -340,31 +276,13 @@ fun RMQMainComposable(
                 }
             }
 
-            if(showReadPhoneStatesPermissionModal) {
-                RemoteListenersReadPhoneStatePermissionModal(
-                    showReadPhoneStatesPermissionModal,
-                    grantPermissionsCallback = {
-                        getReadPhoneStatePermissionsLauncher.launch(
-                            requiredReadPhoneStatePermissions
-                        )
-                        showReadPhoneStatesPermissionModal = false
-                    }
-                ) {
-                    showReadPhoneStatesPermissionModal = false
-                }
-            }
-
             if(showPermissionModal) {
                 RemoteListenerSMSPermissionsModal(
                     showModal = showPermissionModal,
                     makeDefaultCallback = {
-                        getDefaultPermission.launch(makeDefault(context))
+                        getDefaultPermissionLauncher.launch(makeDefault(context))
                         showPermissionModal = false
                     },
-                    grantPermissionsCallback = {
-                        getSMSPermissionLauncher.launch(requiredSMSPermissions)
-                        showPermissionModal = false
-                    }
                 ) {
                     showPermissionModal = false
                 }
@@ -390,7 +308,8 @@ fun RMQMainComposable(
                         }
                         else {
                             //Activating
-                            if(!smsPermissions.status.isGranted) {
+                            if(!smsReadSMSState.status.isGranted ||
+                                !smsSendSMSState.status.isGranted) {
                                 showPermissionModal = true
                             } else {
                                 CoroutineScope(Dispatchers.Default).launch {
@@ -437,6 +356,183 @@ fun RMQMainComposable(
                     }
                 ) {
                     showRemoteListenerModal = false
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun NotificationPermissionComposable(
+
+) {
+    val context = LocalContext.current
+    val getNotificationsPermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "We cannot do without this one...", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+
+    Column(modifier = Modifier.padding(8.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(4.dp)
+                )
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(imageVector =  Icons.Outlined.Info, "")
+                    Text(
+                        "When not default SMS app, you need to grant permissions for listeners to show notifications when changing.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = {
+                        getNotificationsPermissionsLauncher.launch(requiredNotificationsPermissions)
+                    }) {
+                        Text("Grant notification permission")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhoneStatePermissionComposable() {
+    val context = LocalContext.current
+    val getReadPhoneStatePermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    Column(modifier = Modifier.padding(8.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(4.dp)
+                )
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(imageVector =  Icons.Outlined.Info, "")
+                    Text(
+                        "When not default SMS app, you need to grant permissions for listeners to check for sim status and dual sim information.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = {
+                        getReadPhoneStatePermissionsLauncher
+                            .launch(requiredReadPhoneStatePermissions)
+                    }) {
+                        Text("Grant phone state permission")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun SMSPermissionComposable() {
+    val context = LocalContext.current
+    val getSMSPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+                isGranted ->
+            if(isGranted) {
+                Toast.makeText(context, "Carry on activating...", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "I'd be back!", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    val smsReadSMSState = rememberPermissionState(requiredReadSMSPermission)
+    val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
+
+    Column(modifier = Modifier.padding(8.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(4.dp)
+                )
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(imageVector =  Icons.Outlined.Info, "")
+                    Text(
+                        "When not default SMS app, you need to grant permissions for listeners to send and receive delivery reports.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if(!smsSendSMSState.status.isGranted || LocalInspectionMode.current) {
+                        TextButton(onClick = {
+                            getSMSPermissionLauncher.launch(requiredSendSMSPermission)
+                        }) {
+                            Text("Grant send sms permission")
+                        }
+                    }
+                    if(!smsReadSMSState.status.isGranted || LocalInspectionMode.current) {
+                        TextButton(onClick = {
+                            getSMSPermissionLauncher.launch(requiredReadSMSPermission)
+                        }) {
+                            Text("Grant read sms permission")
+                        }
+                    }
                 }
             }
         }

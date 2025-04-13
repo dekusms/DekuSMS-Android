@@ -31,7 +31,6 @@ import com.example.compose.AppTheme
 fun RemoteListenerSMSPermissionsModal(
     showModal: Boolean,
     makeDefaultCallback: () -> Unit,
-    grantPermissionsCallback: () -> Unit,
     dismissCallback: () -> Unit
 ) {
     val state = rememberStandardBottomSheetState(
@@ -75,17 +74,9 @@ fun RemoteListenerSMSPermissionsModal(
                     color = MaterialTheme.colorScheme.secondary
                 )
 
-                Spacer(Modifier.padding(12.dp))
+                Spacer(Modifier.padding(16.dp))
                 Button(onClick = makeDefaultCallback) {
                     Text("Make default")
-                }
-
-                Spacer(Modifier.padding(4.dp))
-                TextButton(onClick = grantPermissionsCallback) {
-                    Text(
-                        "Grant permissions",
-                        color= MaterialTheme.colorScheme.error
-                    )
                 }
             }
         }
@@ -95,6 +86,6 @@ fun RemoteListenerSMSPermissionsModal(
 @Preview
 fun ConnectionCards_Preview() {
     AppTheme {
-        RemoteListenerSMSPermissionsModal(true, {}, {}){}
+        RemoteListenerSMSPermissionsModal(true, {}, {})
     }
 }
