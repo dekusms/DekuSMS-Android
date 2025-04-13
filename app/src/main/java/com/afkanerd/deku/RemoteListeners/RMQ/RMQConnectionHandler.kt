@@ -83,6 +83,10 @@ class RMQConnectionHandler(var id: Long, var connection: Connection) {
         return remoteListenersChannelLiveData
     }
 
+    fun removeChannelWithConsumerTag(consumerTag: String): Channel? {
+        return channelConsumerTags.remove(consumerTag)
+    }
+
     fun bindChannelConsumerTag(
         consumerTag: String,
         remoteListenersQueues: RemoteListenersQueues,

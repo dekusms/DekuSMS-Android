@@ -170,9 +170,6 @@ class RMQConnectionWorker(
                             channelNumber,
                         ) .apply { this?.basicRecover(true) }
                     }?.let { channel ->
-                        channel.addShutdownListener {
-                            Log.e(javaClass.name, "Channel shutdown cause: $it")
-                        }
 
                         val bindingName: String? = when(simSlot) {
                             0 -> {
@@ -181,6 +178,23 @@ class RMQConnectionWorker(
                             }
                             1 -> rlq.binding2Name
                             else -> null
+                        }
+
+                        channel.addShutdownListener {
+                            Log.e(javaClass.name, "Channel shutdown cause: $it")
+
+                            if(channel.connection.isOpen) {
+                                bindingName?.let {
+                                    startChannelConsumption(
+                                        rmqConnectionHandler,
+                                        channel,
+                                        subscriptionInfo.subscriptionId,
+                                        rlq,
+                                        bindingName
+                                    )
+                                }
+                            }
+                            rmqConnectionHandler.updateChannel(rlq, channel)
                         }
 
                         bindingName?.let {
@@ -224,12 +238,12 @@ class RMQConnectionWorker(
             false,
             deliverCallback,
             object : ConsumerShutdownSignalCallback {
-                override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                    Log.e(javaClass.name, "Consumer error", sig)
-                    rmqConnectionHandler.updateChannel(
-                        remoteListenersQueues,
-                        channel
-                    )
+                override fun handleShutdownSignal(
+                    consumerTag: String,
+                    sig: ShutdownSignalException
+                ) {
+                    sig.printStackTrace()
+                    rmqConnectionHandler.removeChannelWithConsumerTag(consumerTag)
                 }
             })
 
