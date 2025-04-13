@@ -24,6 +24,10 @@
         <intent>
             <action android:name="android.provider.Telephony.SMS_DELIVER" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="smsto" android:host="*" />
+        </intent>
     </queries>
 
     <application

@@ -1,11 +1,15 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.Manifest
+import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.BlockedNumberContract
+import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -107,6 +111,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
+import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersScreen
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
@@ -215,7 +220,19 @@ fun ThreadConversationLayout(
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
 
-    val defaultPermission = rememberPermissionState(Manifest.permission.READ_SMS)
+    val readSMSPermission = rememberPermissionState(Manifest.permission.READ_SMS)
+    val sendSMSPermission = rememberPermissionState(Manifest.permission.SEND_SMS)
+    val receiveSMSPermission = rememberPermissionState(Manifest.permission.RECEIVE_SMS)
+
+    var isDefault by remember{ mutableStateOf(Subroutines.isDefault(context)) }
+
+    LaunchedEffect(
+        readSMSPermission.status,
+        sendSMSPermission.status,
+        receiveSMSPermission.status
+    ) {
+        isDefault = Subroutines.isDefault(context)
+    }
 
     intent?.let {
         val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
@@ -292,7 +309,7 @@ fun ThreadConversationLayout(
     }
 
     LaunchedEffect(inboxType) {
-        if(inboxType == InboxType.BLOCKED && defaultPermission.status.isGranted) {
+        if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
                 items.forEach {
                     if(BlockedNumberContract.isBlocked(context, it.address)) blockedItems.add(it)
@@ -375,7 +392,7 @@ fun ThreadConversationLayout(
                             }
                         },
                         actions = {
-                            if(defaultPermission.status.isGranted || inPreviewMode) {
+                            if(isDefault || inPreviewMode) {
                                 IconButton(onClick = {
                                     navController.navigate(SearchThreadScreen)
                                 }) {
@@ -512,7 +529,7 @@ fun ThreadConversationLayout(
                 }
             },
             floatingActionButton = {
-                if(defaultPermission.status.isGranted || inPreviewMode) {
+                if(isDefault || inPreviewMode) {
                     ExtendedFloatingActionButton(
                         onClick = {
                             navController.navigate(ComposeNewMessageScreen)
@@ -528,9 +545,10 @@ fun ThreadConversationLayout(
             Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                if(!defaultPermission.status.isGranted) {
+                if(!isDefault) {
                     DefaultCheckMain {
                         loadNatives(context, conversationsViewModel)
+                        isDefault = true
                     }
                 }
                 else {
