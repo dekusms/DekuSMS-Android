@@ -6,8 +6,8 @@ import android.app.role.RoleManager
 import android.content.Context
 import android.content.Context.ROLE_SERVICE
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -38,45 +38,48 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.components.RemoteListenerCards
-import com.example.compose.AppTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
+import com.afkanerd.deku.RemoteListeners.components.RemoteListenerCards
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
+import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -100,7 +103,6 @@ fun RMQMainComposable(
     val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
 
     val context = LocalContext.current
-    val activity = LocalActivity.current
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -124,6 +126,9 @@ fun RMQMainComposable(
             }
         }
 
+    val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
+    val snackbarHostState = remember { SnackbarHostState() }
+    var snackContextSettings by remember { mutableIntStateOf(0) }
 
     val getNotificationsPermissionsLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -133,14 +138,43 @@ fun RMQMainComposable(
             } else {
                 Toast.makeText(context, "We cannot do without this one...", Toast.LENGTH_LONG)
                     .show()
+                snackContextSettings += 1
             }
         }
+
+    LaunchedEffect(notificationPermission.status) {
+        snackContextSettings += 1
+    }
+
+    LaunchedEffect(snackContextSettings) {
+        if(!notificationPermission.status.isGranted) {
+            val result = snackbarHostState.showSnackbar(
+                message = "Enable notifications to monitor background activities",
+                actionLabel = if(snackContextSettings < 1) "Grant permission" else "Settings",
+                duration = SnackbarDuration.Indefinite
+            )
+            when(result) {
+                SnackbarResult.ActionPerformed -> {
+                    if(snackContextSettings < 1) {
+                        getNotificationsPermissionsLauncher.launch(requiredNotificationsPermissions)
+                    } else {
+                        openNotificationSettings(context)
+                        snackContextSettings += 1
+                    }
+                }
+                SnackbarResult.Dismissed -> {
+                   snackContextSettings += 1
+                }
+            }
+        }
+    }
+
 
     val getSMSPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             isGranted ->
             if(isGranted) {
-                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Carry on activating...", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(context, "I'd be back!", Toast.LENGTH_LONG).show()
             }
@@ -164,9 +198,8 @@ fun RMQMainComposable(
         }
 
     val smsPermissions = rememberPermissionState(requiredSMSPermissions)
-    var showPermissionModal by remember { mutableStateOf(!smsPermissions.status.isGranted) }
+    var showPermissionModal by remember { mutableStateOf(false) }
 
-    val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
 
     val readPhoneStatePermissions = rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
     var showReadPhoneStatesPermissionModal by remember { mutableStateOf(false) }
@@ -174,6 +207,12 @@ fun RMQMainComposable(
     BackHandler {
         remoteListenerViewModel.remoteListener = null
         navController.popBackStack()
+    }
+
+    LaunchedEffect(remoteListeners) {
+        if(remoteListeners.isNotEmpty()) {
+            showReadPhoneStatesPermissionModal = !readPhoneStatePermissions.status.isGranted
+        }
     }
 
     Scaffold(
@@ -205,6 +244,9 @@ fun RMQMainComposable(
                 scrollBehavior = scrollBehaviour
             )
         },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
     ) { innerPadding ->
@@ -215,7 +257,7 @@ fun RMQMainComposable(
                 .fillMaxSize(),
         ) {
             Column {
-                if( remoteListeners.isEmpty()) {
+                if(remoteListeners.isEmpty()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -338,11 +380,7 @@ fun RMQMainComposable(
                         navController.navigate(RemoteListenersAddScreen)
                     },
                     connectionCallback = {
-                        if(!notificationPermission.status.isGranted) {
-                            getNotificationsPermissionsLauncher
-                                .launch(requiredNotificationsPermissions)
-                        }
-                        else if(activated) {
+                        if(activated) {
                             //Deactivating
                             remoteListenerViewModel.remoteListener?.activated = false
                             RemoteListenersHandler.stopListening(
@@ -352,53 +390,34 @@ fun RMQMainComposable(
                         }
                         else {
                             //Activating
-                            when {
-                                checkSelfPermission(
-                                    context,
-                                    requiredSMSPermissions
-                                ) == PackageManager.PERMISSION_GRANTED -> {
-                                    CoroutineScope(Dispatchers.Default).launch {
+                            if(!smsPermissions.status.isGranted) {
+                                showPermissionModal = true
+                            } else {
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    if(remoteListenerQueuesViewModel
+                                            .getList(
+                                                context,
+                                                remoteListenerViewModel.remoteListener?.id!!
+                                            ).isEmpty()) {
 
-                                        if(remoteListenerQueuesViewModel
-                                                .getList(
+                                        launch(Dispatchers.Main) {
+                                            Toast
+                                                .makeText(
                                                     context,
-                                                    remoteListenerViewModel.remoteListener?.id!!
-                                                ).isEmpty()) {
-
-                                            launch(Dispatchers.Main) {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        "Add queues to activate...",
-                                                        Toast.LENGTH_LONG).show()
-                                            }
-                                        }
-                                        else {
-                                            if(!readPhoneStatePermissions.status.isGranted) {
-                                                showReadPhoneStatesPermissionModal = true
-                                            }
-                                            else {
-                                                remoteListenerViewModel.remoteListener
-                                                    ?.activated = true
-                                                launch(Dispatchers.Main) {
-                                                    RemoteListenersHandler.startListening(
-                                                        context,
-                                                        remoteListenerViewModel.remoteListener!!
-                                                    )
-                                                }
-                                            }
+                                                    "Add queues to activate...",
+                                                    Toast.LENGTH_LONG).show()
                                         }
                                     }
-                                }
-
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    activity!!,
-                                    requiredSMSPermissions
-                                ) -> {
-                                    TODO()
-                                }
-                                else -> {
-                                    getSMSPermissionLauncher.launch(requiredSMSPermissions)
+                                    else {
+                                        remoteListenerViewModel.remoteListener
+                                            ?.activated = true
+                                        launch(Dispatchers.Main) {
+                                            RemoteListenersHandler.startListening(
+                                                context,
+                                                remoteListenerViewModel.remoteListener!!
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -436,6 +455,22 @@ fun makeDefault(context: Context): Intent {
             putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
         }
     }
+}
+
+fun openNotificationSettings(context: Context) {
+    val intent = Intent()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        // For Android 8.0 and higher
+        intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+        intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    }
+    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        // For Android 5.0 to 7.1
+        intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS")
+        intent.putExtra("app_package", context.packageName)
+        intent.putExtra("app_uid", context.applicationInfo.uid)
+    }
+    context.startActivity(intent)
 }
 
 @Composable
