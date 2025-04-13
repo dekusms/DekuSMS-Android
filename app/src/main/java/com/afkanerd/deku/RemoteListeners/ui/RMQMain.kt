@@ -14,37 +14,26 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -81,7 +70,6 @@ import com.afkanerd.deku.RemoteListeners.components.RemoteListenerCards
 import com.afkanerd.deku.RemoteListeners.components.SMSPermissionComposable
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
-import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
 import com.example.compose.AppTheme
@@ -93,7 +81,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 const val requiredSendSMSPermission = Manifest.permission.SEND_SMS
-const val requiredReadSMSPermission = Manifest.permission.READ_SMS
+const val requiredReceiveSMSPermission = Manifest.permission.RECEIVE_SMS
 
 const val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
 const val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
@@ -123,7 +111,7 @@ fun RMQMainComposable(
 
     var showRemoteListenerModal by remember { mutableStateOf(false) }
 
-    val smsReadSMSState = rememberPermissionState(requiredReadSMSPermission)
+    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
     val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
 
     val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)

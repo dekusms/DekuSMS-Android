@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.RemoteListeners.ui.requiredNotificationsPermissions
 import com.afkanerd.deku.RemoteListeners.ui.requiredReadPhoneStatePermissions
-import com.afkanerd.deku.RemoteListeners.ui.requiredReadSMSPermission
+import com.afkanerd.deku.RemoteListeners.ui.requiredReceiveSMSPermission
 import com.afkanerd.deku.RemoteListeners.ui.requiredSendSMSPermission
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -154,7 +154,7 @@ fun SMSPermissionComposable() {
             }
         }
 
-    val smsReadSMSState = rememberPermissionState(requiredReadSMSPermission)
+    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
     val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
 
     Column(modifier = Modifier.padding(8.dp)) {
@@ -195,9 +195,9 @@ fun SMSPermissionComposable() {
                     }
                     if(!smsReadSMSState.status.isGranted || LocalInspectionMode.current) {
                         TextButton(onClick = {
-                            getSMSPermissionLauncher.launch(requiredReadSMSPermission)
+                            getSMSPermissionLauncher.launch(requiredReceiveSMSPermission)
                         }) {
-                            Text("Grant read sms permission")
+                            Text("Grant receive sms permission")
                         }
                     }
                 }
