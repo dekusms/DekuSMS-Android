@@ -49,6 +49,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQue
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
+import com.afkanerd.deku.RemoteListeners.components.PhoneStatePermissionComposable
 import com.afkanerd.deku.RemoteListeners.components.RemoteListenersQueuesCard
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
@@ -106,18 +107,7 @@ fun RMQQueuesComposable(
         navController.popBackStack(RemoteListenersScreen, false)
     }
 
-    val requiredPermissions = rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
-    var showPermissionsModals by remember { mutableStateOf(!requiredPermissions.status.isGranted) }
-
-    val getReadPhoneStatePermissionsLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-                isGranted ->
-            if(isGranted) {
-                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
-            }
-        }
+    val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
 
     Scaffold(
         topBar = {
@@ -125,7 +115,7 @@ fun RMQQueuesComposable(
                 title = { Text(
                     stringResource(
                         R.string.queues,
-                        remoteListenersViewModel.remoteListener?.username!!
+                        remoteListenersViewModel.remoteListener?.username ?: ""
                     )
                 ) },
                 navigationIcon = {
@@ -162,6 +152,10 @@ fun RMQQueuesComposable(
                 .fillMaxSize(),
         ) {
             Column {
+                if(!readPhoneStatePermission.status.isGranted || LocalInspectionMode.current) {
+                    PhoneStatePermissionComposable()
+                }
+
                 if( remoteListenersQueues.isEmpty()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -170,7 +164,9 @@ fun RMQQueuesComposable(
                     ) {
                         Text(
                             stringResource(R.string.no_queues_added),
-                            style = MaterialTheme.typography.titleMedium)
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
                 else {
@@ -193,20 +189,6 @@ fun RMQQueuesComposable(
                             }
                         }
                     }
-                }
-            }
-
-            if(showPermissionsModals) {
-                RemoteListenersReadPhoneStatePermissionModal(
-                    showPermissionsModals,
-                    grantPermissionsCallback = {
-                        getReadPhoneStatePermissionsLauncher.launch(
-                            Manifest.permission.READ_PHONE_STATE
-                        )
-                        showPermissionsModals = false
-                    }
-                ) {
-                  showPermissionsModals = false
                 }
             }
 
@@ -254,6 +236,18 @@ fun RMQQueuesComposable_Preview() {
     AppTheme {
         RMQQueuesComposable(
             listOf(rlq),
+            RemoteListenersViewModel(LocalContext.current),
+            rememberNavController()
+        )
+    }
+}
+
+@Composable
+@Preview
+fun RMQQueuesComposableEmpty_Preview() {
+    AppTheme {
+        RMQQueuesComposable(
+            emptyList(),
             RemoteListenersViewModel(LocalContext.current),
             rememberNavController()
         )
