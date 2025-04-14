@@ -63,12 +63,12 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         return datastore.remoteListenerDAO().fetch()
     }
 
-    fun update(remoteListeners: RemoteListeners) {
-        datastore.remoteListenerDAO().update(remoteListeners)
+    fun update(context: Context, remoteListeners: RemoteListeners) {
+        Datastore.getDatastore(context).remoteListenerDAO().update(remoteListeners)
     }
 
-    fun insert(remoteListeners: RemoteListeners) {
-        datastore.remoteListenerDAO().insert(remoteListeners)
+    fun insert(context: Context, remoteListeners: RemoteListeners) {
+        Datastore.getDatastore(context).remoteListenerDAO().insert(remoteListeners)
     }
 
     fun delete(remoteListeners: RemoteListeners) {

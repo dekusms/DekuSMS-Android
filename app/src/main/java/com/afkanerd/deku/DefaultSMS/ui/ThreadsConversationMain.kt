@@ -65,6 +65,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
@@ -178,7 +179,7 @@ private fun loadNatives(context: Context, conversationViewModel: ConversationsVi
 )
 @Composable
 fun ThreadConversationLayout(
-    conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
+    conversationsViewModel: ConversationsViewModel,
     intent: Intent? = null,
     navController: NavController,
     _items: List<Conversation> = emptyList(),
@@ -477,7 +478,7 @@ fun ThreadConversationLayout(
                                         stringResource(R.string
                                             .conversations_navigation_view_drafts)
                                     InboxType.REMOTE_LISTENER ->
-                                        stringResource(R.string .remote_listeners)
+                                        stringResource(R.string.remote_listeners)
                                     else -> ""
                                 },
                                 maxLines =1,
@@ -606,8 +607,11 @@ fun ThreadConversationLayout(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        stringResource(R.string.remote_listeners),
-                                        fontSize = 24.sp
+                                        stringResource(R.string
+                                            .no_messages_sent_from_remote_listeners),
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        textAlign = TextAlign.Center
                                     )
                                 }
                         }
@@ -814,7 +818,27 @@ fun PreviewMessageCard() {
                 thread.date = ""
                 messages.add(thread)
             }
-            ThreadConversationLayout(navController = rememberNavController(), _items = messages)
+            ThreadConversationLayout(
+                navController = rememberNavController(),
+                _items = messages,
+                conversationsViewModel = ConversationsViewModel()
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewMessageCardRemoteListeners_Preview() {
+    AppTheme(darkTheme = true) {
+        Surface(Modifier.safeDrawingPadding()) {
+            ThreadConversationLayout(
+                navController = rememberNavController(),
+                _items = emptyList(),
+                conversationsViewModel = ConversationsViewModel().apply {
+                    inboxType = InboxType.REMOTE_LISTENER
+                }
+            )
         }
     }
 }

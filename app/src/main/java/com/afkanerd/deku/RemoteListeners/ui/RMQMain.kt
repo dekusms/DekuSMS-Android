@@ -59,6 +59,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.HomeScreen
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
@@ -146,7 +147,11 @@ fun RMQMainComposable(
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
-        navController.popBackStack()
+        if(!navController.popBackStack(HomeScreen, false)) {
+            navController.navigate(HomeScreen) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
     }
 
     Scaffold(
@@ -156,7 +161,11 @@ fun RMQMainComposable(
                 navigationIcon = {
                     IconButton(onClick = {
                         remoteListenerViewModel.remoteListener = null
-                        navController.popBackStack()
+                        if(!navController.popBackStack(HomeScreen, false)) {
+                            navController.navigate(HomeScreen) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,

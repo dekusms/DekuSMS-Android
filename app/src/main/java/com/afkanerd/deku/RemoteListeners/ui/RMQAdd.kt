@@ -282,14 +282,16 @@ fun RMQAddComposable(
 
                     CoroutineScope(Dispatchers.Default).launch {
                         if(remoteListener != null)
-                            remoteListenerViewModel.update(newRemoteListener)
+                            remoteListenerViewModel.update(context, newRemoteListener)
                         else
-                            remoteListenerViewModel.insert(newRemoteListener)
-
-//                        RemoteListenersHandler.onOffAgain(context, newRemoteListener)
+                            remoteListenerViewModel.insert(context, newRemoteListener)
 
                         launch(Dispatchers.Main) {
-                            navController.popBackStack(RemoteListenersScreen, false)
+                            if(!navController.popBackStack(RemoteListenersScreen, false)) {
+                                navController.navigate(RemoteListenersScreen) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
                         }
                     }
                 }, enabled = hostUrl.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
