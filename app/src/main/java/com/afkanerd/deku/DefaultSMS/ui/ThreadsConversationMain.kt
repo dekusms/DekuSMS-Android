@@ -127,20 +127,15 @@ fun processIntents(
 
         val sendToString = intent.dataString
 
-        if ((
-                    sendToString != null &&
-                            (sendToString.contains("smsto:") ||
-                                    sendToString.contains("sms:"))) ||
-            intent.hasExtra("address")
-        ) {
-
+        if ((sendToString != null &&
+                    (sendToString.contains("smsto:") ||
+                            sendToString.contains("sms:"))) || intent.hasExtra("address")
+            ) {
             val address = Helpers.getFormatCompleteNumber(
                 if(intent.hasExtra("address")) intent.getStringExtra("address")
-                else sendToString, defaultRegion)
-
-            val threadId =
-                ThreadedConversationsHandler.get(context, address)
-                    .thread_id
+                else sendToString, defaultRegion
+            )
+            val threadId = ThreadedConversationsHandler.get(context, address).thread_id
             return Triple(address, threadId, text)
         }
     }
@@ -688,7 +683,6 @@ fun ThreadConversationLayout(
                                             }
                                             SwipeToDismissBoxValue.Settled ->
                                                 return@rememberSwipeToDismissBoxState false
-                                            else -> {}
                                         }
                                         return@rememberSwipeToDismissBoxState true
                                     },
