@@ -158,7 +158,6 @@ fun navigateToConversation(
 ) {
     conversationsViewModel.address = address
     conversationsViewModel.threadId = threadId
-    conversationsViewModel.contactName = ""
     conversationsViewModel.searchQuery = searchQuery ?: ""
     conversationsViewModel.subscriptionId = subscriptionId ?: -1
     conversationsViewModel.liveData = null
@@ -245,6 +244,9 @@ fun ThreadConversationLayout(
 
     val draftsItems: List<Conversation> by conversationsViewModel
         .draftsLiveData!!.observeAsState(emptyList())
+
+    val remoteListeners: List<Conversation> by conversationsViewModel
+        .remoteListenersLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -505,7 +507,7 @@ fun ThreadConversationLayout(
             Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                if(!isDefault) {
+                if(!isDefault && inboxType != InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
                         loadNatives(context, conversationsViewModel)
                         isDefault = true
@@ -543,7 +545,19 @@ fun ThreadConversationLayout(
                         InboxType.BLOCKED -> {}
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
-                        InboxType.REMOTE_LISTENER -> {}
+                        InboxType.REMOTE_LISTENER -> {
+                            if(remoteListeners.isEmpty())
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        stringResource(R.string.remote_listeners),
+                                        fontSize = 24.sp
+                                    )
+                                }
+                        }
                     }
 
                     LazyColumn(
@@ -558,16 +572,23 @@ fun ThreadConversationLayout(
                                 InboxType.BLOCKED -> blockedItems
                                 InboxType.DRAFTS -> draftsItems
                                 InboxType.MUTED -> mutedItems
-                                InboxType.REMOTE_LISTENER -> TODO()
+                                InboxType.REMOTE_LISTENER -> remoteListeners
                             },
                             key = { index, message -> message.thread_id!! }
                         ) { index, message ->
                             message.address?.let { address ->
-                                val isBlocked by remember { mutableStateOf(BlockedNumberContract
-                                    .isBlocked(context, message.address)) }
-                                val contactName: String? by remember { mutableStateOf(Contacts
-                                    .retrieveContactName(context, message.address))
-                                }
+                                val isBlocked by remember { mutableStateOf(
+                                    if(isDefault)
+                                        BlockedNumberContract.isBlocked(context, message.address)
+                                    else false
+                                )}
+
+                                val contactName: String? by remember { mutableStateOf(
+                                    if(isDefault)
+                                        Contacts.retrieveContactName(context, message.address)
+                                    else message.address
+                                )}
+                                
                                 var firstName = message.address
                                 var lastName = ""
                                 val isSelected = selectedItems.contains(message)
@@ -638,7 +659,7 @@ fun ThreadConversationLayout(
                                             Helpers.formatDate(context, message.date!!.toLong())
                                         else "Tues",
                                         isRead = message.isRead,
-                                        isContact = !contactName.isNullOrBlank(),
+                                        isContact = isDefault && !contactName.isNullOrBlank(),
                                         isBlocked = isBlocked,
                                         modifier = Modifier.combinedClickable(
                                             onClick = {

@@ -55,7 +55,6 @@ class ConversationsViewModel : ViewModel() {
     var address by mutableStateOf("")
     var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
-    var contactName: String by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
 
     var importDetails by mutableStateOf("")
@@ -68,6 +67,7 @@ class ConversationsViewModel : ViewModel() {
     var draftsLiveData: LiveData<MutableList<Conversation>>? = null
     var archivedLiveData: LiveData<MutableList<Conversation>>? = null
     var mutedLiveData: LiveData<MutableList<Conversation>>? = null
+    var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
 
@@ -76,9 +76,13 @@ class ConversationsViewModel : ViewModel() {
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
-            draftsLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingDrafts()
-            archivedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingArchived()
+            draftsLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingDrafts()
+            archivedLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingArchived()
             mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
+            remoteListenersLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingRemoteListeners()
         }
         return threadedLiveData!!
     }

@@ -219,8 +219,8 @@ private fun ThreadConversationsAvatar(
     firstName: String,
     lastName: String,
     phoneNumber: String,
-    isContact: Boolean = true) {
-
+    isContact: Boolean = true
+) {
 
     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
         if (isContact) {
@@ -346,7 +346,14 @@ fun ThreadConversationCard(
             )
         },
         leadingContent = {
-            ThreadConversationsAvatar(LocalContext.current, id, firstName, lastName, phoneNumber, isContact)
+            ThreadConversationsAvatar(
+                LocalContext.current,
+                id,
+                firstName,
+                lastName,
+                phoneNumber,
+                isContact
+            )
         }
     )
 }
