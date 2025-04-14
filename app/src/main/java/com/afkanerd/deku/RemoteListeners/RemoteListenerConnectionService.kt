@@ -72,7 +72,7 @@ class RemoteListenerConnectionService : Service() {
             rmqConnectionHandlers.value?.forEach { rc ->
                 if (it.find { rc.id == it.id } == null) {
                     CoroutineScope(Dispatchers.Default).launch {
-                        rc.connection.close()
+                        rc.close()
                     }
                 }
             }
@@ -84,7 +84,7 @@ class RemoteListenerConnectionService : Service() {
             } else {
                 rl?.let {
                     CoroutineScope(Dispatchers.Default).launch {
-                        if (it.connection.isOpen) it.close()
+                        it.close()
                     }
                 }
             }

@@ -83,7 +83,7 @@ fun RMQAddComposable(
     val protocolOptions = listOf("amqp", "amqps")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(protocolOptions[0]) }
 
-    if(BuildConfig.DEBUG) {
+    if(BuildConfig.DEBUG && remoteListener == null) {
         LaunchedEffect(Unit) {
             hostUrl = "staging.smswithoutborders.com"
             username = "sherlock"
@@ -278,6 +278,7 @@ fun RMQAddComposable(
                     newRemoteListener.virtualHost = virtualHost
                     newRemoteListener.port = port.toInt()
                     newRemoteListener.protocol = selectedOption
+                    newRemoteListener.activated = false
 
                     CoroutineScope(Dispatchers.Default).launch {
                         if(remoteListener != null)
@@ -285,7 +286,7 @@ fun RMQAddComposable(
                         else
                             remoteListenerViewModel.insert(newRemoteListener)
 
-                        RemoteListenersHandler.onOffAgain(context, newRemoteListener)
+//                        RemoteListenersHandler.onOffAgain(context, newRemoteListener)
 
                         launch(Dispatchers.Main) {
                             navController.popBackStack(RemoteListenersScreen, false)
