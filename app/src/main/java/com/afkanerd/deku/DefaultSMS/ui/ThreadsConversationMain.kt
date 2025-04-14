@@ -1,66 +1,43 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.Manifest
-import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.BlockedNumberContract
-import android.provider.Telephony
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Drafts
-import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -79,20 +56,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
 import com.afkanerd.deku.ConversationsScreen
@@ -101,10 +74,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.SearchThreadScreen
-import com.afkanerd.deku.DefaultSMS.SettingsActivity
 import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.ImportDetails
 import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
@@ -112,18 +83,12 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
 import com.afkanerd.deku.Modules.Subroutines
-import com.afkanerd.deku.RemoteListenersScreen
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
-import java.io.FileOutputStream
-import java.io.InputStreamReader
 
 enum class InboxType(val value: Int) {
     INBOX(0),
@@ -131,7 +96,8 @@ enum class InboxType(val value: Int) {
     ENCRYPTED(2),
     BLOCKED(3),
     DRAFTS(4),
-    MUTED(5);
+    MUTED(5),
+    REMOTE_LISTENER(6);
 
     companion object {
         fun fromInt(value: Int): InboxType? {
@@ -224,7 +190,7 @@ fun ThreadConversationLayout(
     val sendSMSPermission = rememberPermissionState(Manifest.permission.SEND_SMS)
     val receiveSMSPermission = rememberPermissionState(Manifest.permission.RECEIVE_SMS)
 
-    var isDefault by remember{ mutableStateOf(Subroutines.isDefault(context)) }
+    var isDefault by remember{ mutableStateOf(inPreviewMode || Subroutines.isDefault(context)) }
 
     LaunchedEffect(
         readSMSPermission.status,
@@ -265,7 +231,7 @@ fun ThreadConversationLayout(
 
     var inboxType by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
-    val items: List<Conversation> by conversationsViewModel
+    val inboxMessages: List<Conversation> by conversationsViewModel
         .getThreading(context).observeAsState(emptyList())
 
     val archivedItems: List<Conversation> by conversationsViewModel
@@ -294,28 +260,24 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
-    var rememberItemsIsEmpty by remember { mutableStateOf(false)}
-    var rememberArchivedIsEmpty by remember { mutableStateOf(false)}
 
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
-    LaunchedEffect(items) {
-        rememberItemsIsEmpty = items.isEmpty()
-    }
-
-    LaunchedEffect(archivedItems) {
-        rememberArchivedIsEmpty = archivedItems.isEmpty()
-    }
-
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
-                items.forEach {
-                    if(BlockedNumberContract.isBlocked(context, it.address)) blockedItems.add(it)
+                blockedItems.apply {
+                    addAll(inboxMessages
+                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
+                    )
                 }
             }
         }
+    }
+
+    LaunchedEffect(conversationsViewModel.importDetails) {
+        rememberImportMenuExpanded = conversationsViewModel.importDetails.isNotBlank()
     }
 
     BackHandler {
@@ -332,10 +294,6 @@ fun ThreadConversationLayout(
                 context.finish()
             }
         }
-    }
-
-    LaunchedEffect(conversationsViewModel.importDetails) {
-        rememberImportMenuExpanded = conversationsViewModel.importDetails.isNotBlank()
     }
 
     ThreadsMainDropDown(
@@ -505,6 +463,8 @@ fun ThreadConversationLayout(
                                     InboxType.DRAFTS ->
                                         stringResource(R.string
                                             .conversations_navigation_view_drafts)
+                                    InboxType.REMOTE_LISTENER ->
+                                        stringResource(R.string .remote_listeners)
                                     else -> ""
                                 },
                                 maxLines =1,
@@ -554,7 +514,7 @@ fun ThreadConversationLayout(
                 else {
                     when(inboxType) {
                         InboxType.INBOX -> {
-                            if(items.isEmpty())
+                            if(inboxMessages.isEmpty())
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -583,6 +543,7 @@ fun ThreadConversationLayout(
                         InboxType.BLOCKED -> {}
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
+                        InboxType.REMOTE_LISTENER -> {}
                     }
 
                     LazyColumn(
@@ -591,12 +552,13 @@ fun ThreadConversationLayout(
                     )  {
                         itemsIndexed(
                             items = if(inPreviewMode) _items else when(inboxType) {
-                                InboxType.INBOX -> items
+                                InboxType.INBOX -> inboxMessages
                                 InboxType.ARCHIVED -> archivedItems
                                 InboxType.ENCRYPTED -> encryptedItems
                                 InboxType.BLOCKED -> blockedItems
                                 InboxType.DRAFTS -> draftsItems
                                 InboxType.MUTED -> mutedItems
+                                InboxType.REMOTE_LISTENER -> TODO()
                             },
                             key = { index, message -> message.thread_id!! }
                         ) { index, message ->

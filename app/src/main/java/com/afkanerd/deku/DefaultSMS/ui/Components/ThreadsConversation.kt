@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Inbox
@@ -408,7 +409,9 @@ fun ModalDrawerSheetLayout(
                 selected = selectedItemIndex == InboxType.ARCHIVED,
                 onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
             )
-            HorizontalDivider()
+
+            HorizontalDivider(Modifier.padding(8.dp))
+
             NavigationDrawerItem(
                 icon = {
                     Icon(
@@ -489,6 +492,26 @@ fun ModalDrawerSheetLayout(
                 onClick = { callback?.let{ it(InboxType.BLOCKED) } }
             )
 
+            HorizontalDivider(Modifier.padding(8.dp))
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.CloudSync,
+                        contentDescription = stringResource(R.string.remote_listeners)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.remote_listeners),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                },
+                selected = selectedItemIndex == InboxType.REMOTE_LISTENER,
+                onClick = { callback?.let{ it(InboxType.REMOTE_LISTENER) } }
+            )
         }
     }
 }

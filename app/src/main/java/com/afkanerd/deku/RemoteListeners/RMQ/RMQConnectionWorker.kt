@@ -331,6 +331,7 @@ class RMQConnectionWorker(
         conversation.date = System.currentTimeMillis().toString()
         conversation.thread_id = threadId.toString()
         conversation.status = Telephony.Sms.STATUS_PENDING
+        conversation.isRemoteListener = true
 
         databaseConnector.conversationDao()._insert(conversation)
         SMSDatabaseWrapper.send_text(context, conversation, bundle)

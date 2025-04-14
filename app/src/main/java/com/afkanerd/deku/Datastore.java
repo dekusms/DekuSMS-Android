@@ -41,7 +41,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         Conversation.class,
         RemoteListeners.class,
         ThreadsConfigurations.class},
-        version = 23,
+        version = 24,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -56,7 +56,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 19, to = 20, spec = Datastore.Migrate19To20.class),
         @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class),
         @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class),
-        @AutoMigration(from = 22, to = 23, spec = Datastore.Migrate22To23.class)
+        @AutoMigration(from = 22, to = 23, spec = Datastore.Migrate22To23.class),
+        @AutoMigration(from = 23, to = 24)
 })
 
 
