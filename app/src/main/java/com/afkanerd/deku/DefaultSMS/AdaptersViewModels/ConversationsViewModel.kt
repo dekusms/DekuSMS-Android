@@ -73,6 +73,13 @@ class ConversationsViewModel : ViewModel() {
 
     var newLayoutInfo: WindowLayoutInfo? = null
 
+    fun getInboxType(isDefault: Boolean = false): InboxType {
+        inboxType = if(isDefault) {
+            InboxType.INBOX
+        } else InboxType.REMOTE_LISTENER
+        return inboxType
+    }
+
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()

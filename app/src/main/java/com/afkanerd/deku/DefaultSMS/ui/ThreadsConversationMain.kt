@@ -19,13 +19,18 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -83,6 +88,8 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
 import com.afkanerd.deku.Modules.Subroutines
+import com.afkanerd.deku.RemoteListenersAddScreen
+import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -181,7 +188,6 @@ fun ThreadConversationLayout(
     navController: NavController,
     _items: List<Conversation> = emptyList(),
 ) {
-
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
 
@@ -228,7 +234,9 @@ fun ThreadConversationLayout(
 
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 
-    var inboxType by remember { mutableStateOf(conversationsViewModel.inboxType) }
+    var inboxType by remember { mutableStateOf(
+        conversationsViewModel.getInboxType(isDefault)
+    ) }
 
     val inboxMessages: List<Conversation> by conversationsViewModel
         .getThreading(context).observeAsState(emptyList())
@@ -278,6 +286,10 @@ fun ThreadConversationLayout(
         }
     }
 
+    LaunchedEffect(inboxType) {
+        selectedItemIndex = inboxType
+    }
+
     LaunchedEffect(remoteListenersMessages) {
         if(!isDefault && remoteListenersMessages.isNotEmpty())
             inboxType = InboxType.REMOTE_LISTENER
@@ -305,7 +317,6 @@ fun ThreadConversationLayout(
 
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
-        navController=navController
     ) {
         rememberMenuExpanded = it
     }
@@ -333,7 +344,7 @@ fun ThreadConversationLayout(
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                if(inboxType == InboxType.INBOX && selectedItems.isEmpty()) {
+                if(selectedItems.isEmpty() && inboxType == InboxType.INBOX) {
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
@@ -379,7 +390,7 @@ fun ThreadConversationLayout(
                         scrollBehavior = scrollBehaviour
                     )
                 }
-                else if(!selectedItems.isEmpty()) {
+                else if(selectedItems.isNotEmpty()) {
                     TopAppBar(
                         title = {
                             Text(
@@ -424,14 +435,14 @@ fun ThreadConversationLayout(
                                         imageVector = Icons.Filled.Unarchive,
                                         tint = selectedIconColors,
                                         contentDescription =
-                                        stringResource(R.string.unarchive_messages)
+                                            stringResource(R.string.unarchive_messages)
                                     )
                                 } else {
                                     Icon(
                                         imageVector = Icons.Filled.Archive,
                                         tint = selectedIconColors,
                                         contentDescription =
-                                        stringResource(R.string.messages_threads_menu_archive)
+                                            stringResource(R.string.messages_threads_menu_archive)
                                     )
                                 }
                             }
@@ -443,7 +454,7 @@ fun ThreadConversationLayout(
                                     imageVector = Icons.Rounded.Delete,
                                     tint = selectedIconColors,
                                     contentDescription =
-                                    stringResource(R.string.message_threads_menu_delete)
+                                        stringResource(R.string.message_threads_menu_delete)
                                 )
                             }
                         },
@@ -491,21 +502,63 @@ fun ThreadConversationLayout(
                                 )
                             }
                         },
+                        actions = {
+                            when(inboxType) {
+                                InboxType.INBOX -> {}
+                                InboxType.ARCHIVED -> {}
+                                InboxType.ENCRYPTED -> {}
+                                InboxType.BLOCKED -> {}
+                                InboxType.DRAFTS -> {}
+                                InboxType.MUTED -> {}
+                                InboxType.REMOTE_LISTENER -> {
+                                    IconButton(onClick = {
+                                        navController.navigate(RemoteListenersAddScreen)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.AddCircle,
+                                            contentDescription =
+                                                stringResource(R.string.new_remote_listener)
+                                        )
+                                    }
+                                }
+                            }
+                        },
                         scrollBehavior = scrollBehaviour
                     )
                 }
             },
             floatingActionButton = {
-                if(isDefault || inPreviewMode) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            navController.navigate(ComposeNewMessageScreen)
-                        },
-                        icon = { Icon( Icons.AutoMirrored.Default.Message,
-                            stringResource(R.string.compose_new_message)) },
-                        text = { Text(text = stringResource(R.string.compose)) },
-                        expanded = listState.isScrollingUp()
-                    )
+                when(inboxType) {
+                    InboxType.INBOX -> {
+                        if(isDefault || inPreviewMode) {
+                            ExtendedFloatingActionButton(
+                                onClick = {
+                                    navController.navigate(ComposeNewMessageScreen)
+                                },
+                                icon = { Icon( Icons.AutoMirrored.Default.Message,
+                                    stringResource(R.string.compose_new_message)) },
+                                text = { Text(text = stringResource(R.string.compose)) },
+                                expanded = listState.isScrollingUp()
+                            )
+                        }
+                    }
+                    InboxType.ARCHIVED -> {}
+                    InboxType.ENCRYPTED -> {}
+                    InboxType.BLOCKED -> {}
+                    InboxType.DRAFTS -> {}
+                    InboxType.MUTED -> {}
+                    InboxType.REMOTE_LISTENER -> {
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                navController.navigate(RemoteListenersScreen)
+                            },
+                            icon = { Icon( Icons.Default.Settings,
+                                stringResource(R.string.settings)
+                            ) },
+                            text = { Text(text = "Configure") },
+                            expanded = listState.isScrollingUp()
+                        )
+                    }
                 }
             }
         ) { innerPadding ->
@@ -771,4 +824,3 @@ fun PreviewMessageCard() {
         }
     }
 }
-

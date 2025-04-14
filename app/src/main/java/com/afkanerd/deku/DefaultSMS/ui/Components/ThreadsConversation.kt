@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
@@ -50,6 +51,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -72,6 +74,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import androidx.room.util.TableInfo
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AboutActivity
@@ -79,12 +82,15 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
+import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import com.afkanerd.deku.RemoteListenersScreen
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
+import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -528,7 +534,6 @@ fun ModalDrawerSheetLayout(
 fun ThreadsMainDropDown(
     expanded: Boolean = false,
     conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
-    navController: NavController,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -592,8 +597,6 @@ fun ThreadsMainDropDown(
             expanded = expanded,
             onDismissRequest = { dismissCallback?.let{ it(false) } },
         ) {
-
-
             DropdownMenuItem(
                 text = {
                     Text(
@@ -661,19 +664,6 @@ fun ThreadsMainDropDown(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text= stringResource(R.string.remote_listeners),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.let { it(false) }
-                    navController.navigate(RemoteListenersScreen)
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
                         text=stringResource(R.string.about_deku),
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -728,6 +718,17 @@ fun SwipeToDeleteBackground(
             },
             tint = MaterialTheme.colorScheme.onPrimary,
             contentDescription = stringResource(R.string.messages_threads_menu_archive)
+        )
+    }
+}
+
+@Preview
+@Composable
+fun MainMenuDropDown_Preview() {
+    AppTheme(darkTheme = true) {
+        ThreadsMainDropDown(
+            true,
+            ConversationsViewModel()
         )
     }
 }

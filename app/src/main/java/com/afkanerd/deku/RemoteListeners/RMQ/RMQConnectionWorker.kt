@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import org.json.JSONException
 import org.junit.Assert
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
@@ -347,12 +348,25 @@ class RMQConnectionWorker(
                 consumerTag = consumerTag
             )?.let { channel ->
                 val message = String(delivery.body, StandardCharsets.UTF_8)
-                val smsRequest = Json.decodeFromString<SMSRequest>(message)
-
-                CoroutineScope(Dispatchers.Default).launch {
+                Log.d(javaClass.name, "Remote listener incoming: $message")
+                val smsRequest: SMSRequest? = run {
+                    try {
+                        return@run Json.decodeFromString<SMSRequest>(message)
+                    } catch(e: SerializationException) {
+                        e.printStackTrace()
+                        channel.let {
+                            if (it.isOpen)
+                                it.basicReject(delivery.envelope.deliveryTag, false)
+                        }
+                    } catch(e: Exception) {
+                        e.printStackTrace()
+                    }
+                    null
+                }
+                smsRequest?.let {
                     try {
                         sendSMS(
-                            smsRequest,
+                            it,
                             subscriptionId,
                             consumerTag,
                             delivery.envelope.deliveryTag,
