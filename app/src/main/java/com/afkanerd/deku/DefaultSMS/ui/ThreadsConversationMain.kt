@@ -245,7 +245,7 @@ fun ThreadConversationLayout(
     val draftsItems: List<Conversation> by conversationsViewModel
         .draftsLiveData!!.observeAsState(emptyList())
 
-    val remoteListeners: List<Conversation> by conversationsViewModel
+    val remoteListenersMessages: List<Conversation> by conversationsViewModel
         .remoteListenersLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
@@ -276,6 +276,11 @@ fun ThreadConversationLayout(
                 }
             }
         }
+    }
+
+    LaunchedEffect(remoteListenersMessages) {
+        if(!isDefault && remoteListenersMessages.isNotEmpty())
+            inboxType = InboxType.REMOTE_LISTENER
     }
 
     LaunchedEffect(conversationsViewModel.importDetails) {
@@ -546,7 +551,7 @@ fun ThreadConversationLayout(
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
                         InboxType.REMOTE_LISTENER -> {
-                            if(remoteListeners.isEmpty())
+                            if(remoteListenersMessages.isEmpty())
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -572,7 +577,7 @@ fun ThreadConversationLayout(
                                 InboxType.BLOCKED -> blockedItems
                                 InboxType.DRAFTS -> draftsItems
                                 InboxType.MUTED -> mutedItems
-                                InboxType.REMOTE_LISTENER -> remoteListeners
+                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
                             },
                             key = { index, message -> message.thread_id!! }
                         ) { index, message ->
