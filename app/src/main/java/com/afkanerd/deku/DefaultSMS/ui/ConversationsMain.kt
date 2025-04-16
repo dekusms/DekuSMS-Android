@@ -105,7 +105,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
-
+import androidx.core.net.toUri
 
 
 private fun sendSMS(
@@ -151,7 +151,7 @@ private fun getPredefinedType(type: Int) : PredefinedTypes? {
         Telephony.Sms.MESSAGE_TYPE_SENT -> {
             return PredefinedTypes.OUTGOING
         }
-        Telephony.Sms.MESSAGE_TYPE_INBOX, -> {
+        Telephony.Sms.MESSAGE_TYPE_INBOX -> {
             return PredefinedTypes.INCOMING
         }
     }
@@ -239,7 +239,7 @@ private fun getContentType(
 private fun call(context: Context, address: String) {
     val callIntent = Intent(Intent.ACTION_DIAL).apply {
         setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        setData(Uri.parse("tel:$address"));
+        setData("tel:$address".toUri());
     }
     context.startActivity(callIntent);
 }

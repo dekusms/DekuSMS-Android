@@ -74,9 +74,9 @@ class ConversationsViewModel : ViewModel() {
     var newLayoutInfo: WindowLayoutInfo? = null
 
     fun getInboxType(isDefault: Boolean = false): InboxType {
-        inboxType = if(isDefault) {
-            InboxType.INBOX
-        } else InboxType.REMOTE_LISTENER
+        inboxType = if(remoteListenersLiveData?.value?.isNotEmpty() == true && !isDefault) {
+            InboxType.REMOTE_LISTENER
+        } else InboxType.INBOX
         return inboxType
     }
 
