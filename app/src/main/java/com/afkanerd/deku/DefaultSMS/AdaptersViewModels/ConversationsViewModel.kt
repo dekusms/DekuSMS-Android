@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
@@ -42,6 +43,8 @@ import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -55,7 +58,6 @@ class ConversationsViewModel : ViewModel() {
     var address by mutableStateOf("")
     var text by mutableStateOf("")
     var searchQuery by mutableStateOf("")
-    var contactName: String by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
 
     var importDetails by mutableStateOf("")
@@ -68,17 +70,36 @@ class ConversationsViewModel : ViewModel() {
     var draftsLiveData: LiveData<MutableList<Conversation>>? = null
     var archivedLiveData: LiveData<MutableList<Conversation>>? = null
     var mutedLiveData: LiveData<MutableList<Conversation>>? = null
+    var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
 
     var newLayoutInfo: WindowLayoutInfo? = null
 
+    private val _newIntent = MutableStateFlow<Intent?>(null)
+    var newIntent: StateFlow<Intent?> = _newIntent
+
+    fun setNewIntent(intent: Intent?) {
+        _newIntent.value = intent
+    }
+
+    fun getInboxType(isDefault: Boolean = false): InboxType {
+        inboxType = if(remoteListenersLiveData?.value?.isNotEmpty() == true && !isDefault) {
+            InboxType.REMOTE_LISTENER
+        } else InboxType.INBOX
+        return inboxType
+    }
+
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
             threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
-            draftsLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingDrafts()
-            archivedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingArchived()
+            draftsLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingDrafts()
+            archivedLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingArchived()
             mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
+            remoteListenersLiveData = Datastore.getDatastore(context).conversationDao()
+                .getAllThreadingRemoteListeners()
         }
         return threadedLiveData!!
     }

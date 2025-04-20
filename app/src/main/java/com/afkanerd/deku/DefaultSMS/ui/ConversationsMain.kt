@@ -95,6 +95,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.SearchTopAppBarText
 import com.afkanerd.deku.DefaultSMS.ui.Components.SecureRequestAcceptModal
 import com.afkanerd.deku.DefaultSMS.ui.Components.ShortCodeAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.SimChooser
+import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.SearchThreadScreen
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
@@ -104,7 +105,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
-
+import androidx.core.net.toUri
 
 
 private fun sendSMS(
@@ -150,7 +151,7 @@ private fun getPredefinedType(type: Int) : PredefinedTypes? {
         Telephony.Sms.MESSAGE_TYPE_SENT -> {
             return PredefinedTypes.OUTGOING
         }
-        Telephony.Sms.MESSAGE_TYPE_INBOX, -> {
+        Telephony.Sms.MESSAGE_TYPE_INBOX -> {
             return PredefinedTypes.INCOMING
         }
     }
@@ -238,13 +239,13 @@ private fun getContentType(
 private fun call(context: Context, address: String) {
     val callIntent = Intent(Intent.ACTION_DIAL).apply {
         setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        setData(Uri.parse("tel:$address"));
+        setData("tel:$address".toUri());
     }
     context.startActivity(callIntent);
 }
 
 @Composable
-private fun MainDropDownMenu(
+private fun ConversationsMainDropDownMenu(
     expanded: Boolean = true,
     searchCallback: (() -> Unit)? = null,
     blockCallback: (() -> Unit)? = null,
@@ -399,6 +400,8 @@ fun Conversations(
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
+    var isDefault by remember{ mutableStateOf(inPreviewMode || Subroutines.isDefault(context)) }
+
     var isSecured by remember {
         mutableStateOf(
             if(viewModel.address.isBlank()) false
@@ -434,7 +437,7 @@ fun Conversations(
     var isArchived by remember { mutableStateOf(false) }
 
     var isBlocked by remember { mutableStateOf(
-        if(!inPreviewMode)
+        if(!inPreviewMode && isDefault)
             BlockedNumberContract .isBlocked(context, viewModel.address)
         else false
     ) }
@@ -477,20 +480,24 @@ fun Conversations(
         Notifications.cancel(context, viewModel.threadId.toInt())
     }
 
+    val contactName by remember{ mutableStateOf(
+        if(isDefault) {
+            Contacts.retrieveContactName(
+                context,
+                Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
+            ) ?: viewModel.address.run {
+                viewModel.address.replace(Regex("[\\s-]"), "")
+            }
+        } else viewModel.address.replace(Regex("[\\s-]"), "")
+    )}
+
     LaunchedEffect(viewModel.address){
-        Contacts.retrieveContactName(
-            context,
-            Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
-        )?.let { viewModel.contactName = it }
-
-        if(viewModel.contactName.isBlank())
-            viewModel.contactName = viewModel.address
-        viewModel.address = viewModel.address.replace(Regex("[\\s-]"), "")
-
         coroutineScope.launch {
-            viewModel.fetchDraft(context)?.let {
-                viewModel.clearDraft(context)
-                viewModel.text = it.text!!
+            if(viewModel.text.isEmpty()) {
+                viewModel.fetchDraft(context)?.let {
+                    viewModel.clearDraft(context)
+                    viewModel.text = it.text!!
+                }
             }
             viewModel.updateToRead(context)
             isMute = viewModel.isMuted(context)
@@ -530,7 +537,7 @@ fun Conversations(
         )
     }
 
-    MainDropDownMenu(
+    ConversationsMainDropDownMenu(
         rememberMenuExpanded,
         isMute = isMute,
         isBlocked = isBlocked,
@@ -592,7 +599,7 @@ fun Conversations(
                                 Row {
                                     Text(
                                         text= if(LocalInspectionMode.current) "Template"
-                                        else viewModel.contactName,
+                                        else contactName,
                                         maxLines =1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.padding(end=8.dp),

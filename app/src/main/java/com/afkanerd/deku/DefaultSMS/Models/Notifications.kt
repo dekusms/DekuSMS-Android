@@ -101,14 +101,13 @@ object Notifications {
                 .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MUTE)
                 .build()
 
-        var markAsReadAction: NotificationCompat.Action? = if(markAsReadPendingIntent == null) null else
-            NotificationCompat.Action.Builder(
+        var markAsReadAction: NotificationCompat.Action? =
+            if(markAsReadPendingIntent == null) null
+            else NotificationCompat.Action.Builder(
                 null,
                 getString(context, R.string.notifications_mark_as_read_label),
                 markAsReadPendingIntent
-            )
-                .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
-                .build()
+            ).setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ).build()
 
         val bitmap = Contacts.getContactBitmapPhoto(context, address)
         val icon = if(bitmap != null) {

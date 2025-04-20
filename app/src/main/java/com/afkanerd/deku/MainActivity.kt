@@ -1,11 +1,8 @@
 package com.afkanerd.deku
 
-import android.Manifest
 import android.app.ComponentCaller
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Telephony
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -47,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
@@ -84,10 +80,17 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        super.onNewIntent(intent, caller)
-        this.intent = intent
-        navController.navigate(HomeScreen)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        println("New intent instance called....")
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        intent.let {
+            conversationViewModel.setNewIntent(it)
+            navController.navigate(HomeScreen)
+        }
     }
 
     private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
@@ -95,6 +98,7 @@ class MainActivity : AppCompatActivity(){
         setContent {
             AppTheme {
                 navController = rememberNavController()
+
                 Surface(Modifier
                     .fillMaxSize()
                 ) {
@@ -125,8 +129,9 @@ class MainActivity : AppCompatActivity(){
                             composable<RemoteListenersScreen>{
                                 RMQMainComposable(
                                     remoteListenerViewModel = remoteListenersViewModel,
-                                    remoteListenerProjectsViewModel =
+                                    remoteListenerQueuesViewModel =
                                         remoteListenersProjectsViewModel,
+                                    conversationsViewModel = conversationViewModel,
                                     navController = navController
                                 )
                             }
@@ -149,6 +154,8 @@ class MainActivity : AppCompatActivity(){
                             }
                         }
                     }
+
+                    handleIntent(intent)
                 }
             }
         }
@@ -193,7 +200,6 @@ class MainActivity : AppCompatActivity(){
     fun HomeScreenComposable() {
         ThreadConversationLayout(
             conversationsViewModel = conversationViewModel,
-            intent = intent,
             navController = navController,
         )
     }
@@ -241,14 +247,4 @@ class MainActivity : AppCompatActivity(){
                 conversationViewModel.insertDraft(applicationContext)
         }
     }
-
-    fun checkIsDefault(): Boolean {
-        val defaultName = Telephony.Sms.getDefaultSmsPackage(applicationContext)
-        if(defaultName.isNullOrBlank() || packageName != defaultName) {
-            return ContextCompat.checkSelfPermission(applicationContext,
-                Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
-        }
-        return false
-    }
-
 }

@@ -391,5 +391,8 @@
     <string name="click_to_add_queues">• Click to add queues</string>
     <string name="press_and_hold_to_manage">• Press and hold to manage</string>
     <string name="queues">%1$s Queues</string>
+    <string name="list_of_remote_listeners">List of remote listeners</string>
+    <string name="settings">Settings</string>
+    <string name="no_messages_sent_from_remote_listeners">No messages sent from remote listeners</string>
 
 </resources>

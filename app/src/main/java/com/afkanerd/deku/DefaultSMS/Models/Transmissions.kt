@@ -11,15 +11,13 @@ object Transmissions {
     @Throws(Exception::class)
     fun sendTextSMS(
         context: Context,
-        destinationAddress: String, text: String,
-        sentIntent: PendingIntent?, deliveryIntent: PendingIntent?,
+        destinationAddress: String,
+        text: String,
+        sentIntent: PendingIntent?,
+        deliveryIntent: PendingIntent?,
         subscriptionId: Int
     ) {
-        if (text.isNullOrEmpty()) return
-
-//        val smsManager = SmsManager.getSmsManagerForSubscriptionId(
-//            subscriptionId!!
-//        )
+        if (text.isEmpty()) return
 
         val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             context.getSystemService(SmsManager::class.java)

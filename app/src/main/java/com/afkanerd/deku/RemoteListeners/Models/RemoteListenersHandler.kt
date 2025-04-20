@@ -1,9 +1,12 @@
 package com.afkanerd.deku.RemoteListeners.Models
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.telephony.SubscriptionInfo
+import android.widget.Toast
+import androidx.core.content.PermissionChecker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -16,7 +19,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,21 +32,22 @@ object RemoteListenersHandler {
     const val UNIQUE_WORK_MANAGER_TAG = BuildConfig.APPLICATION_ID + ".REMOTE_LISTENERS"
 
     fun getPublisherDetails(context: Context?, projectName: String): List<String> {
+        val operatorDetails: MutableList<String> = ArrayList()
         val simCards = SIMHandler.getSimCardInformation(context)
 
         val operatorCountry = Helpers.getUserCountry(context)
+        simCards?.let {
+            for (i in simCards.indices) {
+                val mcc = simCards[i].mcc.toString()
+                val _mnc = simCards[i].mnc
+                val mnc = if (_mnc < 10) "0$_mnc" else _mnc.toString()
+                val carrierId = mcc + mnc
 
-        val operatorDetails: MutableList<String> = ArrayList()
-        for (i in simCards.indices) {
-            val mcc = simCards[i].mcc.toString()
-            val _mnc = simCards[i].mnc
-            val mnc = if (_mnc < 10) "0$_mnc" else _mnc.toString()
-            val carrierId = mcc + mnc
+                val publisherName = "$projectName.$operatorCountry.$carrierId"
+                operatorDetails.add(publisherName)
+            }
 
-            val publisherName = "$projectName.$operatorCountry.$carrierId"
-            operatorDetails.add(publisherName)
         }
-
         return operatorDetails
     }
 
@@ -96,12 +100,13 @@ object RemoteListenersHandler {
     fun startListening(context: Context, remoteListener: RemoteListeners) {
         CoroutineScope(Dispatchers.Default).launch {
             toggleRemoteListeners(context, remoteListener)
-
-            val intent = Intent(context, RMQConnectionService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            val intent = Intent(context, RemoteListenerConnectionService::class.java)
+            launch(Dispatchers.Main) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
             }
         }
     }

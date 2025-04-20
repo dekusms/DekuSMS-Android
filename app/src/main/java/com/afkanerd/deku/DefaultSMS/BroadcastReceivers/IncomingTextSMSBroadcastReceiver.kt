@@ -239,7 +239,6 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                     conversation.thread_id!!.toInt()
                 )
             }
-
         }
 
 

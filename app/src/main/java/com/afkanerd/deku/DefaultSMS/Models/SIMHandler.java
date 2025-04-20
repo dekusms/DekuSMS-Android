@@ -3,13 +3,17 @@ package com.afkanerd.deku.DefaultSMS.Models;
 import static android.content.Context.TELEPHONY_SERVICE;
 import static androidx.core.content.ContextCompat.getSystemService;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.telephony.CellInfo;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+
+import androidx.core.app.ActivityCompat;
 
 import java.util.List;
 
@@ -18,7 +22,12 @@ public class SIMHandler {
     public static List<SubscriptionInfo> getSimCardInformation(Context context) {
         SubscriptionManager subscriptionManager = (SubscriptionManager)
                 context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-        return subscriptionManager.getActiveSubscriptionInfoList();
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            return subscriptionManager.getActiveSubscriptionInfoList();
+        }
+        return null;
     }
 
     public static boolean isDualSim(Context context) {

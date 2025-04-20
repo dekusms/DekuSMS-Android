@@ -14,7 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.MutableLiveData
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 
 class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
     private lateinit var remoteListenersList: LiveData<List<RemoteListeners>>
@@ -24,14 +24,14 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
 
     private lateinit var datastore: Datastore
 
-    var binder: RMQConnectionService.LocalBinder? = null
+    var binder: RemoteListenerConnectionService.LocalBinder? = null
 
     /** Defines callbacks for service binding, passed to bindService().  **/
     val connection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            binder = service as RMQConnectionService.LocalBinder
+            binder = service as RemoteListenerConnectionService.LocalBinder
             rmqConnectionHandlers = binder!!.getService().getRmqConnections()
         }
 
@@ -41,7 +41,7 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
 
     init {
         context?.let {
-            Intent(context, RMQConnectionService::class.java).also { intent ->
+            Intent(context, RemoteListenerConnectionService::class.java).also { intent ->
                 context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             }
         }
@@ -63,12 +63,12 @@ class RemoteListenersViewModel(context: Context? = null) : ViewModel() {
         return datastore.remoteListenerDAO().fetch()
     }
 
-    fun update(remoteListeners: RemoteListeners) {
-        datastore.remoteListenerDAO().update(remoteListeners)
+    fun update(context: Context, remoteListeners: RemoteListeners) {
+        Datastore.getDatastore(context).remoteListenerDAO().update(remoteListeners)
     }
 
-    fun insert(remoteListeners: RemoteListeners) {
-        datastore.remoteListenerDAO().insert(remoteListeners)
+    fun insert(context: Context, remoteListeners: RemoteListeners) {
+        Datastore.getDatastore(context).remoteListenerDAO().insert(remoteListeners)
     }
 
     fun delete(remoteListeners: RemoteListeners) {

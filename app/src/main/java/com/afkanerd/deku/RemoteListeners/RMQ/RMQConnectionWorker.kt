@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -22,6 +23,7 @@ import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -35,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import org.json.JSONException
 import org.junit.Assert
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
@@ -68,13 +71,13 @@ class RMQConnectionWorker(
         handleBroadcast()
     }
 
-    private lateinit var mService: RMQConnectionService
+    private lateinit var mService: RemoteListenerConnectionService
     /** Defines callbacks for service binding, passed to bindService().  */
     private val serviceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            val binder = service as RMQConnectionService.LocalBinder
+            val binder = service as RemoteListenerConnectionService.LocalBinder
             mService = binder.getService()
         }
 
@@ -85,18 +88,18 @@ class RMQConnectionWorker(
     fun start(): RMQConnectionHandler {
         Log.d(javaClass.name, "Starting new service connection...")
 
-        Intent(context, RMQConnectionService::class.java).also { intent ->
+        Intent(context, RemoteListenerConnectionService::class.java).also { intent ->
             context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
 
-        val gatewayClient = Datastore.getDatastore(context).remoteListenerDAO()
+        val remoteListener = Datastore.getDatastore(context).remoteListenerDAO()
             .fetch(gatewayClientId)
 
-        factory.username = gatewayClient.username
-        factory.password = gatewayClient.password
-        factory.virtualHost = gatewayClient.virtualHost
-        factory.host = gatewayClient.hostUrl
-        factory.port = gatewayClient.port
+        factory.username = remoteListener.username
+        factory.password = remoteListener.password
+        factory.virtualHost = remoteListener.virtualHost
+        factory.host = remoteListener.hostUrl
+        factory.port = remoteListener.port
         factory.exceptionHandler = DefaultExceptionHandler()
 
         /**
@@ -104,7 +107,7 @@ class RMQConnectionWorker(
          */
         factory.isAutomaticRecoveryEnabled = false
 
-        startConnection(factory, gatewayClient)
+        startConnection(factory, remoteListener)
         try {
             mService.putRmqConnection(rmqConnectionHandler)
         } catch(e: Exception) {
@@ -168,9 +171,6 @@ class RMQConnectionWorker(
                             channelNumber,
                         ) .apply { this?.basicRecover(true) }
                     }?.let { channel ->
-                        channel.addShutdownListener {
-                            Log.e(javaClass.name, "Channel shutdown cause: $it")
-                        }
 
                         val bindingName: String? = when(simSlot) {
                             0 -> {
@@ -179,6 +179,23 @@ class RMQConnectionWorker(
                             }
                             1 -> rlq.binding2Name
                             else -> null
+                        }
+
+                        channel.addShutdownListener {
+                            Log.e(javaClass.name, "Channel shutdown cause: $it")
+
+                            if(channel.connection.isOpen) {
+                                bindingName?.let {
+                                    startChannelConsumption(
+                                        rmqConnectionHandler,
+                                        channel,
+                                        subscriptionInfo.subscriptionId,
+                                        rlq,
+                                        bindingName
+                                    )
+                                }
+                            }
+                            rmqConnectionHandler.updateChannel(rlq, channel)
                         }
 
                         bindingName?.let {
@@ -206,30 +223,36 @@ class RMQConnectionWorker(
         remoteListenersQueues: RemoteListenersQueues,
         bindingName: String
     ) {
-        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnectionHandler.id)
+        val deliverCallback = getDeliverCallback(
+            subscriptionId,
+            rmqConnectionHandler.id
+        )
         val queueName = rmqConnectionHandler.createQueue(
             exchangeName = remoteListenersQueues.name!!,
             bindingKey = bindingName,
             channel = channel,
         )
         rmqConnectionHandler.createExchange(remoteListenersQueues.name!!, channel)
-        val messagesCount = channel.messageCount(queueName)
 
         val consumerTag = channel.basicConsume(
             queueName,
             false,
             deliverCallback,
             object : ConsumerShutdownSignalCallback {
-                override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                    Log.e(javaClass.name, "Consumer error", sig)
-                    rmqConnectionHandler.updateChannel(
-                        remoteListenersQueues,
-                        channel
-                    )
+                override fun handleShutdownSignal(
+                    consumerTag: String,
+                    sig: ShutdownSignalException
+                ) {
+                    sig.printStackTrace()
+                    rmqConnectionHandler.removeChannelWithConsumerTag(consumerTag)
                 }
             })
-        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
-//        rmqConnectionHandler.bindChannelToTag(channel, consumerTag)
+
+        rmqConnectionHandler.bindChannelConsumerTag(
+            consumerTag,
+            remoteListenersQueues,
+            channel
+        )
     }
 
     private fun handleBroadcast() {
@@ -238,7 +261,6 @@ class RMQConnectionWorker(
         messageStateChangedBroadcast = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action != null && intentFilter.hasAction(intent.action)) {
-                    Log.d(javaClass.name, "Received incoming broadcast")
                     if (intent.hasExtra(RMQConnectionHandler.MESSAGE_SID) &&
                         intent.hasExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG)) {
 
@@ -252,39 +274,46 @@ class RMQConnectionWorker(
                         Assert.assertTrue(!consumerTag.isNullOrEmpty())
                         Assert.assertTrue(deliveryTag != -1L)
 
-                        rmqConnectionHandler.findChannelByTag(consumerTag!!)?.let {
-                            Log.d(javaClass.name, "Received an ACK of the message...")
-                            if (resultCode == Activity.RESULT_OK) {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    if (it.isOpen) it.basicAck(deliveryTag, false)
-                                }
-                            } else {
-                                Log.w(javaClass.name, "Rejecting message sent")
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    if (it.isOpen) it.basicReject(deliveryTag, true)
+                        rmqConnectionHandler.findQueueByGatewayClientId(rmqConnectionHandler.id)
+                            ?.let { remoteListenerQueue ->
+                                rmqConnectionHandler.findChannelByTag(
+                                    consumerTag!!
+                                )?.let {
+                                    Log.d(javaClass.name, "Received an ACK of the message...")
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        try {
+                                            if (resultCode == Activity.RESULT_OK) {
+                                                if (it.isOpen) it.basicAck(deliveryTag, false)
+                                            } else {
+                                                if (it.isOpen) it.basicReject(deliveryTag, true)
+                                            }
+                                        } catch(e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
                                 }
                             }
-                        }
-
                     }
                 }
             }
         }
 
-        context.registerReceiver(messageStateChangedBroadcast, intentFilter,
-            Context.RECEIVER_EXPORTED)
+        ContextCompat.registerReceiver(
+            context,
+            messageStateChangedBroadcast,
+            intentFilter,
+            ContextCompat.RECEIVER_EXPORTED
+        )
     }
 
-    private suspend fun sendSMS(
+    private fun sendSMS(
         smsRequest: SMSRequest,
         subscriptionId: Int,
         consumerTag: String,
         deliveryTag: Long,
         rmqConnectionId: Long
     ) {
-        SemaphoreManager.resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
-        SemaphoreManager.resourceSemaphore.release()
 
         val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
 
@@ -303,6 +332,7 @@ class RMQConnectionWorker(
         conversation.date = System.currentTimeMillis().toString()
         conversation.thread_id = threadId.toString()
         conversation.status = Telephony.Sms.STATUS_PENDING
+        conversation.isRemoteListener = true
 
         databaseConnector.conversationDao()._insert(conversation)
         SMSDatabaseWrapper.send_text(context, conversation, bundle)
@@ -310,44 +340,60 @@ class RMQConnectionWorker(
     }
 
     private fun getDeliverCallback(
-        channel: Channel,
         subscriptionId: Int,
         rmqConnectionId: Long
     ): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
-            val message = String(delivery.body, StandardCharsets.UTF_8)
-            val smsRequest = Json.decodeFromString<SMSRequest>(message)
-
-            CoroutineScope(Dispatchers.Default).launch {
-                try {
-                    sendSMS(smsRequest,
-                        subscriptionId,
-                        consumerTag,
-                        delivery.envelope.deliveryTag,
-                        rmqConnectionId)
-                } catch (e: Exception) {
-                    Log.e(javaClass.name, "", e)
-                    when(e) {
-                        is SerializationException -> {
-                            channel.let {
-                                if (it.isOpen)
-                                    it.basicReject(delivery.envelope.deliveryTag, false)
-                            }
+            rmqConnectionHandler.findChannelByTag(
+                consumerTag = consumerTag
+            )?.let { channel ->
+                val message = String(delivery.body, StandardCharsets.UTF_8)
+                Log.d(javaClass.name, "Remote listener incoming: $message")
+                val smsRequest: SMSRequest? = run {
+                    try {
+                        return@run Json.decodeFromString<SMSRequest>(message)
+                    } catch(e: SerializationException) {
+                        e.printStackTrace()
+                        channel.let {
+                            if (it.isOpen)
+                                it.basicReject(delivery.envelope.deliveryTag, false)
                         }
-                        is IllegalArgumentException -> {
-                            channel.let {
-                                if (it.isOpen)
-                                    it.basicReject(delivery.envelope.deliveryTag, true)
+                    } catch(e: Exception) {
+                        e.printStackTrace()
+                    }
+                    null
+                }
+                smsRequest?.let {
+                    try {
+                        sendSMS(
+                            it,
+                            subscriptionId,
+                            consumerTag,
+                            delivery.envelope.deliveryTag,
+                            rmqConnectionId
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        when(e) {
+                            is SerializationException -> {
+                                channel.let {
+                                    if (it.isOpen)
+                                        it.basicReject(delivery.envelope.deliveryTag, false)
+                                }
                             }
-                        }
-                        else -> {
-                            e.printStackTrace()
+                            is IllegalArgumentException -> {
+                                channel.let {
+                                    if (it.isOpen)
+                                        it.basicReject(delivery.envelope.deliveryTag, true)
+                                }
+                            }
+                            else -> {
+                                e.printStackTrace()
+                            }
                         }
                     }
                 }
             }
         }
     }
-
-
 }

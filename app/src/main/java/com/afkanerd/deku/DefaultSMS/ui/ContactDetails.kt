@@ -91,12 +91,24 @@ fun ContactDetails (
     val context = LocalContext.current
     val phoneNumber by remember { mutableStateOf(conversationsViewModel.address) }
 
-    val isContact by remember { mutableStateOf(Contacts.retrieveContactUri(context, phoneNumber) != null) }
+    val isContact by remember {
+        mutableStateOf(Contacts.retrieveContactUri(context, phoneNumber) != null)
+    }
     val contactPhotoUri by remember { mutableStateOf(Contacts
         .retrieveContactPhoto(context, conversationsViewModel.address) )}
     val isEncryptionEnabled by remember { mutableStateOf(E2EEHandler.isSecured(context,
         conversationsViewModel.address) )}
-    val contactName by remember { mutableStateOf(conversationsViewModel.contactName) }
+
+    val defaultRegion = if(LocalInspectionMode.current) "cm" else Helpers.getUserCountry( context )
+    val contactName by remember{ mutableStateOf(
+        Contacts.retrieveContactName(
+            context,
+            Helpers.getFormatCompleteNumber(conversationsViewModel.address, defaultRegion)
+        ) ?: conversationsViewModel.address.run {
+            conversationsViewModel.address.replace(Regex("[\\s-]"), "")
+        }
+    )}
+
     val isShortCode by remember { mutableStateOf(Helpers.isShortCode(conversationsViewModel.address)) }
     val inPreviewMode = LocalInspectionMode.current
     var isBlocked by remember { mutableStateOf(
