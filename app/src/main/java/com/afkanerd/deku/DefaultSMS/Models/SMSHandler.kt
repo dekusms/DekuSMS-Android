@@ -76,7 +76,8 @@ object SMSHandler {
     private fun sendTxt(
         context: Context,
         conversation: Conversation,
-        conversationsViewModel: ConversationsViewModel) {
+        conversationsViewModel: ConversationsViewModel
+    ) {
         try {
             SMSDatabaseWrapper.send_text(context, conversation, null)
         } catch (e: Exception) {

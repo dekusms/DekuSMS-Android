@@ -30,14 +30,12 @@ open class Conversation : Cloneable {
 
     @ColumnInfo(name = "read") @EncodeDefault var isRead = false
 
-    @ColumnInfo(name = "is_encrypted")
-    @EncodeDefault var isIs_encrypted = false
+    @ColumnInfo(name = "is_encrypted") @EncodeDefault var isIs_encrypted = false
 
     @ColumnInfo(name = "is_key")
     @EncodeDefault var isIs_key = false
 
-    @ColumnInfo(name = "is_image")
-    @EncodeDefault var isIs_image = false
+    @ColumnInfo(name = "is_image") @EncodeDefault var isIs_image = false
 
     @EncodeDefault var formatted_date: String? = null
     @EncodeDefault var address: String? = null
@@ -46,17 +44,12 @@ open class Conversation : Cloneable {
 
     @Transient @EncodeDefault var _mk: String? = null
 
-    @Ignore()
-    @EncodeDefault
-    var tag: String? = null
+    @Ignore() @EncodeDefault var tag: String? = null
 
     // Starting with the Jetpack migration
-    @ColumnInfo(defaultValue = "0")
-    var isArchived = false
-
-    @ColumnInfo(defaultValue = "0")
-    var isData = false
-
+    @ColumnInfo(defaultValue = "0") var isArchived = false
+    @ColumnInfo(defaultValue = "0") var isData = false
+    @ColumnInfo(defaultValue = "0") var isRemoteListener = false
 
     constructor()
 

@@ -24,6 +24,10 @@
         <intent>
             <action android:name="android.provider.Telephony.SMS_DELIVER" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="smsto" android:host="*" />
+        </intent>
     </queries>
 
     <application
@@ -166,7 +170,7 @@
             </intent-filter>
         </service>
         <service
-            android:name="com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService"
+            android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService"
             android:exported="false"
             android:foregroundServiceType="dataSync">
             <intent-filter>
@@ -179,7 +183,7 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionServiceInitializer"
+                android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionServiceInitializer"
                 android:value="androidx.startup" />
         </provider>
     </application>

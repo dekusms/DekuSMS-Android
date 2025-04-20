@@ -28,6 +28,11 @@ interface ConversationDao {
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreading(): LiveData<MutableList<Conversation>>
 
+    @Query("SELECT c.*, max(date) FROM Conversation c " +
+            "WHERE c.isRemoteListener = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingRemoteListeners(): LiveData<MutableList<Conversation>>
+
     @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
             "ON c.thread_id = tc.threadId " +
             "WHERE " +
@@ -61,6 +66,7 @@ interface ConversationDao {
             "AND ThreadsConfigurations.isMute = '1' " +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
+
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     fun getAll(thread_id: String): MutableList<Conversation?>?

@@ -1,9 +1,10 @@
 package com.afkanerd.deku.RemoteListeners.ui
 
-import android.content.Context
-import android.content.ContextWrapper
-import androidx.activity.ComponentActivity
+import android.Manifest
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,8 +16,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,8 +29,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -41,29 +42,32 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.work.multiprocess.RemoteWorkerService
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
+import com.afkanerd.deku.RemoteListeners.components.PhoneStatePermissionComposable
 import com.afkanerd.deku.RemoteListeners.components.RemoteListenersQueuesCard
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerAddQueuesModal
+import com.afkanerd.deku.RemoteListeners.modals.RemoteListenersReadPhoneStatePermissionModal
 import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.rabbitmq.client.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun RMQQueuesComposable(
     _remoteListenersQueues: List<RemoteListenersQueues> = emptyList(),
@@ -105,13 +109,15 @@ fun RMQQueuesComposable(
         navController.popBackStack(RemoteListenersScreen, false)
     }
 
+    val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(
                     stringResource(
                         R.string.queues,
-                        remoteListenersViewModel.remoteListener?.username!!
+                        remoteListenersViewModel.remoteListener?.username ?: ""
                     )
                 ) },
                 navigationIcon = {
@@ -125,18 +131,18 @@ fun RMQQueuesComposable(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        showRemoteListenerAddQueuesModal = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.AddCircleOutline,
-                            contentDescription = stringResource(R.string.new_remote_listener)
-                        )
-                    }
-                },
                 scrollBehavior = scrollBehaviour
             )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(onClick = {
+                showRemoteListenerAddQueuesModal = true
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.new_remote_listener)
+                )
+            }
         },
         modifier = Modifier
             .nestedScroll(scrollBehaviour.nestedScrollConnection),
@@ -148,6 +154,10 @@ fun RMQQueuesComposable(
                 .fillMaxSize(),
         ) {
             Column {
+                if(!readPhoneStatePermission.status.isGranted || LocalInspectionMode.current) {
+                    PhoneStatePermissionComposable()
+                }
+
                 if( remoteListenersQueues.isEmpty()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -156,7 +166,9 @@ fun RMQQueuesComposable(
                     ) {
                         Text(
                             stringResource(R.string.no_queues_added),
-                            style = MaterialTheme.typography.titleMedium)
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
                 else {
@@ -226,6 +238,18 @@ fun RMQQueuesComposable_Preview() {
     AppTheme {
         RMQQueuesComposable(
             listOf(rlq),
+            RemoteListenersViewModel(LocalContext.current),
+            rememberNavController()
+        )
+    }
+}
+
+@Composable
+@Preview
+fun RMQQueuesComposableEmpty_Preview() {
+    AppTheme {
+        RMQQueuesComposable(
+            emptyList(),
             RemoteListenersViewModel(LocalContext.current),
             rememberNavController()
         )

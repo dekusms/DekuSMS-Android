@@ -1,35 +1,46 @@
-package com.afkanerd.deku.RemoteListeners.RMQ
+package com.afkanerd.deku.RemoteListeners
 
+import android.Manifest
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ServiceCompat
+import androidx.core.content.PermissionChecker
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
+import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.security.Permission
 
-class RMQConnectionService : Service() {
+class RemoteListenerConnectionService : Service() {
     private lateinit var remoteListenersLiveData: LiveData<List<RemoteListeners>>
     private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
-    private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> = MutableLiveData()
-
-    private lateinit var remoteListenersViewModel: RemoteListenersViewModel
+    private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> =
+        MutableLiveData()
 
     private var numberOfActiveRemoteListeners = 0
     private var numberFailedToStart = 0
@@ -41,39 +52,40 @@ class RMQConnectionService : Service() {
     private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rch ->
         numberStarted = rch.filter { it.connection.isOpen }.size
 
-        val remoteListeners = remoteListenersViewModel.get(applicationContext).value
-        rch.filter{ !it.connection.isOpen }.forEach { rch ->
-            remoteListeners?.find { rch.id == it.id }?.let {
-                RemoteListenersHandler.startWorkManager(applicationContext, it)
+        CoroutineScope(Dispatchers.Default).launch {
+            val remoteListeners = Datastore.getDatastore(applicationContext).remoteListenerDAO().all
+            rch.filter { !it.connection.isOpen }.forEach { rch ->
+                remoteListeners.find { rch.id == it.id }?.let {
+                    RemoteListenersHandler.startWorkManager(applicationContext, it)
+                }
             }
+            createForegroundNotification()
         }
-        createForegroundNotification()
     }
 
     private val remoteListenerObserver = Observer<List<RemoteListeners>> {
         var numberOfActiveRemoteListeners = 0
         it.forEach { remoteListener ->
-            val rl = rmqConnectionHandlers.value?.find{ it.id == remoteListener.id}
+            val rl = rmqConnectionHandlers.value?.find { it.id == remoteListener.id }
             /**
              * RemoteListener has been deleted
              */
             rmqConnectionHandlers.value?.forEach { rc ->
-                if(it.find{ rc.id == it.id} == null) {
+                if (it.find { rc.id == it.id } == null) {
                     CoroutineScope(Dispatchers.Default).launch {
-                        rc.connection.close()
+                        rc.close()
                     }
                 }
             }
 
-            if(remoteListener.activated) {
+            if (remoteListener.activated) {
                 numberOfActiveRemoteListeners += 1
-                if(rl == null || !rl.connection.isOpen)
+                if (rl == null || !rl.connection.isOpen)
                     RemoteListenersHandler.startWorkManager(applicationContext, remoteListener)
-            }
-            else {
+            } else {
                 rl?.let {
                     CoroutineScope(Dispatchers.Default).launch {
-                        if(it.connection.isOpen) it.close()
+                        it.close()
                     }
                 }
             }
@@ -91,19 +103,23 @@ class RMQConnectionService : Service() {
         var numberStarted = 0
 
         it.forEach { workInfo ->
-            when(workInfo.state) {
+            when (workInfo.state) {
                 WorkInfo.State.ENQUEUED -> {
                     numberWaitingToStart += 1
                 }
+
                 WorkInfo.State.RUNNING -> {
                     numberStarting += 1
                 }
+
                 WorkInfo.State.SUCCEEDED -> {
 //                    numberStarted +=1
                 }
+
                 WorkInfo.State.FAILED -> {
                     numberFailedToStart += 1
                 }
+
                 WorkInfo.State.BLOCKED -> {}
                 WorkInfo.State.CANCELLED -> {}
             }
@@ -147,7 +163,7 @@ class RMQConnectionService : Service() {
      */
     inner class LocalBinder : Binder() {
         // Return this instance of LocalService so clients can call public methods.
-        fun getService(): RMQConnectionService = this@RMQConnectionService
+        fun getService(): RemoteListenerConnectionService = this@RemoteListenerConnectionService
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -160,7 +176,6 @@ class RMQConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
     }
 
     override fun onDestroy() {
@@ -175,12 +190,15 @@ class RMQConnectionService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Put content in intent which can be used to kill this in future
         createForegroundNotification()
-        workManagerLiveData = WorkManager.getInstance(applicationContext)
+
+        workManagerLiveData = WorkManager.Companion.getInstance(applicationContext)
             .getWorkInfosByTagLiveData(RemoteListenersHandler.UNIQUE_WORK_MANAGER_TAG).apply {
                 observeForever(workManagerObserver)
             }
 
-        remoteListenersLiveData = remoteListenersViewModel.get(applicationContext).apply {
+        remoteListenersLiveData = Datastore.getDatastore(applicationContext)
+            .remoteListenerDAO().fetch()
+            .apply {
             observeForever(remoteListenerObserver)
         }
 
@@ -229,18 +247,29 @@ class RMQConnectionService : Service() {
                     .setSilent(true)
                     .setOngoing(true)
                     .setContentIntent(pendingIntent)
-                    .setStyle(NotificationCompat.BigTextStyle()
-                        .bigText(description))
+                    .setStyle(
+                        NotificationCompat.BigTextStyle()
+                        .bigText(description)
+                    )
                     .build()
                     .apply {
                         flags = Notification.FLAG_ONGOING_EVENT
                     }
 
         val notificationId = getString(R.string.gateway_client_service_notification_id).toInt()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(notificationId, notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else startForeground(notificationId, notification)
+
+        try {
+            ServiceCompat.startForeground(
+                this,
+                notificationId,
+                notification,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                } else { 0 }
+            )
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

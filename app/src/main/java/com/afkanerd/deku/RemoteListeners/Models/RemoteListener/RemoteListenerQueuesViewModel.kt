@@ -1,10 +1,6 @@
 package com.afkanerd.deku.RemoteListeners.Models.RemoteListener
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,13 +8,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
-import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionService
 import com.rabbitmq.client.Channel
 
-class RemoteListenerQueuesViewModel( context: Context? = null ) : ViewModel() {
+class RemoteListenerQueuesViewModel : ViewModel() {
     private lateinit var datastore: Datastore
 
     var remoteListenerQueues by mutableStateOf<RemoteListenersQueues?>(null)
@@ -34,6 +28,11 @@ class RemoteListenerQueuesViewModel( context: Context? = null ) : ViewModel() {
             liveData = datastore.remoteListenersQueuesDao().fetchRemoteListenerQueue(gatewayClientId)
         }
         return liveData
+    }
+
+    fun getList(context: Context, gatewayClientId: Long): List<RemoteListenersQueues> {
+        datastore = Datastore.getDatastore(context)
+        return datastore.remoteListenersQueuesDao().fetchRemoteListenersQueues(gatewayClientId)
     }
 
     fun insert(remoteListenersQueues: RemoteListenersQueues) {
