@@ -2,53 +2,36 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
+import androidx.paging.cachedIn
 import androidx.paging.liveData
+import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.DefaultSMS.ui.InboxType
-import java.util.ArrayList
-import java.util.Locale
-import kotlin.concurrent.thread
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.window.layout.WindowLayoutInfo
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
-import com.afkanerd.deku.DefaultSMS.Models.DatastoreHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 
@@ -79,6 +62,12 @@ class ConversationsViewModel : ViewModel() {
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
 
+    var pageSize: Int = 20
+    var prefetchDistance: Int = 3 * pageSize
+    var enablePlaceholder: Boolean = false
+    var initialLoadSize: Int = 2 * pageSize
+    var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
+
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
     }
@@ -89,6 +78,39 @@ class ConversationsViewModel : ViewModel() {
         } else InboxType.INBOX
         return inboxType
     }
+
+    fun getThreadingPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getAllThreadingPagingSource()
+            }
+        )
+    }
+
+//    fun getThreadingPagingSource(context: Context): LiveData<PagingData<Conversation>> {
+//        val pager: Pager<Int, Conversation> = Pager(
+//            config=PagingConfig(
+//                pageSize,
+//                prefetchDistance,
+//                enablePlaceholder,
+//                initialLoadSize,
+//                maxSize
+//            ),
+//            pagingSourceFactory = {
+//                Datastore.getDatastore(context).conversationDao()
+//                    .getAllThreadingPagingSource()
+//            }
+//        )
+//        return pager.liveData.cachedIn(this)
+//    }
 
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {

@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.DAO
 
 import android.content.Context
 import androidx.lifecycle.LiveData
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
@@ -27,6 +28,11 @@ interface ConversationDao {
             "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreading(): LiveData<MutableList<Conversation>>
+
+    @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
+            "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingPagingSource(): PagingSource<Int, Conversation>
 
     @Query("SELECT c.*, max(date) FROM Conversation c " +
             "WHERE c.isRemoteListener = '1' " +

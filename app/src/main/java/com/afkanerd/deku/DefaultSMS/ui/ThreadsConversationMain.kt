@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.ui
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.os.Message
 import android.provider.BlockedNumberContract
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -74,6 +75,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.Pager
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
@@ -318,6 +322,9 @@ fun ThreadConversationLayout(
     ) {
         rememberMenuExpanded = it
     }
+
+    val pager: Pager<Int, Conversation> = conversationsViewModel.getThreadingPagingSource(context)
+    val lazyPagingItems = pager.flow.collectAsLazyPagingItems()
 
     ModalNavigationDrawer(
         modifier = Modifier.safeDrawingPadding(),
@@ -623,19 +630,21 @@ fun ThreadConversationLayout(
                         modifier = Modifier.fillMaxSize(),
                         state = listState
                     )  {
-                        itemsIndexed(
-                            items = if(inPreviewMode) _items else when(inboxType) {
-                                InboxType.INBOX -> inboxMessages
-                                InboxType.ARCHIVED -> archivedItems
-                                InboxType.ENCRYPTED -> encryptedItems
-                                InboxType.BLOCKED -> blockedItems
-                                InboxType.DRAFTS -> draftsItems
-                                InboxType.MUTED -> mutedItems
-                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
-                            },
-                            key = { index, message -> message.thread_id!! }
-                        ) { index, message ->
-                            message.address?.let { address ->
+                        items(
+//                            items = if(inPreviewMode) _items else when(inboxType) {
+//                                InboxType.INBOX -> inboxMessages
+//                                InboxType.ARCHIVED -> archivedItems
+//                                InboxType.ENCRYPTED -> encryptedItems
+//                                InboxType.BLOCKED -> blockedItems
+//                                InboxType.DRAFTS -> draftsItems
+//                                InboxType.MUTED -> mutedItems
+//                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
+//                            },
+                            lazyPagingItems.itemCount,
+                            key = lazyPagingItems.itemKey { it.id }
+                        ) { index ->
+                            val message = lazyPagingItems[index]
+                            message?.address?.let { address ->
                                 val isBlocked by remember { mutableStateOf(
                                     if(isDefault)
                                         BlockedNumberContract.isBlocked(context, message.address)
