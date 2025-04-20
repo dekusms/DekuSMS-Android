@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
@@ -42,6 +43,8 @@ import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -72,6 +75,13 @@ class ConversationsViewModel : ViewModel() {
     var inboxType: InboxType = InboxType.INBOX
 
     var newLayoutInfo: WindowLayoutInfo? = null
+
+    private val _newIntent = MutableStateFlow<Intent?>(null)
+    var newIntent: StateFlow<Intent?> = _newIntent
+
+    fun setNewIntent(intent: Intent?) {
+        _newIntent.value = intent
+    }
 
     fun getInboxType(isDefault: Boolean = false): InboxType {
         inboxType = if(remoteListenersLiveData?.value?.isNotEmpty() == true && !isDefault) {

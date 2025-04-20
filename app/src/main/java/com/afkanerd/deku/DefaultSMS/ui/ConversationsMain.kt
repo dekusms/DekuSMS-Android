@@ -493,9 +493,11 @@ fun Conversations(
 
     LaunchedEffect(viewModel.address){
         coroutineScope.launch {
-            viewModel.fetchDraft(context)?.let {
-                viewModel.clearDraft(context)
-                viewModel.text = it.text!!
+            if(viewModel.text.isEmpty()) {
+                viewModel.fetchDraft(context)?.let {
+                    viewModel.clearDraft(context)
+                    viewModel.text = it.text!!
+                }
             }
             viewModel.updateToRead(context)
             isMute = viewModel.isMuted(context)

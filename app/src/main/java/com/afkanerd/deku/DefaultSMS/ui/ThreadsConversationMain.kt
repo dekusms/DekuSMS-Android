@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.BlockedNumberContract
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -52,6 +53,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -69,6 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
@@ -88,6 +91,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
+import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
@@ -180,7 +184,6 @@ private fun loadNatives(context: Context, conversationViewModel: ConversationsVi
 @Composable
 fun ThreadConversationLayout(
     conversationsViewModel: ConversationsViewModel,
-    intent: Intent? = null,
     navController: NavController,
     _items: List<Conversation> = emptyList(),
 ) {
@@ -201,32 +204,31 @@ fun ThreadConversationLayout(
         isDefault = Subroutines.isDefault(context)
     }
 
-    intent?.let {
-        val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
-        processIntents(context, intent, defaultRegion)?.let {
-            intent.apply {
-                removeExtra("address")
-                removeExtra("thread_id")
-                removeExtra("sms_body")
-                removeExtra("android.intent.extra.TEXT")
-                data = null
-            }
-            it.first?.let{ address ->
-                it.second?.let { threadId ->
-                    it.third?.let{ message ->
-                        conversationsViewModel.text = message
+    val newIntent by conversationsViewModel.newIntent.collectAsState()
+
+    LaunchedEffect(newIntent) {
+        newIntent?.let {
+            val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
+            processIntents(context, it, defaultRegion)?.let {
+                conversationsViewModel.setNewIntent(null)
+                it.first?.let{ address ->
+                    it.second?.let { threadId ->
+                        it.third?.let{ message ->
+                            conversationsViewModel.text = message
+                        }
+                        navigateToConversation(
+                            conversationsViewModel = conversationsViewModel,
+                            address = address,
+                            threadId = threadId,
+                            subscriptionId = SIMHandler.getDefaultSimSubscription(context),
+                            navController = navController,
+                        )
                     }
-                    navigateToConversation(
-                        conversationsViewModel = conversationsViewModel,
-                        address = address,
-                        threadId = threadId,
-                        subscriptionId = SIMHandler.getDefaultSimSubscription(context),
-                        navController = navController,
-                    )
                 }
             }
         }
     }
+
 
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 

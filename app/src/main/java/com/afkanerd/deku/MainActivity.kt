@@ -80,10 +80,17 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        super.onNewIntent(intent, caller)
-        this.intent = intent
-        navController.navigate(HomeScreen)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        println("New intent instance called....")
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        intent.let {
+            conversationViewModel.setNewIntent(it)
+            navController.navigate(HomeScreen)
+        }
     }
 
     private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
@@ -91,6 +98,7 @@ class MainActivity : AppCompatActivity(){
         setContent {
             AppTheme {
                 navController = rememberNavController()
+
                 Surface(Modifier
                     .fillMaxSize()
                 ) {
@@ -146,6 +154,8 @@ class MainActivity : AppCompatActivity(){
                             }
                         }
                     }
+
+                    handleIntent(intent)
                 }
             }
         }
@@ -190,7 +200,6 @@ class MainActivity : AppCompatActivity(){
     fun HomeScreenComposable() {
         ThreadConversationLayout(
             conversationsViewModel = conversationViewModel,
-            intent = intent,
             navController = navController,
         )
     }
