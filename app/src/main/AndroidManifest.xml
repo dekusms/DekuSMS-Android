@@ -25,8 +25,11 @@
             <action android:name="android.provider.Telephony.SMS_DELIVER" />
         </intent>
         <intent>
-            <action android:name="android.intent.action.SENDTO"/>
-            <data android:scheme="smsto" android:host="*" />
+            <action android:name="android.intent.action.SENDTO" />
+
+            <data
+                android:host="*"
+                android:scheme="smsto" />
         </intent>
     </queries>
 
@@ -42,10 +45,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
+            android:name=".MmsTestActivity"
+            android:exported="true" />
+        <activity
             android:name="com.afkanerd.deku.MainActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
             android:launchMode="singleInstance"
-            android:exported="true" >
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -58,7 +64,6 @@
 
                 <data android:mimeType="text/plain" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
                 <action android:name="android.intent.action.SEND" />
@@ -93,21 +98,20 @@
 
         <activity
             android:name=".AboutActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <receiver
             android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
@@ -177,6 +181,7 @@
                 <action android:name="androidx.work.impl.foreground.SystemForegroundService" />
             </intent-filter>
         </service>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

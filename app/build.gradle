@@ -105,6 +105,7 @@ android {
 
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
+    implementation project(':android-smsmms')
 
     implementation libs.androidx.room.testing
     implementation libs.androidx.activity
@@ -265,5 +266,7 @@ dependencies {
     implementation(libs.autolinktext)
 
     implementation libs.accompanist.permissions
+
+    androidTestImplementation libs.androidx.rules
 }
 

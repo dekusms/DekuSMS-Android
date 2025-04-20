@@ -40,6 +40,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     override fun onReceive(context: Context, intent: Intent) {
+        println("Yep I've been called - BroadcastReceiver")
         if (intent.action == Telephony.Sms.Intents.SMS_DELIVER_ACTION) {
             if (resultCode == Activity.RESULT_OK) {
                 try {

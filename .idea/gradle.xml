@@ -10,6 +10,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/android-smsmms" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/smswithoutborders_libsignal-doubleratchet" />
           </set>
