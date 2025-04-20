@@ -25,19 +25,17 @@ class RemoteListenerConnectionServiceInitializer : Initializer<Intent> {
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) ==
             PackageManager.PERMISSION_GRANTED) {
             CoroutineScope(Dispatchers.Default).launch {
-                Datastore.getDatastore(context).remoteListenerDAO().all.apply {
-                    this.forEach {
-                        if(it.activated)
-                            RemoteListenersHandler.toggleRemoteListeners(context, it)
-                    }
-                    try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            context.startForegroundService(intent)
-                        } else {
-                            context.startService(intent)
+                Datastore.getDatastore(context).remoteListenerDAO().fetchActivated().apply {
+                    if(this.any { it.activated }) {
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                context.startForegroundService(intent)
+                            } else {
+                                context.startService(intent)
+                            }
+                        } catch(e: Exception) {
+                            e.printStackTrace()
                         }
-                    } catch(e: Exception) {
-                        e.printStackTrace()
                     }
                 }
             }

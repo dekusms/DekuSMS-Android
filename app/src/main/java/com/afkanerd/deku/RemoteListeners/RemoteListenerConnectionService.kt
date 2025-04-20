@@ -24,6 +24,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
@@ -41,8 +42,6 @@ class RemoteListenerConnectionService : Service() {
     private var rmqConnectionHandlers : MutableLiveData<List<RMQConnectionHandler>> =
         MutableLiveData()
 
-    private lateinit var remoteListenersViewModel: RemoteListenersViewModel
-
     private var numberOfActiveRemoteListeners = 0
     private var numberFailedToStart = 0
     private var numberWaitingToStart = 0
@@ -53,13 +52,15 @@ class RemoteListenerConnectionService : Service() {
     private val rmqConnectionHandlerObserver = Observer<List<RMQConnectionHandler>> { rch ->
         numberStarted = rch.filter { it.connection.isOpen }.size
 
-        val remoteListeners = remoteListenersViewModel.get(applicationContext).value
-        rch.filter { !it.connection.isOpen }.forEach { rch ->
-            remoteListeners?.find { rch.id == it.id }?.let {
-                RemoteListenersHandler.startWorkManager(applicationContext, it)
+        CoroutineScope(Dispatchers.Default).launch {
+            val remoteListeners = Datastore.getDatastore(applicationContext).remoteListenerDAO().all
+            rch.filter { !it.connection.isOpen }.forEach { rch ->
+                remoteListeners.find { rch.id == it.id }?.let {
+                    RemoteListenersHandler.startWorkManager(applicationContext, it)
+                }
             }
+            createForegroundNotification()
         }
-        createForegroundNotification()
     }
 
     private val remoteListenerObserver = Observer<List<RemoteListeners>> {
@@ -175,7 +176,6 @@ class RemoteListenerConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
     }
 
     override fun onDestroy() {
@@ -196,7 +196,9 @@ class RemoteListenerConnectionService : Service() {
                 observeForever(workManagerObserver)
             }
 
-        remoteListenersLiveData = remoteListenersViewModel.get(applicationContext).apply {
+        remoteListenersLiveData = Datastore.getDatastore(applicationContext)
+            .remoteListenerDAO().fetch()
+            .apply {
             observeForever(remoteListenerObserver)
         }
 

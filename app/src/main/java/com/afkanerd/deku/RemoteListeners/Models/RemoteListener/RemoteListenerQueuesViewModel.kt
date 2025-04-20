@@ -12,7 +12,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
 import com.rabbitmq.client.Channel
 
-class RemoteListenerQueuesViewModel( context: Context? = null ) : ViewModel() {
+class RemoteListenerQueuesViewModel : ViewModel() {
     private lateinit var datastore: Datastore
 
     var remoteListenerQueues by mutableStateOf<RemoteListenersQueues?>(null)
