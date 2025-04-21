@@ -82,14 +82,12 @@ class MainActivity : AppCompatActivity(){
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        println("New intent instance called....")
         handleIntent(intent)
     }
 
     private fun handleIntent(intent: Intent) {
         intent.let {
             conversationViewModel.setNewIntent(it)
-            navController.navigate(HomeScreen)
         }
     }
 

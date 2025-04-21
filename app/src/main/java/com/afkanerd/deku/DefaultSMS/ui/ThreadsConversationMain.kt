@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -75,6 +78,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
+import androidx.paging.LoadState.Loading
 import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -236,27 +241,8 @@ fun ThreadConversationLayout(
 
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 
-    var inboxType by remember { mutableStateOf(
-        conversationsViewModel.getInboxType(isDefault)
-    ) }
-
-    val inboxMessages: List<Conversation> by conversationsViewModel
-        .getThreading(context).observeAsState(emptyList())
-
-    val archivedItems: List<Conversation> by conversationsViewModel
-        .archivedLiveData!!.observeAsState(emptyList())
-
-    val mutedItems: List<Conversation> by conversationsViewModel
-        .mutedLiveData!!.observeAsState(emptyList())
-
-    var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-
-    val draftsItems: List<Conversation> by conversationsViewModel
-        .draftsLiveData!!.observeAsState(emptyList())
-
-    val remoteListenersMessages: List<Conversation> by conversationsViewModel
-        .remoteListenersLiveData!!.observeAsState(emptyList())
+//    val remoteListenersMessages: List<Conversation> by conversationsViewModel
+//        .remoteListenersLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -267,7 +253,6 @@ fun ThreadConversationLayout(
     var slideDeleteItem = remember { mutableStateOf("") }
 
     val selectedIconColors = MaterialTheme.colorScheme.primary
-    var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
@@ -276,26 +261,26 @@ fun ThreadConversationLayout(
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
-    LaunchedEffect(inboxType) {
-        if(inboxType == InboxType.BLOCKED && isDefault) {
-            coroutineScope.launch {
-                blockedItems.apply {
-                    addAll(inboxMessages
-                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
-                    )
-                }
-            }
-        }
-    }
+//    LaunchedEffect(inboxType) {
+//        if(inboxType == InboxType.BLOCKED && isDefault) {
+//            coroutineScope.launch {
+//                blockedItems.apply {
+//                    addAll(inboxMessages
+//                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
+//                    )
+//                }
+//            }
+//        }
+//    }
 
-    LaunchedEffect(inboxType) {
-        selectedItemIndex = inboxType
-    }
+//    LaunchedEffect(inboxType) {
+//        selectedItemIndex = inboxType
+//    }
 
-    LaunchedEffect(remoteListenersMessages) {
-        if(!isDefault && remoteListenersMessages.isNotEmpty())
-            inboxType = InboxType.REMOTE_LISTENER
-    }
+//    LaunchedEffect(remoteListenersMessages) {
+//        if(!isDefault && remoteListenersMessages.isNotEmpty())
+//            inboxType = InboxType.REMOTE_LISTENER
+//    }
 
     LaunchedEffect(conversationsViewModel.importDetails) {
         rememberImportMenuExpanded = conversationsViewModel.importDetails.isNotBlank()
@@ -304,8 +289,6 @@ fun ThreadConversationLayout(
     BackHandler {
         if(conversationsViewModel.inboxType != InboxType.INBOX) {
             conversationsViewModel.inboxType = InboxType.INBOX
-            selectedItemIndex = InboxType.INBOX
-            inboxType = InboxType.INBOX
         }
         else if(!selectedItems.isEmpty()) {
             selectedItems.clear()
@@ -323,7 +306,9 @@ fun ThreadConversationLayout(
         rememberMenuExpanded = it
     }
 
-    val pager: Pager<Int, Conversation> = conversationsViewModel.getThreadingPagingSource(context)
+    val pager: Pager<Int, Conversation> by remember{
+        mutableStateOf(conversationsViewModel.getThreadingPagingSource(context))
+    }
     val lazyPagingItems = pager.flow.collectAsLazyPagingItems()
 
     ModalNavigationDrawer(
@@ -335,21 +320,19 @@ fun ThreadConversationLayout(
                     scope.launch {
                         drawerState.apply {
                             if(isClosed) open() else close()
-                            inboxType = type
-                            selectedItemIndex = type
                             conversationsViewModel.inboxType = type
                         }
                     }
                 },
-                selectedItemIndex = selectedItemIndex,
-                counts = counts,
+                selectedItemIndex = conversationsViewModel.inboxType,
+                counts = null,
             )
         },
     ) {
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                if(selectedItems.isEmpty() && inboxType == InboxType.INBOX) {
+                if(selectedItems.isEmpty() && conversationsViewModel.inboxType == InboxType.INBOX) {
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
@@ -417,7 +400,7 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             IconButton(onClick = {
-                                if(inboxType == InboxType.ARCHIVED) {
+                                if(conversationsViewModel.inboxType == InboxType.ARCHIVED) {
                                     coroutineScope.launch {
                                         val threads : List<String> = selectedItems.map{
                                             it.thread_id!!
@@ -435,7 +418,7 @@ fun ThreadConversationLayout(
                                     }
                                 }
                             }) {
-                                if(inboxType == InboxType.ARCHIVED) {
+                                if(conversationsViewModel.inboxType == InboxType.ARCHIVED) {
                                     Icon(
                                         imageVector = Icons.Filled.Unarchive,
                                         tint = selectedIconColors,
@@ -470,7 +453,7 @@ fun ThreadConversationLayout(
                     TopAppBar(
                         title = {
                             Text(
-                                text= when(inboxType) {
+                                text= when(conversationsViewModel.inboxType) {
                                     InboxType.ARCHIVED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_archived)
@@ -508,7 +491,7 @@ fun ThreadConversationLayout(
                             }
                         },
                         actions = {
-                            when(inboxType) {
+                            when(conversationsViewModel.inboxType) {
                                 InboxType.INBOX -> {}
                                 InboxType.ARCHIVED -> {}
                                 InboxType.ENCRYPTED -> {}
@@ -533,7 +516,7 @@ fun ThreadConversationLayout(
                 }
             },
             floatingActionButton = {
-                when(inboxType) {
+                when(conversationsViewModel.inboxType) {
                     InboxType.INBOX -> {
                         if(isDefault || inPreviewMode) {
                             ExtendedFloatingActionButton(
@@ -570,16 +553,18 @@ fun ThreadConversationLayout(
             Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                if(!isDefault && inboxType != InboxType.REMOTE_LISTENER) {
+                if(!isDefault && conversationsViewModel.inboxType != InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
                         loadNatives(context, conversationsViewModel)
                         isDefault = true
                     }
                 }
                 else {
-                    when(inboxType) {
+                    when(conversationsViewModel.inboxType) {
                         InboxType.INBOX -> {
-                            if(inboxMessages.isEmpty())
+                            if(lazyPagingItems.loadState.refresh != Loading &&
+                                lazyPagingItems.itemCount < 1
+                            )
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -592,37 +577,37 @@ fun ThreadConversationLayout(
                                 }
                         }
                         InboxType.ARCHIVED -> {
-                            if(archivedItems.isEmpty())
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        stringResource(R.string.homepage_archive_no_message),
-                                        fontSize = 24.sp
-                                    )
-                                }
+//                            if(archivedItems.isEmpty())
+//                                Column(
+//                                    modifier = Modifier.fillMaxSize(),
+//                                    verticalArrangement = Arrangement.Center,
+//                                    horizontalAlignment = Alignment.CenterHorizontally
+//                                ) {
+//                                    Text(
+//                                        stringResource(R.string.homepage_archive_no_message),
+//                                        fontSize = 24.sp
+//                                    )
+//                                }
                         }
                         InboxType.ENCRYPTED -> {}
                         InboxType.BLOCKED -> {}
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
                         InboxType.REMOTE_LISTENER -> {
-                            if(remoteListenersMessages.isEmpty())
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        stringResource(R.string
-                                            .no_messages_sent_from_remote_listeners),
-                                        fontSize = 16.sp,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+//                            if(remoteListenersMessages.isEmpty())
+//                                Column(
+//                                    modifier = Modifier.fillMaxSize(),
+//                                    verticalArrangement = Arrangement.Center,
+//                                    horizontalAlignment = Alignment.CenterHorizontally
+//                                ) {
+//                                    Text(
+//                                        stringResource(R.string
+//                                            .no_messages_sent_from_remote_listeners),
+//                                        fontSize = 16.sp,
+//                                        color = MaterialTheme.colorScheme.secondary,
+//                                        textAlign = TextAlign.Center
+//                                    )
+//                                }
                         }
                     }
 
@@ -631,15 +616,6 @@ fun ThreadConversationLayout(
                         state = listState
                     )  {
                         items(
-//                            items = if(inPreviewMode) _items else when(inboxType) {
-//                                InboxType.INBOX -> inboxMessages
-//                                InboxType.ARCHIVED -> archivedItems
-//                                InboxType.ENCRYPTED -> encryptedItems
-//                                InboxType.BLOCKED -> blockedItems
-//                                InboxType.DRAFTS -> draftsItems
-//                                InboxType.MUTED -> mutedItems
-//                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
-//                            },
                             lazyPagingItems.itemCount,
                             key = lazyPagingItems.itemKey { it.id }
                         ) { index ->
@@ -686,7 +662,7 @@ fun ThreadConversationLayout(
                                             }
                                             SwipeToDismissBoxValue.EndToStart -> {
                                                 coroutineScope.launch {
-                                                    when(inboxType) {
+                                                    when(conversationsViewModel.inboxType) {
                                                         InboxType.ARCHIVED ->
                                                             conversationsViewModel.unArchive(context,
                                                                 message.thread_id)
@@ -709,7 +685,7 @@ fun ThreadConversationLayout(
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,
-                                            inboxType == InboxType.ARCHIVED
+                                            conversationsViewModel.inboxType == InboxType.ARCHIVED
                                         )
                                     }
                                 ) {
@@ -755,6 +731,14 @@ fun ThreadConversationLayout(
                                         type = message.type
                                     )
                                 }
+                            }
+
+                            if (lazyPagingItems.loadState.append == LoadState.Loading) {
+                                CircularProgressIndicator(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(Alignment.CenterHorizontally)
+                                )
                             }
                         }
                     }
