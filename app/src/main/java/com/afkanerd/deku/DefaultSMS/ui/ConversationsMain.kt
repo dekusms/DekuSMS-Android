@@ -106,6 +106,10 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.core.net.toUri
+import androidx.paging.Pager
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 
 
 private fun sendSMS(
@@ -242,127 +246,6 @@ private fun call(context: Context, address: String) {
         setData("tel:$address".toUri());
     }
     context.startActivity(callIntent);
-}
-
-@Composable
-private fun ConversationsMainDropDownMenu(
-    expanded: Boolean = true,
-    searchCallback: (() -> Unit)? = null,
-    blockCallback: (() -> Unit)? = null,
-    deleteCallback: (() -> Unit)? = null,
-    archiveCallback: (() -> Unit)? = null,
-    muteCallback: (() -> Unit)? = null,
-    secureCallback: (() -> Unit)? = null,
-    isMute: Boolean = false,
-    isBlocked: Boolean = false,
-    isArchived: Boolean = false,
-    isSecure: Boolean = false,
-    dismissCallback: ((Boolean) -> Unit)? = null,
-) {
-    var expanded = expanded
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(Alignment.TopEnd)
-    ) {
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { dismissCallback?.let{ it(false) }},
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.conversations_menu_search_title),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    searchCallback?.let{
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            if(isSecure)
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text=stringResource(R.string.conversations_menu_secure_title),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    onClick = {
-                        secureCallback?.let{
-                            dismissCallback?.let { it(false) }
-                            it()
-                        }
-                    }
-                )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=if(isBlocked) stringResource(R.string.conversations_menu_unblock)
-                        else stringResource(R.string.conversation_menu_block),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    blockCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=if(isArchived) stringResource(R.string.conversation_menu_unarchive)
-                        else stringResource(R.string.archive),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    archiveCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.conversation_menu_delete),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    deleteCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text= if(isMute) stringResource(R.string.conversation_menu_unmute)
-                        else stringResource(R.string.conversation_menu_mute),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    muteCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-        }
-    }
 }
 
 fun backHandler(
@@ -584,6 +467,11 @@ fun Conversations(
         rememberMenuExpanded = false
     }
 
+    val pager: Pager<Int, Conversation> by remember{
+        mutableStateOf(viewModel.getPagingSource(context))
+    }
+    val lazyPagingItems = pager.flow.collectAsLazyPagingItems()
+
     Scaffold (
         modifier = Modifier
             .safeDrawingPadding()
@@ -795,74 +683,81 @@ fun Conversations(
                 state = listState,
                 reverseLayout = true,
             ) {
-                itemsIndexed(
-                    items = items!!,
-                    key = { index, conversation -> conversation.hashCode() }
-                ) { index, conversation ->
-                    var showDate by remember { mutableStateOf(index == 0) }
+                items(
+                    lazyPagingItems.itemCount,
+                    key = lazyPagingItems.itemKey { it.id }
+                ) { index ->
+                    val conversation = lazyPagingItems[index]
 
-                    var timestamp by remember { mutableStateOf(
-                        if(inPreviewMode) "1234567"
-                        else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
+                    conversation?.let {
+                        var showDate by remember { mutableStateOf(index == 0) }
+                        var timestamp by remember { mutableStateOf(
+                            if(inPreviewMode) "1234567"
+                            else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
 
-                    var date by remember { mutableStateOf(
-                        if(inPreviewMode) "1234567"
-                        else {
-                            deriveMetaDate(conversation) +
-                                    if(dualSim && !inPreviewMode) {
-                                        " • " + SIMHandler.getSubscriptionName(context,
-                                            conversation.subscription_id)
-                                    } else ""
-                        }) }
-
-                    val position by remember {
-                        mutableStateOf(getContentType(index, conversation, items))
-                    }
-
-                    ConversationsCard(
-                        text= if(conversation.text.isNullOrBlank()) ""
-                        else conversation.text!!,
-                        timestamp = timestamp,
-                        type= conversation.type,
-                        status = ConversationStatusTypes.fromInt(conversation.status)!!,
-                        position = position,
-                        date = date,
-                        showDate = showDate,
-                        onClickCallback = {
-                            if (selectedItems.isNotEmpty()) {
-                                if (selectedItems.contains(conversation.message_id))
-                                    selectedItems.remove(conversation.message_id)
-                                else
-                                    selectedItems.add(conversation.message_id!!)
-                            }
-                            else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
-                                viewModel.retryDeleteItem.add(conversation)
-                                showFailedRetryModal = true
-                            }
+                        var date by remember { mutableStateOf(
+                            if(inPreviewMode) "1234567"
                             else {
-                                showDate = !showDate
-                            }
-                        },
-                        onLongClickCallback = {
-                            selectedItems.add(conversation.message_id!!)
-                        },
-                        isSelected = selectedItems.contains(conversation.message_id),
-                        isKey = conversation.isIs_key,
-                    )
-//
-                    val checkIsSecured by remember {
-                        derivedStateOf {
-                            conversation.isIs_key &&
-                                    conversation.type == Telephony.TextBasedSmsColumns
-                                        .MESSAGE_TYPE_INBOX
-                        }
-                    }
+                                deriveMetaDate(conversation) +
+                                        if(dualSim && !inPreviewMode) {
+                                            " • " + SIMHandler.getSubscriptionName(context,
+                                                conversation.subscription_id)
+                                        } else ""
+                            }) }
 
-                    if(checkIsSecured) {
-                        LaunchedEffect(true) {
-                            scope.launch{
-                                showSecureAgreeModal = E2EEHandler
-                                    .hasPendingApproval(context, viewModel.address)
+                        val position by remember {
+                            mutableStateOf(getContentType(
+                                index,
+                                conversation,
+                                lazyPagingItems.itemSnapshotList.items
+                            ))
+                        }
+
+                        ConversationsCard(
+                            text= if(conversation.text.isNullOrBlank()) ""
+                            else conversation.text!!,
+                            timestamp = timestamp,
+                            type= conversation.type,
+                            status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                            position = position,
+                            date = date,
+                            showDate = showDate,
+                            onClickCallback = {
+                                if (selectedItems.isNotEmpty()) {
+                                    if (selectedItems.contains(conversation.message_id))
+                                        selectedItems.remove(conversation.message_id)
+                                    else
+                                        selectedItems.add(conversation.message_id!!)
+                                }
+                                else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                    viewModel.retryDeleteItem.add(conversation)
+                                    showFailedRetryModal = true
+                                }
+                                else {
+                                    showDate = !showDate
+                                }
+                            },
+                            onLongClickCallback = {
+                                selectedItems.add(conversation.message_id!!)
+                            },
+                            isSelected = selectedItems.contains(conversation.message_id),
+                            isKey = conversation.isIs_key,
+                        )
+//
+                        val checkIsSecured by remember {
+                            derivedStateOf {
+                                conversation.isIs_key &&
+                                        conversation.type == Telephony.TextBasedSmsColumns
+                                    .MESSAGE_TYPE_INBOX
+                            }
+                        }
+
+                        if(checkIsSecured) {
+                            LaunchedEffect(true) {
+                                scope.launch{
+                                    showSecureAgreeModal = E2EEHandler
+                                        .hasPendingApproval(context, viewModel.address)
+                                }
                             }
                         }
                     }

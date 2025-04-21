@@ -732,14 +732,6 @@ fun ThreadConversationLayout(
                                     )
                                 }
                             }
-
-                            if (lazyPagingItems.loadState.append == LoadState.Loading) {
-                                CircularProgressIndicator(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentWidth(Alignment.CenterHorizontally)
-                                )
-                            }
                         }
                     }
 

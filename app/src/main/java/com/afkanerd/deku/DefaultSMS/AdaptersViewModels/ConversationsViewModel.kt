@@ -62,9 +62,9 @@ class ConversationsViewModel : ViewModel() {
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
 
-    var pageSize: Int = 20
+    var pageSize: Int = 50
     var prefetchDistance: Int = 3 * pageSize
-    var enablePlaceholder: Boolean = true
+    var enablePlaceholder: Boolean = false
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
@@ -107,6 +107,22 @@ class ConversationsViewModel : ViewModel() {
                 .getAllThreadingRemoteListeners()
         }
         return threadedLiveData!!
+    }
+
+    fun getPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getPagingSource(threadId)
+            }
+        )
     }
 
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {

@@ -345,10 +345,15 @@ fun ChatCompose(
 }
 
 fun getSMSCount(context: Context, text: String): String {
-    val smsManager = context.getSystemService(SmsManager::class.java)
-    val messages: List<String> = smsManager.divideMessage(text)
-    val segmentCount = messages[messages.size - 1].length
-    return segmentCount.toString() + "/" + messages.size
+    try {
+        val smsManager = context.getSystemService(SmsManager::class.java)
+        val messages: List<String> = smsManager.divideMessage(text)
+        val segmentCount = messages[messages.size - 1].length
+        return segmentCount.toString() + "/" + messages.size
+    } catch(e: Exception) {
+        e.printStackTrace()
+    }
+    return "N/A"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -604,5 +609,126 @@ private fun shareItem(context: Context, text: String) {
     )
     shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
     context.startActivity(shareIntent)
+}
+
+@Composable
+fun ConversationsMainDropDownMenu(
+    expanded: Boolean = true,
+    searchCallback: (() -> Unit)? = null,
+    blockCallback: (() -> Unit)? = null,
+    deleteCallback: (() -> Unit)? = null,
+    archiveCallback: (() -> Unit)? = null,
+    muteCallback: (() -> Unit)? = null,
+    secureCallback: (() -> Unit)? = null,
+    isMute: Boolean = false,
+    isBlocked: Boolean = false,
+    isArchived: Boolean = false,
+    isSecure: Boolean = false,
+    dismissCallback: ((Boolean) -> Unit)? = null,
+) {
+    var expanded = expanded
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.TopEnd)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { dismissCallback?.let{ it(false) }},
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversations_menu_search_title),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    searchCallback?.let{
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            if(isSecure)
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text=stringResource(R.string.conversations_menu_secure_title),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    onClick = {
+                        secureCallback?.let{
+                            dismissCallback?.let { it(false) }
+                            it()
+                        }
+                    }
+                )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=if(isBlocked) stringResource(R.string.conversations_menu_unblock)
+                        else stringResource(R.string.conversation_menu_block),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    blockCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=if(isArchived) stringResource(R.string.conversation_menu_unarchive)
+                        else stringResource(R.string.archive),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    archiveCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversation_menu_delete),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    deleteCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= if(isMute) stringResource(R.string.conversation_menu_unmute)
+                        else stringResource(R.string.conversation_menu_mute),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    muteCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+        }
+    }
 }
 
