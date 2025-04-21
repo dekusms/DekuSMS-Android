@@ -718,7 +718,8 @@ fun Conversations(
                             else conversation.text!!,
                             timestamp = timestamp,
                             type= conversation.type,
-                            status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                            status = ConversationStatusTypes.fromInt(conversation.status) ?:
+                            ConversationStatusTypes.STATUS_FAILED,
                             position = position,
                             date = date,
                             showDate = showDate,
