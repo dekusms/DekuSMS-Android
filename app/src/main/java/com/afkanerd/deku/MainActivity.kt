@@ -89,7 +89,6 @@ class MainActivity : AppCompatActivity(){
     private fun handleIntent(intent: Intent) {
         intent.let {
             conversationViewModel.setNewIntent(it)
-            navController.navigate(HomeScreen)
         }
     }
 

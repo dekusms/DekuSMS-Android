@@ -289,11 +289,17 @@ fun ThreadConversationLayout(
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
+
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
                 blockedItems.apply {
                     addAll(inboxMessagesItems.itemSnapshotList.items
+                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
+                    )
+                }
+                blockedItems.apply {
+                    addAll(archivedMessagesItems.itemSnapshotList.items
                         .filter{ BlockedNumberContract.isBlocked(context, it.address) }
                     )
                 }
@@ -642,15 +648,23 @@ fun ThreadConversationLayout(
                     )  {
                         items(
                             count = when(inboxType) {
+                                InboxType.BLOCKED -> blockedItems.size
                                 InboxType.INBOX -> inboxMessagesItems.itemCount
                                 InboxType.ARCHIVED -> archivedMessagesItems.itemCount
                                 InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
-                                InboxType.BLOCKED -> blockedItems.size
                                 InboxType.DRAFTS -> draftMessagesItems.itemCount
                                 InboxType.MUTED -> mutedMessagesItems.itemCount
                                 InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
                             },
-                            key = inboxMessagesItems.itemKey { it.id }
+                            key = when(inboxType) {
+                                InboxType.BLOCKED -> {{ blockedItems[it].id }}
+                                InboxType.INBOX -> inboxMessagesItems.itemKey{ it.id }
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
+                                InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
+                                InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
+                            }
                         ) { index ->
                             val message = when(inboxType) {
                                 InboxType.INBOX -> inboxMessagesItems[index]
@@ -674,7 +688,7 @@ fun ThreadConversationLayout(
                                         Contacts.retrieveContactName(context, message.address)
                                     else message.address
                                 )}
-                                
+
                                 var firstName = message.address
                                 var lastName = ""
                                 val isSelected = selectedItems.contains(message)
