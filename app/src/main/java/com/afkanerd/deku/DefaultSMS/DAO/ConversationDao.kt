@@ -97,7 +97,7 @@ interface ConversationDao {
     fun getAll(thread_id: String): MutableList<Conversation?>?
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
-    fun getComplete(): MutableList<Conversation>
+    fun getComplete(): List<Conversation>
 
     @Query("SELECT * FROM Conversation WHERE type = :type AND thread_id = :threadId ORDER BY date DESC")
     fun fetchTypedConversation(type: Int, threadId: String): Conversation?

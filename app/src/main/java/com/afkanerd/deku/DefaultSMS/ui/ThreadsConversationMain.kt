@@ -294,15 +294,10 @@ fun ThreadConversationLayout(
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
-                blockedItems.apply {
-                    addAll(inboxMessagesItems.itemSnapshotList.items
-                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
-                    )
-                }
-                blockedItems.apply {
-                    addAll(archivedMessagesItems.itemSnapshotList.items
-                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
-                    )
+                conversationsViewModel.get(context).let {
+                    blockedItems.addAll(it.filter{
+                        BlockedNumberContract.isBlocked(context, it.address)
+                    })
                 }
             }
         }

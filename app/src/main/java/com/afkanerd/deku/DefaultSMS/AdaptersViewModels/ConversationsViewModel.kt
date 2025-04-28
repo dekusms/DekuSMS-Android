@@ -49,10 +49,6 @@ class ConversationsViewModel : ViewModel() {
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
     var liveData: LiveData<MutableList<Conversation>>? = null
-    var threadedLiveData: LiveData<MutableList<Conversation>>? = null
-    var draftsLiveData: LiveData<MutableList<Conversation>>? = null
-    var archivedLiveData: LiveData<MutableList<Conversation>>? = null
-    var mutedLiveData: LiveData<MutableList<Conversation>>? = null
     var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
@@ -175,18 +171,8 @@ class ConversationsViewModel : ViewModel() {
         )
     }
 
-    fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
-        if(threadedLiveData == null) {
-            threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
-            draftsLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingDrafts()
-            archivedLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingArchived()
-            mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
-            remoteListenersLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingRemoteListeners()
-        }
-        return threadedLiveData!!
+    fun get(context: Context): List<Conversation> {
+        return Datastore.getDatastore(context).conversationDao().getComplete()
     }
 
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
