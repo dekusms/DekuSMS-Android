@@ -3,10 +3,8 @@ package com.afkanerd.deku.DefaultSMS.ui
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.os.Message
 import android.provider.BlockedNumberContract
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -17,13 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
@@ -32,7 +27,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -72,12 +66,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import androidx.paging.liveData
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
@@ -95,7 +89,6 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
-import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
@@ -240,23 +233,43 @@ fun ThreadConversationLayout(
         conversationsViewModel.getInboxType(isDefault)
     ) }
 
-    val inboxMessages: List<Conversation> by conversationsViewModel
-        .getThreading(context).observeAsState(emptyList())
+    /**
+     * Inbox
+     * Archived
+     * Encrypted
+     * Blocked
+     * Drafts
+     * Muted
+     * Remote_listeners
+     *
+     */
 
-    val archivedItems: List<Conversation> by conversationsViewModel
-        .archivedLiveData!!.observeAsState(emptyList())
+    val inboxMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getThreadingPagingSource(context)
 
-    val mutedItems: List<Conversation> by conversationsViewModel
-        .mutedLiveData!!.observeAsState(emptyList())
+    val archivedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getArchivedPagingSource(context)
+
+    val encryptedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getEncryptedPagingSource(context)
+
+    val draftMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getDraftPagingSource(context)
+
+    val mutedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getMutedPagingSource(context)
+
+    val remoteMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+        .getRemoteListenersPagingSource(context)
+
+    val inboxMessagesItems = inboxMessagesPagers.flow.collectAsLazyPagingItems()
+    val archivedMessagesItems = archivedMessagesPagers.flow.collectAsLazyPagingItems()
+    val encryptedMessagesItems = encryptedMessagesPagers.flow.collectAsLazyPagingItems()
+    val draftMessagesItems = draftMessagesPagers.flow.collectAsLazyPagingItems()
+    val mutedMessagesItems = mutedMessagesPagers.flow.collectAsLazyPagingItems()
+    val remoteMessagesItems = remoteMessagesPagers.flow.collectAsLazyPagingItems()
 
     var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-
-    val draftsItems: List<Conversation> by conversationsViewModel
-        .draftsLiveData!!.observeAsState(emptyList())
-
-    val remoteListenersMessages: List<Conversation> by conversationsViewModel
-        .remoteListenersLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -280,7 +293,7 @@ fun ThreadConversationLayout(
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
                 blockedItems.apply {
-                    addAll(inboxMessages
+                    addAll(inboxMessagesItems.itemSnapshotList.items
                         .filter{ BlockedNumberContract.isBlocked(context, it.address) }
                     )
                 }
@@ -292,8 +305,8 @@ fun ThreadConversationLayout(
         selectedItemIndex = inboxType
     }
 
-    LaunchedEffect(remoteListenersMessages) {
-        if(!isDefault && remoteListenersMessages.isNotEmpty())
+    LaunchedEffect(remoteMessagesItems) {
+        if(!isDefault && remoteMessagesItems.itemCount > 0)
             inboxType = InboxType.REMOTE_LISTENER
     }
 
@@ -322,9 +335,6 @@ fun ThreadConversationLayout(
     ) {
         rememberMenuExpanded = it
     }
-
-    val pager: Pager<Int, Conversation> = conversationsViewModel.getThreadingPagingSource(context)
-    val lazyPagingItems = pager.flow.collectAsLazyPagingItems()
 
     ModalNavigationDrawer(
         modifier = Modifier.safeDrawingPadding(),
@@ -579,7 +589,7 @@ fun ThreadConversationLayout(
                 else {
                     when(inboxType) {
                         InboxType.INBOX -> {
-                            if(inboxMessages.isEmpty())
+                            if(inboxMessagesItems.itemCount <= 0)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -592,7 +602,7 @@ fun ThreadConversationLayout(
                                 }
                         }
                         InboxType.ARCHIVED -> {
-                            if(archivedItems.isEmpty())
+                            if(inboxMessagesItems.itemCount <= 0)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -609,7 +619,7 @@ fun ThreadConversationLayout(
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
                         InboxType.REMOTE_LISTENER -> {
-                            if(remoteListenersMessages.isEmpty())
+                            if(inboxMessagesItems.itemCount <= 0)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -631,19 +641,27 @@ fun ThreadConversationLayout(
                         state = listState
                     )  {
                         items(
-//                            items = if(inPreviewMode) _items else when(inboxType) {
-//                                InboxType.INBOX -> inboxMessages
-//                                InboxType.ARCHIVED -> archivedItems
-//                                InboxType.ENCRYPTED -> encryptedItems
-//                                InboxType.BLOCKED -> blockedItems
-//                                InboxType.DRAFTS -> draftsItems
-//                                InboxType.MUTED -> mutedItems
-//                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
-//                            },
-                            lazyPagingItems.itemCount,
-                            key = lazyPagingItems.itemKey { it.id }
+                            count = when(inboxType) {
+                                InboxType.INBOX -> inboxMessagesItems.itemCount
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemCount
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
+                                InboxType.BLOCKED -> blockedItems.size
+                                InboxType.DRAFTS -> draftMessagesItems.itemCount
+                                InboxType.MUTED -> mutedMessagesItems.itemCount
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
+                            },
+                            key = inboxMessagesItems.itemKey { it.id }
                         ) { index ->
-                            val message = lazyPagingItems[index]
+                            val message = when(inboxType) {
+                                InboxType.INBOX -> inboxMessagesItems[index]
+                                InboxType.ARCHIVED -> archivedMessagesItems[index]
+                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
+                                InboxType.BLOCKED -> blockedItems[index]
+                                InboxType.DRAFTS -> draftMessagesItems[index]
+                                InboxType.MUTED -> mutedMessagesItems[index]
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
+                            }
+
                             message?.address?.let { address ->
                                 val isBlocked by remember { mutableStateOf(
                                     if(isDefault)
@@ -800,7 +818,6 @@ fun ThreadConversationLayout(
                                     conversationsViewModel.importDetails = ""
                                 }
                             }) {
-//                        rememberImportMenuExpanded = false
                             conversationsViewModel.importDetails = ""
                         }
                     }

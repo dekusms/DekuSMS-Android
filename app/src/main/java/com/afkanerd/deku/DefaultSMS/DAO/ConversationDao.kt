@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.DAO
 
 import android.content.Context
+import androidx.compose.ui.graphics.Paint
 import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
@@ -34,6 +35,31 @@ interface ConversationDao {
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingPagingSource(): PagingSource<Int, Conversation>
 
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isArchive = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getArchivedPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT *, max(date) as date FROM Conversation " +
+            "WHERE type = 3 GROUP BY thread_id ORDER BY date DESC")
+    fun getDraftsPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isMute = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getMutedPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isMute = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
+
     @Query("SELECT c.*, max(date) FROM Conversation c " +
             "WHERE c.isRemoteListener = '1' " +
             "GROUP BY thread_id ORDER BY date DESC")
@@ -65,13 +91,6 @@ interface ConversationDao {
             "AND ThreadsConfigurations.isArchive = '1' " +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingArchived(): LiveData<MutableList<Conversation>>
-
-    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
-            "WHERE " +
-            "ThreadsConfigurations.threadId = Conversation.thread_id " +
-            "AND ThreadsConfigurations.isMute = '1' " +
-            "GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
 
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")

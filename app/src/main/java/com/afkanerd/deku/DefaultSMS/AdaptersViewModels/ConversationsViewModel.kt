@@ -95,22 +95,85 @@ class ConversationsViewModel : ViewModel() {
         )
     }
 
-//    fun getThreadingPagingSource(context: Context): LiveData<PagingData<Conversation>> {
-//        val pager: Pager<Int, Conversation> = Pager(
-//            config=PagingConfig(
-//                pageSize,
-//                prefetchDistance,
-//                enablePlaceholder,
-//                initialLoadSize,
-//                maxSize
-//            ),
-//            pagingSourceFactory = {
-//                Datastore.getDatastore(context).conversationDao()
-//                    .getAllThreadingPagingSource()
-//            }
-//        )
-//        return pager.liveData.cachedIn(this)
-//    }
+    fun getArchivedPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getArchivedPagingSource()
+            }
+        )
+    }
+
+    fun getEncryptedPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getArchivedPagingSource()
+            }
+        )
+    }
+
+    fun getDraftPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getDraftsPagingSource()
+            }
+        )
+    }
+
+    fun getMutedPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getMutedPagingSource()
+            }
+        )
+    }
+
+    fun getRemoteListenersPagingSource(context: Context): Pager<Int, Conversation> {
+        return Pager(
+            config=PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+            ),
+            pagingSourceFactory = {
+                Datastore.getDatastore(context).conversationDao()
+                    .getMutedPagingSource()
+            }
+        )
+    }
 
     fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
         if(threadedLiveData == null) {
