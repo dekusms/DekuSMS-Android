@@ -394,7 +394,7 @@
     <string name="list_of_remote_listeners">List of remote listeners</string>
     <string name="settings">Settings</string>
     <string name="no_messages_sent_from_remote_listeners">No messages sent from remote listeners</string>
-    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Disabling would stop the swipe actions in the threads screen (to archive and delete). This is enabled by default</string>
+    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Disabling would turn off swipe gestures in the threads screen (to archive and delete). This is enabled by default</string>
     <string name="enable_swipe">Enable Swipe</string>
     <string name="behaviour">Behaviour</string>
 
