@@ -68,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState.Loading
 import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -595,7 +596,8 @@ fun ThreadConversationLayout(
                 else {
                     when(inboxType) {
                         InboxType.INBOX -> {
-                            if(inboxMessagesItems.itemCount <= 0)
+                            if(inboxMessagesItems.loadState.refresh != Loading &&
+                                inboxMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -608,7 +610,8 @@ fun ThreadConversationLayout(
                                 }
                         }
                         InboxType.ARCHIVED -> {
-                            if(inboxMessagesItems.itemCount <= 0)
+                            if(archivedMessagesItems.loadState.refresh != Loading &&
+                                archivedMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -625,7 +628,8 @@ fun ThreadConversationLayout(
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
                         InboxType.REMOTE_LISTENER -> {
-                            if(inboxMessagesItems.itemCount <= 0)
+                            if(remoteMessagesItems.loadState.refresh != Loading &&
+                                remoteMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,

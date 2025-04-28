@@ -62,7 +62,7 @@ class ConversationsViewModel : ViewModel() {
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
 
-    var pageSize: Int = 20
+    var pageSize: Int = 10
     var prefetchDistance: Int = 3 * pageSize
     var enablePlaceholder: Boolean = false
     var initialLoadSize: Int = 2 * pageSize
