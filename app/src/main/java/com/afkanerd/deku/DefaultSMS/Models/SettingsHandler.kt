@@ -1,14 +1,16 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.DefaultSMS.Models
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Context
+import androidx.preference.PreferenceManager
 
-import androidx.preference.PreferenceManager;
-
-public class SettingsHandler {
-    public static boolean alertNotEncryptedCommunicationDisabled(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPreferences.getBoolean("encryption_disable", false);
+object SettingsHandler {
+    fun alertNotEncryptedCommunicationDisabled(context: Context): Boolean {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        return sharedPreferences.getBoolean("encryption_disable", false)
     }
 
+    fun canSwipe(context: Context): Boolean {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        return sharedPreferences.getBoolean("swipe_actions", true)
+    }
 }

@@ -82,6 +82,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
@@ -289,7 +290,6 @@ fun ThreadConversationLayout(
 
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
-
 
     LaunchedEffect(inboxType) {
         if(inboxType == InboxType.BLOCKED && isDefault) {
@@ -732,11 +732,13 @@ fun ThreadConversationLayout(
                                         }
                                         return@rememberSwipeToDismissBoxState true
                                     },
-                                    positionalThreshold = { it * .75f }
+//                                    positionalThreshold = { it * .75f }
+                                    positionalThreshold = { it * .85f }
                                 )
 
                                 SwipeToDismissBox(
                                     state = dismissState,
+                                    gesturesEnabled = SettingsHandler.canSwipe(context),
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,

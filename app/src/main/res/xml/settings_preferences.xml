@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:theme="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
@@ -13,6 +14,17 @@
             app:key="@string/settings_locale"
             app:title="@string/settings_locale_description"
             app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/behaviour">
+
+        <SwitchPreferenceCompat
+            app:key="swipe_actions"
+            app:defaultValue="true"
+            app:summary="@string/disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default"
+            app:title="@string/enable_swipe"/>
+
     </PreferenceCategory>
 
 <!--    <PreferenceCategory-->
