@@ -58,9 +58,9 @@ class ConversationsViewModel : ViewModel() {
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
 
-    var pageSize: Int = 20
+    var pageSize: Int = 10
     var prefetchDistance: Int = 3 * pageSize
-    var enablePlaceholder: Boolean = false
+    var enablePlaceholder: Boolean = true
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
@@ -178,7 +178,7 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun getRemoteListenersPagingSource(context: Context): Pager<Int, Conversation> {
-        if(!::mutedPager.isInitialized) {
+        if(!::remoteListenerPager.isInitialized) {
             remoteListenerPager = Pager(
                 config=PagingConfig(
                     pageSize,

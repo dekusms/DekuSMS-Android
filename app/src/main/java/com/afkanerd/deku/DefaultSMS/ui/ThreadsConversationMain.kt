@@ -294,7 +294,7 @@ fun ThreadConversationLayout(
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
                 conversationsViewModel.get(context).let {
-                    blockedItems.addAll(it.filter{
+                    blockedItems.addAll(it.filter {
                         BlockedNumberContract.isBlocked(context, it.address)
                     })
                 }
@@ -645,26 +645,24 @@ fun ThreadConversationLayout(
                         state = listState
                     )  {
                         items(
-                            count = inboxMessagesItems.itemCount,
-                            key = inboxMessagesItems.itemKey{ it.id }
-//                            count = when(inboxType) {
-//                                InboxType.BLOCKED -> blockedItems.size
-//                                InboxType.INBOX -> inboxMessagesItems.itemCount
-//                                InboxType.ARCHIVED -> archivedMessagesItems.itemCount
-//                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
-//                                InboxType.DRAFTS -> draftMessagesItems.itemCount
-//                                InboxType.MUTED -> mutedMessagesItems.itemCount
-//                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
-//                            },
-//                            key = when(inboxType) {
-//                                InboxType.BLOCKED -> {{ blockedItems[it].id }}
-//                                InboxType.INBOX -> inboxMessagesItems.itemKey{ it.id }
-//                                InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
-//                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
-//                                InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
-//                                InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
-//                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
-//                            }
+                            count = when(inboxType) {
+                                InboxType.BLOCKED -> blockedItems.size
+                                InboxType.INBOX -> inboxMessagesItems.itemCount
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemCount
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
+                                InboxType.DRAFTS -> draftMessagesItems.itemCount
+                                InboxType.MUTED -> mutedMessagesItems.itemCount
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
+                            },
+                            key = when(inboxType) {
+                                InboxType.BLOCKED -> {{ blockedItems[it].id }}
+                                InboxType.INBOX -> inboxMessagesItems.itemKey{ it.id }
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
+                                InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
+                                InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
+                            }
                         ) { index ->
                             val message = when(inboxType) {
                                 InboxType.INBOX -> inboxMessagesItems[index]
