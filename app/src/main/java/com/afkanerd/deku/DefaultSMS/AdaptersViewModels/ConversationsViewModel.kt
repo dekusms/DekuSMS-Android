@@ -64,6 +64,13 @@ class ConversationsViewModel : ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
+    lateinit var threadingPager: Pager<Int, Conversation>
+    lateinit var archivedPager: Pager<Int, Conversation>
+    lateinit var encryptedPager: Pager<Int, Conversation>
+    lateinit var draftPager: Pager<Int, Conversation>
+    lateinit var mutedPager: Pager<Int, Conversation>
+    lateinit var remoteListenerPager: Pager<Int, Conversation>
+
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
     }
@@ -76,99 +83,117 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun getThreadingPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getAllThreadingPagingSource()
-            }
-        )
+        if(!::threadingPager.isInitialized) {
+            threadingPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getAllThreadingPagingSource()
+                }
+            )
+        }
+        return threadingPager
     }
 
     fun getArchivedPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getArchivedPagingSource()
-            }
-        )
+        if(!::archivedPager.isInitialized) {
+            archivedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getArchivedPagingSource()
+                }
+            )
+        }
+        return archivedPager
     }
 
     fun getEncryptedPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getArchivedPagingSource()
-            }
-        )
+        if(!::encryptedPager.isInitialized) {
+            encryptedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getArchivedPagingSource()
+                }
+            )
+        }
+        return encryptedPager
     }
 
     fun getDraftPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getDraftsPagingSource()
-            }
-        )
+        if(!::draftPager.isInitialized) {
+            draftPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getDraftsPagingSource()
+                }
+            )
+        }
+        return draftPager
     }
 
     fun getMutedPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getMutedPagingSource()
-            }
-        )
+        if(!::mutedPager.isInitialized) {
+            mutedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getMutedPagingSource()
+                }
+            )
+        }
+        return mutedPager
     }
 
     fun getRemoteListenersPagingSource(context: Context): Pager<Int, Conversation> {
-        return Pager(
-            config=PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-            ),
-            pagingSourceFactory = {
-                Datastore.getDatastore(context).conversationDao()
-                    .getMutedPagingSource()
-            }
-        )
+        if(!::mutedPager.isInitialized) {
+            remoteListenerPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getMutedPagingSource()
+                }
+            )
+        }
+        return remoteListenerPager
     }
 
     fun get(context: Context): List<Conversation> {
