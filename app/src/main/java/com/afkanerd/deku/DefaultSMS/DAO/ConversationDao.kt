@@ -63,6 +63,11 @@ interface ConversationDao {
     @Query("SELECT c.*, max(date) FROM Conversation c " +
             "WHERE c.isRemoteListener = '1' " +
             "GROUP BY thread_id ORDER BY date DESC")
+    fun getRemoteListenersPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT c.*, max(date) FROM Conversation c " +
+            "WHERE c.isRemoteListener = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingRemoteListeners(): LiveData<MutableList<Conversation>>
 
     @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +

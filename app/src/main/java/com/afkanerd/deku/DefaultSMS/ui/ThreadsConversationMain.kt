@@ -189,17 +189,9 @@ fun ThreadConversationLayout(
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
 
-    val readSMSPermission = rememberPermissionState(Manifest.permission.READ_SMS)
-    val sendSMSPermission = rememberPermissionState(Manifest.permission.SEND_SMS)
-    val receiveSMSPermission = rememberPermissionState(Manifest.permission.RECEIVE_SMS)
-
     var isDefault by remember{ mutableStateOf(inPreviewMode || Subroutines.isDefault(context)) }
 
-    LaunchedEffect(
-        readSMSPermission.status,
-        sendSMSPermission.status,
-        receiveSMSPermission.status
-    ) {
+    LaunchedEffect(true) {
         isDefault = Subroutines.isDefault(context)
     }
 
@@ -227,48 +219,36 @@ fun ThreadConversationLayout(
         }
     }
 
-
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 
     var inboxType by remember { mutableStateOf(
         conversationsViewModel.getInboxType(isDefault)
     ) }
 
-    /**
-     * Inbox
-     * Archived
-     * Encrypted
-     * Blocked
-     * Drafts
-     * Muted
-     * Remote_listeners
-     *
-     */
-
-    val inboxMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val inboxMessagesPagers = conversationsViewModel
         .getThreadingPagingSource(context)
 
-    val archivedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val archivedMessagesPagers = conversationsViewModel
         .getArchivedPagingSource(context)
 
-    val encryptedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val encryptedMessagesPagers = conversationsViewModel
         .getEncryptedPagingSource(context)
 
-    val draftMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val draftMessagesPagers = conversationsViewModel
         .getDraftPagingSource(context)
 
-    val mutedMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val mutedMessagesPagers = conversationsViewModel
         .getMutedPagingSource(context)
 
-    val remoteMessagesPagers: Pager<Int, Conversation> = conversationsViewModel
+    val remoteMessagesPagers = conversationsViewModel
         .getRemoteListenersPagingSource(context)
 
-    val inboxMessagesItems = inboxMessagesPagers.flow.collectAsLazyPagingItems()
-    val archivedMessagesItems = archivedMessagesPagers.flow.collectAsLazyPagingItems()
-    val encryptedMessagesItems = encryptedMessagesPagers.flow.collectAsLazyPagingItems()
-    val draftMessagesItems = draftMessagesPagers.flow.collectAsLazyPagingItems()
-    val mutedMessagesItems = mutedMessagesPagers.flow.collectAsLazyPagingItems()
-    val remoteMessagesItems = remoteMessagesPagers.flow.collectAsLazyPagingItems()
+    val inboxMessagesItems = inboxMessagesPagers.collectAsLazyPagingItems()
+    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
+    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
+    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
+    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
+    val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
 
     var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
@@ -283,7 +263,6 @@ fun ThreadConversationLayout(
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
-    var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
 
@@ -331,6 +310,8 @@ fun ThreadConversationLayout(
         }
     }
 
+
+    var rememberMenuExpanded by remember { mutableStateOf( false)}
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
     ) {
@@ -639,7 +620,7 @@ fun ThreadConversationLayout(
                                 }
                         }
                     }
-
+//
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         state = listState
@@ -699,12 +680,12 @@ fun ThreadConversationLayout(
                                 }
 
                                 var isMute by remember { mutableStateOf( false) }
-//                                LaunchedEffect(message.thread_id) {
-//                                    coroutineScope.launch {
-//                                        isMute = conversationsViewModel.isMuted(context,
-//                                            message.thread_id)
-//                                    }
-//                                }
+                                LaunchedEffect(message.thread_id) {
+                                    coroutineScope.launch {
+                                        isMute = conversationsViewModel.isMuted(context,
+                                            message.thread_id)
+                                    }
+                                }
 
                                 val dismissState = rememberSwipeToDismissBoxState(
                                     confirmValueChange = {
@@ -735,9 +716,22 @@ fun ThreadConversationLayout(
                                     positionalThreshold = { it * .85f }
                                 )
 
+                                val date by remember{ mutableStateOf(
+                                        if(!message.date.isNullOrBlank())
+                                            Helpers.formatDate(context, message.date!!.toLong())
+                                        else "Tues",
+                                ) }
+
+                                val content by remember { mutableStateOf(
+                                    if(message.text.isNullOrBlank())
+                                        context.getString(R.string
+                                            .conversation_threads_secured_content)
+                                    else message.text!!,
+                                ) }
+
                                 SwipeToDismissBox(
                                     state = dismissState,
-//                                    gesturesEnabled = SettingsHandler.canSwipe(context),
+                                    gesturesEnabled = SettingsHandler.canSwipe(context),
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,
@@ -750,13 +744,8 @@ fun ThreadConversationLayout(
                                         firstName = firstName!!,
                                         lastName = lastName,
                                         phoneNumber = address,
-                                        content = if(message.text.isNullOrBlank())
-                                            stringResource(R.string.conversation_threads_secured_content)
-                                        else message.text!!,
-                                        date =
-                                        if(!message.date.isNullOrBlank())
-                                            Helpers.formatDate(context, message.date!!.toLong())
-                                        else "Tues",
+                                        content = content,
+                                        date = date,
                                         isRead = message.isRead,
                                         isContact = isDefault && !contactName.isNullOrBlank(),
                                         isBlocked = isBlocked,

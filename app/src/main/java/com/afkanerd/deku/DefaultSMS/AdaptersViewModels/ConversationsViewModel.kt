@@ -29,6 +29,7 @@ import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -37,11 +38,17 @@ import kotlinx.serialization.json.Json
 
 class ConversationsViewModel : ViewModel() {
 
-    var threadId by mutableStateOf("")
-    var address by mutableStateOf("")
-    var text by mutableStateOf("")
-    var searchQuery by mutableStateOf("")
-    var subscriptionId: Int by mutableIntStateOf(-1)
+//    var threadId by mutableStateOf("")
+//    var address by mutableStateOf("")
+//    var text by mutableStateOf("")
+//    var searchQuery by mutableStateOf("")
+//    var subscriptionId: Int by mutableIntStateOf(-1)
+
+    var threadId = ""
+    var address  = ""
+    var text = ""
+    var searchQuery = ""
+    var subscriptionId = -1
 
     var importDetails by mutableStateOf("")
 
@@ -64,12 +71,13 @@ class ConversationsViewModel : ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
-    lateinit var threadingPager: Pager<Int, Conversation>
-    lateinit var archivedPager: Pager<Int, Conversation>
-    lateinit var encryptedPager: Pager<Int, Conversation>
-    lateinit var draftPager: Pager<Int, Conversation>
-    lateinit var mutedPager: Pager<Int, Conversation>
-    lateinit var remoteListenerPager: Pager<Int, Conversation>
+//    lateinit var threadingPager: Pager<Int, Conversation>
+    lateinit var threadingPager: Flow<PagingData<Conversation>>
+    lateinit var archivedPager: Flow<PagingData<Conversation>>
+    lateinit var encryptedPager: Flow<PagingData<Conversation>>
+    lateinit var draftPager: Flow<PagingData<Conversation>>
+    lateinit var mutedPager: Flow<PagingData<Conversation>>
+    lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
@@ -82,7 +90,7 @@ class ConversationsViewModel : ViewModel() {
         return inboxType
     }
 
-    fun getThreadingPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getThreadingPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::threadingPager.isInitialized) {
             threadingPager = Pager(
                 config=PagingConfig(
@@ -96,12 +104,12 @@ class ConversationsViewModel : ViewModel() {
                     Datastore.getDatastore(context).conversationDao()
                         .getAllThreadingPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return threadingPager
     }
 
-    fun getArchivedPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getArchivedPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::archivedPager.isInitialized) {
             archivedPager = Pager(
                 config=PagingConfig(
@@ -115,12 +123,12 @@ class ConversationsViewModel : ViewModel() {
                     Datastore.getDatastore(context).conversationDao()
                         .getArchivedPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return archivedPager
     }
 
-    fun getEncryptedPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getEncryptedPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::encryptedPager.isInitialized) {
             encryptedPager = Pager(
                 config=PagingConfig(
@@ -134,12 +142,12 @@ class ConversationsViewModel : ViewModel() {
                     Datastore.getDatastore(context).conversationDao()
                         .getArchivedPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return encryptedPager
     }
 
-    fun getDraftPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getDraftPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::draftPager.isInitialized) {
             draftPager = Pager(
                 config=PagingConfig(
@@ -153,12 +161,12 @@ class ConversationsViewModel : ViewModel() {
                     Datastore.getDatastore(context).conversationDao()
                         .getDraftsPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return draftPager
     }
 
-    fun getMutedPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getMutedPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::mutedPager.isInitialized) {
             mutedPager = Pager(
                 config=PagingConfig(
@@ -172,12 +180,12 @@ class ConversationsViewModel : ViewModel() {
                     Datastore.getDatastore(context).conversationDao()
                         .getMutedPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return mutedPager
     }
 
-    fun getRemoteListenersPagingSource(context: Context): Pager<Int, Conversation> {
+    fun getRemoteListenersPagingSource(context: Context): Flow<PagingData<Conversation>> {
         if(!::remoteListenerPager.isInitialized) {
             remoteListenerPager = Pager(
                 config=PagingConfig(
@@ -189,9 +197,9 @@ class ConversationsViewModel : ViewModel() {
                 ),
                 pagingSourceFactory = {
                     Datastore.getDatastore(context).conversationDao()
-                        .getMutedPagingSource()
+                        .getRemoteListenersPagingSource()
                 }
-            )
+            ).flow.cachedIn(viewModelScope)
         }
         return remoteListenerPager
     }
