@@ -38,22 +38,17 @@ import kotlinx.serialization.json.Json
 
 class ConversationsViewModel : ViewModel() {
 
-//    var threadId by mutableStateOf("")
-//    var address by mutableStateOf("")
-//    var text by mutableStateOf("")
-//    var searchQuery by mutableStateOf("")
-//    var subscriptionId: Int by mutableIntStateOf(-1)
-
-    var threadId = ""
-    var address  = ""
-    var text = ""
-    var searchQuery = ""
-    var subscriptionId = -1
+    var threadId by mutableStateOf("")
+    var address by mutableStateOf("")
+    var text by mutableStateOf("")
+    var searchQuery by mutableStateOf("")
+    var subscriptionId: Int by mutableIntStateOf(-1)
 
     var importDetails by mutableStateOf("")
 
     var selectedItems = mutableStateListOf<String>()
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
+    var selectedMessage: Conversation? = null
 
     var liveData: LiveData<MutableList<Conversation>>? = null
     var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
@@ -474,5 +469,9 @@ class ConversationsViewModel : ViewModel() {
     fun clear(context: Context) {
         Telephony.Sms.MESSAGE_TYPE_DRAFT
         Datastore.getDatastore(context).conversationDao().deleteEvery()
+    }
+
+    fun getMessage(context: Context, messageId: String): Conversation {
+        return Datastore.getDatastore(context).conversationDao().getMessage(messageId)
     }
 }

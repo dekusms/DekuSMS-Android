@@ -117,6 +117,7 @@ import androidx.paging.compose.itemKey
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler.call
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
+import com.afkanerd.deku.DefaultSMS.ui.Components.MessageInfoAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import kotlinx.coroutines.withContext
@@ -210,6 +211,7 @@ fun Conversations(
     val pulseRateMs by remember { mutableLongStateOf(3000L) }
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
+    var openInfoAlert by remember { mutableStateOf(false) }
 
     LaunchedEffect(inboxMessagesItems.loadState) {
         println("Checking search...")
@@ -457,10 +459,15 @@ fun Conversations(
             )
         },
         bottomBar = {
-            if(!selectedItems.isEmpty()) {
+            if(selectedItems.isNotEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
                     inboxMessagesItems.itemSnapshotList.items,
+                    onInfoRequested = {
+                        openInfoAlert = true
+                        viewModel.selectedMessage = it
+                        selectedItems.clear()
+                    },
                     onCompleted = { selectedItems.clear() }
                 ) {
                     selectedItems.clear()
@@ -711,8 +718,17 @@ fun Conversations(
             }
 
             if(openAlertDialog) {
-                ShortCodeAlert() {
+                ShortCodeAlert {
                     openAlertDialog = false
+                }
+            }
+
+            if(openInfoAlert) {
+                MessageInfoAlert(
+                    viewModel.selectedMessage!!
+                ) {
+                    viewModel.selectedMessage = null
+                    openInfoAlert = false
                 }
             }
         }

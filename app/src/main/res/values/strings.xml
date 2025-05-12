@@ -397,5 +397,12 @@
     <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Disabling would turn off swipe gestures in the threads screen (to archive and delete). This is enabled by default</string>
     <string name="enable_swipe">Enable Swipe</string>
     <string name="behaviour">Behaviour</string>
+    <string name="message_information">message information</string>
+    <string name="close">Close</string>
+    <string name="message_details">Message Details</string>
+    <string name="type">Type: %1$s</string>
+    <string name="priority">Priority: %1$s</string>
+    <string name="text_message_1">Text message</string>
+    <string name="normal">Normal</string>
 
 </resources>
