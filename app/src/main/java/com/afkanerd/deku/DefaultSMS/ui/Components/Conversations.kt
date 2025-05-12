@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui.Components
 
+import android.content.Context
+import android.content.Intent
 import android.provider.Telephony
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -10,11 +12,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +42,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import sh.calvin.autolinktext.rememberAutoLinkText
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -341,3 +351,261 @@ fun ConversationsCard(
         }
     }
 }
+
+@Composable
+fun ConversationsMainDropDownMenu(
+    expanded: Boolean = true,
+    searchCallback: (() -> Unit)? = null,
+    blockCallback: (() -> Unit)? = null,
+    deleteCallback: (() -> Unit)? = null,
+    archiveCallback: (() -> Unit)? = null,
+    muteCallback: (() -> Unit)? = null,
+    secureCallback: (() -> Unit)? = null,
+    isMute: Boolean = false,
+    isBlocked: Boolean = false,
+    isArchived: Boolean = false,
+    isSecure: Boolean = false,
+    dismissCallback: ((Boolean) -> Unit)? = null,
+) {
+    var expanded = expanded
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.TopEnd)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { dismissCallback?.let{ it(false) }},
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversations_menu_search_title),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    searchCallback?.let{
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            if(isSecure)
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text=stringResource(R.string.conversations_menu_secure_title),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    onClick = {
+                        secureCallback?.let{
+                            dismissCallback?.let { it(false) }
+                            it()
+                        }
+                    }
+                )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=if(isBlocked) stringResource(R.string.conversations_menu_unblock)
+                        else stringResource(R.string.conversation_menu_block),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    blockCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=if(isArchived) stringResource(R.string.conversation_menu_unarchive)
+                        else stringResource(R.string.archive),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    archiveCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text=stringResource(R.string.conversation_menu_delete),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    deleteCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= if(isMute) stringResource(R.string.conversation_menu_unmute)
+                        else stringResource(R.string.conversation_menu_mute),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    muteCallback?.let {
+                        dismissCallback?.let { it(false) }
+                        it()
+                    }
+                }
+            )
+        }
+    }
+}
+
+private fun getPredefinedType(type: Int) : PredefinedTypes? {
+    when(type) {
+        Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+        Telephony.Sms.MESSAGE_TYPE_QUEUED,
+        Telephony.Sms.MESSAGE_TYPE_SENT -> {
+            return PredefinedTypes.OUTGOING
+        }
+        Telephony.Sms.MESSAGE_TYPE_INBOX -> {
+            return PredefinedTypes.INCOMING
+        }
+    }
+    return null
+}
+
+fun getConversationType(
+    index: Int,
+    conversation: Conversation,
+    conversations: List<Conversation>
+): ConversationPositionTypes {
+    if(conversations.size < 2) {
+        return ConversationPositionTypes.NORMAL_TIMESTAMP
+    }
+    if(index == 0) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[1].type)) {
+            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+                return ConversationPositionTypes.END
+            }
+        }
+        if(!Helpers.isSameHour(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+            return ConversationPositionTypes.NORMAL_TIMESTAMP
+        }
+    }
+    if(index == conversations.size - 1) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations.last().type) &&
+            Helpers.isSameMinute(
+                conversation.date!!.toLong(),
+                conversations[index -1].date!!.toLong())
+        ) {
+            return ConversationPositionTypes.START_TIMESTAMP
+        }
+        return ConversationPositionTypes.NORMAL_TIMESTAMP
+    }
+
+    if(index + 1 < conversations.size && index - 1 > -1 ) {
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type)
+            &&
+            getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type)
+        ) {
+            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+                if(Helpers.isSameMinute(conversation.date!!.toLong(),
+                        conversations[index -1].date!!.toLong()) &&
+                    Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+                    return ConversationPositionTypes.MIDDLE
+                }
+                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+                    return ConversationPositionTypes.START
+                }
+            }
+        }
+
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type))
+        {
+            if(Helpers.isSameHour(
+                    conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+            ) {
+                if(Helpers.isSameMinute(
+                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                ) {
+                    return ConversationPositionTypes.END
+                }
+            }
+            return ConversationPositionTypes.NORMAL_TIMESTAMP
+        }
+
+        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type))
+        {
+            if(Helpers.isSameMinute(
+                    conversation.date!!.toLong(), conversations[index -1].date!!.toLong())
+            ) {
+                if(Helpers.isSameHour(
+                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                ) {
+                    return ConversationPositionTypes.START_TIMESTAMP
+                }
+                return ConversationPositionTypes.START
+            }
+        }
+
+    }
+    return ConversationPositionTypes.NORMAL
+}
+
+fun sendSMS(
+    context: Context,
+    text: String,
+    messageId: String,
+    threadId: String,
+    address: String,
+    conversationsViewModel: ConversationsViewModel,
+    onCompleteCallback: () -> Unit
+) {
+    val conversation = Conversation()
+    conversation.text = text
+    conversation.message_id = messageId
+    conversation.thread_id = threadId
+    conversation.subscription_id = conversationsViewModel.subscriptionId
+    conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+    conversation.date = System.currentTimeMillis().toString()
+    conversation.address = address
+    conversation.status = Telephony.Sms.STATUS_PENDING
+    conversation.isRead = true
+
+    sendTextMessage(
+        context = context,
+        text = text,
+        address = address,
+        conversation = conversation,
+        conversationsViewModel = conversationsViewModel,
+        messageId = null,
+        onCompleteCallback = onCompleteCallback
+    )
+}
+
+enum class PredefinedTypes {
+    OUTGOING,
+    INCOMING
+}
+
+private fun call(context: Context, address: String) {
+    val callIntent = Intent(Intent.ACTION_DIAL).apply {
+        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        setData("tel:$address".toUri());
+    }
+    context.startActivity(callIntent);
+}
+

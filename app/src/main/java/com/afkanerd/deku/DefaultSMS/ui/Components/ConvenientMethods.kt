@@ -20,10 +20,15 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.startActivity
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.afkanerd.deku.DefaultSMS.R
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import androidx.core.graphics.createBitmap
 
 object ConvenientMethods {
 
@@ -39,36 +44,9 @@ object ConvenientMethods {
         startActivity(context, telecomManager.createManageBlockedNumbersIntent(), null);
     }
 
-    fun unblockContact(context: Context) {
-        val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-        startActivity(context, telecomManager.createManageBlockedNumbersIntent(), null);
-    }
-
-//    fun getRoundedCornerBitmap(bitmap: Bitmap, pixels: Int) : Bitmap{
-//        val output = Bitmap.createBitmap(bitmap.getWidth(), bitmap
-//        .getHeight(), Config.ARGB_8888);
-//        val canvas = Canvas(output.asImageBitmap());
-//
-//        val color = 0xff424242;
-//        val paint = android.graphics.Paint()
-//        val rect = Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-//        val rectF = RectF(rect);
-//        val roundPx = pixels;
-//
-//        paint.isAntiAlias = true;
-////        paint.setColor(color);
-//        canvas.drawRoundRect(0f,0f,0f,0f, roundPx.toFloat(), roundPx.toFloat(), paint);
-//
-//        paint.xfermode
-////        paint.setXfermode(PorterDuffXfermode(Mode.SRC_IN));
-//        canvas.drawImage(bitmap.asImageBitmap(), , bitmap.height), paint);
-//
-//        return output;
-//    }
-
     fun getRoundedCornerImageBitmap(imageBitmap: ImageBitmap, pixels: Int): Bitmap {
         val bitmap = imageBitmap.asAndroidBitmap()
-        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(bitmap.width, bitmap.height)
         val canvas = android.graphics.Canvas(output)
 
         val color = 0xff424242.toInt()
@@ -88,5 +66,9 @@ object ConvenientMethods {
         return output
     }
 
+    fun deriveMetaDate(conversation: Conversation): String{
+        val dateFormat: DateFormat = SimpleDateFormat("h:mm a");
+        return dateFormat.format(Date(conversation.date!!.toLong()));
+    }
 
 }

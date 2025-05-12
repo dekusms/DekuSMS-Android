@@ -72,12 +72,14 @@ class ConversationsViewModel : ViewModel() {
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
 //    lateinit var threadingPager: Pager<Int, Conversation>
-    lateinit var threadingPager: Flow<PagingData<Conversation>>
-    lateinit var archivedPager: Flow<PagingData<Conversation>>
-    lateinit var encryptedPager: Flow<PagingData<Conversation>>
-    lateinit var draftPager: Flow<PagingData<Conversation>>
-    lateinit var mutedPager: Flow<PagingData<Conversation>>
-    lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
+    private lateinit var threadingPager: Flow<PagingData<Conversation>>
+    private lateinit var archivedPager: Flow<PagingData<Conversation>>
+    private lateinit var encryptedPager: Flow<PagingData<Conversation>>
+    private lateinit var draftPager: Flow<PagingData<Conversation>>
+    private lateinit var mutedPager: Flow<PagingData<Conversation>>
+    private lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
+
+    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
@@ -206,6 +208,25 @@ class ConversationsViewModel : ViewModel() {
 
     fun get(context: Context): List<Conversation> {
         return Datastore.getDatastore(context).conversationDao().getComplete()
+    }
+
+    fun getConversationLivePaging(context: Context): Flow<PagingData<Conversation>> {
+        if(!::conversationsPager.isInitialized) {
+            conversationsPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getConversationPaging(threadId)
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return conversationsPager
     }
 
     fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {

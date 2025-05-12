@@ -22,6 +22,9 @@ interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getLiveData(thread_id: String): LiveData<MutableList<Conversation>>
 
+    @Query("SELECT * FROM Conversation WHERE thread_id = :threadId AND type IS NOT 3 ORDER BY date DESC")
+    fun getConversationPaging(threadId: String): PagingSource<Int, Conversation>
+
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getDefault(thread_id: String): MutableList<Conversation?>?
 
