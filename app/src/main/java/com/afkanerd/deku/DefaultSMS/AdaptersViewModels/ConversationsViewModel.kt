@@ -206,6 +206,10 @@ class ConversationsViewModel : ViewModel() {
         return remoteListenerPager
     }
 
+    fun getThread(context: Context): List<Conversation> {
+        return Datastore.getDatastore(context).conversationDao().getAll(threadId)
+    }
+
     fun get(context: Context): List<Conversation> {
         return Datastore.getDatastore(context).conversationDao().getComplete()
     }
@@ -227,14 +231,6 @@ class ConversationsViewModel : ViewModel() {
             ).flow.cachedIn(viewModelScope)
         }
         return conversationsPager
-    }
-
-    fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
-        if(liveData == null) {
-            liveData = MutableLiveData()
-            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
-        }
-        return liveData
     }
 
     fun insert(context: Context, conversation: Conversation): Long {

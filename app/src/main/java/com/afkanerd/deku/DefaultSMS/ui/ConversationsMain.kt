@@ -119,6 +119,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDa
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
+import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 
 
@@ -174,8 +175,6 @@ fun Conversations(
     }
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
-//    val items: List<Conversation>? = if(inPreviewMode) _items
-//    else viewModel.getLiveData(context)?.observeAsState(emptyList())?.value
 
     val messages = viewModel.getConversationLivePaging(context)
     val inboxMessagesItems = messages.collectAsLazyPagingItems()
@@ -212,29 +211,43 @@ fun Conversations(
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
 
-    LaunchedEffect(inboxMessagesItems.loadState.refresh) {
-        if(searchQuery.isNotBlank()) {
+    LaunchedEffect(inboxMessagesItems.loadState) {
+        println("Checking search...")
+        if(searchQuery.isNotBlank() && inboxMessagesItems.loadState.isIdle) {
             coroutineScope.launch {
-                inboxMessagesItems.itemSnapshotList.forEachIndexed { index, it ->
-                    it?.text?.let { text ->
-                        if(it.text!!.contains(other=searchQuery, ignoreCase=true)
-                            && !searchIndexes.contains(index))
-                            searchIndexes.add(index)
+                viewModel.getThread(context).let { items ->
+                    items.forEachIndexed { index, it ->
+                        it.text?.let { text ->
+                            if(it.text!!.contains(other=searchQuery, ignoreCase=true)
+                                && !searchIndexes.contains(index))
+                                searchIndexes.add(index)
+                        }
+                    }
+
+                    if(searchIndexes.isNotEmpty() && searchIndex == 0) {
+                        if(inboxMessagesItems.itemCount > searchIndexes.first()) {
+                            inboxMessagesItems[searchIndexes.first()]
+                            scope.launch {
+                                listState.animateScrollToItem(searchIndexes.first())
+                            }
+                        }
+                        else {
+                            println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
+                            inboxMessagesItems.refresh()
+                        }
                     }
                 }
             }
         }
 
-        coroutineScope.launch {
-            if(viewModel.fetchDraft(context) == null && searchIndexes.isEmpty()) {
-                scope.launch{
-                    listState.animateScrollToItem(0)
-                }
-            }
-        }
+//        coroutineScope.launch {
+//            if(viewModel.fetchDraft(context) == null && searchQuery.isEmpty()) {
+//                scope.launch{
+//                    listState.animateScrollToItem(0)
+//                }
+//            }
+//        }
 
-        if(searchIndexes.isNotEmpty() && searchIndex == 0)
-            listState.animateScrollToItem(searchIndexes.first())
 
         Notifications.cancel(context, viewModel.threadId.toInt())
     }
@@ -595,7 +608,7 @@ fun Conversations(
 
                         if(searchQuery.isNotEmpty())
                             text = buildAnnotatedString {
-                                val startIndex = text.indexOf(searchQuery)
+                                val startIndex = text.indexOf(searchQuery, ignoreCase = true)
                                 val endIndex = startIndex + searchQuery.length
 
                                 append(text)

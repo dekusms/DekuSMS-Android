@@ -102,7 +102,7 @@ interface ConversationDao {
 
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
-    fun getAll(thread_id: String): MutableList<Conversation?>?
+    fun getAll(thread_id: String): List<Conversation>
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     fun getComplete(): List<Conversation>
