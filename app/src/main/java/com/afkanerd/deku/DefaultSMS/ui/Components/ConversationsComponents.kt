@@ -492,24 +492,31 @@ fun MessageInfoAlert(
                 )
                 if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
-                        "From: ${conversation.address}",
+                        stringResource(R.string.from, conversation.address ?: ""),
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 Text(
-                    "To: ${if(conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX) 
-                        conversation.address 
-                    else "N/A" }",
+                    stringResource(
+                        R.string.to, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            conversation.address ?: ""
+                        else "N/A"
+                    ),
                     color = MaterialTheme.colorScheme.onSecondary
                 )
                 Text(
-                    "Sent: ${ if(conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX) 
-                        formatDate(conversation.date?.toLong() ?: 0L)
-                    else formatDate(conversation.date_sent?.toLong() ?: 0L) }",
+                    stringResource(
+                        R.string.sent, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            formatDate(conversation.date?.toLong() ?: 0L)
+                        else formatDate(conversation.date_sent?.toLong() ?: 0L)
+                    ),
                     color = MaterialTheme.colorScheme.onSecondary
                 )
                 if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
-                        "Received: ${formatDate(conversation.date?.toLong() ?: 0L) }",
+                        stringResource(
+                            R.string.received,
+                            formatDate(conversation.date?.toLong() ?: 0L)
+                        ),
                         color = MaterialTheme.colorScheme.onSecondary
                     )
             }

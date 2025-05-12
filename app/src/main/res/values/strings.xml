@@ -404,5 +404,9 @@
     <string name="priority">Priority: %1$s</string>
     <string name="text_message_1">Text message</string>
     <string name="normal">Normal</string>
+    <string name="from">From: %1$s</string>
+    <string name="to">To: %1$s</string>
+    <string name="sent">Sent: %1$s</string>
+    <string name="received">Received: %1$s</string>
 
 </resources>
