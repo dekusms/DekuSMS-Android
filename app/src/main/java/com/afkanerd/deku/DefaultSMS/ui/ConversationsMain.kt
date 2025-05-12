@@ -240,14 +240,13 @@ fun Conversations(
             }
         }
 
-//        coroutineScope.launch {
-//            if(viewModel.fetchDraft(context) == null && searchQuery.isEmpty()) {
-//                scope.launch{
-//                    listState.animateScrollToItem(0)
-//                }
-//            }
-//        }
-
+        coroutineScope.launch {
+            if(viewModel.fetchDraft(context) == null && searchQuery.isEmpty()) {
+                scope.launch{
+                    listState.animateScrollToItem(0)
+                }
+            }
+        }
 
         Notifications.cancel(context, viewModel.threadId.toInt())
     }
