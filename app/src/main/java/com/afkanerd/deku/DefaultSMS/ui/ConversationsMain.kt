@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Colors
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -56,12 +57,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,6 +119,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDa
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
+import sh.calvin.autolinktext.rememberAutoLinkText
 
 
 fun backHandler(
@@ -201,7 +212,7 @@ fun Conversations(
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
 
-    LaunchedEffect(inboxMessagesItems) {
+    LaunchedEffect(inboxMessagesItems.loadState.refresh) {
         if(searchQuery.isNotBlank()) {
             coroutineScope.launch {
                 inboxMessagesItems.itemSnapshotList.forEachIndexed { index, it ->
@@ -452,7 +463,8 @@ fun Conversations(
                             searchIndex = 0
                         else searchIndex += 1
                         scope.launch {
-                            listState.animateScrollToItem(searchIndexes[searchIndex])
+                            if(searchIndexes.size >= searchIndex)
+                                listState.animateScrollToItem(searchIndexes[searchIndex])
                         }
                     },
                     backwardClick = {
@@ -572,9 +584,37 @@ fun Conversations(
                             )
                         }
 
+                        var text = if(LocalInspectionMode.current)
+                            AnnotatedString(conversation.text ?: "")
+                        else AnnotatedString.rememberAutoLinkText(
+                            conversation.text ?: "",
+                            defaultLinkStyles = TextLinkStyles(
+                                SpanStyle( textDecoration = TextDecoration.Underline )
+                            )
+                        )
+
+                        if(searchQuery.isNotEmpty())
+                            text = buildAnnotatedString {
+                                val startIndex = text.indexOf(searchQuery)
+                                val endIndex = startIndex + searchQuery.length
+
+                                append(text)
+                                if (startIndex >= 0) {
+                                    addStyle(
+                                        style = SpanStyle(
+                                            background = Color.Yellow,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.Black
+                                        ),
+                                        start = startIndex,
+                                        end = endIndex
+                                    )
+                                }
+                            }
+
+
                         ConversationsCard(
-                            text= if(conversation.text.isNullOrBlank()) ""
-                            else conversation.text!!,
+                            text= text,
                             timestamp = timestamp,
                             type= conversation.type,
                             status = ConversationStatusTypes.fromInt(conversation.status)!!,

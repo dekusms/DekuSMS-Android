@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,8 +24,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,15 +41,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
+import com.afkanerd.deku.DefaultSMS.ui.Conversations
+import com.example.compose.AppTheme
 import sh.calvin.autolinktext.rememberAutoLinkText
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -100,16 +109,16 @@ private fun ConversationIsKey(isReceived: Boolean = false) {
 
 
 @OptIn(ExperimentalFoundationApi::class)
-@Preview(showBackground = true)
 @Composable
 private fun ConversationReceived(
-    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
+    text: AnnotatedString,
+    date: String,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
-    date: String = "yesterday",
     showDate: Boolean = true,
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
+    color: Color = colorResource(R.color.md_theme_onBackground)
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(28.dp, 28.dp, 28.dp, 1.dp)
@@ -151,17 +160,10 @@ private fun ConversationReceived(
                     )
             ) {
                 Text(
-                    text= AnnotatedString.rememberAutoLinkText(
-                        text,
-                        defaultLinkStyles = TextLinkStyles(
-                            SpanStyle(
-                                textDecoration = TextDecoration.Underline
-                            )
-                        )
-                    ),
+                    text = text,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
-                    color = colorResource(R.color.md_theme_onBackground)
+                    color = color
                 )
             }
 
@@ -177,10 +179,9 @@ private fun ConversationReceived(
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-@Preview(showBackground = true)
 @Composable
 private fun ConversationSent(
-    text: String = stringResource(R.string.settings_add_gateway_server_protocol_meta_description),
+    text: AnnotatedString,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     date: String = "yesterday",
@@ -188,6 +189,7 @@ private fun ConversationSent(
     showDate: Boolean = true,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
+    color: Color = MaterialTheme.colorScheme.onPrimary
 ) {
     val sentShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val sentStartShape = RoundedCornerShape(28.dp, 28.dp, 1.dp, 28.dp)
@@ -234,18 +236,11 @@ private fun ConversationSent(
                     )
             ) {
                 Text(
-                    text= AnnotatedString.rememberAutoLinkText(
-                        text,
-                        defaultLinkStyles = TextLinkStyles(
-                            SpanStyle(
-                                textDecoration = TextDecoration.Underline
-                            )
-                        )
-                    ),
+                    text= text,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
                     color = if(isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onPrimary
+                    else color
                 )
             }
 
@@ -281,12 +276,11 @@ private fun ConversationSent(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun ConversationsCard(
-    text: String = "Hello world",
-    timestamp: String = "Yesterday",
-    date: String = "yesterday",
+    text: AnnotatedString,
+    timestamp: String,
+    date: String,
     type: Int = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
     showDate: Boolean = true,
     position: ConversationPositionTypes = ConversationPositionTypes.NORMAL_TIMESTAMP,
@@ -609,3 +603,15 @@ private fun call(context: Context, address: String) {
     context.startActivity(callIntent);
 }
 
+@Preview
+@Composable
+fun PreviewConversationsReceived() {
+    AppTheme(darkTheme = true) {
+        Surface(Modifier.safeDrawingPadding()) {
+            ConversationReceived(
+                text = AnnotatedString("Hello world"),
+                date = "yesterday",
+            )
+        }
+    }
+}

@@ -533,7 +533,7 @@ fun ModalDrawerSheetLayout(
 @Composable
 fun ThreadsMainDropDown(
     expanded: Boolean = false,
-    conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
+    conversationViewModel: ConversationsViewModel,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -566,7 +566,6 @@ fun ThreadsMainDropDown(
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()) { uri ->
-        println(uri)
         uri?.let {
             CoroutineScope(Dispatchers.IO).launch {
                 val stringBuilder = StringBuilder()

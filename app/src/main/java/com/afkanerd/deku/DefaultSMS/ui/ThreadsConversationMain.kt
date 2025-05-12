@@ -270,6 +270,7 @@ fun ThreadConversationLayout(
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     LaunchedEffect(inboxType) {
+        selectedItemIndex = inboxType
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
                 conversationsViewModel.get(context).let {
@@ -279,10 +280,6 @@ fun ThreadConversationLayout(
                 }
             }
         }
-    }
-
-    LaunchedEffect(inboxType) {
-        selectedItemIndex = inboxType
     }
 
     LaunchedEffect(remoteMessagesItems) {
@@ -310,10 +307,10 @@ fun ThreadConversationLayout(
         }
     }
 
-
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
+        conversationViewModel = conversationsViewModel
     ) {
         rememberMenuExpanded = it
     }
