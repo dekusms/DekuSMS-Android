@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.provider.BlockedNumberContract
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -16,13 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
@@ -31,7 +27,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -71,9 +66,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState.Loading
+import androidx.paging.Pager
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import androidx.paging.liveData
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
@@ -83,6 +82,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.SearchThreadScreen
 import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
@@ -91,7 +91,6 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
-import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
@@ -190,22 +189,13 @@ fun ThreadConversationLayout(
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
 
-    val readSMSPermission = rememberPermissionState(Manifest.permission.READ_SMS)
-    val sendSMSPermission = rememberPermissionState(Manifest.permission.SEND_SMS)
-    val receiveSMSPermission = rememberPermissionState(Manifest.permission.RECEIVE_SMS)
-
     var isDefault by remember{ mutableStateOf(inPreviewMode || Subroutines.isDefault(context)) }
 
-    LaunchedEffect(
-        readSMSPermission.status,
-        sendSMSPermission.status,
-        receiveSMSPermission.status
-    ) {
+    LaunchedEffect(true) {
         isDefault = Subroutines.isDefault(context)
     }
 
     val newIntent by conversationsViewModel.newIntent.collectAsState()
-
     LaunchedEffect(newIntent) {
         newIntent?.let {
             val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
@@ -229,30 +219,38 @@ fun ThreadConversationLayout(
         }
     }
 
-
     val counts by conversationsViewModel.getCount(context).observeAsState(null)
 
     var inboxType by remember { mutableStateOf(
         conversationsViewModel.getInboxType(isDefault)
     ) }
 
-    val inboxMessages: List<Conversation> by conversationsViewModel
-        .getThreading(context).observeAsState(emptyList())
+    val inboxMessagesPagers = conversationsViewModel
+        .getThreadingPagingSource(context)
 
-    val archivedItems: List<Conversation> by conversationsViewModel
-        .archivedLiveData!!.observeAsState(emptyList())
+    val archivedMessagesPagers = conversationsViewModel
+        .getArchivedPagingSource(context)
 
-    val mutedItems: List<Conversation> by conversationsViewModel
-        .mutedLiveData!!.observeAsState(emptyList())
+    val encryptedMessagesPagers = conversationsViewModel
+        .getEncryptedPagingSource(context)
+
+    val draftMessagesPagers = conversationsViewModel
+        .getDraftPagingSource(context)
+
+    val mutedMessagesPagers = conversationsViewModel
+        .getMutedPagingSource(context)
+
+    val remoteMessagesPagers = conversationsViewModel
+        .getRemoteListenersPagingSource(context)
+
+    val inboxMessagesItems = inboxMessagesPagers.collectAsLazyPagingItems()
+    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
+    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
+    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
+    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
+    val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
 
     var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-
-    val draftsItems: List<Conversation> by conversationsViewModel
-        .draftsLiveData!!.observeAsState(emptyList())
-
-    val remoteListenersMessages: List<Conversation> by conversationsViewModel
-        .remoteListenersLiveData!!.observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -265,7 +263,6 @@ fun ThreadConversationLayout(
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
-    var rememberMenuExpanded by remember { mutableStateOf( false)}
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
 
@@ -273,23 +270,20 @@ fun ThreadConversationLayout(
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     LaunchedEffect(inboxType) {
+        selectedItemIndex = inboxType
         if(inboxType == InboxType.BLOCKED && isDefault) {
             coroutineScope.launch {
-                blockedItems.apply {
-                    addAll(inboxMessages
-                        .filter{ BlockedNumberContract.isBlocked(context, it.address) }
-                    )
+                conversationsViewModel.get(context).let {
+                    blockedItems.addAll(it.filter {
+                        BlockedNumberContract.isBlocked(context, it.address)
+                    })
                 }
             }
         }
     }
 
-    LaunchedEffect(inboxType) {
-        selectedItemIndex = inboxType
-    }
-
-    LaunchedEffect(remoteListenersMessages) {
-        if(!isDefault && remoteListenersMessages.isNotEmpty())
+    LaunchedEffect(remoteMessagesItems) {
+        if(!isDefault && remoteMessagesItems.itemCount > 0)
             inboxType = InboxType.REMOTE_LISTENER
     }
 
@@ -313,8 +307,10 @@ fun ThreadConversationLayout(
         }
     }
 
+    var rememberMenuExpanded by remember { mutableStateOf( false)}
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
+        conversationViewModel = conversationsViewModel
     ) {
         rememberMenuExpanded = it
     }
@@ -572,7 +568,8 @@ fun ThreadConversationLayout(
                 else {
                     when(inboxType) {
                         InboxType.INBOX -> {
-                            if(inboxMessages.isEmpty())
+                            if(inboxMessagesItems.loadState.refresh != Loading &&
+                                inboxMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -585,7 +582,8 @@ fun ThreadConversationLayout(
                                 }
                         }
                         InboxType.ARCHIVED -> {
-                            if(archivedItems.isEmpty())
+                            if(archivedMessagesItems.loadState.refresh != Loading &&
+                                archivedMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -602,7 +600,8 @@ fun ThreadConversationLayout(
                         InboxType.DRAFTS -> {}
                         InboxType.MUTED -> {}
                         InboxType.REMOTE_LISTENER -> {
-                            if(remoteListenersMessages.isEmpty())
+                            if(remoteMessagesItems.loadState.refresh != Loading &&
+                                remoteMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -618,24 +617,42 @@ fun ThreadConversationLayout(
                                 }
                         }
                     }
-
+//
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         state = listState
                     )  {
-                        itemsIndexed(
-                            items = if(inPreviewMode) _items else when(inboxType) {
-                                InboxType.INBOX -> inboxMessages
-                                InboxType.ARCHIVED -> archivedItems
-                                InboxType.ENCRYPTED -> encryptedItems
-                                InboxType.BLOCKED -> blockedItems
-                                InboxType.DRAFTS -> draftsItems
-                                InboxType.MUTED -> mutedItems
-                                InboxType.REMOTE_LISTENER -> remoteListenersMessages
+                        items(
+                            count = when(inboxType) {
+                                InboxType.BLOCKED -> blockedItems.size
+                                InboxType.INBOX -> inboxMessagesItems.itemCount
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemCount
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
+                                InboxType.DRAFTS -> draftMessagesItems.itemCount
+                                InboxType.MUTED -> mutedMessagesItems.itemCount
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
                             },
-                            key = { index, message -> message.thread_id!! }
-                        ) { index, message ->
-                            message.address?.let { address ->
+                            key = when(inboxType) {
+                                InboxType.BLOCKED -> {{ blockedItems[it].id }}
+                                InboxType.INBOX -> inboxMessagesItems.itemKey{ it.id }
+                                InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
+                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
+                                InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
+                                InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
+                            }
+                        ) { index ->
+                            val message = when(inboxType) {
+                                InboxType.INBOX -> inboxMessagesItems[index]
+                                InboxType.ARCHIVED -> archivedMessagesItems[index]
+                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
+                                InboxType.BLOCKED -> blockedItems[index]
+                                InboxType.DRAFTS -> draftMessagesItems[index]
+                                InboxType.MUTED -> mutedMessagesItems[index]
+                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
+                            }
+
+                            message?.address?.let { address ->
                                 val isBlocked by remember { mutableStateOf(
                                     if(isDefault)
                                         BlockedNumberContract.isBlocked(context, message.address)
@@ -647,7 +664,7 @@ fun ThreadConversationLayout(
                                         Contacts.retrieveContactName(context, message.address)
                                     else message.address
                                 )}
-                                
+
                                 var firstName = message.address
                                 var lastName = ""
                                 val isSelected = selectedItems.contains(message)
@@ -692,11 +709,26 @@ fun ThreadConversationLayout(
                                         }
                                         return@rememberSwipeToDismissBoxState true
                                     },
-                                    positionalThreshold = { it * .75f }
+//                                    positionalThreshold = { it * .75f }
+                                    positionalThreshold = { it * .85f }
                                 )
+
+                                val date by remember{ mutableStateOf(
+                                        if(!message.date.isNullOrBlank())
+                                            Helpers.formatDate(context, message.date!!.toLong())
+                                        else "Tues",
+                                ) }
+
+                                val content by remember { mutableStateOf(
+                                    if(message.text.isNullOrBlank())
+                                        context.getString(R.string
+                                            .conversation_threads_secured_content)
+                                    else message.text!!,
+                                ) }
 
                                 SwipeToDismissBox(
                                     state = dismissState,
+                                    gesturesEnabled = SettingsHandler.canSwipe(context),
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,
@@ -709,13 +741,8 @@ fun ThreadConversationLayout(
                                         firstName = firstName!!,
                                         lastName = lastName,
                                         phoneNumber = address,
-                                        content = if(message.text.isNullOrBlank())
-                                            stringResource(R.string.conversation_threads_secured_content)
-                                        else message.text!!,
-                                        date =
-                                        if(!message.date.isNullOrBlank())
-                                            Helpers.formatDate(context, message.date!!.toLong())
-                                        else "Tues",
+                                        content = content,
+                                        date = date,
                                         isRead = message.isRead,
                                         isContact = isDefault && !contactName.isNullOrBlank(),
                                         isBlocked = isBlocked,
@@ -791,7 +818,6 @@ fun ThreadConversationLayout(
                                     conversationsViewModel.importDetails = ""
                                 }
                             }) {
-//                        rememberImportMenuExpanded = false
                             conversationsViewModel.importDetails = ""
                         }
                     }

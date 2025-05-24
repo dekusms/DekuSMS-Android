@@ -264,25 +264,25 @@ private fun ThreadConversationsAvatar(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun ThreadConversationCard(
-    phoneNumber: String = "0612345678",
-    id: String = "id",
-    firstName: String = "Jane",
-    lastName: String = "",
-    content: String = "Text Template",
-    date: String = "Tues",
-    isRead: Boolean = false,
-    isContact: Boolean = false,
+    phoneNumber: String,
+    id: String,
+    firstName: String,
+    lastName: String,
+    content: String,
+    date: String,
+    isRead: Boolean,
+    isContact: Boolean,
     unreadCount: Int = 0,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     isSelected: Boolean = false,
-    isMuted: Boolean = LocalInspectionMode.current,
-    isBlocked: Boolean = LocalInspectionMode.current,
-    type: Int? = if(LocalInspectionMode.current)
-        Telephony.Sms.MESSAGE_TYPE_FAILED else null
+    isMuted: Boolean = false,
+    isBlocked: Boolean = false,
+    type: Int
 ) {
+    val context = LocalContext.current
+
     var weight = FontWeight.Bold
     val colorHeadline = when {
         isRead || isBlocked -> {
@@ -353,7 +353,7 @@ fun ThreadConversationCard(
         },
         leadingContent = {
             ThreadConversationsAvatar(
-                LocalContext.current,
+                context,
                 id,
                 firstName,
                 lastName,
@@ -533,7 +533,7 @@ fun ModalDrawerSheetLayout(
 @Composable
 fun ThreadsMainDropDown(
     expanded: Boolean = false,
-    conversationViewModel: ConversationsViewModel = ConversationsViewModel(),
+    conversationViewModel: ConversationsViewModel,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -566,7 +566,6 @@ fun ThreadsMainDropDown(
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()) { uri ->
-        println(uri)
         uri?.let {
             CoroutineScope(Dispatchers.IO).launch {
                 val stringBuilder = StringBuilder()
@@ -729,6 +728,29 @@ fun MainMenuDropDown_Preview() {
         ThreadsMainDropDown(
             true,
             ConversationsViewModel()
+        )
+    }
+}
+
+@Preview
+@Composable
+fun ThreadConversationCard_Preview() {
+    AppTheme(darkTheme = true) {
+        ThreadConversationCard(
+            phoneNumber = "+237652156811",
+            id = "1",
+            firstName = "Jane",
+            lastName = "Doe",
+            content = "Hello world",
+            date = "today",
+            isRead = false,
+            isContact = false,
+            unreadCount = 0,
+            modifier = Modifier,
+            isSelected = false,
+            isMuted = false,
+            isBlocked = false,
+            type = 0
         )
     }
 }

@@ -3,7 +3,6 @@ package com.afkanerd.deku.DefaultSMS.ui
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
@@ -18,11 +17,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Colors
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,8 +30,6 @@ import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,12 +57,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,264 +112,16 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.core.net.toUri
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler.call
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
+import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
+import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
+import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
+import kotlinx.coroutines.withContext
+import sh.calvin.autolinktext.rememberAutoLinkText
 
-
-private fun sendSMS(
-    context: Context,
-    text: String,
-    messageId: String,
-    threadId: String,
-    address: String,
-    conversationsViewModel: ConversationsViewModel,
-    onCompleteCallback: () -> Unit
-) {
-    val conversation = Conversation()
-    conversation.text = text
-    conversation.message_id = messageId
-    conversation.thread_id = threadId
-    conversation.subscription_id = conversationsViewModel.subscriptionId
-    conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-    conversation.date = System.currentTimeMillis().toString()
-    conversation.address = address
-    conversation.status = Telephony.Sms.STATUS_PENDING
-    conversation.isRead = true
-
-    sendTextMessage(
-        context = context,
-        text = text,
-        address = address,
-        conversation = conversation,
-        conversationsViewModel = conversationsViewModel,
-        messageId = null,
-        onCompleteCallback = onCompleteCallback
-    )
-}
-
-enum class PredefinedTypes {
-    OUTGOING,
-    INCOMING
-}
-
-private fun getPredefinedType(type: Int) : PredefinedTypes? {
-    when(type) {
-        Telephony.Sms.MESSAGE_TYPE_OUTBOX,
-        Telephony.Sms.MESSAGE_TYPE_QUEUED,
-        Telephony.Sms.MESSAGE_TYPE_SENT -> {
-            return PredefinedTypes.OUTGOING
-        }
-        Telephony.Sms.MESSAGE_TYPE_INBOX -> {
-            return PredefinedTypes.INCOMING
-        }
-    }
-    return null
-}
-
-private fun getContentType(
-    index: Int,
-    conversation: Conversation,
-    conversations: List<Conversation>
-): ConversationPositionTypes {
-    if(conversations.size < 2) {
-        return ConversationPositionTypes.NORMAL_TIMESTAMP
-    }
-    if(index == 0) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[1].type)) {
-            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
-                return ConversationPositionTypes.END
-            }
-        }
-        if(!Helpers.isSameHour(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
-            return ConversationPositionTypes.NORMAL_TIMESTAMP
-        }
-    }
-    if(index == conversations.size - 1) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations.last().type) &&
-            Helpers.isSameMinute(
-                conversation.date!!.toLong(),
-                conversations[index -1].date!!.toLong())
-            ) {
-            return ConversationPositionTypes.START_TIMESTAMP
-        }
-        return ConversationPositionTypes.NORMAL_TIMESTAMP
-    }
-
-    if(index + 1 < conversations.size && index - 1 > -1 ) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type)
-            &&
-            getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type)
-        ) {
-            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
-                if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                        conversations[index -1].date!!.toLong()) &&
-                    Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
-                    return ConversationPositionTypes.MIDDLE
-                }
-                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
-                    return ConversationPositionTypes.START
-                }
-            }
-        }
-
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type))
-        {
-            if(Helpers.isSameHour(
-                    conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
-            ) {
-                if(Helpers.isSameMinute(
-                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
-                ) {
-                    return ConversationPositionTypes.END
-                }
-            }
-            return ConversationPositionTypes.NORMAL_TIMESTAMP
-        }
-
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type))
-        {
-            if(Helpers.isSameMinute(
-                    conversation.date!!.toLong(), conversations[index -1].date!!.toLong())
-            ) {
-                if(Helpers.isSameHour(
-                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
-                ) {
-                    return ConversationPositionTypes.START_TIMESTAMP
-                }
-                return ConversationPositionTypes.START
-            }
-        }
-
-    }
-    return ConversationPositionTypes.NORMAL
-}
-
-private fun call(context: Context, address: String) {
-    val callIntent = Intent(Intent.ACTION_DIAL).apply {
-        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        setData("tel:$address".toUri());
-    }
-    context.startActivity(callIntent);
-}
-
-@Composable
-private fun ConversationsMainDropDownMenu(
-    expanded: Boolean = true,
-    searchCallback: (() -> Unit)? = null,
-    blockCallback: (() -> Unit)? = null,
-    deleteCallback: (() -> Unit)? = null,
-    archiveCallback: (() -> Unit)? = null,
-    muteCallback: (() -> Unit)? = null,
-    secureCallback: (() -> Unit)? = null,
-    isMute: Boolean = false,
-    isBlocked: Boolean = false,
-    isArchived: Boolean = false,
-    isSecure: Boolean = false,
-    dismissCallback: ((Boolean) -> Unit)? = null,
-) {
-    var expanded = expanded
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(Alignment.TopEnd)
-    ) {
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { dismissCallback?.let{ it(false) }},
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.conversations_menu_search_title),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    searchCallback?.let{
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            if(isSecure)
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text=stringResource(R.string.conversations_menu_secure_title),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    onClick = {
-                        secureCallback?.let{
-                            dismissCallback?.let { it(false) }
-                            it()
-                        }
-                    }
-                )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=if(isBlocked) stringResource(R.string.conversations_menu_unblock)
-                        else stringResource(R.string.conversation_menu_block),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    blockCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=if(isArchived) stringResource(R.string.conversation_menu_unarchive)
-                        else stringResource(R.string.archive),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    archiveCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.conversation_menu_delete),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    deleteCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text= if(isMute) stringResource(R.string.conversation_menu_unmute)
-                        else stringResource(R.string.conversation_menu_mute),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    muteCallback?.let {
-                        dismissCallback?.let { it(false) }
-                        it()
-                    }
-                }
-            )
-        }
-    }
-}
 
 fun backHandler(
     context: Context,
@@ -382,7 +140,6 @@ fun backHandler(
     }
     else navController.popBackStack()
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -418,8 +175,9 @@ fun Conversations(
     }
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
-    val items: List<Conversation>? = if(inPreviewMode) _items
-    else viewModel.getLiveData(context)?.observeAsState(emptyList())?.value
+
+    val messages = viewModel.getConversationLivePaging(context)
+    val inboxMessagesItems = messages.collectAsLazyPagingItems()
 
     val selectedItems = remember { viewModel.selectedItems }
 
@@ -453,29 +211,42 @@ fun Conversations(
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
 
-    LaunchedEffect(items) {
-        if(searchQuery.isNotBlank()) {
+    LaunchedEffect(inboxMessagesItems.loadState) {
+        println("Checking search...")
+        if(searchQuery.isNotBlank() && inboxMessagesItems.loadState.isIdle) {
             coroutineScope.launch {
-                items?.forEachIndexed { index, it ->
-                    it.text?.let { text ->
-                        if(it.text!!.contains(other=searchQuery, ignoreCase=true)
-                            && !searchIndexes.contains(index))
-                            searchIndexes.add(index)
+                viewModel.getThread(context).let { items ->
+                    items.forEachIndexed { index, it ->
+                        it.text?.let { text ->
+                            if(it.text!!.contains(other=searchQuery, ignoreCase=true)
+                                && !searchIndexes.contains(index))
+                                searchIndexes.add(index)
+                        }
+                    }
+
+                    if(searchIndexes.isNotEmpty() && searchIndex == 0) {
+                        if(inboxMessagesItems.itemCount > searchIndexes.first()) {
+                            inboxMessagesItems[searchIndexes.first()]
+                            scope.launch {
+                                listState.animateScrollToItem(searchIndexes.first())
+                            }
+                        }
+                        else {
+                            println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
+                            inboxMessagesItems.refresh()
+                        }
                     }
                 }
             }
         }
 
         coroutineScope.launch {
-            if(viewModel.fetchDraft(context) == null && searchIndexes.isEmpty()) {
+            if(viewModel.fetchDraft(context) == null && searchQuery.isEmpty()) {
                 scope.launch{
                     listState.animateScrollToItem(0)
                 }
             }
         }
-
-        if(searchIndexes.isNotEmpty() && searchIndex == 0)
-            listState.animateScrollToItem(searchIndexes.first())
 
         Notifications.cancel(context, viewModel.threadId.toInt())
     }
@@ -689,7 +460,7 @@ fun Conversations(
             if(!selectedItems.isEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
-                    items!!,
+                    inboxMessagesItems.itemSnapshotList.items,
                     onCompleted = { selectedItems.clear() }
                 ) {
                     selectedItems.clear()
@@ -704,7 +475,8 @@ fun Conversations(
                             searchIndex = 0
                         else searchIndex += 1
                         scope.launch {
-                            listState.animateScrollToItem(searchIndexes[searchIndex])
+                            if(searchIndexes.size >= searchIndex)
+                                listState.animateScrollToItem(searchIndexes[searchIndex])
                         }
                     },
                     backwardClick = {
@@ -795,76 +567,111 @@ fun Conversations(
                 state = listState,
                 reverseLayout = true,
             ) {
-                itemsIndexed(
-                    items = items!!,
-                    key = { index, conversation -> conversation.hashCode() }
-                ) { index, conversation ->
-                    var showDate by remember { mutableStateOf(index == 0) }
+                items(
+                    count = inboxMessagesItems.itemCount,
+                    key =  inboxMessagesItems.itemKey{ it.id }
+                ) { index ->
+                    inboxMessagesItems[index]?.let { conversation ->
+                        var showDate by remember { mutableStateOf(index == 0) }
 
-                    var timestamp by remember { mutableStateOf(
-                        if(inPreviewMode) "1234567"
-                        else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
+                        var timestamp by remember { mutableStateOf(
+                            if(inPreviewMode) "1234567"
+                            else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
 
-                    var date by remember { mutableStateOf(
-                        if(inPreviewMode) "1234567"
-                        else {
-                            deriveMetaDate(conversation) +
-                                    if(dualSim && !inPreviewMode) {
-                                        " • " + SIMHandler.getSubscriptionName(context,
-                                            conversation.subscription_id)
-                                    } else ""
-                        }) }
-
-                    val position by remember {
-                        mutableStateOf(getContentType(index, conversation, items))
-                    }
-
-                    ConversationsCard(
-                        text= if(conversation.text.isNullOrBlank()) ""
-                        else conversation.text!!,
-                        timestamp = timestamp,
-                        type= conversation.type,
-                        status = ConversationStatusTypes.fromInt(conversation.status)!!,
-                        position = position,
-                        date = date,
-                        showDate = showDate,
-                        onClickCallback = {
-                            if (selectedItems.isNotEmpty()) {
-                                if (selectedItems.contains(conversation.message_id))
-                                    selectedItems.remove(conversation.message_id)
-                                else
-                                    selectedItems.add(conversation.message_id!!)
-                            }
-                            else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
-                                viewModel.retryDeleteItem.add(conversation)
-                                showFailedRetryModal = true
-                            }
+                        var date by remember { mutableStateOf(
+                            if(inPreviewMode) "1234567"
                             else {
-                                showDate = !showDate
-                            }
-                        },
-                        onLongClickCallback = {
-                            selectedItems.add(conversation.message_id!!)
-                        },
-                        isSelected = selectedItems.contains(conversation.message_id),
-                        isKey = conversation.isIs_key,
-                    )
-//
-                    val checkIsSecured by remember {
-                        derivedStateOf {
-                            conversation.isIs_key &&
-                                    conversation.type == Telephony.TextBasedSmsColumns
-                                        .MESSAGE_TYPE_INBOX
-                        }
-                    }
+                                deriveMetaDate(conversation) +
+                                        if(dualSim && !inPreviewMode) {
+                                            " • " + SIMHandler.getSubscriptionName(context,
+                                                conversation.subscription_id)
+                                        } else ""
+                            }) }
 
-                    if(checkIsSecured) {
-                        LaunchedEffect(true) {
-                            scope.launch{
-                                showSecureAgreeModal = E2EEHandler
-                                    .hasPendingApproval(context, viewModel.address)
+                        val position by remember {
+                            mutableStateOf(getConversationType(
+                                index,
+                                conversation,
+                                inboxMessagesItems.itemSnapshotList.items)
+                            )
+                        }
+
+                        var text = if(LocalInspectionMode.current)
+                            AnnotatedString(conversation.text ?: "")
+                        else AnnotatedString.rememberAutoLinkText(
+                            conversation.text ?: "",
+                            defaultLinkStyles = TextLinkStyles(
+                                SpanStyle( textDecoration = TextDecoration.Underline )
+                            )
+                        )
+
+                        if(searchQuery.isNotEmpty())
+                            text = buildAnnotatedString {
+                                val startIndex = text.indexOf(searchQuery, ignoreCase = true)
+                                val endIndex = startIndex + searchQuery.length
+
+                                append(text)
+                                if (startIndex >= 0) {
+                                    addStyle(
+                                        style = SpanStyle(
+                                            background = Color.Yellow,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.Black
+                                        ),
+                                        start = startIndex,
+                                        end = endIndex
+                                    )
+                                }
+                            }
+
+
+                        ConversationsCard(
+                            text= text,
+                            timestamp = timestamp,
+                            type= conversation.type,
+                            status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                            position = position,
+                            date = date,
+                            showDate = showDate,
+                            onClickCallback = {
+                                if (selectedItems.isNotEmpty()) {
+                                    if (selectedItems.contains(conversation.message_id))
+                                        selectedItems.remove(conversation.message_id)
+                                    else
+                                        selectedItems.add(conversation.message_id!!)
+                                }
+                                else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                    viewModel.retryDeleteItem.add(conversation)
+                                    showFailedRetryModal = true
+                                }
+                                else {
+                                    showDate = !showDate
+                                }
+                            },
+                            onLongClickCallback = {
+                                selectedItems.add(conversation.message_id!!)
+                            },
+                            isSelected = selectedItems.contains(conversation.message_id),
+                            isKey = conversation.isIs_key,
+                        )
+
+                        val checkIsSecured by remember {
+                            derivedStateOf {
+                                conversation.isIs_key &&
+                                        conversation.type == Telephony.TextBasedSmsColumns
+                                    .MESSAGE_TYPE_INBOX
                             }
                         }
+
+                        if(checkIsSecured) {
+                            LaunchedEffect(true) {
+                                scope.launch{
+                                    showSecureAgreeModal = E2EEHandler
+                                        .hasPendingApproval(context, viewModel.address)
+                                }
+                            }
+                        }
+
                     }
                 }
             }
@@ -978,10 +785,6 @@ fun Conversations(
 
 }
 
-private fun deriveMetaDate(conversation: Conversation): String{
-    val dateFormat: DateFormat = SimpleDateFormat("h:mm a");
-    return dateFormat.format(Date(conversation.date!!.toLong()));
-}
 
 @Preview
 @Composable

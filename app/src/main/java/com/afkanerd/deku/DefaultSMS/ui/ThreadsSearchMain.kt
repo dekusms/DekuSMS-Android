@@ -163,16 +163,17 @@ fun SearchThreadsMain(
                     }
 
                     ThreadConversationCard(
+                        phoneNumber = message.address!!,
                         id = message.thread_id!!,
                         firstName = firstName,
                         lastName = lastName,
-                        content = if(message.isData)
+                        content = if (message.isData)
                             stringResource(R.string.conversation_threads_secured_content)
                         else message.text!!,
                         date =
-                        if(!message.date.isNullOrBlank())
-                            Helpers.formatDate(context, message.date!!.toLong())
-                        else "Tues",
+                            if (!message.date.isNullOrBlank())
+                                Helpers.formatDate(context, message.date!!.toLong())
+                            else "Tues",
                         isRead = message.isRead,
                         isContact = !contactName.isNullOrBlank(),
                         modifier = Modifier.combinedClickable(
@@ -188,6 +189,7 @@ fun SearchThreadsMain(
                                 )
                             },
                         ),
+                        type = message.type,
                     )
                 }
             }

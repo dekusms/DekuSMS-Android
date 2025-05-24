@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
 import json
+from wonderwords import RandomSentence
 
 data_array = []
 
 threads = set()
 ids = 1
 _type = 1
+s = RandomSentence()
+
 for i in range((1000//50)):
     _len = i+1 * 50
     threads.add(str(i+1))
     for j in range(_len):
         data = { "_mk": None, 
-                 "address": f"+{_len}-6505556789", 
+                 "address": f"+{_len}6505556789", 
                  "data": None,
                 "date": "1733237444789",
                 "date_sent": None,
@@ -28,7 +31,10 @@ for i in range((1000//50)):
                 "status": 32,
                 "subscription_id": 0,
                 "tag": None,
-                "text": "sasdfasdfasdfasdf",
+                "text": (s.sentence() + " " 
+                         + s.bare_bone_sentence() 
+                         + " " + s.simple_sentence() 
+                         + " " + s.bare_bone_with_adjective()),
                 "thread_id": str(i+1),
                 "type": 1 if _type == 2 else 2
               } 

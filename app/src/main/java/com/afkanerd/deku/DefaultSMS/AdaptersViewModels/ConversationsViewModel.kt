@@ -2,63 +2,53 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
+import androidx.paging.cachedIn
 import androidx.paging.liveData
+import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.DefaultSMS.ui.InboxType
-import java.util.ArrayList
-import java.util.Locale
-import kotlin.concurrent.thread
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.window.layout.WindowLayoutInfo
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
-import com.afkanerd.deku.DefaultSMS.Models.DatastoreHandler
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 
 class ConversationsViewModel : ViewModel() {
 
-    var threadId by mutableStateOf("")
-    var address by mutableStateOf("")
-    var text by mutableStateOf("")
-    var searchQuery by mutableStateOf("")
-    var subscriptionId: Int by mutableIntStateOf(-1)
+//    var threadId by mutableStateOf("")
+//    var address by mutableStateOf("")
+//    var text by mutableStateOf("")
+//    var searchQuery by mutableStateOf("")
+//    var subscriptionId: Int by mutableIntStateOf(-1)
+
+    var threadId = ""
+    var address  = ""
+    var text = ""
+    var searchQuery = ""
+    var subscriptionId = -1
 
     var importDetails by mutableStateOf("")
 
@@ -66,10 +56,6 @@ class ConversationsViewModel : ViewModel() {
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
 
     var liveData: LiveData<MutableList<Conversation>>? = null
-    var threadedLiveData: LiveData<MutableList<Conversation>>? = null
-    var draftsLiveData: LiveData<MutableList<Conversation>>? = null
-    var archivedLiveData: LiveData<MutableList<Conversation>>? = null
-    var mutedLiveData: LiveData<MutableList<Conversation>>? = null
     var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
 
     var inboxType: InboxType = InboxType.INBOX
@@ -78,6 +64,22 @@ class ConversationsViewModel : ViewModel() {
 
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
+
+    var pageSize: Int = 10
+    var prefetchDistance: Int = 3 * pageSize
+    var enablePlaceholder: Boolean = true
+    var initialLoadSize: Int = 2 * pageSize
+    var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
+
+//    lateinit var threadingPager: Pager<Int, Conversation>
+    private lateinit var threadingPager: Flow<PagingData<Conversation>>
+    private lateinit var archivedPager: Flow<PagingData<Conversation>>
+    private lateinit var encryptedPager: Flow<PagingData<Conversation>>
+    private lateinit var draftPager: Flow<PagingData<Conversation>>
+    private lateinit var mutedPager: Flow<PagingData<Conversation>>
+    private lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
+
+    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
@@ -90,26 +92,145 @@ class ConversationsViewModel : ViewModel() {
         return inboxType
     }
 
-    fun getThreading(context: Context): LiveData<MutableList<Conversation>> {
-        if(threadedLiveData == null) {
-            threadedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreading()
-            draftsLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingDrafts()
-            archivedLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingArchived()
-            mutedLiveData = Datastore.getDatastore(context).conversationDao().getAllThreadingMuted()
-            remoteListenersLiveData = Datastore.getDatastore(context).conversationDao()
-                .getAllThreadingRemoteListeners()
+    fun getThreadingPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::threadingPager.isInitialized) {
+            threadingPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getAllThreadingPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
         }
-        return threadedLiveData!!
+        return threadingPager
     }
 
-    fun getLiveData(context: Context): LiveData<MutableList<Conversation>>? {
-        if(liveData == null) {
-            liveData = MutableLiveData()
-            liveData = Datastore.getDatastore(context).conversationDao().getLiveData(threadId)
+    fun getArchivedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::archivedPager.isInitialized) {
+            archivedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getArchivedPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
         }
-        return liveData
+        return archivedPager
+    }
+
+    fun getEncryptedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::encryptedPager.isInitialized) {
+            encryptedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getArchivedPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return encryptedPager
+    }
+
+    fun getDraftPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::draftPager.isInitialized) {
+            draftPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getDraftsPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return draftPager
+    }
+
+    fun getMutedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::mutedPager.isInitialized) {
+            mutedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getMutedPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return mutedPager
+    }
+
+    fun getRemoteListenersPagingSource(context: Context): Flow<PagingData<Conversation>> {
+        if(!::remoteListenerPager.isInitialized) {
+            remoteListenerPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getRemoteListenersPagingSource()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return remoteListenerPager
+    }
+
+    fun getThread(context: Context): List<Conversation> {
+        return Datastore.getDatastore(context).conversationDao().getAll(threadId)
+    }
+
+    fun get(context: Context): List<Conversation> {
+        return Datastore.getDatastore(context).conversationDao().getComplete()
+    }
+
+    fun getConversationLivePaging(context: Context): Flow<PagingData<Conversation>> {
+        if(!::conversationsPager.isInitialized) {
+            conversationsPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    Datastore.getDatastore(context).conversationDao()
+                        .getConversationPaging(threadId)
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return conversationsPager
     }
 
     fun insert(context: Context, conversation: Conversation): Long {

@@ -404,7 +404,6 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-
         return if(isSelf(context, address))
             sharedPreferences.contains(deriveSelfPeerPublicKeystoreAlias(address)) &&
                 sharedPreferences.contains(deriveSelfSecureRequestKeystoreAlias(address))
