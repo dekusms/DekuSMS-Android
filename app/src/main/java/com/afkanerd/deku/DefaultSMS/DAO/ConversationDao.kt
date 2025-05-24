@@ -1,7 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.DAO
 
 import android.content.Context
+import androidx.compose.ui.graphics.Paint
 import androidx.lifecycle.LiveData
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
@@ -20,6 +22,9 @@ interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getLiveData(thread_id: String): LiveData<MutableList<Conversation>>
 
+    @Query("SELECT * FROM Conversation WHERE thread_id = :threadId AND type IS NOT 3 ORDER BY date DESC")
+    fun getConversationPaging(threadId: String): PagingSource<Int, Conversation>
+
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     fun getDefault(thread_id: String): MutableList<Conversation?>?
 
@@ -27,6 +32,41 @@ interface ConversationDao {
             "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreading(): LiveData<MutableList<Conversation>>
+
+    @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
+            "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isArchive = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getArchivedPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT *, max(date) as date FROM Conversation " +
+            "WHERE type = 3 GROUP BY thread_id ORDER BY date DESC")
+    fun getDraftsPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isMute = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getMutedPagingSource(): PagingSource<Int, Conversation>
+
+    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
+            "WHERE " +
+            "ThreadsConfigurations.threadId = Conversation.thread_id " +
+            "AND ThreadsConfigurations.isMute = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
+
+    @Query("SELECT c.*, max(date) FROM Conversation c " +
+            "WHERE c.isRemoteListener = '1' " +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun getRemoteListenersPagingSource(): PagingSource<Int, Conversation>
 
     @Query("SELECT c.*, max(date) FROM Conversation c " +
             "WHERE c.isRemoteListener = '1' " +
@@ -60,19 +100,12 @@ interface ConversationDao {
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingArchived(): LiveData<MutableList<Conversation>>
 
-    @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
-            "WHERE " +
-            "ThreadsConfigurations.threadId = Conversation.thread_id " +
-            "AND ThreadsConfigurations.isMute = '1' " +
-            "GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
-
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
-    fun getAll(thread_id: String): MutableList<Conversation?>?
+    fun getAll(thread_id: String): List<Conversation>
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
-    fun getComplete(): MutableList<Conversation>
+    fun getComplete(): List<Conversation>
 
     @Query("SELECT * FROM Conversation WHERE type = :type AND thread_id = :threadId ORDER BY date DESC")
     fun fetchTypedConversation(type: Int, threadId: String): Conversation?
