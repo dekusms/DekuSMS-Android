@@ -150,7 +150,7 @@ fun ComposeNewMessage(
                         conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
                             conversationsViewModel.address).thread_id
 
-                        navigateToConversation(
+                        conversationsViewModel.navigateToConversation(
                             conversationsViewModel = conversationsViewModel,
                             address = conversationsViewModel.address,
                             threadId = conversationsViewModel.threadId,

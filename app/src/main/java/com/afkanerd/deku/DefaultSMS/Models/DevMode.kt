@@ -1,4 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
-class DevMode {
+object DevMode {
+    val viewLogCat = "viewLogCat"
 }

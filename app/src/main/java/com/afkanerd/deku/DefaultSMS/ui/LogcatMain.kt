@@ -1,4 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
-class LogcatMain {
+import androidx.compose.runtime.Composable
+
+@Composable
+fun LogcatMain() {
+
 }
+

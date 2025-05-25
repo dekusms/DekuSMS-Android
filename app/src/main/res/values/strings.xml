@@ -408,5 +408,6 @@
     <string name="to">To: %1$s</string>
     <string name="sent">Sent: %1$s</string>
     <string name="received">Received: %1$s</string>
+    <string name="dev_mode">Dev mode</string>
 
 </resources>

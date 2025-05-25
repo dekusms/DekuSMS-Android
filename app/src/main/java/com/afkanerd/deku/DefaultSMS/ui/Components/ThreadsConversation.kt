@@ -80,6 +80,7 @@ import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Extensions.getActivity
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -610,6 +611,7 @@ fun ThreadsMainDropDown(
                             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
                         }
                     )
+                    context.getActivity()?.finish()
                 }
             )
 
