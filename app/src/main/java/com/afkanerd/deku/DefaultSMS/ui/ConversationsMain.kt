@@ -117,6 +117,7 @@ import androidx.paging.compose.itemKey
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler.call
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
+import com.afkanerd.deku.DefaultSMS.ui.Components.MessageInfoAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import kotlinx.coroutines.withContext
@@ -204,12 +205,12 @@ fun Conversations(
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
-    var encryptedText by remember { mutableStateOf("") }
 
     var shouldPulse by remember { mutableStateOf(false) }
     val pulseRateMs by remember { mutableLongStateOf(3000L) }
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
+    var openInfoAlert by remember { mutableStateOf(false) }
 
     LaunchedEffect(inboxMessagesItems.loadState) {
         println("Checking search...")
@@ -279,7 +280,7 @@ fun Conversations(
     if(isSecured) {
         LaunchedEffect(viewModel.text) {
             if(viewModel.text.isBlank()) {
-                encryptedText = ""
+                viewModel.encryptedText = ""
                 shouldPulse = false
             } else shouldPulse = true
         }
@@ -288,7 +289,7 @@ fun Conversations(
             if(shouldPulse)
                 coroutineScope.launch {
                     delay(pulseRateMs)
-                    encryptedText = E2EEHandler.encryptMessage(
+                    viewModel.encryptedText = E2EEHandler.encryptMessage(
                         context = context,
                         text = viewModel.text,
                         address = viewModel.address
@@ -457,10 +458,15 @@ fun Conversations(
             )
         },
         bottomBar = {
-            if(!selectedItems.isEmpty()) {
+            if(selectedItems.isNotEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
                     inboxMessagesItems.itemSnapshotList.items,
+                    onInfoRequested = {
+                        openInfoAlert = true
+                        viewModel.selectedMessage = it
+                        selectedItems.clear()
+                    },
                     onCompleted = { selectedItems.clear() }
                 ) {
                     selectedItems.clear()
@@ -519,7 +525,7 @@ fun Conversations(
                 ) {
                     ChatCompose(
                         value = viewModel.text,
-                        encryptedValue = encryptedText,
+                        encryptedValue = viewModel.encryptedText,
                         subscriptionId = viewModel.subscriptionId,
                         shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
@@ -539,7 +545,7 @@ fun Conversations(
                             conversationsViewModel = viewModel
                         ) {
                             viewModel.text = ""
-                            encryptedText = ""
+                            viewModel.encryptedText = ""
                             viewModel.clearDraft(context)
                         }
                     }
@@ -711,8 +717,17 @@ fun Conversations(
             }
 
             if(openAlertDialog) {
-                ShortCodeAlert() {
+                ShortCodeAlert {
                     openAlertDialog = false
+                }
+            }
+
+            if(openInfoAlert) {
+                MessageInfoAlert(
+                    viewModel.selectedMessage!!
+                ) {
+                    viewModel.selectedMessage = null
+                    openInfoAlert = false
                 }
             }
         }
