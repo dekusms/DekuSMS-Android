@@ -205,7 +205,6 @@ fun Conversations(
 
     val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
     val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
-    var encryptedText by remember { mutableStateOf("") }
 
     var shouldPulse by remember { mutableStateOf(false) }
     val pulseRateMs by remember { mutableLongStateOf(3000L) }
@@ -281,7 +280,7 @@ fun Conversations(
     if(isSecured) {
         LaunchedEffect(viewModel.text) {
             if(viewModel.text.isBlank()) {
-                encryptedText = ""
+                viewModel.encryptedText = ""
                 shouldPulse = false
             } else shouldPulse = true
         }
@@ -290,7 +289,7 @@ fun Conversations(
             if(shouldPulse)
                 coroutineScope.launch {
                     delay(pulseRateMs)
-                    encryptedText = E2EEHandler.encryptMessage(
+                    viewModel.encryptedText = E2EEHandler.encryptMessage(
                         context = context,
                         text = viewModel.text,
                         address = viewModel.address
@@ -526,7 +525,7 @@ fun Conversations(
                 ) {
                     ChatCompose(
                         value = viewModel.text,
-                        encryptedValue = encryptedText,
+                        encryptedValue = viewModel.encryptedText,
                         subscriptionId = viewModel.subscriptionId,
                         shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
@@ -546,7 +545,7 @@ fun Conversations(
                             conversationsViewModel = viewModel
                         ) {
                             viewModel.text = ""
-                            encryptedText = ""
+                            viewModel.encryptedText = ""
                             viewModel.clearDraft(context)
                         }
                     }
