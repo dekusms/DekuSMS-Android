@@ -117,66 +117,6 @@ enum class InboxType(val value: Int) {
     }
 }
 
-fun processIntents(
-    context: Context,
-    intent: Intent,
-    defaultRegion: String,
-): Triple<String?, String?, String?>?{
-    if(intent.action != null &&
-        ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
-        val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body")
-        else if(intent.hasExtra("android.intent.extra.TEXT")) {
-            intent.getStringExtra("android.intent.extra.TEXT")
-        } else ""
-
-        val sendToString = intent.dataString
-
-        if ((sendToString != null &&
-                    (sendToString.contains("smsto:") ||
-                            sendToString.contains("sms:"))) || intent.hasExtra("address")
-            ) {
-            val address = Helpers.getFormatCompleteNumber(
-                if(intent.hasExtra("address")) intent.getStringExtra("address")
-                else sendToString, defaultRegion
-            )
-            val threadId = ThreadedConversationsHandler.get(context, address).thread_id
-            return Triple(address, threadId, text)
-        }
-    }
-    else if(intent.hasExtra("address")) {
-        var text = if(intent.hasExtra("android.intent.extra.TEXT"))
-            intent.getStringExtra("android.intent.extra.TEXT") else ""
-
-        val address = intent.getStringExtra("address")
-        val threadId = intent.getStringExtra("thread_id")
-        return Triple(address, threadId, text)
-    }
-    return null
-}
-
-fun navigateToConversation(
-    conversationsViewModel: ConversationsViewModel,
-    address: String,
-    threadId: String,
-    subscriptionId: Int?,
-    navController: NavController,
-    searchQuery: String? = ""
-) {
-    conversationsViewModel.address = address
-    conversationsViewModel.threadId = threadId
-    conversationsViewModel.searchQuery = searchQuery ?: ""
-    conversationsViewModel.subscriptionId = subscriptionId ?: -1
-    conversationsViewModel.liveData = null
-    if(conversationsViewModel.newLayoutInfo?.displayFeatures!!.isEmpty())
-        navController.navigate(ConversationsScreen)
-}
-
-private fun loadNatives(context: Context, conversationViewModel: ConversationsViewModel) {
-    CoroutineScope(Dispatchers.Default).launch {
-        conversationViewModel.reset(context)
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class
 )
@@ -199,14 +139,14 @@ fun ThreadConversationLayout(
     LaunchedEffect(newIntent) {
         newIntent?.let {
             val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
-            processIntents(context, it, defaultRegion)?.let {
+            conversationsViewModel.processIntents(context, it, defaultRegion)?.let {
                 conversationsViewModel.setNewIntent(null)
                 it.first?.let{ address ->
                     it.second?.let { threadId ->
                         it.third?.let{ message ->
                             conversationsViewModel.text = message
                         }
-                        navigateToConversation(
+                        conversationsViewModel.navigateToConversation(
                             conversationsViewModel = conversationsViewModel,
                             address = address,
                             threadId = threadId,
@@ -310,7 +250,7 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
-        conversationViewModel = conversationsViewModel
+        conversationViewModel = conversationsViewModel,
     ) {
         rememberMenuExpanded = it
     }
@@ -561,7 +501,7 @@ fun ThreadConversationLayout(
             ) {
                 if(!isDefault && inboxType != InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
-                        loadNatives(context, conversationsViewModel)
+                        conversationsViewModel.loadNatives(context, conversationsViewModel)
                         isDefault = true
                     }
                 }
@@ -749,8 +689,8 @@ fun ThreadConversationLayout(
                                         modifier = Modifier.combinedClickable(
                                             onClick = {
                                                 if(selectedItems.isEmpty()) {
-                                                    navigateToConversation(
-                                                        conversationsViewModel = conversationsViewModel,
+                                                    conversationsViewModel.navigateToConversation(
+                                                        conversationsViewModel,
                                                         address = message.address!!,
                                                         threadId = message.thread_id!!,
                                                         subscriptionId =

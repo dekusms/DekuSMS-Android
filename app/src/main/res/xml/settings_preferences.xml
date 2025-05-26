@@ -26,6 +26,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:title="@string/dev_mode">
+
+        <Preference
+            app:key="dev_mode"
+            app:summary="View logcat logs"
+            app:title="View Logcat logs"/>
+    </PreferenceCategory>
+
 <!--    <PreferenceCategory-->
 <!--        app:key="settings_sms_security"-->
 <!--        app:title="@string/settings_security_category_title">-->

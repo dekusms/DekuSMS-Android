@@ -13,14 +13,18 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
 import androidx.window.layout.WindowLayoutInfo
+import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
@@ -38,22 +42,18 @@ import kotlinx.serialization.json.Json
 
 class ConversationsViewModel : ViewModel() {
 
-//    var threadId by mutableStateOf("")
-//    var address by mutableStateOf("")
-//    var text by mutableStateOf("")
-//    var searchQuery by mutableStateOf("")
-//    var subscriptionId: Int by mutableIntStateOf(-1)
-
-    var threadId = ""
-    var address  = ""
-    var text = ""
-    var searchQuery = ""
-    var subscriptionId = -1
+    var threadId by mutableStateOf("")
+    var address by mutableStateOf("")
+    var text by mutableStateOf("")
+    var encryptedText by mutableStateOf("")
+    var searchQuery by mutableStateOf("")
+    var subscriptionId: Int by mutableIntStateOf(-1)
 
     var importDetails by mutableStateOf("")
 
     var selectedItems = mutableStateListOf<String>()
     var retryDeleteItem: MutableList<Conversation> = arrayListOf()
+    var selectedMessage: Conversation? = null
 
     var liveData: LiveData<MutableList<Conversation>>? = null
     var remoteListenersLiveData: LiveData<MutableList<Conversation>>? = null
@@ -475,4 +475,69 @@ class ConversationsViewModel : ViewModel() {
         Telephony.Sms.MESSAGE_TYPE_DRAFT
         Datastore.getDatastore(context).conversationDao().deleteEvery()
     }
+
+    fun getMessage(context: Context, messageId: String): Conversation {
+        return Datastore.getDatastore(context).conversationDao().getMessage(messageId)
+    }
+
+    fun processIntents(
+        context: Context,
+        intent: Intent,
+        defaultRegion: String,
+    ): Triple<String?, String?, String?>?{
+        if(intent.action != null &&
+            ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
+            val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body")
+            else if(intent.hasExtra("android.intent.extra.TEXT")) {
+                intent.getStringExtra("android.intent.extra.TEXT")
+            } else ""
+
+            val sendToString = intent.dataString
+
+            if ((sendToString != null &&
+                        (sendToString.contains("smsto:") ||
+                                sendToString.contains("sms:"))) || intent.hasExtra("address")
+            ) {
+                val address = Helpers.getFormatCompleteNumber(
+                    if(intent.hasExtra("address")) intent.getStringExtra("address")
+                    else sendToString, defaultRegion
+                )
+                val threadId = ThreadedConversationsHandler.get(context, address).thread_id
+                return Triple(address, threadId, text)
+            }
+        }
+        else if(intent.hasExtra("address")) {
+            var text = if(intent.hasExtra("android.intent.extra.TEXT"))
+                intent.getStringExtra("android.intent.extra.TEXT") else ""
+
+            val address = intent.getStringExtra("address")
+            val threadId = intent.getStringExtra("thread_id")
+            return Triple(address, threadId, text)
+        }
+        return null
+    }
+
+    fun navigateToConversation(
+        conversationsViewModel: ConversationsViewModel,
+        address: String,
+        threadId: String,
+        subscriptionId: Int?,
+        navController: NavController,
+        searchQuery: String? = ""
+    ) {
+        conversationsViewModel.address = address
+        conversationsViewModel.threadId = threadId
+        conversationsViewModel.searchQuery = searchQuery ?: ""
+        conversationsViewModel.subscriptionId = subscriptionId ?: -1
+        conversationsViewModel.liveData = null
+        if(conversationsViewModel.newLayoutInfo?.displayFeatures!!.isEmpty())
+            navController.navigate(ConversationsScreen)
+    }
+
+    fun loadNatives(context: Context, conversationViewModel: ConversationsViewModel) {
+        CoroutineScope(Dispatchers.Default).launch {
+            conversationViewModel.reset(context)
+        }
+    }
+
 }

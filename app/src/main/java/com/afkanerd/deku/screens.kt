@@ -20,3 +20,6 @@ object RemoteListenersScreen
 object RemoteListenersQueuesScreen
 @Serializable
 object RemoteListenersAddScreen
+
+@Serializable
+object LogcatScreen

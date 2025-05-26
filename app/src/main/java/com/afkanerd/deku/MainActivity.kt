@@ -1,8 +1,10 @@
 package com.afkanerd.deku
 
 import android.app.ComponentCaller
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -44,12 +46,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ui.LogcatMain
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 
 class MainActivity : AppCompatActivity(){
@@ -87,8 +97,14 @@ class MainActivity : AppCompatActivity(){
     }
 
     private fun handleIntent(intent: Intent) {
-        intent.let {
-            conversationViewModel.setNewIntent(it)
+        if(intent.action == Intent.ACTION_VIEW &&
+            intent.getStringExtra("view") == DevMode.viewLogCat) {
+            navController.navigate(LogcatScreen)
+        }
+        else {
+            intent.let {
+                conversationViewModel.setNewIntent(it)
+            }
         }
     }
 
@@ -97,7 +113,6 @@ class MainActivity : AppCompatActivity(){
         setContent {
             AppTheme {
                 navController = rememberNavController()
-
                 Surface(Modifier
                     .fillMaxSize()
                 ) {
@@ -145,6 +160,9 @@ class MainActivity : AppCompatActivity(){
                                     remoteListenersViewModel = remoteListenersViewModel,
                                     navController = navController
                                 )
+                            }
+                            composable<LogcatScreen>{
+                                LogcatMain()
                             }
                         }
                         else {
@@ -246,4 +264,34 @@ class MainActivity : AppCompatActivity(){
                 conversationViewModel.insertDraft(applicationContext)
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        readLogcat(applicationContext)
+    }
 }
+
+fun readLogcat(context: Context): Flow<String> = flow {
+    val logBuilder = StringBuilder()
+    try {
+        // Execute logcat command with filter for app's logs
+        val process = Runtime.getRuntime().exec("logcat -d *:V")
+        val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
+
+        // Get app's package name to filter logs
+        val packageName = context.packageName
+
+        var line: String?
+        while (bufferedReader.readLine().also { line = it } != null) {
+            // Filter logs containing app's package name
+            if (line?.contains(packageName) == true) {
+                emit(line)
+            }
+        }
+        bufferedReader.close()
+        process.destroy()
+    } catch (e: IOException) {
+        e.printStackTrace()
+        emit(e.message.toString())
+    }
+}.flowOn(Dispatchers.IO)

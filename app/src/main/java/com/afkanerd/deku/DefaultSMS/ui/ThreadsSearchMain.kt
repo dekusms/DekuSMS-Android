@@ -93,7 +93,7 @@ fun SearchThreadsMain(
                                 if(viewModel.threadId != null) {
                                     viewModel.liveData = MutableLiveData()
                                     viewModel.threadId = null
-                                    navigateToConversation(
+                                    conversationsViewModel.navigateToConversation(
                                         conversationsViewModel = conversationsViewModel,
                                         address = message.address!!,
                                         threadId = message.thread_id!!,
@@ -179,7 +179,7 @@ fun SearchThreadsMain(
                         modifier = Modifier.combinedClickable(
                             onClick = {
                                 viewModel.liveData = MutableLiveData()
-                                navigateToConversation(
+                                conversationsViewModel.navigateToConversation(
                                     conversationsViewModel = conversationsViewModel,
                                     address = message.address!!,
                                     threadId = message.thread_id!!,

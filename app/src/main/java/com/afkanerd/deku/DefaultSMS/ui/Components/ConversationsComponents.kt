@@ -8,6 +8,7 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Base64
 import android.widget.Toast
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +47,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
@@ -57,6 +60,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -89,17 +93,27 @@ import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.MainActivity
+import com.example.compose.AppTheme
 import com.jakewharton.rxbinding.view.RxMenuItem.icon
+import io.getstream.avatarview.AvatarView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 @Preview(showBackground = true)
 @Composable
@@ -295,7 +309,7 @@ fun ChatCompose(
                     fontSize = 12.sp,
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(end=8.dp)
+                        .padding(end = 8.dp)
                 )
             }
         }
@@ -450,6 +464,83 @@ fun ShortCodeAlert(
     )
 }
 
+@Composable
+fun MessageInfoAlert(
+    conversation: Conversation,
+    dismissCallback: (() -> Unit)? = null,
+) {
+    val type = stringResource(R.string.text_message_1)
+    val priority = stringResource(R.string.normal)
+    AlertDialog(
+        backgroundColor = MaterialTheme.colorScheme.secondary,
+        title = {
+            Text(
+                stringResource(R.string.message_details),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSecondary
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.type, type),
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+                Text(
+                    stringResource(R.string.priority, priority),
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+                if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
+                    Text(
+                        stringResource(R.string.from, conversation.address ?: ""),
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+                Text(
+                    stringResource(
+                        R.string.to, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            conversation.address ?: ""
+                        else "N/A"
+                    ),
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+                Text(
+                    stringResource(
+                        R.string.sent, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            formatDate(conversation.date?.toLong() ?: 0L)
+                        else formatDate(conversation.date_sent?.toLong() ?: 0L)
+                    ),
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+                if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
+                    Text(
+                        stringResource(
+                            R.string.received,
+                            formatDate(conversation.date?.toLong() ?: 0L)
+                        ),
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+            }
+        },
+        onDismissRequest = { dismissCallback?.invoke() },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(
+                onClick = { dismissCallback?.invoke() }
+            ) {
+                Text(
+                    stringResource(R.string.close),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+        }
+    )
+}
+
+fun formatDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:ss", Locale.getDefault())
+    return format.format(date)
+}
 
 @Preview
 @Composable
@@ -506,6 +597,7 @@ fun SimChooser(
 fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     items: List<Conversation> = emptyList(),
+    onInfoRequested: (Conversation) -> Unit = {},
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
 ) {
@@ -530,6 +622,15 @@ fun ConversationCrudBottomBar(
                 Spacer(Modifier.weight(1f))
 
                 if(viewModel.selectedItems.size < 2) {
+                    IconButton(onClick = {
+                        val conversations = items.first {
+                            it.message_id in viewModel.selectedItems
+                        }
+                        onInfoRequested(conversations)
+                    }) {
+                        Icon(Icons.Filled.Info, stringResource(R.string.message_information))
+                    }
+
                     IconButton(onClick = {
                         val conversation = items.firstOrNull {
                             it.message_id in viewModel.selectedItems
@@ -606,3 +707,17 @@ private fun shareItem(context: Context, text: String) {
     context.startActivity(shareIntent)
 }
 
+@Preview
+@Composable
+fun MessageInfoAlert_Preview() {
+    AppTheme(darkTheme = true) {
+        val conversation = Conversation()
+        conversation.address = "+2371234567"
+        conversation.date = System.currentTimeMillis().toString()
+        conversation.date_sent = System.currentTimeMillis().toString()
+        conversation.type = Telephony.Sms.MESSAGE_TYPE_INBOX
+        MessageInfoAlert(
+            conversation
+        ) {}
+    }
+}

@@ -27,36 +27,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
-import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.example.compose.AppTheme
-import sh.calvin.autolinktext.rememberAutoLinkText
 
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
@@ -467,15 +453,15 @@ fun ConversationsMainDropDownMenu(
     }
 }
 
-private fun getPredefinedType(type: Int) : PredefinedTypes? {
+private fun getPredefinedType(type: Int) : ConversationsPredefinedTypes? {
     when(type) {
         Telephony.Sms.MESSAGE_TYPE_OUTBOX,
         Telephony.Sms.MESSAGE_TYPE_QUEUED,
         Telephony.Sms.MESSAGE_TYPE_SENT -> {
-            return PredefinedTypes.OUTGOING
+            return ConversationsPredefinedTypes.OUTGOING
         }
         Telephony.Sms.MESSAGE_TYPE_INBOX -> {
-            return PredefinedTypes.INCOMING
+            return ConversationsPredefinedTypes.INCOMING
         }
     }
     return null
@@ -590,7 +576,7 @@ fun sendSMS(
     )
 }
 
-enum class PredefinedTypes {
+enum class ConversationsPredefinedTypes {
     OUTGOING,
     INCOMING
 }
