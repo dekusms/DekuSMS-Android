@@ -3,6 +3,7 @@ package com.afkanerd.deku
 import android.app.ComponentCaller
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -76,6 +77,11 @@ class MainActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Fix for three-button nav not properly going edge-to-edge.
+            // TODO: https://issuetracker.google.com/issues/298296168
+            window.isNavigationBarContrastEnforced = false
+        }
 
         remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
 
