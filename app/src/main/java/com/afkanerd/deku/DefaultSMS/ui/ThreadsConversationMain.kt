@@ -96,7 +96,6 @@ import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -124,7 +123,6 @@ enum class InboxType(val value: Int) {
 fun ThreadConversationLayout(
     conversationsViewModel: ConversationsViewModel,
     navController: NavController,
-    _items: List<Conversation> = emptyList(),
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
@@ -190,15 +188,15 @@ fun ThreadConversationLayout(
     val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
     val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
 
-    var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    val blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    var drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    var selectedItems = remember { mutableStateListOf<Conversation>() }
-    var slideDeleteItem = remember { mutableStateOf("") }
+    val selectedItems = remember { mutableStateListOf<Conversation>() }
+    val slideDeleteItem = remember { mutableStateOf("") }
 
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
@@ -647,7 +645,6 @@ fun ThreadConversationLayout(
                                             SwipeToDismissBoxValue.Settled ->
                                                 return@rememberSwipeToDismissBoxState false
                                         }
-                                        return@rememberSwipeToDismissBoxState true
                                     },
 //                                    positionalThreshold = { it * .75f }
                                     positionalThreshold = { it * .85f }
@@ -776,7 +773,7 @@ fun ThreadConversationLayout(
 fun PreviewMessageCard() {
     AppTheme(darkTheme = true) {
         Surface(Modifier.safeDrawingPadding()) {
-            var messages: MutableList<Conversation> =
+            val messages: MutableList<Conversation> =
                 remember { mutableListOf( ) }
             for(i in 0..10) {
                 val thread = Conversation()
@@ -788,7 +785,6 @@ fun PreviewMessageCard() {
             }
             ThreadConversationLayout(
                 navController = rememberNavController(),
-                _items = messages,
                 conversationsViewModel = ConversationsViewModel()
             )
         }
@@ -802,7 +798,6 @@ fun PreviewMessageCardRemoteListeners_Preview() {
         Surface(Modifier.safeDrawingPadding()) {
             ThreadConversationLayout(
                 navController = rememberNavController(),
-                _items = emptyList(),
                 conversationsViewModel = ConversationsViewModel().apply {
                     inboxType = InboxType.REMOTE_LISTENER
                 }
