@@ -15,7 +15,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         savedInstanceState: android.os.Bundle?,
         rootKey: kotlin.String?
     ) {
-        setPreferencesFromResource(com.afkanerd.deku.DefaultSMS.R.xml.settings_preferences, rootKey)
+        setPreferencesFromResource(R.xml.settings_preferences, rootKey)
 
         val languagePreference =
             findPreference<androidx.preference.ListPreference?>(getString(com.afkanerd.deku.DefaultSMS.R.string.settings_locale))
