@@ -79,7 +79,8 @@ class ConversationsViewModel : ViewModel() {
     private lateinit var mutedPager: Flow<PagingData<Conversation>>
     private lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
 
-    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
+    private var conversationsPager: Flow<PagingData<Conversation>>? = null
+//    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
@@ -215,7 +216,8 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun getConversationLivePaging(context: Context): Flow<PagingData<Conversation>> {
-        if(!::conversationsPager.isInitialized) {
+//        if(!::conversationsPager.isInitialized) {
+        if(conversationsPager == null) {
             conversationsPager = Pager(
                 config=PagingConfig(
                     pageSize,
@@ -230,7 +232,7 @@ class ConversationsViewModel : ViewModel() {
                 }
             ).flow.cachedIn(viewModelScope)
         }
-        return conversationsPager
+        return conversationsPager!!
     }
 
     fun insert(context: Context, conversation: Conversation): Long {
@@ -529,7 +531,7 @@ class ConversationsViewModel : ViewModel() {
         conversationsViewModel.threadId = threadId
         conversationsViewModel.searchQuery = searchQuery ?: ""
         conversationsViewModel.subscriptionId = subscriptionId ?: -1
-        conversationsViewModel.liveData = null
+        conversationsViewModel.conversationsPager = null
         if(conversationsViewModel.newLayoutInfo?.displayFeatures!!.isEmpty())
             navController.navigate(ConversationsScreen)
     }
