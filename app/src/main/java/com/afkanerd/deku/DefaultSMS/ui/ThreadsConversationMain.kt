@@ -286,15 +286,9 @@ fun ThreadConversationLayout(
                 if(selectedItems.isEmpty() && inboxType == InboxType.INBOX) {
                     CenterAlignedTopAppBar(
                         title = {
-                            val logoResId = if (isSystemInDarkTheme()) {
-                                R.drawable.dekusms_dark_theme
-                            } else {
-                                R.drawable.dekusms_default
-                            }
-                            Image(
-                                painter = painterResource(id = logoResId),
-                                contentDescription = stringResource(R.string.app_name),
-                                modifier = Modifier.size(150.dp)
+                            Text(
+                                text = "DekuSMS",
+                                style = MaterialTheme.typography.titleLarge
                             )
                         },
                         navigationIcon = {
