@@ -305,4 +305,25 @@
     <string name="click_to_add_queues">• Cliquez pour ajouter des files d\'attente</string>
     <string name="press_and_hold_to_manage">• Appuyez longuement pour gérer</string>
     <string name="queues">%1$s files d\'attente</string>
+    <string name="list_of_remote_listeners">Liste des écouteurs distants</string>
+    <string name="settings">Paramètres</string>
+    <string name="no_messages_sent_from_remote_listeners">Aucun message envoyé depuis les écouteurs distants</string>
+    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">La désactivation désactiverait les gestes de balayage dans l\'écran des fils de discussion (pour archiver et supprimer). Ceci est activé par défaut</string>
+    <string name="enable_swipe">Activer le balayage</string>
+    <string name="behaviour">Comportement</string>
+    <string name="message_information">informations sur le message</string>
+    <string name="close">Fermer</string>
+    <string name="message_details">Détails du message</string>
+    <string name="type">Type : %1$s</string>
+    <string name="priority">Priorité : %1$s</string>
+    <string name="text_message_1">Message texte</string>
+    <string name="normal">Normal</string>
+    <string name="from">De : %1$s</string>
+    <string name="to">À : %1$s</string>
+    <string name="sent">Envoyé : %1$s</string>
+    <string name="received">Reçu : %1$s</string>
+    <string name="dev_mode">Mode développeur</string>
+    <string name="read_our_text_part">Lisez notre</string>
+    <string name="privacy_policy_text_part">politique de confidentialité</string>
+
 </resources>

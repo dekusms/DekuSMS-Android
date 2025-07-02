@@ -349,4 +349,25 @@
     <string name="click_to_add_queues">• Нажмите, чтобы добавить очереди</string>
     <string name="press_and_hold_to_manage">• Нажмите и удерживайте для управления</string>
     <string name="queues">%1$s очередей</string>
+    <string name="list_of_remote_listeners">Список удаленных слушателей</string>
+    <string name="settings">Настройки</string>
+    <string name="no_messages_sent_from_remote_listeners">Нет сообщений, отправленных от удаленных слушателей</string>
+    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Отключение отключит жесты смахивания на экране цепочек (для архивации и удаления). Это включено по умолчанию</string>
+    <string name="enable_swipe">Включить смахивание</string>
+    <string name="behaviour">Поведение</string>
+    <string name="message_information">информация о сообщении</string>
+    <string name="close">Закрыть</string>
+    <string name="message_details">Сведения о сообщении</string>
+    <string name="type">Тип: %1$s</string>
+    <string name="priority">Приоритет: %1$s</string>
+    <string name="text_message_1">Текстовое сообщение</string>
+    <string name="normal">Обычный</string>
+    <string name="from">От: %1$s</string>
+    <string name="to">Кому: %1$s</string>
+    <string name="sent">Отправлено: %1$s</string>
+    <string name="received">Получено: %1$s</string>
+    <string name="dev_mode">Режим разработчика</string>
+    <string name="read_our_text_part">Прочитайте нашу</string>
+    <string name="privacy_policy_text_part">политику конфиденциальности</string>
+
 </resources>
