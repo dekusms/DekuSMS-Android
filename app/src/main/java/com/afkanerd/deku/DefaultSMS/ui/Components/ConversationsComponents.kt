@@ -115,7 +115,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
-@Preview(showBackground = true)
+
 @Composable
 fun SearchCounterCompose(
     index: String = "0",
@@ -131,7 +131,7 @@ fun SearchCounterCompose(
         Text(
             "$index/$total ${stringResource(R.string.results_found)}",
             color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(8.dp)
         )
 
@@ -144,7 +144,8 @@ fun SearchCounterCompose(
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBackIos,
-                    contentDescription = stringResource(R.string.move_search_backwards)
+                    contentDescription = stringResource(R.string.move_search_backwards),
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -153,7 +154,8 @@ fun SearchCounterCompose(
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
-                    contentDescription = stringResource(R.string.move_search_forwards)
+                    contentDescription = stringResource(R.string.move_search_forwards),
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -162,7 +164,6 @@ fun SearchCounterCompose(
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
 fun SearchTopAppBarText(
     searchQuery: String = "",
@@ -220,7 +221,6 @@ fun SearchTopAppBarText(
 
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
 fun ChatCompose(
     value: String = "",
@@ -366,7 +366,6 @@ fun getSMSCount(context: Context, text: String): String {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 fun FailedMessageOptionsModal(
     retryCallback: (() -> Unit)? = null,
@@ -435,18 +434,17 @@ fun FailedMessageOptionsModal(
     }
 }
 
-@Preview
 @Composable
 fun ShortCodeAlert(
     dismissCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     AlertDialog(
-        backgroundColor = MaterialTheme.colorScheme.secondary,
+        backgroundColor = MaterialTheme.colorScheme.primary,
         text = {
             Text(
                 context.getString(R.string.conversation_shortcode_learn_more_text),
-                color = MaterialTheme.colorScheme.onSecondary
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
         onDismissRequest = { dismissCallback?.invoke() },
@@ -457,7 +455,7 @@ fun ShortCodeAlert(
             ) {
                 Text(
                     context.getString(R.string.conversation_shortcode_learn_more_ok),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -472,28 +470,28 @@ fun MessageInfoAlert(
     val type = stringResource(R.string.text_message_1)
     val priority = stringResource(R.string.normal)
     AlertDialog(
-        backgroundColor = MaterialTheme.colorScheme.secondary,
+        backgroundColor = MaterialTheme.colorScheme.primary,
         title = {
             Text(
                 stringResource(R.string.message_details),
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSecondary
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
         text = {
             Column {
                 Text(
                     stringResource(R.string.type, type),
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
                     stringResource(R.string.priority, priority),
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
                         stringResource(R.string.from, conversation.address ?: ""),
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 Text(
                     stringResource(
@@ -501,7 +499,7 @@ fun MessageInfoAlert(
                             conversation.address ?: ""
                         else "N/A"
                     ),
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
                     stringResource(
@@ -509,7 +507,7 @@ fun MessageInfoAlert(
                             formatDate(conversation.date?.toLong() ?: 0L)
                         else formatDate(conversation.date_sent?.toLong() ?: 0L)
                     ),
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
@@ -517,7 +515,7 @@ fun MessageInfoAlert(
                             R.string.received,
                             formatDate(conversation.date?.toLong() ?: 0L)
                         ),
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
             }
         },
@@ -529,7 +527,7 @@ fun MessageInfoAlert(
             ) {
                 Text(
                     stringResource(R.string.close),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -542,7 +540,7 @@ fun formatDate(timestamp: Long): String {
     return format.format(date)
 }
 
-@Preview
+
 @Composable
 fun SimChooser(
     expanded: Boolean = LocalInspectionMode.current,
@@ -707,10 +705,95 @@ private fun shareItem(context: Context, text: String) {
     context.startActivity(shareIntent)
 }
 
-@Preview
+@Preview(showBackground = true, name = "Search Counter Light")
+@Preview(showBackground = true, name = "Search Counter Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun SearchCounterComposePreview() {
+    AppTheme {
+        SearchCounterCompose(
+            index = "5",
+            total = "20",
+            forwardClick = {},
+            backwardClick = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, name = "Search TopAppBar Light")
+@Preview(showBackground = true, name = "Search TopAppBar Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun SearchTopAppBarTextPreview() {
+    AppTheme {
+        SearchTopAppBarText(
+            searchQuery = "Sample search",
+            cancelCallback = {},
+            searchCallback = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, name = "Chat Compose Light")
+@Preview(showBackground = true, name = "Chat Compose Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ChatComposePreview() {
+    AppTheme {
+        ChatCompose(
+            value = "Hello there!",
+            encryptedValue = "U2FsdGVkX1+...", // Example encrypted
+            shouldPulse = true,
+            sentCallback = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, name = "Failed Message Modal Light")
+@Preview(showBackground = true, name = "Failed Message Modal Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun FailedMessageOptionsModalPreview() {
+    AppTheme {
+        // For ModalBottomSheet, it's good to have a visible state in preview
+        FailedMessageOptionsModal(
+            retryCallback = {},
+            deleteCallback = {},
+            dismissCallback = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Short Code Alert Light")
+@Preview(showBackground = true, name = "Short Code Alert Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ShortCodeAlertPreview() {
+    AppTheme {
+        ShortCodeAlert(dismissCallback = {})
+    }
+}
+
+@Preview(showBackground = true, name = "SIM Chooser Light")
+@Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun SimChooserPreview() {
+    AppTheme {
+        SimChooser(
+            expanded = true, // Make it visible in preview
+            onClickCallback = {},
+            dismissCallback = {}
+        )
+    }
+}
+
+
+
+
+
+@Preview(showBackground = true, name = "SIM Chooser Light")
+@Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MessageInfoAlert_Preview() {
-    AppTheme(darkTheme = true) {
+    AppTheme {
         val conversation = Conversation()
         conversation.address = "+2371234567"
         conversation.date = System.currentTimeMillis().toString()

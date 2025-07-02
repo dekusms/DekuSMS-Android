@@ -77,7 +77,7 @@ val DekuSMSTypography = Typography(
     ),
     bodyLarge = TextStyle(
         fontFamily = MonaSans,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp
     ),
     bodyMedium = TextStyle(

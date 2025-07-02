@@ -103,19 +103,18 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.nio.file.WatchEvent
 
-@Preview
 @Composable
 fun DeleteConfirmationAlert(
     confirmCallback: (() -> Unit)? = null,
     dismissCallback: (() -> Unit)? = null,
 ) {
     AlertDialog(
-        backgroundColor = MaterialTheme.colorScheme.secondary,
+        backgroundColor = MaterialTheme.colorScheme.inverseSurface,
         title = {
             Text(
                 stringResource(R.string.messages_thread_delete_confirmation_title),
-                color = MaterialTheme.colorScheme.onSecondary,
-                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(8.dp)
             )
         },
@@ -123,7 +122,8 @@ fun DeleteConfirmationAlert(
             Column {
                 Text(
                     stringResource(R.string.messages_thread_delete_confirmation_text),
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -135,7 +135,8 @@ fun DeleteConfirmationAlert(
             ) {
                 Text(
                     stringResource(R.string.messages_thread_delete_confirmation_yes),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         },
@@ -145,14 +146,15 @@ fun DeleteConfirmationAlert(
             ) {
                 Text(
                     "Cancel",
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
     )
 }
 
-@Preview
+
 @Composable
 fun ImportDetails(
     numOfConversations: Int = 0,
@@ -162,12 +164,13 @@ fun ImportDetails(
     dismissCallback: (() -> Unit)? = null,
 ) {
     AlertDialog(
-        backgroundColor = MaterialTheme.colorScheme.secondary,
+        backgroundColor = MaterialTheme.colorScheme.inverseSurface,
         title = {
             Text(
                 stringResource(R.string.import_conversations),
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
                 fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(8.dp)
             )
         },
@@ -175,12 +178,14 @@ fun ImportDetails(
             Column {
                 Text(
                     stringResource(R.string.threads) + numOfThreads,
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(8.dp)
                 )
                 Text(
                     stringResource(R.string.conversations) + numOfConversations,
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -193,7 +198,8 @@ fun ImportDetails(
                 ) {
                     Text(
                         stringResource(R.string.reset_and_import),
-                        color = MaterialTheme.colorScheme.tertiaryContainer
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondaryContainer
                     )
                 }
 
@@ -202,7 +208,8 @@ fun ImportDetails(
             ) {
                 Text(
                     stringResource(R.string.conversation_menu_import),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 )
             }
         },
@@ -212,7 +219,8 @@ fun ImportDetails(
             ) {
                 Text(
                     "Cancel",
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 )
             }
         }
@@ -365,7 +373,6 @@ fun ThreadConversationCard(
     )
 }
 
-@Preview(showBackground = true)
 @Composable
 fun ModalDrawerSheetLayout(
     callback: ((InboxType) -> Unit)? = null,
@@ -723,13 +730,53 @@ fun SwipeToDeleteBackground(
     }
 }
 
-@Preview
+@Preview(showBackground = true, name = "Delete Confirmation Light")
+@Preview(showBackground = true, name = "Delete Confirmation Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun DeleteConfirmationAlertPreview() {
+    AppTheme {
+        DeleteConfirmationAlert(
+            confirmCallback = {},
+            dismissCallback = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Import Details Light")
+@Preview(showBackground = true, name = "Import Details Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ImportDetailsPreview() {
+    AppTheme {
+        ImportDetails(
+            numOfConversations = 150,
+            numOfThreads = 25,
+            confirmCallback = {},
+            resetConfirmCallback = {},
+            dismissCallback = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Modal Drawer Light")
+@Preview(showBackground = true, name = "Modal Drawer Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ModalDrawerSheetLayoutPreview() {
+    AppTheme {
+        ModalDrawerSheetLayout(
+            selectedItemIndex = InboxType.INBOX,
+            counts = ThreadsCount(unreadCount = 12, archivedCount = 3, draftsCount = 1)
+        )
+    }
+}
+
+@Preview(name = "MainMenu Light")
+@Preview(name = "MainMenu Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MainMenuDropDown_Preview() {
-    AppTheme(darkTheme = true) {
+    AppTheme {
         ThreadsMainDropDown(
-            true,
-            ConversationsViewModel()
+            expanded = true,
+            conversationViewModel = remember { ConversationsViewModel() }
         )
     }
 }
@@ -756,3 +803,6 @@ fun ThreadConversationCard_Preview() {
         )
     }
 }
+
+
+

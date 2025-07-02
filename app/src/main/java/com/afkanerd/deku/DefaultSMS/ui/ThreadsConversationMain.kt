@@ -483,7 +483,9 @@ fun ThreadConversationLayout(
                                 icon = { Icon( Icons.AutoMirrored.Default.Message,
                                     stringResource(R.string.compose_new_message)) },
                                 text = { Text(text = stringResource(R.string.compose)) },
-                                expanded = listState.isScrollingUp()
+                                expanded = listState.isScrollingUp(),
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                         }
                     }
