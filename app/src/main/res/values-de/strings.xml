@@ -330,6 +330,26 @@
     <string name="click_to_add_queues">• Zum Hinzufügen von Warteschlangen klicken</string>
     <string name="press_and_hold_to_manage">• Zum Verwalten gedrückt halten</string>
     <string name="queues">%1$s Warteschlangen</string>
+    <string name="list_of_remote_listeners">Liste der Remote-Listener</string>
+    <string name="settings">Einstellungen</string>
+    <string name="no_messages_sent_from_remote_listeners">Keine Nachrichten von Remote-Listenern gesendet</string>
+    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Das Deaktivieren würde die Wischgesten im Thread-Bildschirm (zum Archivieren und Löschen) ausschalten. Dies ist standardmäßig aktiviert</string>
+    <string name="enable_swipe">Wischen aktivieren</string>
+    <string name="behaviour">Verhalten</string>
+    <string name="message_information">Nachrichteninformationen</string>
+    <string name="close">Schließen</string>
+    <string name="message_details">Nachrichtendetails</string>
+    <string name="type">Typ: %1$s</string>
+    <string name="priority">Priorität: %1$s</string>
+    <string name="text_message_1">Textnachricht</string>
+    <string name="normal">Normal</string>
+    <string name="from">Von: %1$s</string>
+    <string name="to">An: %1$s</string>
+    <string name="sent">Gesendet: %1$s</string>
+    <string name="received">Empfangen: %1$s</string>
+    <string name="dev_mode">Entwicklermodus</string>
+    <string name="read_our_text_part">Lesen Sie unsere</string>
+    <string name="privacy_policy_text_part">Datenschutzrichtlinie</string>
 
 
 </resources>

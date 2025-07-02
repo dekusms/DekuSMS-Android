@@ -55,6 +55,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.example.compose.AppTheme
 
 @Preview
 @Composable
@@ -71,7 +72,7 @@ fun ContactAvatar(
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(SolidColor(color))
         }
-        Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
+        Text(text = initials, style = MaterialTheme.typography.bodyLarge, color = Color.White)
     }
 }
 
@@ -197,17 +198,24 @@ fun ComposeNewMessage(
 }
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Compose New Message Light")
+@Preview(showBackground = true, name = "Compose New Message Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewComposeMessage() {
-    var contacts: MutableList<Contacts> =
-        remember { mutableListOf( ) }
-    for(i in 0..10) {
-        val contact = Contacts()
-        contact.number = "$i$i$i$i$i$i$i$i$i$i"
-        contact.contactName = "Jane Doe ($i)"
-        contact.id = i.toLong()
-        contacts.add(contact)
+    AppTheme {
+        var contacts: MutableList<Contacts> =
+            remember { mutableListOf( ) }
+        for(i in 0..10) {
+            val contact = Contacts()
+            contact.number = "$i$i$i$i$i$i$i$i$i$i"
+            contact.contactName = "Jane Doe ($i)"
+            contact.id = i.toLong()
+            contacts.add(contact)
+        }
+        ComposeNewMessage(
+            navController = rememberNavController(),
+            _items = contacts,
+            conversationsViewModel = remember { ConversationsViewModel() }
+        )
     }
-    ComposeNewMessage(navController = rememberNavController(), _items = contacts)
 }

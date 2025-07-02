@@ -189,17 +189,12 @@ fun ContactDetails (
                 if (isContact) {
                     Text(
                         text = contactName,
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
+                        style = MaterialTheme.typography.titleMedium)
                 }
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = phoneNumber,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = 15.sp
-                    )
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 

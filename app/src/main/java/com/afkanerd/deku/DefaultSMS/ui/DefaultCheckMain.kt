@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,6 +32,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,9 +45,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import com.example.compose.AppTheme
 
 
-@Preview(showBackground = true)
 @Composable
 fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
     val context = LocalContext.current
@@ -67,32 +73,50 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().weight(1f)
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
         ) {
             Image(
-                painter= painterResource(R.drawable.undraw_team_work_i1f3),
+                painter= painterResource(R.drawable.set_default_sms_app),
                 contentDescription = stringResource(R.string.welcome_image),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .size(250.dp)
+                    .size(350.dp)
             )
             Spacer(Modifier.size(32.dp))
 
-            Button(onClick = {
-                getDefaultPermission.launch(makeDefault(context))
-            }) {
-                Text(stringResource(R.string.default_check_btn_text))
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                ),
+                onClick = {
+                    getDefaultPermission.launch(makeDefault(context))
+                }
+            ) {
+                Text(
+                    stringResource(R.string.default_check_btn_text),
+                )
             }
 
         }
-        TextButton(onClick = {
-            val url = context.getString(R.string.privacy_policy_url)
-            val shareIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            context.startActivity(shareIntent)
-        }) {
+        TextButton(
+            onClick = {
+                val url = context.getString(R.string.privacy_policy_url) // Your existing URL string resource
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
+            }
+        ) {
+            val annotatedString = buildAnnotatedString {
+                append(stringResource(R.string.read_our_text_part))
+                append(" ")
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                    append(stringResource(R.string.privacy_policy_text_part))
+                }
+            }
             Text(
-                stringResource(R.string.privacy_policy_url),
-                fontSize = 12.sp
+                text = annotatedString,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
@@ -109,6 +133,15 @@ fun makeDefault(context: Context): Intent {
         Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT).apply {
             putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
         }
+    }
+}
+
+@Preview(showBackground = true, name = "DefaultCheckMain Light")
+@Preview(showBackground = true, name = "DefaultCheckMain Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun DefaultCheckMainPreview() {
+    AppTheme {
+        DefaultCheckMain()
     }
 }
 

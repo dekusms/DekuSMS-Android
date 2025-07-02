@@ -392,6 +392,26 @@
     <string name="click_to_add_queues">• Kliknij, aby dodać kolejki</string>
     <string name="press_and_hold_to_manage">• Naciśnij i przytrzymaj, aby zarządzać</string>
     <string name="queues">%1$s kolejek</string>
+    <string name="list_of_remote_listeners">Lista zdalnych odbiorników</string>
+    <string name="settings">Ustawienia</string>
+    <string name="no_messages_sent_from_remote_listeners">Brak wiadomości wysłanych ze zdalnych odbiorników</string>
+    <string name="disabling_would_stop_the_swipe_actions_in_the_threads_screen_to_archive_and_delete_this_is_enabled_by_default">Wyłączenie spowoduje wyłączenie gestów przesuwania na ekranie wątków (archiwizacja i usuwanie). Ta opcja jest domyślnie włączona</string>
+    <string name="enable_swipe">Włącz przesuwanie</string>
+    <string name="behaviour">Zachowanie</string>
+    <string name="message_information">informacje o wiadomości</string>
+    <string name="close">Zamknij</string>
+    <string name="message_details">Szczegóły wiadomości</string>
+    <string name="type">Typ: %1$s</string>
+    <string name="priority">Priorytet: %1$s</string>
+    <string name="text_message_1">Wiadomość tekstowa</string>
+    <string name="normal">Normalny</string>
+    <string name="from">Od: %1$s</string>
+    <string name="to">Do: %1$s</string>
+    <string name="sent">Wysłano: %1$s</string>
+    <string name="received">Odebrano: %1$s</string>
+    <string name="dev_mode">Tryb programisty</string>
+    <string name="read_our_text_part">Przeczytaj naszą</string>
+    <string name="privacy_policy_text_part">politykę prywatności</string>
 
 
 </resources>

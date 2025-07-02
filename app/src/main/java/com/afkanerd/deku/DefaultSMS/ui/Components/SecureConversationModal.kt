@@ -7,14 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -34,10 +33,10 @@ import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.R
+import com.example.compose.AppTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-@Preview(showBackground = true)
 @Composable
 fun SecureRequestAcceptModal(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
@@ -69,7 +68,7 @@ fun SecureRequestAcceptModal(
             if(isSecureRequest) {
                 Text(
                     text = stringResource(R.string.secure_request),
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom=16.dp),
                 )
@@ -78,17 +77,17 @@ fun SecureRequestAcceptModal(
                     text = stringResource(
                         R.string
                             .conversation_secure_popup_request_menu_description),
-                    fontSize = 16.sp
+                    style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
                     text = stringResource(
                         R.string
                             .conversation_secure_popup_request_menu_description_subtext),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(16.dp)
                 )
 
-                Button(onClick = {
+                Button (onClick = {
                     E2EEHandler.clear(context, viewModel.address)
                     val publicKey = E2EEHandler.generateKey(context, viewModel.address)
                     val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
@@ -147,7 +146,7 @@ fun SecureRequestAcceptModal(
                     Text(stringResource(R.string.conversations_secure_conversation_request_agree))
                 }
 
-                TextButton(onClick={
+                TextButton (onClick={
                     context.startActivity(intent)
                 }) {
                     Text(stringResource(R.string
@@ -157,5 +156,31 @@ fun SecureRequestAcceptModal(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@Preview(showBackground = true, name = "Secure Request Modal - Request Flow")
+@Composable
+fun SecureRequestModal_RequestFlow_Preview() {
+    AppTheme {
+        SecureRequestAcceptModal(
+            viewModel = remember { ConversationsViewModel() },
+            isSecureRequest = true,
+            dismissCallback = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@Preview(showBackground = true, name = "Secure Request Modal - Accept Flow")
+@Composable
+fun SecureRequestModal_AcceptFlow_Preview() {
+    AppTheme {
+        SecureRequestAcceptModal(
+            viewModel = remember { ConversationsViewModel() },
+            isSecureRequest = false,
+            dismissCallback = {}
+        )
+    }
 }
 
