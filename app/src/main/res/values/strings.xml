@@ -409,5 +409,7 @@
     <string name="sent">Sent: %1$s</string>
     <string name="received">Received: %1$s</string>
     <string name="dev_mode">Dev mode</string>
+    <string name="read_our_text_part">Read our</string>
+    <string name="privacy_policy_text_part">privacy policy</string>
 
 </resources>

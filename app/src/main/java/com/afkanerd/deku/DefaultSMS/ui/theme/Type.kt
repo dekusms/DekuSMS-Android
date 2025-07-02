@@ -33,17 +33,47 @@ val DekuSMSTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = Unbounded,
         fontWeight = FontWeight.Normal,
-        fontSize = 36.sp
+        fontSize = 57.sp
     ),
     displayMedium = TextStyle(
         fontFamily = Unbounded,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp
+        fontSize = 45.sp
     ),
     displaySmall = TextStyle(
         fontFamily = Unbounded,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
+        fontSize = 36.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 32.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 28.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = MonaSans,
@@ -73,36 +103,6 @@ val DekuSMSTypography = Typography(
     labelSmall = TextStyle(
         fontFamily = MonaSans,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = MonaSans,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
-    ),
-    titleMedium = TextStyle(
-        fontFamily = MonaSans,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
-    ),
-    titleSmall = TextStyle(
-        fontFamily = MonaSans,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = Unbounded,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 24.sp
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = Unbounded,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp
-    ),
-    headlineSmall = TextStyle(
-        fontFamily = Unbounded,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
+        fontSize = 11.sp
     )
 )
