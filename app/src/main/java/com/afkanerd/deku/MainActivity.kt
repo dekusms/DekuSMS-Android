@@ -47,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.LogcatMain
@@ -69,6 +70,8 @@ class MainActivity : AppCompatActivity(){
 
     private val conversationViewModel: ConversationsViewModel by viewModels()
     private val searchViewModel: SearchViewModel by viewModels()
+    private val contactsViewModel: ContactsViewModel by viewModels()
+
 //    private val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
     private val remoteListenersProjectsViewModel:
@@ -240,6 +243,7 @@ class MainActivity : AppCompatActivity(){
     fun ComposeNewMessageScreenComposable() {
         ComposeNewMessage(
             conversationsViewModel = conversationViewModel,
+            viewModel = contactsViewModel,
             navController=navController
         )
     }

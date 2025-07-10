@@ -55,7 +55,6 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.example.compose.AppTheme
 
 @Preview
 @Composable
@@ -72,7 +71,7 @@ fun ContactAvatar(
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(SolidColor(color))
         }
-        Text(text = initials, style = MaterialTheme.typography.bodyLarge, color = Color.White)
+        Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
     }
 }
 
@@ -80,11 +79,11 @@ fun ContactAvatar(
 @Composable
 fun ComposeNewMessage(
     navController: NavController,
+    viewModel: ContactsViewModel,
     conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
     _items: List<Contacts>? = null
 ) {
     val context = LocalContext.current
-    val viewModel = ContactsViewModel()
 
     val items: List<Contacts> by viewModel
         .getContacts(context).observeAsState(emptyList())
@@ -144,7 +143,7 @@ fun ComposeNewMessage(
                 .padding(innerPadding),
             state = listState,
         ){
-            items(if(_items == null) items else _items) { contact ->
+            items(_items ?: items) { contact ->
                 Card(
                     onClick = {
                         conversationsViewModel.address = contact.number
@@ -198,24 +197,21 @@ fun ComposeNewMessage(
 }
 
 
-@Preview(showBackground = true, name = "Compose New Message Light")
-@Preview(showBackground = true, name = "Compose New Message Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
 @Composable
 fun PreviewComposeMessage() {
-    AppTheme {
-        var contacts: MutableList<Contacts> =
-            remember { mutableListOf( ) }
-        for(i in 0..10) {
-            val contact = Contacts()
-            contact.number = "$i$i$i$i$i$i$i$i$i$i"
-            contact.contactName = "Jane Doe ($i)"
-            contact.id = i.toLong()
-            contacts.add(contact)
-        }
-        ComposeNewMessage(
-            navController = rememberNavController(),
-            _items = contacts,
-            conversationsViewModel = remember { ConversationsViewModel() }
-        )
+    var contacts: MutableList<Contacts> =
+        remember { mutableListOf( ) }
+    for(i in 0..10) {
+        val contact = Contacts()
+        contact.number = "$i$i$i$i$i$i$i$i$i$i"
+        contact.contactName = "Jane Doe ($i)"
+        contact.id = i.toLong()
+        contacts.add(contact)
     }
+    ComposeNewMessage(
+        navController = rememberNavController(),
+        viewModel = ContactsViewModel(),
+        _items = contacts
+    )
 }

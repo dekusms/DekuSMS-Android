@@ -1,8 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
 import android.provider.BlockedNumberContract
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
@@ -73,19 +70,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.CombinedLoadStates
+import androidx.paging.LoadState
 import androidx.paging.LoadState.Loading
-import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import androidx.paging.liveData
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
-import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler
 import com.afkanerd.deku.DefaultSMS.R
@@ -113,12 +108,6 @@ enum class InboxType(val value: Int) {
     DRAFTS(4),
     MUTED(5),
     REMOTE_LISTENER(6);
-
-    companion object {
-        fun fromInt(value: Int): InboxType? {
-            return InboxType.entries.find { it.value == value }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
@@ -140,9 +129,9 @@ fun ThreadConversationLayout(
 
     val newIntent by conversationsViewModel.newIntent.collectAsState()
     LaunchedEffect(newIntent) {
-        newIntent?.let {
+        newIntent?.let { intent ->
             val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
-            conversationsViewModel.processIntents(context, it, defaultRegion)?.let {
+            conversationsViewModel.processIntents(context, intent, defaultRegion)?.let {
                 conversationsViewModel.setNewIntent(null)
                 it.first?.let{ address ->
                     it.second?.let { threadId ->
@@ -211,6 +200,10 @@ fun ThreadConversationLayout(
 
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
+
+    LaunchedEffect(encryptedMessagesItems.loadState != Loading) {
+        encryptedMessagesItems.itemSnapshotList
+    }
 
     LaunchedEffect(inboxType) {
         selectedItemIndex = inboxType
@@ -727,8 +720,7 @@ fun ThreadConversationLayout(
                                 coroutineScope.launch {
                                     val threads: List<String> = selectedItems.map { it.thread_id!! }
                                     conversationsViewModel.deleteThreads(context,
-                                        if(threads.isNotEmpty()) threads
-                                        else listOf<String>(slideDeleteItem.value)
+                                        threads.ifEmpty { listOf(slideDeleteItem.value) }
                                     )
                                     selectedItems.clear()
                                     rememberDeleteMenu = false

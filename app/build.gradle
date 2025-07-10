@@ -95,16 +95,15 @@ android {
         jvmTarget = "1.8"
     }
 
-    lintOptions {
-        checkReleaseBuilds false
-        //If you want to continue even if errors found use following line
-        abortOnError false
-    }
 
     packaging {
         resources {
             it.excludes += "/META-INF/{LICENSE.md,NOTICE.md}"
         }
+    }
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
     }
 
 }

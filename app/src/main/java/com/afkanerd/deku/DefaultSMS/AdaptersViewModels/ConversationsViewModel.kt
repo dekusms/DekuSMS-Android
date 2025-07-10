@@ -143,7 +143,7 @@ class ConversationsViewModel : ViewModel() {
                 ),
                 pagingSourceFactory = {
                     Datastore.getDatastore(context).conversationDao()
-                        .getArchivedPagingSource()
+                        .getAllThreadingPagingSource()
                 }
             ).flow.cachedIn(viewModelScope)
         }
