@@ -2,6 +2,8 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
+import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.compose.runtime.getValue
@@ -9,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.database.getStringOrNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,7 +21,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.Datastore
@@ -38,6 +40,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import androidx.core.net.toUri
 
 
 class ConversationsViewModel : ViewModel() {
@@ -328,7 +331,7 @@ class ConversationsViewModel : ViewModel() {
 
     fun archive(context: Context, threadIds: List<String>) {
         val datastore = Datastore.getDatastore(context)
-        var threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
+        val threadsConfigurationsList: MutableList<ThreadsConfigurations> = arrayListOf()
         threadIds.forEach { id ->
             var threadsConfigurations: ThreadsConfigurations? =
                 datastore.threadsConfigurationsDao().get(id)
@@ -458,7 +461,8 @@ class ConversationsViewModel : ViewModel() {
     }
 
     fun reset(context: Context) {
-        val cursor = NativeSMSDB.fetchAll(context)
+        val cursor = NativeSMSDB.fetchAllSMS(context)
+        val cursorMMS = NativeSMSDB.fetchAllMMS(context)
 
         val conversationList: MutableList<Conversation> = ArrayList<Conversation>()
         if (cursor != null && cursor.moveToFirst()) {
@@ -467,10 +471,25 @@ class ConversationsViewModel : ViewModel() {
             } while (cursor.moveToNext())
             cursor.close()
         }
+        if (cursorMMS != null && cursorMMS.moveToFirst()) {
+            do {
+                val conversation = Conversation.Companion.build(cursorMMS, true)
+                conversationList.forEach {
+                    if(it.message_id == conversation.message_id) {
+                        val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
+                        val address = imageDetails.first
+                        val image = imageDetails.second
 
-        Datastore.getDatastore(context).conversationDao().deleteEvery()
-        Datastore.getDatastore(context).conversationDao().insertAll(conversationList)
-//        refresh(context)
+                        it.address = address
+                        it.mmsImage = image
+                    }
+                }
+//                conversationList.add(conversation)
+            } while (cursorMMS.moveToNext())
+            cursorMMS.close()
+        }
+
+        Datastore.getDatastore(context).conversationDao().reset(conversationList)
     }
 
     fun clear(context: Context) {
@@ -536,9 +555,9 @@ class ConversationsViewModel : ViewModel() {
             navController.navigate(ConversationsScreen)
     }
 
-    fun loadNatives(context: Context, conversationViewModel: ConversationsViewModel) {
+    fun loadNatives(context: Context) {
         CoroutineScope(Dispatchers.Default).launch {
-            conversationViewModel.reset(context)
+            reset(context)
         }
     }
 

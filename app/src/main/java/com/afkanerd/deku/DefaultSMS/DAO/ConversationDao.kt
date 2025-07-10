@@ -120,6 +120,12 @@ interface ConversationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun _insert(conversation: Conversation): Long
 
+    @Transaction
+    fun reset(conversationList: MutableList<Conversation>) {
+        deleteEvery()
+        insertAll(conversationList)
+    }
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAll(conversationList: MutableList<Conversation>): MutableList<Long>
 

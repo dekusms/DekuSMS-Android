@@ -351,7 +351,7 @@ fun Conversations(
                 else viewModel.mute(context)
                 isMute = viewModel.isMuted(context)
             }
-        }
+        },
     ) {
         rememberMenuExpanded = false
     }

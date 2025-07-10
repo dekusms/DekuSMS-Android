@@ -20,30 +20,6 @@ public class ThreadedConversationsHandler {
         return threadedConversations;
     }
 
-    public static ThreadedConversations get(Context context,
-                                            ThreadedConversations threadedConversations) throws InterruptedException {
-//        final ThreadedConversations[] threadedConversations1 = {threadedConversations};
-//        Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                threadedConversations1[0] = threadedConversationsDao
-//                        .get(threadedConversations.getThread_id());
-//            }
-//        });
-//        thread.start();
-//        thread.join();
-        try(Cursor cursor =
-                    NativeSMSDB.fetchByThreadId(context, threadedConversations.getThread_id())) {
-            if(cursor.moveToFirst())
-                threadedConversations = ThreadedConversations.build(cursor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return threadedConversations;
-
-//        return threadedConversations1[0];
-    }
-
     public static void call(Context context, String address) {
         Intent callIntent = new Intent(Intent.ACTION_DIAL);
         callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

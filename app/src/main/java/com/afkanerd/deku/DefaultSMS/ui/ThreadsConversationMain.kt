@@ -499,7 +499,7 @@ fun ThreadConversationLayout(
             ) {
                 if(!isDefault && inboxType != InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
-                        conversationsViewModel.loadNatives(context, conversationsViewModel)
+                        conversationsViewModel.loadNatives(context)
                         isDefault = true
                     }
                 }

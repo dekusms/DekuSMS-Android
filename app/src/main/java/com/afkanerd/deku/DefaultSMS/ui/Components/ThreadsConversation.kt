@@ -102,6 +102,7 @@ import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.nio.file.WatchEvent
+import kotlin.io.encoding.Base64
 
 @Composable
 fun DeleteConfirmationAlert(
@@ -683,6 +684,21 @@ fun ThreadsMainDropDown(
                             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
                         }
                     )
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= "Reset",
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        dismissCallback?.let { it(false) }
+                        conversationViewModel.reset(context)
+                    }
                 }
             )
         }

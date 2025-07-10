@@ -347,7 +347,7 @@ fun ConversationsMainDropDownMenu(
     isSecure: Boolean = false,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
-    var expanded = expanded
+    val expanded = expanded
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)

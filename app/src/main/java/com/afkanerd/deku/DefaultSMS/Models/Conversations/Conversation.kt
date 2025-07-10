@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations
 
 import android.database.Cursor
 import android.provider.Telephony
+import androidx.core.database.getStringOrNull
 import androidx.recyclerview.widget.DiffUtil
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -51,11 +52,12 @@ open class Conversation : Cloneable {
     @ColumnInfo(defaultValue = "0") var isData = false
     @ColumnInfo(defaultValue = "0") var isRemoteListener = false
 
+    @ColumnInfo var mmsImage: ByteArray? = null
+
     constructor()
 
-    constructor(cursor: Cursor) {
+    constructor(cursor: Cursor, isMMS: Boolean = false) {
         val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
-        val bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY)
         val threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID)
         val addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS)
         val dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE)
@@ -65,14 +67,21 @@ open class Conversation : Cloneable {
         val readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ)
         val subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID)
 
+        if(!isMMS) {
+            val bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY)
+            text = cursor.getString(bodyIndex)
+        }
+
         message_id = cursor.getString(idIndex)
-        text = cursor.getString(bodyIndex)
         thread_id = cursor.getString(threadIdIndex)
-        address = cursor.getString(addressIndex)
+        if(addressIndex != -1)
+            address = cursor.getString(addressIndex)
         date = cursor.getString(dateIndex)
         date_sent = cursor.getString(dateSentIndex)
-        type = cursor.getInt(typeIndex)
-        status = cursor.getInt(statusIndex)
+        if(typeIndex != -1)
+            type = cursor.getInt(typeIndex)
+        if(statusIndex != -1)
+            status = cursor.getInt(statusIndex)
         isRead = cursor.getInt(readIndex) == 1
         subscription_id = cursor.getInt(subscriptionIdIndex)
     }
@@ -96,8 +105,8 @@ open class Conversation : Cloneable {
         const val THREAD_ID = "THREAD_ID"
         const val SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
         const val SHARED_SMS_BODY = "sms_body"
-        fun build(cursor: Cursor): Conversation {
-            return Conversation(cursor)
+        fun build(cursor: Cursor, isMMS: Boolean = false): Conversation {
+            return Conversation(cursor, isMMS)
         }
     }
 }

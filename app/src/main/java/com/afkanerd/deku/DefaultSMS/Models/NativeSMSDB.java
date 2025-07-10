@@ -5,6 +5,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -12,6 +14,7 @@ import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,7 +25,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Set;
 
@@ -39,7 +43,7 @@ public class NativeSMSDB {
     public static int DATE_SENT = 5;
     public static int DATE = 6;
 
-    public static Cursor fetchAll(Context context) {
+    public static Cursor fetchAllSMS(Context context) {
         return context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
                 null,
@@ -47,28 +51,86 @@ public class NativeSMSDB {
                 null,
                 null);
     }
-    public static Cursor fetchByThreadId(Context context, String threadId) {
-        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+
+    public static Cursor fetchAllMMS(Context context) {
+        return context.getContentResolver().query(
+                Telephony.Mms.CONTENT_URI,
                 null,
-                Telephony.Sms.THREAD_ID + "=?",
-                new String[]{threadId},
+                "thread_id IS NOT NULL",
+                null,
                 null);
     }
 
-    public static Cursor countUnreadForThread(Context context, String threadId) {
-        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
-                null,
-                Telephony.Sms.THREAD_ID + "=? AND read=?",
-                new String[]{threadId, "0"},
-                null);
+    public static Pair<String, byte[]> ParseMMS(Context context, Cursor cursor) {
+        Uri uri = Uri.parse("content://mms/part");
+        int idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID);
+        String id = cursor.getString(idIndex);
+
+        String mmsId = "mid = " + id;
+        Cursor c = context.getContentResolver()
+                .query(uri, null, mmsId, null, null);
+        String address = "";
+        byte[] image = null;
+        if(c != null && c.moveToFirst()) {
+            do {
+                int _idIndex = c.getColumnIndex("_id");
+                String pid = c.getString(_idIndex);
+
+                int typeIndex = c.getColumnIndex("ct");
+                String type = c.getString(typeIndex);
+
+                if ("text/plain".equals(type)) {
+                    Log.d(NativeSMSDB.class.getName(), "MMS has text");
+                } else if (type.contains("image")) {
+                    Log.d(NativeSMSDB.class.getName(), "MMS has a picture in it!");
+                    address = getMmsAddr(context, id);
+                    Log.d(NativeSMSDB.class.getName(), "MMS address: " + address);
+                    if(image == null)
+                        image = getMmsImg(context, pid);
+                }
+            } while(c.moveToNext());
+            c.close();
+        }
+
+        return new Pair<>(address, image);
     }
 
-    public static Cursor fetchByAddress(Context context, String address) {
-        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
-                null,
-                Telephony.Sms.ADDRESS + "=?",
-                new String[]{address},
-                null);
+    public static byte[] getMmsImg(Context context, String id) {
+        Uri uri = Uri.parse("content://mms/part/" + id);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try (InputStream inputStream = context.getContentResolver().openInputStream(uri)) {
+            if (inputStream != null) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return outputStream.toByteArray();
+    }
+
+
+    public static String getMmsAddr(Context context, String id) {
+        String sel = "msg_id=" + id;
+        String uriString = MessageFormat.format("content://mms/{0}/addr", id);
+        Uri uri = Uri.parse(uriString);
+        Cursor c = context.getContentResolver().query(uri, null, sel, null, null);
+        StringBuilder name = new StringBuilder();
+        if(c != null && c.moveToFirst()) {
+            while (c.moveToNext()) {
+                int addressIndex = c.getColumnIndex("address");
+                String t = c.getString(addressIndex);
+                if(!(t.contains("insert")))
+                    name.append(t).append(" ");
+            }
+            c.close();
+        }
+        return name.toString();
     }
 
     public static Cursor fetchByMessageId(@NonNull Context context, String id) {
@@ -92,17 +154,6 @@ public class NativeSMSDB {
                 Telephony.Sms.CONTENT_URI,
                 Telephony.TextBasedSmsColumns.THREAD_ID + " in (" +
                         TextUtils.join(",", Collections.nCopies(threadIds.length, "?")) + ")", threadIds);
-    }
-
-    protected static int deleteMessage(Context context, String messageId) {
-        try {
-            return context.getContentResolver().delete(
-                    Telephony.Sms.CONTENT_URI,
-                    Telephony.Sms._ID + " = ?", new String[]{messageId});
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 
     protected static int deleteTypeForThread(Context context, String type, String threadId) {
