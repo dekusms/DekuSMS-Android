@@ -11,6 +11,7 @@ import android.graphics.PorterDuffColorFilter
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Base64
+import android.util.Size
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -75,10 +76,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -90,6 +95,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -785,8 +792,26 @@ fun SimChooserPreview() {
     }
 }
 
-
-
+class SquashedOval : Shape {
+    override fun createOutline(
+        size: androidx.compose.ui.geometry.Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val path = Path().apply {
+            // We create an Oval that starts at ¼ of the width, and ends at ¾ of the width of the container.
+            addOval(
+                Rect(
+                    left = size.width / 4f,
+                    top = 0f,
+                    right = size.width * 3 / 4f,
+                    bottom = size.height
+                )
+            )
+        }
+        return Outline.Generic(path = path)
+    }
+}
 
 
 @Preview(showBackground = true, name = "SIM Chooser Light")

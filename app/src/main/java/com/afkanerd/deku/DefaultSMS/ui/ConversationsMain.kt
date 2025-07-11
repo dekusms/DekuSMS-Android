@@ -3,10 +3,14 @@ package com.afkanerd.deku.DefaultSMS.ui
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,10 +62,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -118,10 +125,12 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHa
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 import com.afkanerd.deku.DefaultSMS.ui.Components.MessageInfoAlert
+import com.afkanerd.deku.DefaultSMS.ui.Components.SquashedOval
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
+import java.io.ByteArrayOutputStream
 
 
 fun backHandler(
@@ -574,10 +583,14 @@ fun Conversations(
                 reverseLayout = true,
             ) {
                 items(
-                    count = inboxMessagesItems.itemCount,
-                    key =  inboxMessagesItems.itemKey{ it.id }
+                    count = if(inPreviewMode) _items!!.size else inboxMessagesItems.itemCount,
+                    key =  if(inPreviewMode) { index -> _items!![index].id }
+                    else inboxMessagesItems.itemKey{ it.id }
                 ) { index ->
-                    inboxMessagesItems[index]?.let { conversation ->
+                    (
+                            if(inPreviewMode) _items!![index]
+                            else inboxMessagesItems[index]
+                    )?.let { conversation ->
                         var showDate by remember { mutableStateOf(index == 0) }
 
                         var timestamp by remember { mutableStateOf(
@@ -611,7 +624,7 @@ fun Conversations(
                             )
                         )
 
-                        if(searchQuery.isNotEmpty())
+                        if(searchQuery.isNotEmpty()) {
                             text = buildAnnotatedString {
                                 val startIndex = text.indexOf(searchQuery, ignoreCase = true)
                                 val endIndex = startIndex + searchQuery.length
@@ -629,7 +642,11 @@ fun Conversations(
                                     )
                                 }
                             }
+                        }
 
+                        conversation.mmsImage?.let {
+                            MmsImageView(it)
+                        }
 
                         ConversationsCard(
                             text= text,
@@ -797,22 +814,52 @@ fun Conversations(
             }
         }
     }
-
 }
 
+@Composable
+fun MmsImageView(image: ByteArray) {
+    Column {
+        image.let { bytes ->
+            val bitmap = remember(bytes) {
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    .asImageBitmap()
+            }
+            Image(
+                bitmap = bitmap,
+                contentDescription = "MMS image...",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(SquashedOval())
+            )
+        }
+    }
+}
 
 @Preview
 @Composable
 fun PreviewConversations() {
     AppTheme(darkTheme = true) {
         Surface(Modifier.safeDrawingPadding()) {
-            var conversations: MutableList<Conversation> =
+            val conversations: MutableList<Conversation> =
                 remember { mutableListOf( ) }
             var isSend = false
-            val address = "+123456789"
-            val threadId = "1"
+            val context = LocalContext.current
+            val drawable = context.getDrawable(R.drawable.github_mark)
+            val bitmap: Bitmap? = if(drawable is BitmapDrawable) {
+                drawable.bitmap
+            } else {
+                null
+            }
+
+            val byteArray = bitmap?.let {
+                val stream = ByteArrayOutputStream()
+                it.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                stream.toByteArray()
+            }
             for(i in 0..1) {
                 val conversation = Conversation()
+                conversation.mmsImage = byteArray
                 conversation.id = i.toLong()
                 conversation.text = stringResource(
                     R.string
@@ -825,4 +872,20 @@ fun PreviewConversations() {
             Conversations(navController = rememberNavController(), _items=conversations)
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewMmsImage() {
+    val context = LocalContext.current
+
+//    val drawable = context.getDrawable(R.drawable.github_mark)
+    val drawable = androidx.compose.ui.res.painterResource(R.drawable.github_mark)
+
+    val byteArray = drawable.let {
+        val stream = ByteArrayOutputStream()
+        it.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.toByteArray()
+    }
+    MmsImageView(byteArray!!)
 }
