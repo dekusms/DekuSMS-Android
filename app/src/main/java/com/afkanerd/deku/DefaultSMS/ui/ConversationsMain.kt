@@ -16,8 +16,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -25,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Colors
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -61,13 +65,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -131,6 +140,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 import java.io.ByteArrayOutputStream
+import androidx.core.graphics.createBitmap
 
 
 fun backHandler(
@@ -643,40 +653,41 @@ fun Conversations(
                                 }
                             }
                         }
+                        Column {
+                            conversation.mmsImage?.let {
+                                MmsImageView(it)
+                            }
 
-                        conversation.mmsImage?.let {
-                            MmsImageView(it)
+                            ConversationsCard(
+                                text= text,
+                                timestamp = timestamp,
+                                type= conversation.type,
+                                status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                                position = position,
+                                date = date,
+                                showDate = showDate,
+                                onClickCallback = {
+                                    if (selectedItems.isNotEmpty()) {
+                                        if (selectedItems.contains(conversation.message_id))
+                                            selectedItems.remove(conversation.message_id)
+                                        else
+                                            selectedItems.add(conversation.message_id!!)
+                                    }
+                                    else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                        viewModel.retryDeleteItem.add(conversation)
+                                        showFailedRetryModal = true
+                                    }
+                                    else {
+                                        showDate = !showDate
+                                    }
+                                },
+                                onLongClickCallback = {
+                                    selectedItems.add(conversation.message_id!!)
+                                },
+                                isSelected = selectedItems.contains(conversation.message_id),
+                                isKey = conversation.isIs_key,
+                            )
                         }
-
-                        ConversationsCard(
-                            text= text,
-                            timestamp = timestamp,
-                            type= conversation.type,
-                            status = ConversationStatusTypes.fromInt(conversation.status)!!,
-                            position = position,
-                            date = date,
-                            showDate = showDate,
-                            onClickCallback = {
-                                if (selectedItems.isNotEmpty()) {
-                                    if (selectedItems.contains(conversation.message_id))
-                                        selectedItems.remove(conversation.message_id)
-                                    else
-                                        selectedItems.add(conversation.message_id!!)
-                                }
-                                else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
-                                    viewModel.retryDeleteItem.add(conversation)
-                                    showFailedRetryModal = true
-                                }
-                                else {
-                                    showDate = !showDate
-                                }
-                            },
-                            onLongClickCallback = {
-                                selectedItems.add(conversation.message_id!!)
-                            },
-                            isSelected = selectedItems.contains(conversation.message_id),
-                            isKey = conversation.isIs_key,
-                        )
 
                         val checkIsSecured by remember {
                             derivedStateOf {
@@ -818,7 +829,10 @@ fun Conversations(
 
 @Composable
 fun MmsImageView(image: ByteArray) {
-    Column {
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+    ) {
         image.let { bytes ->
             val bitmap = remember(bytes) {
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
@@ -830,7 +844,8 @@ fun MmsImageView(image: ByteArray) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(200.dp)
-                    .clip(SquashedOval())
+                    .aspectRatio(1f)  // This ensures a square aspect ratio
+                    .clip(RoundedCornerShape(10.dp))
             )
         }
     }
@@ -844,17 +859,19 @@ fun PreviewConversations() {
             val conversations: MutableList<Conversation> =
                 remember { mutableListOf( ) }
             var isSend = false
-            val context = LocalContext.current
-            val drawable = context.getDrawable(R.drawable.github_mark)
-            val bitmap: Bitmap? = if(drawable is BitmapDrawable) {
-                drawable.bitmap
-            } else {
-                null
-            }
 
-            val byteArray = bitmap?.let {
+            val painter = painterResource(R.drawable.github_mark)
+
+            val bitmap =
+                createBitmap(
+                    painter.intrinsicSize.width.toInt(),
+                    painter.intrinsicSize.height.toInt(),
+                    Bitmap.Config.ARGB_8888
+                )
+
+            val byteArray = remember(bitmap) {
                 val stream = ByteArrayOutputStream()
-                it.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 stream.toByteArray()
             }
             for(i in 0..1) {
@@ -877,15 +894,19 @@ fun PreviewConversations() {
 @Preview
 @Composable
 fun PreviewMmsImage() {
-    val context = LocalContext.current
+    val byteArray = remember {
+        val bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bmp)
+        val paint = android.graphics.Paint().apply {
+            color = android.graphics.Color.RED
+        }
 
-//    val drawable = context.getDrawable(R.drawable.github_mark)
-    val drawable = androidx.compose.ui.res.painterResource(R.drawable.github_mark)
+        canvas.drawRect(0f, 0f, 100f, 100f, paint)
 
-    val byteArray = drawable.let {
         val stream = ByteArrayOutputStream()
-        it.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
         stream.toByteArray()
     }
-    MmsImageView(byteArray!!)
+
+    MmsImageView(byteArray)
 }

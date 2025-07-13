@@ -473,18 +473,26 @@ class ConversationsViewModel : ViewModel() {
         }
         if (cursorMMS != null && cursorMMS.moveToFirst()) {
             do {
-                val conversation = Conversation.Companion.build(cursorMMS, true)
-                conversationList.forEach {
-                    if(it.message_id == conversation.message_id) {
-                        val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
-                        val address = imageDetails.first
-                        val image = imageDetails.second
+                val mmsConversation = Conversation.Companion.build(cursorMMS, true)
+                val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
+                mmsConversation.address = imageDetails.first
+                mmsConversation.mmsImage = imageDetails.second
 
-                        it.address = address
-                        it.mmsImage = image
+                var processedMms = false
+                conversationList.forEach loop@{
+                    if(it.message_id == mmsConversation.message_id &&
+                        mmsConversation.mmsImage != null
+                    ) {
+                        it.address = mmsConversation.address
+                        it.mmsImage = mmsConversation.mmsImage
+                        processedMms = true
+                        return@loop
                     }
                 }
-//                conversationList.add(conversation)
+
+                if(!processedMms || mmsConversation.mmsImage != null) {
+                    conversationList.add(mmsConversation)
+                }
             } while (cursorMMS.moveToNext())
             cursorMMS.close()
         }
@@ -517,7 +525,8 @@ class ConversationsViewModel : ViewModel() {
 
             if ((sendToString != null &&
                         (sendToString.contains("smsto:") ||
-                                sendToString.contains("sms:"))) || intent.hasExtra("address")
+                                sendToString.contains("sms:"))) ||
+                intent.hasExtra("address")
             ) {
                 val address = Helpers.getFormatCompleteNumber(
                     if(intent.hasExtra("address")) intent.getStringExtra("address")
@@ -528,7 +537,7 @@ class ConversationsViewModel : ViewModel() {
             }
         }
         else if(intent.hasExtra("address")) {
-            var text = if(intent.hasExtra("android.intent.extra.TEXT"))
+            val text = if(intent.hasExtra("android.intent.extra.TEXT"))
                 intent.getStringExtra("android.intent.extra.TEXT") else ""
 
             val address = intent.getStringExtra("address")
