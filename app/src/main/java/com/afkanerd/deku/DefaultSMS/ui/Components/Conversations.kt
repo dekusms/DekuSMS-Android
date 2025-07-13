@@ -42,6 +42,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
+import com.afkanerd.deku.DefaultSMS.ui.MmsImageView
 import com.example.compose.AppTheme
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -273,6 +274,7 @@ fun ConversationsCard(
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     isSelected: Boolean = false,
     isKey: Boolean = false,
+    mmsImage: ByteArray? = null,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
 ) {
@@ -289,6 +291,11 @@ fun ConversationsCard(
                 textAlign = TextAlign.Center,
             )
         }
+
+        mmsImage?.let {
+            MmsImageView(it)
+        }
+
         Box(modifier = Modifier.padding(start=8.dp, end=8.dp)) {
             when(type)  {
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()

@@ -654,10 +654,6 @@ fun Conversations(
                             }
                         }
                         Column {
-                            conversation.mmsImage?.let {
-                                MmsImageView(it)
-                            }
-
                             ConversationsCard(
                                 text= text,
                                 timestamp = timestamp,
@@ -666,6 +662,7 @@ fun Conversations(
                                 position = position,
                                 date = date,
                                 showDate = showDate,
+                                mmsImage = conversation.mmsImage,
                                 onClickCallback = {
                                     if (selectedItems.isNotEmpty()) {
                                         if (selectedItems.contains(conversation.message_id))
@@ -860,20 +857,20 @@ fun PreviewConversations() {
                 remember { mutableListOf( ) }
             var isSend = false
 
-            val painter = painterResource(R.drawable.github_mark)
+            val byteArray = remember {
+                val bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bmp)
+                val paint = android.graphics.Paint().apply {
+                    color = android.graphics.Color.RED
+                }
 
-            val bitmap =
-                createBitmap(
-                    painter.intrinsicSize.width.toInt(),
-                    painter.intrinsicSize.height.toInt(),
-                    Bitmap.Config.ARGB_8888
-                )
+                canvas.drawRect(0f, 0f, 100f, 100f, paint)
 
-            val byteArray = remember(bitmap) {
                 val stream = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 stream.toByteArray()
             }
+
             for(i in 0..1) {
                 val conversation = Conversation()
                 conversation.mmsImage = byteArray
