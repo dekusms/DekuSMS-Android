@@ -61,7 +61,7 @@ public class NativeSMSDB {
                 null);
     }
 
-    public static Pair<String, byte[]> ParseMMS(Context context, Cursor cursor) {
+    public static Pair<String, Pair<byte[], String>> ParseMMS(Context context, Cursor cursor) {
         Uri uri = Uri.parse("content://mms/part");
         int idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID);
         String id = cursor.getString(idIndex);
@@ -70,6 +70,7 @@ public class NativeSMSDB {
         Cursor c = context.getContentResolver()
                 .query(uri, null, mmsId, null, null);
         String address = "";
+        String text = "";
         byte[] image = null;
         if(c != null && c.moveToFirst()) {
             do {
@@ -81,6 +82,8 @@ public class NativeSMSDB {
 
                 if ("text/plain".equals(type)) {
                     Log.d(NativeSMSDB.class.getName(), "MMS has text");
+                    if(text.isBlank())
+                        text = c.getString(c.getColumnIndex("text"));
                 } else if (type.contains("image")) {
                     Log.d(NativeSMSDB.class.getName(), "MMS has a picture in it!");
                     address = getMmsAddr(context, id);
@@ -92,7 +95,7 @@ public class NativeSMSDB {
             c.close();
         }
 
-        return new Pair<>(address, image);
+        return new Pair<>(address, new Pair<>(image, text));
     }
 
     public static byte[] getMmsImg(Context context, String id) {

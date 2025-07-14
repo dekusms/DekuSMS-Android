@@ -292,10 +292,6 @@ fun ConversationsCard(
             )
         }
 
-        mmsImage?.let {
-            MmsImageView(it)
-        }
-
         Box(modifier = Modifier.padding(start=8.dp, end=8.dp)) {
             when(type)  {
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()
@@ -303,15 +299,20 @@ fun ConversationsCard(
                     if(isKey) {
                         ConversationIsKey(isReceived = true)
                     } else {
-                        ConversationReceived(
-                            text =text,
-                            position =position,
-                            date =date,
-                            showDate = showDate,
-                            isSelected = isSelected,
-                            onClickCallback = onClickCallback,
-                            onLongClickCallback = onLongClickCallback,
-                        )
+                        Column {
+                            mmsImage?.let {
+                                MmsImageView(it)
+                            }
+                            ConversationReceived(
+                                text =text,
+                                position =position,
+                                date =date,
+                                showDate = showDate,
+                                isSelected = isSelected,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
                     }
                 }
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
@@ -320,16 +321,21 @@ fun ConversationsCard(
                     if(isKey) {
                         ConversationIsKey(isReceived = false)
                     } else {
-                        ConversationSent(
-                            text =text,
-                            position =position,
-                            date =date,
-                            status =status,
-                            isSelected = isSelected,
-                            showDate = showDate,
-                            onClickCallback = onClickCallback,
-                            onLongClickCallback = onLongClickCallback,
-                        )
+                        Column {
+                            mmsImage?.let {
+                                MmsImageView(it, true)
+                            }
+                            ConversationSent(
+                                text =text,
+                                position =position,
+                                date =date,
+                                status =status,
+                                isSelected = isSelected,
+                                showDate = showDate,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
                     }
                 }
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, -> TODO()

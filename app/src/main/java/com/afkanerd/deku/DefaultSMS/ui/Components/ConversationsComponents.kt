@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
@@ -244,122 +245,157 @@ fun ChatCompose(
     val inPreviewMode = LocalInspectionMode.current
     val interactionsSource = remember { MutableInteractionSource() }
 
-    Row(modifier = Modifier
-        .imePadding()
-        .height(IntrinsicSize.Min)
-        .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-        .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
-        .background(MaterialTheme.colorScheme.outlineVariant)
+    Column(
+        modifier = Modifier
+            .imePadding()
+            .height(IntrinsicSize.Min)
+            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+            .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
+            .background(MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(modifier = Modifier
-            .padding(start = 8.dp, end = 8.dp)
-            .weight(1f)
-            .fillMaxSize()) {
-            if(shouldPulse)
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-
-            if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
-                Text(
-                    encryptedValue,
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    maxLines = 4,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-                Divider()
-            }
-
-            BasicTextField(
-                value = value,
-                onValueChange = {
-                    valueChanged?.invoke(it)
-                },
-                maxLines = 7,
-                singleLine = false,
-                textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+        Row {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                    .padding(4.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom
             ) {
-                TextFieldDefaults.DecorationBox(
-                    value = value,
-                    visualTransformation = VisualTransformation.None,
-                    innerTextField = it,
-                    singleLine = false,
-                    enabled = true,
-                    interactionSource = interactionsSource,
-                    placeholder = {
-                        Text(
-                            text= stringResource(R.string.text_message),
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    },
-                    shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                    ),
-                )
+                IconButton(onClick = {}) {
+                    Icon(
+                        Icons.Outlined.PhotoLibrary,
+                        stringResource(R.string.send_mms_photo),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
 
-            if(encryptedValue.isNotBlank() || value.isNotBlank()) {
-                val length = if(inPreviewMode) "10/140"
-                else getSMSCount(context,
-                    if(encryptedValue.isNotBlank()) encryptedValue else value)
-                Text(
-                    length,
-                    color= MaterialTheme.colorScheme.secondary,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(end = 8.dp)
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
+            Column(modifier = Modifier
                 .padding(end = 8.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Row {
-                simCardChooserCallback?.let {
-                    IconButton(
-                        onClick = { it() },
+                .weight(1f)
+                .fillMaxSize()
+            ) {
+                if(shouldPulse)
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+
+                if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
+                    Text(
+                        encryptedValue,
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        maxLines = 4,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                    Divider()
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    BasicTextField(
+                        value = value,
+                        onValueChange = {
+                            valueChanged?.invoke(it)
+                        },
+                        maxLines = 7,
+                        singleLine = false,
+                        textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                     ) {
-                        if(LocalInspectionMode.current) {
+                        TextFieldDefaults.DecorationBox(
+                            value = value,
+                            visualTransformation = VisualTransformation.None,
+                            innerTextField = it,
+                            singleLine = false,
+                            enabled = true,
+                            interactionSource = interactionsSource,
+                            placeholder = {
+                                Text(
+                                    text= stringResource(R.string.text_message),
+                                    color = MaterialTheme.colorScheme.outline
+                                )
+                            },
+                            shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                            ),
+                        )
+                    }
+
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Row {
+                    simCardChooserCallback?.let {
+                        IconButton(
+                            onClick = { it() },
+                        ) {
+                            if(LocalInspectionMode.current) {
+                                Icon(
+                                    Icons.Outlined.SimCard,
+                                    stringResource(R.string.send_message),
+                                    tint = MaterialTheme.colorScheme.onBackground
+                                )
+                            } else {
+                                if(subscriptionId > -1) {
+                                    val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
+                                        .asImageBitmap()
+                                    Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                                }
+                            }
+                        }
+
+                    }
+
+                    if(value.isNotBlank() || LocalInspectionMode.current) {
+                        IconButton(
+                            onClick = { sentCallback?.invoke() },
+                        ) {
                             Icon(
-                                Icons.Outlined.SimCard,
+                                Icons.AutoMirrored.Default.Send,
                                 stringResource(R.string.send_message),
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
-                        } else {
-                            if(subscriptionId > -1) {
-                                val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
-                                    .asImageBitmap()
-                                Image(iconBitmap, stringResource(R.string.choose_sim_card))
-                            }
                         }
                     }
+                }
+            }
+        }
 
+        Row(
+            modifier = Modifier
+//                .padding(top = 8.dp, end = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            Column {
+                if(encryptedValue.isNotBlank() || value.isNotBlank() || inPreviewMode) {
+                    val length = if(inPreviewMode) "10/140"
+                    else getSMSCount(context, encryptedValue.ifBlank { value })
+                    Text(
+                        length,
+                        color= MaterialTheme.colorScheme.secondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                 }
 
-                if(value.isNotBlank() || LocalInspectionMode.current) {
-                    IconButton(
-                        onClick = { sentCallback?.invoke() },
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Default.Send,
-                            stringResource(R.string.send_message),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
             }
         }
     }

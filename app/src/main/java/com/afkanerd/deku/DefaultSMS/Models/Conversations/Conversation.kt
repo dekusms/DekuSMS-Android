@@ -57,19 +57,27 @@ open class Conversation : Cloneable {
     constructor()
 
     constructor(cursor: Cursor, isMMS: Boolean = false) {
+//        [_id, thread_id, date, date_sent, msg_box, read, m_id, sub, sub_cs, ct_t, ct_l, exp,
+        //        m_cls, m_type, v, m_size, pri, rr, rpt_a, resp_st, st, tr_id, retr_st, retr_txt,
+        //        retr_txt_cs, read_status, ct_cls, resp_txt, d_tm, d_rpt, locked, sub_id, seen,
+        //        creator, text_only]
+
         val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
         val threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID)
         val addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS)
         val dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE)
         val dateSentIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE_SENT)
         val typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE)
-        val statusIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS)
+//        val statusIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS)
         val readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ)
         val subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID)
 
-        if(!isMMS) {
+        text = if(!isMMS) {
             val bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY)
-            text = cursor.getString(bodyIndex)
+            cursor.getString(bodyIndex)
+        } else {
+            val bodyIndex = cursor.getColumnIndexOrThrow("text_only")
+            cursor.getString(bodyIndex)
         }
 
         message_id = cursor.getString(idIndex)
@@ -80,8 +88,16 @@ open class Conversation : Cloneable {
         date_sent = cursor.getString(dateSentIndex)
         if(typeIndex != -1)
             type = cursor.getInt(typeIndex)
-        if(statusIndex != -1)
-            status = cursor.getInt(statusIndex)
+//        if(statusIndex != -1)
+//            status = cursor.getInt(statusIndex)
+        status = if(!isMMS) {
+            val statusIndex = cursor.getColumnIndexOrThrow(
+                Telephony.TextBasedSmsColumns.STATUS)
+            cursor.getInt(statusIndex)
+        } else {
+            val statusIndex = cursor.getColumnIndexOrThrow("read_status")
+            cursor.getInt(statusIndex)
+        }
         isRead = cursor.getInt(readIndex) == 1
         subscription_id = cursor.getInt(subscriptionIdIndex)
     }

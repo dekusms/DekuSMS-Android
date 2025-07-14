@@ -476,21 +476,25 @@ class ConversationsViewModel : ViewModel() {
                 val mmsConversation = Conversation.Companion.build(cursorMMS, true)
                 val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
                 mmsConversation.address = imageDetails.first
-                mmsConversation.mmsImage = imageDetails.second
+                mmsConversation.mmsImage = imageDetails.second.first
+                mmsConversation.text = imageDetails.second.second
 
                 var processedMms = false
                 conversationList.forEach loop@{
-                    if(it.message_id == mmsConversation.message_id &&
-                        mmsConversation.mmsImage != null
+                    if(it.thread_id == mmsConversation.thread_id &&
+                        (mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
                     ) {
-                        it.address = mmsConversation.address
-                        it.mmsImage = mmsConversation.mmsImage
+                        if(mmsConversation.mmsImage != null)
+                            it.mmsImage = mmsConversation.mmsImage
+
+                        if(!mmsConversation.text.isNullOrEmpty())
+                            it.text = mmsConversation.text
                         processedMms = true
                         return@loop
                     }
                 }
 
-                if(!processedMms || mmsConversation.mmsImage != null) {
+                if(!processedMms && mmsConversation.mmsImage != null) {
                     conversationList.add(mmsConversation)
                 }
             } while (cursorMMS.moveToNext())
@@ -503,10 +507,6 @@ class ConversationsViewModel : ViewModel() {
     fun clear(context: Context) {
         Telephony.Sms.MESSAGE_TYPE_DRAFT
         Datastore.getDatastore(context).conversationDao().deleteEvery()
-    }
-
-    fun getMessage(context: Context, messageId: String): Conversation {
-        return Datastore.getDatastore(context).conversationDao().getMessage(messageId)
     }
 
     fun processIntents(

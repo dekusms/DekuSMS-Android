@@ -141,6 +141,7 @@ import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 import java.io.ByteArrayOutputStream
 import androidx.core.graphics.createBitmap
+import org.intellij.lang.annotations.JdkConstants
 
 
 fun backHandler(
@@ -825,10 +826,12 @@ fun Conversations(
 }
 
 @Composable
-fun MmsImageView(image: ByteArray) {
+fun MmsImageView(image: ByteArray, isSending: Boolean = false) {
     Column(
         modifier = Modifier
-            .padding(8.dp)
+            .fillMaxWidth()
+            .padding(start=8.dp, end=8.dp, top=8.dp),
+        horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
     ) {
         image.let { bytes ->
             val bitmap = remember(bytes) {
