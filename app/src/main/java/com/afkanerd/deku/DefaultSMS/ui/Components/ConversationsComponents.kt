@@ -63,8 +63,10 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -315,7 +317,9 @@ fun ChatCompose(
                 }
                 
                 if(mmsImageUri != null || LocalInspectionMode.current) {
-                    ComposeMmsImage(mmsImageUri)
+                    ComposeMmsImage(mmsImageUri) {
+                        mmsImageUri = null
+                    }
                 }
 
                 Column(
@@ -891,31 +895,54 @@ fun mmsImagePicker(
 }
 
 @Composable
-fun ComposeMmsImage(uri: Uri?) {
-    val size = 100.dp;
-    Column {
-        if(LocalInspectionMode.current) {
-            Image(
-                painter = painterResource(R.drawable.github_mark),
-                contentDescription = stringResource(R.string.mms_selected_image),
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(size)
-                    .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
-                contentScale = ContentScale.Crop,
-            )
-        }
-        else {
-            println("Rendering MMS: $uri")
-            AsyncImage(
-                model = uri,
-                contentDescription = stringResource(R.string.mms_selected_image),
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(size)
-                    .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
-                contentScale = ContentScale.Crop,
-            )
+fun ComposeMmsImage(
+    uri: Uri?,
+    onCloseCallback: () -> Unit,
+) {
+    val size = 90.dp
+    val padding = 12.dp;
+
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Row {
+            Column {
+                if(LocalInspectionMode.current) {
+                    Image(
+                        painter = painterResource(R.drawable.github_mark),
+                        contentDescription = stringResource(R.string.mms_selected_image),
+                        modifier = Modifier
+                            .padding(padding)
+                            .size(size)
+                            .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+                else {
+                    println("Rendering MMS: $uri")
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = stringResource(R.string.mms_selected_image),
+                        modifier = Modifier
+                            .padding(padding)
+                            .size(size)
+                            .clip(RoundedCornerShape(
+                                24.dp, 24.dp, 24.dp, 24.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+            }
+            Column {
+                IconButton(onClick = {
+                    onCloseCallback()
+                }) {
+                    Icon(Icons.Filled.Close, stringResource(R.string.delete_message))
+                }
+            }
         }
     }
+
 }
