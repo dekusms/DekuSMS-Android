@@ -6,9 +6,13 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -134,14 +138,13 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHa
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 import com.afkanerd.deku.DefaultSMS.ui.Components.MessageInfoAlert
-import com.afkanerd.deku.DefaultSMS.ui.Components.SquashedOval
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 import java.io.ByteArrayOutputStream
 import androidx.core.graphics.createBitmap
-import org.intellij.lang.annotations.JdkConstants
+import com.afkanerd.deku.DefaultSMS.ui.Components.mmsImagePicker
 
 
 fun backHandler(
@@ -172,6 +175,7 @@ fun Conversations(
     _items: List<Conversation>? = null
 ) {
     val context = LocalContext.current
+
     val inPreviewMode = LocalInspectionMode.current
     val dualSim = if(inPreviewMode) true else SIMHandler.isDualSim(context)
 
@@ -555,19 +559,7 @@ fun Conversations(
                             viewModel.text = it
                         }
                     ) {
-                        val text = viewModel.text
-                        sendSMS(
-                            context = context,
-                            text = text,
-                            threadId = viewModel.threadId,
-                            messageId = System.currentTimeMillis().toString(),
-                            address = viewModel.address,
-                            conversationsViewModel = viewModel
-                        ) {
-                            viewModel.text = ""
-                            viewModel.encryptedText = ""
-                            viewModel.clearDraft(context)
-                        }
+                        viewModel.sendSms(context)
                     }
 
                     if(openSimCardChooser) {

@@ -412,5 +412,6 @@
     <string name="read_our_text_part">Read our</string>
     <string name="privacy_policy_text_part">privacy policy</string>
     <string name="send_mms_photo">Send MMS photo</string>
+    <string name="mms_selected_image">MMS selected image</string>
 
 </resources>

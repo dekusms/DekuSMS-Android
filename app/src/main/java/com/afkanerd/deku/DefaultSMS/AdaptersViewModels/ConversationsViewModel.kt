@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 
 
 class ConversationsViewModel : ViewModel() {
@@ -567,6 +568,21 @@ class ConversationsViewModel : ViewModel() {
     fun loadNatives(context: Context) {
         CoroutineScope(Dispatchers.Default).launch {
             reset(context)
+        }
+    }
+
+    fun sendSms(context: Context) {
+        sendSMS(
+            context = context,
+            text = text,
+            threadId = threadId,
+            messageId = System.currentTimeMillis().toString(),
+            address = address,
+            conversationsViewModel = this
+        ) {
+            this.text = ""
+            this.encryptedText = ""
+            this.clearDraft(context)
         }
     }
 

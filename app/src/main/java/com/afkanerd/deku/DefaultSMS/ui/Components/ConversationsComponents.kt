@@ -8,11 +8,19 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.net.Uri
+import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Base64
+import android.util.Log
 import android.util.Size
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -30,8 +38,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -87,6 +97,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -102,6 +113,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import coil.request.ImageRequest
+import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -228,7 +241,7 @@ fun SearchTopAppBarText(
 }
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class, )
 @Composable
 fun ChatCompose(
     value: String = "",
@@ -245,6 +258,15 @@ fun ChatCompose(
     val inPreviewMode = LocalInspectionMode.current
     val interactionsSource = remember { MutableInteractionSource() }
 
+    var mmsImageUri: Uri? by remember { mutableStateOf(null) }
+
+    val imagePicker = mmsImagePicker { uri ->
+        val flag = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        context.contentResolver.takePersistableUriPermission(uri, flag)
+        Log.d("PhotoPicker", "Selected URI: $uri")
+        mmsImageUri = uri
+    }
+
     Column(
         modifier = Modifier
             .imePadding()
@@ -260,7 +282,10 @@ fun ChatCompose(
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = {
+                    imagePicker.launch(PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }) {
                     Icon(
                         Icons.Outlined.PhotoLibrary,
                         stringResource(R.string.send_mms_photo),
@@ -287,6 +312,10 @@ fun ChatCompose(
                         color = MaterialTheme.colorScheme.secondary,
                     )
                     Divider()
+                }
+                
+                if(mmsImageUri != null || LocalInspectionMode.current) {
+                    ComposeMmsImage(mmsImageUri)
                 }
 
                 Column(
@@ -776,6 +805,7 @@ fun SearchTopAppBarTextPreview() {
     }
 }
 
+@RequiresExtension(extension = Build.VERSION_CODES.UPSIDE_DOWN_CAKE, version = 15)
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Chat Compose Light")
 @Preview(showBackground = true, name = "Chat Compose Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
@@ -828,28 +858,6 @@ fun SimChooserPreview() {
     }
 }
 
-class SquashedOval : Shape {
-    override fun createOutline(
-        size: androidx.compose.ui.geometry.Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        val path = Path().apply {
-            // We create an Oval that starts at ¼ of the width, and ends at ¾ of the width of the container.
-            addOval(
-                Rect(
-                    left = size.width / 4f,
-                    top = 0f,
-                    right = size.width * 3 / 4f,
-                    bottom = size.height
-                )
-            )
-        }
-        return Outline.Generic(path = path)
-    }
-}
-
-
 @Preview(showBackground = true, name = "SIM Chooser Light")
 @Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -863,5 +871,51 @@ fun MessageInfoAlert_Preview() {
         MessageInfoAlert(
             conversation
         ) {}
+    }
+}
+
+@Composable
+fun mmsImagePicker(
+    callback: (Uri) -> Unit
+): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    // Registers a photo picker activity launcher in single-select mode.
+    return rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
+        if (uri != null) {
+            callback(uri)
+        } else {
+            Log.d("PhotoPicker", "No media selected")
+        }
+    }
+}
+
+@Composable
+fun ComposeMmsImage(uri: Uri?) {
+    val size = 100.dp;
+    Column {
+        if(LocalInspectionMode.current) {
+            Image(
+                painter = painterResource(R.drawable.github_mark),
+                contentDescription = stringResource(R.string.mms_selected_image),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(size)
+                    .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
+                contentScale = ContentScale.Crop,
+            )
+        }
+        else {
+            println("Rendering MMS: $uri")
+            AsyncImage(
+                model = uri,
+                contentDescription = stringResource(R.string.mms_selected_image),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(size)
+                    .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
+                contentScale = ContentScale.Crop,
+            )
+        }
     }
 }
