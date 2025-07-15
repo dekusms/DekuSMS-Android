@@ -248,7 +248,8 @@ fun SearchTopAppBarText(
 fun ChatCompose(
     value: String = "",
     encryptedValue: String = if(LocalInspectionMode.current)
-        Base64.encodeToString(LoremIpsum().values.first().encodeToByteArray(), Base64.DEFAULT)
+        Base64.encodeToString(LoremIpsum().values.first()
+            .encodeToByteArray(), Base64.DEFAULT)
     else "",
     valueChanged: ((String) -> Unit)? = null,
     subscriptionId: Int = -1,

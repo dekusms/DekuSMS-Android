@@ -63,7 +63,7 @@ public class NativeSMSDB {
 
     public static Pair<String, Pair<byte[], String>> ParseMMS(Context context, Cursor cursor) {
         Uri uri = Uri.parse("content://mms/part");
-        int idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID);
+        int idIndex = cursor.getColumnIndexOrThrow("_id");
         String id = cursor.getString(idIndex);
 
         String mmsId = "mid = " + id;

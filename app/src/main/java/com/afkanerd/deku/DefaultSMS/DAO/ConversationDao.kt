@@ -126,7 +126,7 @@ interface ConversationDao {
         insertAll(conversationList)
     }
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(conversationList: MutableList<Conversation>): MutableList<Long>
 
     @Update

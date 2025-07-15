@@ -472,32 +472,18 @@ class ConversationsViewModel : ViewModel() {
             } while (cursor.moveToNext())
             cursor.close()
         }
+
         if (cursorMMS != null && cursorMMS.moveToFirst()) {
             do {
                 val mmsConversation = Conversation.Companion.build(cursorMMS, true)
                 val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
-                mmsConversation.address = imageDetails.first
+
+                if(!imageDetails.first.isNullOrEmpty())
+                    mmsConversation.address = imageDetails.first
                 mmsConversation.mmsImage = imageDetails.second.first
                 mmsConversation.text = imageDetails.second.second
 
-                var processedMms = false
-                conversationList.forEach loop@{
-                    if(it.thread_id == mmsConversation.thread_id &&
-                        (mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
-                    ) {
-                        if(mmsConversation.mmsImage != null)
-                            it.mmsImage = mmsConversation.mmsImage
-
-                        if(!mmsConversation.text.isNullOrEmpty())
-                            it.text = mmsConversation.text
-                        processedMms = true
-                        return@loop
-                    }
-                }
-
-                if(!processedMms && mmsConversation.mmsImage != null) {
-                    conversationList.add(mmsConversation)
-                }
+                conversationList.add(mmsConversation)
             } while (cursorMMS.moveToNext())
             cursorMMS.close()
         }

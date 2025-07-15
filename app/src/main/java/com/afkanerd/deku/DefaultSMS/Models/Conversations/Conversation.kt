@@ -62,6 +62,10 @@ open class Conversation : Cloneable {
         //        retr_txt_cs, read_status, ct_cls, resp_txt, d_tm, d_rpt, locked, sub_id, seen,
         //        creator, text_only]
 
+        /**
+         * ["_id", "thread_id", "date", "date_sent", "msg_box", +30 more]
+         */
+
         val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
         val threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID)
         val addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS)
@@ -86,10 +90,17 @@ open class Conversation : Cloneable {
             address = cursor.getString(addressIndex)
         date = cursor.getString(dateIndex)
         date_sent = cursor.getString(dateSentIndex)
-        if(typeIndex != -1)
-            type = cursor.getInt(typeIndex)
-//        if(statusIndex != -1)
-//            status = cursor.getInt(statusIndex)
+
+        type = if(!isMMS) {
+            val typeIndex = cursor.getColumnIndexOrThrow(
+                Telephony.TextBasedSmsColumns.TYPE)
+            cursor.getInt(typeIndex)
+        } else {
+            val msgBox = cursor.getColumnIndexOrThrow(
+                Telephony.BaseMmsColumns.MESSAGE_BOX)
+            cursor.getInt(msgBox)
+        }
+
         status = if(!isMMS) {
             val statusIndex = cursor.getColumnIndexOrThrow(
                 Telephony.TextBasedSmsColumns.STATUS)
