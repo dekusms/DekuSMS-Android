@@ -278,12 +278,61 @@ public class NativeSMSDB {
             return 0;
         }
 
-        protected static String[] _send_text(Context context, String messageId, String destinationAddress,
-                                                 String text, int subscriptionId, Bundle bundle) throws Exception {
-            String[] pendingOutputs = register_pending(context, messageId, destinationAddress, text, subscriptionId);
+        protected static String[] _send_mms(
+                Context context,
+                String messageId,
+                String destinationAddress,
+                String text,
+                byte[] binaryData,
+                int subscriptionId,
+                Bundle bundle,
+                Uri contentUri
+        ) {
+            String[] pendingOutputs = register_mmsPending(
+                    context,
+                    messageId,
+                    destinationAddress,
+                    text,
+                    binaryData,
+                    subscriptionId
+            );
+
+            Transmissions.INSTANCE.sendMms(
+                    context,
+                    destinationAddress,
+                    text,
+                    binaryData,
+                    null,
+                    subscriptionId,
+                    contentUri
+            );
+
+            return pendingOutputs;
+        }
+
+        protected static String[] _send_text(
+                Context context,
+                String messageId,
+                String destinationAddress,
+                String text,
+                int subscriptionId,
+                Bundle bundle
+        ) throws Exception {
+            String[] pendingOutputs = register_pending(
+                    context,
+                    messageId,
+                    destinationAddress,
+                    text,
+                    subscriptionId
+            );
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
-            Transmissions.INSTANCE.sendTextSMS(context, destinationAddress, text,
-                    pendingIntents[0], pendingIntents[1], subscriptionId);
+            Transmissions.INSTANCE.sendTextSMS(
+                    context,
+                    destinationAddress,
+                    text,
+                    pendingIntents[0], pendingIntents[1],
+                    subscriptionId
+            );
             return pendingOutputs;
         }
 
@@ -328,8 +377,24 @@ public class NativeSMSDB {
             }
         }
 
-        private static String[] register_pending(Context context, String messageId,
-                                                 String destinationAddress, String text, int subscriptionId) {
+        private static String[] register_mmsPending(
+                Context context,
+                String messageId,
+                String destinationAddress,
+                String text,
+                byte[] binaryData,
+                int subscriptionId
+        ) {
+            return new String[]{};
+        }
+
+        private static String[] register_pending(
+                Context context,
+                String messageId,
+                String destinationAddress,
+                String text,
+                int subscriptionId
+        ) {
             ContentValues contentValues = new ContentValues();
 
             contentValues.put(Telephony.Sms._ID, messageId);

@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
 import android.content.Context
+import android.net.Uri
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Base64
@@ -40,6 +41,26 @@ object SMSHandler {
         }
     }
 
+    fun sendMmsMessage(
+        context: Context,
+        conversation: Conversation,
+        conversationsViewModel: ConversationsViewModel,
+        contentUri: Uri,
+        onCompleteCallback: (() -> Unit)? = null,
+    ) {
+        CoroutineScope(Dispatchers.Default).launch{
+            try {
+                conversationsViewModel.insert(context, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@launch
+            }
+
+            sendMms(context, conversation, conversationsViewModel, contentUri)
+            onCompleteCallback?.invoke()
+        }
+    }
+
     fun sendTextMessage(
         context: Context,
         text: String,
@@ -70,6 +91,28 @@ object SMSHandler {
             }
 
             onCompleteCallback?.invoke()
+        }
+    }
+
+    private fun sendMms(
+        context: Context,
+        conversation: Conversation,
+        conversationsViewModel: ConversationsViewModel,
+        contentUri: Uri,
+    ) {
+        try {
+            SMSDatabaseWrapper.send_mms(context, conversation, null, contentUri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            NativeSMSDB.Outgoing.register_failed(
+                context,
+                conversation.message_id,
+                1
+            )
+            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+            conversation.error_code = 1
+            conversationsViewModel.update(context, conversation)
         }
     }
 

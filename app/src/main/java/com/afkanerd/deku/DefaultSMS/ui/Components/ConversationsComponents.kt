@@ -130,6 +130,9 @@ import io.getstream.avatarview.AvatarView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.nio.file.WatchEvent
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -243,31 +246,34 @@ fun SearchTopAppBarText(
 }
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class, )
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChatCompose(
-    value: String = "",
+    value: String,
+    mmsImage: ByteArray? = null,
     encryptedValue: String = if(LocalInspectionMode.current)
         Base64.encodeToString(LoremIpsum().values.first()
             .encodeToByteArray(), Base64.DEFAULT)
     else "",
     valueChanged: ((String) -> Unit)? = null,
+    mmsValueChanged: ((Uri) -> Unit)? = null,
     subscriptionId: Int = -1,
     shouldPulse: Boolean = LocalInspectionMode.current,
     simCardChooserCallback: (() -> Unit)? = null,
+    sendMmsCallback: ((Uri) -> Unit)? = null,
+    mmsCancelCallback: (() -> Unit)? = null,
     sentCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
     val interactionsSource = remember { MutableInteractionSource() }
 
-    var mmsImageUri: Uri? by remember { mutableStateOf(null) }
-
+    var imageUri: Uri? by remember { mutableStateOf(null) }
     val imagePicker = mmsImagePicker { uri ->
         val flag = Intent.FLAG_GRANT_READ_URI_PERMISSION
         context.contentResolver.takePersistableUriPermission(uri, flag)
-        Log.d("PhotoPicker", "Selected URI: $uri")
-        mmsImageUri = uri
+        mmsValueChanged?.invoke(uri)
+        imageUri = uri
     }
 
     Column(
@@ -317,9 +323,9 @@ fun ChatCompose(
                     Divider()
                 }
                 
-                if(mmsImageUri != null || LocalInspectionMode.current) {
-                    ComposeMmsImage(mmsImageUri) {
-                        mmsImageUri = null
+                if((imageUri != null && mmsImage != null) || LocalInspectionMode.current) {
+                    ComposeMmsImage(imageUri) {
+                        mmsCancelCallback?.invoke()
                     }
                 }
 
@@ -387,18 +393,29 @@ fun ChatCompose(
                                 )
                             } else {
                                 if(subscriptionId > -1) {
-                                    val iconBitmap = SIMHandler.getSubscriptionBitmap(context, subscriptionId)
-                                        .asImageBitmap()
-                                    Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                                    val iconBitmap = SIMHandler.getSubscriptionBitmap(
+                                        context,
+                                        subscriptionId
+                                    ).asImageBitmap()
+                                    Image(
+                                        iconBitmap,
+                                        stringResource(R.string.choose_sim_card)
+                                    )
                                 }
                             }
                         }
 
                     }
 
-                    if(value.isNotBlank() || LocalInspectionMode.current) {
+                    if(value.isNotBlank() || mmsImage != null || LocalInspectionMode.current) {
                         IconButton(
-                            onClick = { sentCallback?.invoke() },
+                            onClick = {
+                                if(mmsImage != null) {
+                                    sendMmsCallback?.invoke(imageUri!!)
+                                } else {
+                                    sentCallback?.invoke()
+                                }
+                            },
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Default.Send,
@@ -432,6 +449,26 @@ fun ChatCompose(
 
             }
         }
+    }
+}
+
+fun getByteArrayFromUri(context: Context, uri: Uri): ByteArray? {
+    return try {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        inputStream?.use { stream ->
+            val byteBuffer = ByteArrayOutputStream()
+            val bufferSize = 1024
+            val buffer = ByteArray(bufferSize)
+            var len: Int
+            while (stream.read(buffer).also { len = it } != -1) {
+                byteBuffer.write(buffer, 0, len)
+            }
+            byteBuffer.toByteArray()
+        }
+    } catch (e: IOException) {
+        // Handle potential exceptions, e.g., if the URI is invalid or the file doesn't exist.
+        e.printStackTrace()
+        null
     }
 }
 
@@ -930,8 +967,11 @@ fun ComposeMmsImage(
                         modifier = Modifier
                             .padding(padding)
                             .size(size)
-                            .clip(RoundedCornerShape(
-                                24.dp, 24.dp, 24.dp, 24.dp)),
+                            .clip(
+                                RoundedCornerShape(
+                                    24.dp, 24.dp, 24.dp, 24.dp
+                                )
+                            ),
                         contentScale = ContentScale.Crop,
                     )
                 }

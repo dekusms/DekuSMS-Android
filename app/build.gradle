@@ -273,5 +273,8 @@ dependencies {
 
     implementation(platform(libs.androidx.compose.bom.v20250200))
     implementation(libs.androidx.paging.compose)
+
+    implementation(libs.android.smsmms)
+//    compile libs.android.smsmms
 }
 

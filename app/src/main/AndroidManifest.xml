@@ -21,6 +21,14 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+
+    <uses-permission android:name="android.permission.WRITE_SMS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <queries>
         <intent>
@@ -188,6 +196,21 @@
                 android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionServiceInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <service android:name="com.android.mms.transaction.TransactionService"/>
+
+        <!--    <receiver-->
+        <!--        android:name=".receivers.MmsSentReceiver"-->
+        <!--        android:exported="true"-->
+        <!--        android:taskAffinity="com.klinker.android.messaging.MMS_SENT" />-->
+
+        <!--    <receiver-->
+        <!--        android:name=".receivers.MmsReceiver"-->
+        <!--        android:exported="true"-->
+        <!--        android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />-->
+
     </application>
+
+
 
 </manifest>

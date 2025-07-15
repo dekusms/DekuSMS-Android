@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 
 
@@ -49,6 +50,7 @@ class ConversationsViewModel : ViewModel() {
     var threadId by mutableStateOf("")
     var address by mutableStateOf("")
     var text by mutableStateOf("")
+    var mmsImage: ByteArray? by mutableStateOf(null)
     var encryptedText by mutableStateOf("")
     var searchQuery by mutableStateOf("")
     var subscriptionId: Int by mutableIntStateOf(-1)
@@ -567,6 +569,32 @@ class ConversationsViewModel : ViewModel() {
             conversationsViewModel = this
         ) {
             this.text = ""
+            this.encryptedText = ""
+            this.clearDraft(context)
+        }
+    }
+
+    fun sendMms(context: Context, contentUri: Uri) {
+        val conversation = Conversation()
+        conversation.text = text
+        conversation.message_id = System.currentTimeMillis().toString()
+        conversation.thread_id = threadId
+        conversation.subscription_id = subscriptionId
+        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+        conversation.date = System.currentTimeMillis().toString()
+        conversation.address = address
+        conversation.status = Telephony.Sms.STATUS_PENDING
+        conversation.isRead = true
+        conversation.mmsImage = mmsImage
+
+        sendMmsMessage(
+            context = context,
+            conversation = conversation,
+            conversationsViewModel = this,
+            contentUri = contentUri
+        ) {
+            this.text = ""
+            this.mmsImage = null
             this.encryptedText = ""
             this.clearDraft(context)
         }

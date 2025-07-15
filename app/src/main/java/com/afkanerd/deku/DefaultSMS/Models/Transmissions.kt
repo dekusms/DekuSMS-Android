@@ -1,10 +1,28 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
+import android.provider.Telephony
+import android.telephony.CarrierConfigManager
 import android.telephony.SmsManager
-import com.afkanerd.deku.DefaultSMS.BuildConfig
+import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import com.klinker.android.send_message.Message
+import com.klinker.android.send_message.Settings
+import com.klinker.android.send_message.Transaction
+import androidx.core.graphics.createBitmap
+import com.afkanerd.deku.DefaultSMS.R
+
 
 object Transmissions {
     private const val DATA_TRANSMISSION_PORT: Short = 8200
@@ -82,4 +100,76 @@ object Transmissions {
             throw Exception(e)
         }
     }
+
+    fun sendMms(
+        context: Context,
+        destinationAddress: String,
+        text: String,
+        binaryData: ByteArray?,
+        threadId: Long?,
+        subscriptionId: Int,
+        contentUri: Uri?,
+    ) {
+        val threadId = threadId ?: Transaction.NO_THREAD_ID
+
+        val sendSettings = Settings()
+        sendSettings.deliveryReports = true
+        sendSettings.subscriptionId = subscriptionId
+
+//        val info = getApnInfo(context)
+
+//        sendSettings.mmsc = "http://mms.du.ae:8002/"
+//        sendSettings.proxy = "10.164.208.4"
+//        sendSettings.port = "8002"
+        sendSettings.useSystemSending = false
+//        sendSettings.sendLongAsMms = false
+//        sendSettings.sendLongAsMmsAfter = 3
+//        sendSettings.group = false
+
+        val sendTransaction = Transaction(context, sendSettings)
+        val mMessage = Message(text, destinationAddress)
+
+        val bitmap = drawableToBitmap(ContextCompat.getDrawable(context, R.drawable.github_mark)!!)
+//        val bitmap = BitmapFactory.decodeByteArray(binaryData, 0, binaryData!!.size)
+        mMessage.setImage(bitmap) // not necessary for voice or sms messages
+//        mMessage.addMedia(binaryData, "application/image")
+        try {
+            sendTransaction.sendNewMessage(mMessage, threadId)
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
+
+
+//        val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+//            context.getSystemService(SmsManager::class.java)
+//                .createForSubscriptionId(subscriptionId)
+//        else SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
+//
+//        smsManager.sendMultimediaMessage(
+//            context,
+//            contentUri,
+//            destinationAddress,
+//            null,
+//            null
+//        )
+
+        println("MMS sending done...")
+    }
+
+    fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable) {
+            drawable.bitmap?.let { return it }
+        }
+
+        val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1
+        val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1
+
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
+
 }

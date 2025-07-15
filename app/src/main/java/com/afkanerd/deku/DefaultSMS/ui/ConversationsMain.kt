@@ -144,6 +144,7 @@ import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 import java.io.ByteArrayOutputStream
 import androidx.core.graphics.createBitmap
+import com.afkanerd.deku.DefaultSMS.ui.Components.getByteArrayFromUri
 import com.afkanerd.deku.DefaultSMS.ui.Components.mmsImagePicker
 
 
@@ -549,6 +550,7 @@ fun Conversations(
                 ) {
                     ChatCompose(
                         value = viewModel.text,
+                        mmsImage = viewModel.mmsImage,
                         encryptedValue = viewModel.encryptedText,
                         subscriptionId = viewModel.subscriptionId,
                         shouldPulse = shouldPulse,
@@ -557,6 +559,15 @@ fun Conversations(
                         } else null,
                         valueChanged = {
                             viewModel.text = it
+                        },
+                        mmsValueChanged = {
+                            viewModel.mmsImage = getByteArrayFromUri(context, it)
+                        },
+                        mmsCancelCallback = {
+                            viewModel.mmsImage = null
+                        },
+                        sendMmsCallback = {
+                            viewModel.sendMms(context, it)
                         }
                     ) {
                         viewModel.sendSms(context)

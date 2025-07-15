@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
@@ -17,6 +18,22 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_data(context, conversation.getMessage_id(),
                 transmissionAddress, Base64.decode(conversation.getData(), Base64.DEFAULT),
                 conversation.getSubscription_id(), null);
+    }
+
+    public static void send_mms(Context context, Conversation conversation, Bundle bundle, Uri contentUri) throws Exception {
+        String transmissionAddress = Helpers.getFormatForTransmission(conversation.getAddress(),
+                Helpers.getUserCountry(context));
+
+        String[] nativeOutputs = NativeSMSDB.Outgoing._send_mms(
+                context,
+                conversation.getMessage_id(),
+                transmissionAddress,
+                conversation.getText(),
+                conversation.getMmsImage(),
+                conversation.getSubscription_id(),
+                bundle,
+                contentUri
+        );
     }
 
     public static void send_text(Context context, Conversation conversation, Bundle bundle) throws Exception {
