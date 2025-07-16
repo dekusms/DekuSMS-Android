@@ -469,8 +469,8 @@ fun ThreadConversationLayout(
                                     stringResource(R.string.compose_new_message)) },
                                 text = { Text(text = stringResource(R.string.compose)) },
                                 expanded = listState.isScrollingUp(),
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }

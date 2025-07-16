@@ -88,7 +88,7 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
 
             Button(
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ),
                 onClick = {
                     getDefaultPermission.launch(makeDefault(context))
@@ -96,6 +96,7 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
             ) {
                 Text(
                     stringResource(R.string.default_check_btn_text),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
 
