@@ -1,0 +1,3 @@
+[console_scripts]
+wonderwords = wonderwords.cmdline_parser:main
+

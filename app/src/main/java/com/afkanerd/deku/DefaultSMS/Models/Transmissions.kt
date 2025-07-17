@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Models
 import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -21,6 +22,7 @@ import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import androidx.core.graphics.createBitmap
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MMSReceiverBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.R
 
 
@@ -121,16 +123,17 @@ object Transmissions {
 //        sendSettings.mmsc = "http://mms.du.ae:8002/"
 //        sendSettings.proxy = "10.164.208.4"
 //        sendSettings.port = "8002"
-        sendSettings.useSystemSending = false
+        sendSettings.useSystemSending = true
 //        sendSettings.sendLongAsMms = false
 //        sendSettings.sendLongAsMmsAfter = 3
-//        sendSettings.group = false
+        sendSettings.group = false
 
         val sendTransaction = Transaction(context, sendSettings)
+        sendTransaction.setExplicitBroadcastForSentMms(Intent(context, MMSReceiverBroadcastReceiver::class.java))
         val mMessage = Message(text, destinationAddress)
 
-        val bitmap = drawableToBitmap(ContextCompat.getDrawable(context, R.drawable.github_mark)!!)
-//        val bitmap = BitmapFactory.decodeByteArray(binaryData, 0, binaryData!!.size)
+//        val bitmap = drawableToBitmap(ContextCompat.getDrawable(context, R.drawable.github_mark)!!)
+        val bitmap = BitmapFactory.decodeByteArray(binaryData, 0, binaryData!!.size)
         mMessage.setImage(bitmap) // not necessary for voice or sms messages
 //        mMessage.addMedia(binaryData, "application/image")
         try {
