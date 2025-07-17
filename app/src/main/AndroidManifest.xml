@@ -191,6 +191,19 @@
                 android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionServiceInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <receiver
+            android:name=".BroadcastReceivers.MmsSentReceiverImpl"
+            android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
+
+        <receiver
+            android:name=".BroadcastReceivers.MmsReceivedReceiverImpl"
+            android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED"/>
+
+        <receiver android:name=".BroadcastReceivers.MmsErrorReceivedImpl"
+            android:taskAffinity="com.klinker.android.send_message.MMS_ERROR" />
+
+        <service android:name="com.android.mms.transaction.TransactionService" />
     </application>
 
 </manifest>

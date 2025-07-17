@@ -1,0 +1,19 @@
+
+‚
+;
+android*http://schemas.android.com/apk/res/androidanimated-vector"„
+*http://schemas.android.com/apk/res/androiddrawable@drawable/btn_radio_on_mtrl"(™ƒ„2&
+$‚ ødrawable/btn_radio_on_mtrl0*ˆ
+ÿtarget"¯
+*http://schemas.android.com/apk/res/android	animation0@anim/btn_radio_to_off_mtrl_ring_outer_animation"(Íƒ„2;
+9“€„ø/anim/btn_radio_to_off_mtrl_ring_outer_animation0"C
+*http://schemas.android.com/apk/res/androidname
+ring_outer(ƒ€„T*—
+Žtarget"¹
+*http://schemas.android.com/apk/res/android	animation5@anim/btn_radio_to_off_mtrl_ring_outer_path_animation"(Íƒ„2@
+>”€„ø4anim/btn_radio_to_off_mtrl_ring_outer_path_animation0"H
+*http://schemas.android.com/apk/res/androidnamering_outer_path(ƒ€„Y*…
+ütarget"­
+*http://schemas.android.com/apk/res/android	animation/@anim/btn_radio_to_off_mtrl_dot_group_animation"(Íƒ„2:
+8’€„ø.anim/btn_radio_to_off_mtrl_dot_group_animation0"B
+*http://schemas.android.com/apk/res/androidname	dot_group(ƒ€„S

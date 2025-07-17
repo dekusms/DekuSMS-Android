@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="auto_select_apn">Automatically Select APNs</string>
+    <string name="auto_select_failed">Auto-select APNs has failed, try picking your carrier from the preset list instead
+        in MMS settings</string>
+    <string name="auto_select_multiple_apns">Multiple different APNs were found for your carrier, which
+        will be listed after clicking the message below. If one of the following doesn\'t work for you, try another
+        and one of them should work correctly!\n\nRemember you can always get to this APN selection by going into
+        Settings, going to the MMS Settings page, and then selecting the \"Automatically Select APNs\" option.\n\nYou
+        also have the option under MMS settings to select from a list of preset APNs that could work instead of
+        these that have been automatically found.</string>
+    <string name="dl_failure_notification">Couldn\'t download message <ns1:g id="subject">%1$s</ns1:g> from <ns1:g id="from">%2$s</ns1:g>.</string>
+    <string name="download_later">Can\'t download right now. Try again later.</string>
+    <string name="error">Error</string>
+    <string name="invalid_destination">Invalid destination address.</string>
+    <string name="message_delivered">Message Delivered</string>
+    <string name="message_not_delivered">Message Not Delivered</string>
+    <string name="message_queued">Currently can\'t send your message. It will be sent when the service becomes available.</string>
+    <string name="no_apn">No APN specified for the app, you need to set it up in settings!</string>
+    <string name="no_subject">(No subject)</string>
+    <string name="ok">OK</string>
+    <string name="service_message_not_found">Message expired or not available.</string>
+    <string name="service_network_problem">Couldn\'t send due to network problem.</string>
+    <string name="service_not_activated">Service not activated on network.</string>
+    <string name="unknown_sender">Unknown sender</string>
+    <string name="write_settings_permission">Starting with Android Marshmallow, multimedia messaging applications can no longer directly request
+        to send messages over your mobile data, which is a requirement for sending things like pictures.\n\nTo be able to send messages, the app
+        will need the write settings permission, which must be explicitly granted. Without this, multimedia messages will fail to send.</string>
+</resources>

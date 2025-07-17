@@ -1,0 +1,24 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:2:1-9:12
+INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:3:5-63
+application
+ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:5:5-8:19
+uses-library#org.apache.http.legacy
+ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:6:9-87
+	android:required
+		ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:6:61-85
+	android:name
+		ADDED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml:6:23-60
+uses-sdk
+INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml
+INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/sherlock/StudioProjects/DekuSMS-Android/android-smsmms/src/main/AndroidManifest.xml

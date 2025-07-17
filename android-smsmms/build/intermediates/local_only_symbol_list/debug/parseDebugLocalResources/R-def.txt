@@ -1,0 +1,23 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_alert
+string auto_select_apn
+string auto_select_failed
+string auto_select_multiple_apns
+string dl_failure_notification
+string download_later
+string error
+string invalid_destination
+string message_delivered
+string message_not_delivered
+string message_queued
+string no_apn
+string no_subject
+string ok
+string service_message_not_found
+string service_network_problem
+string service_not_activated
+string unknown_sender
+string write_settings_permission
+xml apns
+xml mms_config
