@@ -27,9 +27,9 @@ class MmsTestActivity : AppCompatActivity() {
         settings.useSystemSending = true
         settings.deliveryReports = true
         settings.subscriptionId = SIMHandler.getDefaultSimSubscription(applicationContext)
-        settings.mmsc = "http://mms.du.ae"
-        settings.proxy = "10.19.18.4"
-        settings.port = "8080"
+        settings.mmsc = "http://mms.du.ae:8002/"
+        settings.proxy = "10.164.208.4"
+        settings.port = "8002"
         settings.group = true
         settings.sendLongAsMms = true
 //        settings.sendLongAsMmsAfter = 3
