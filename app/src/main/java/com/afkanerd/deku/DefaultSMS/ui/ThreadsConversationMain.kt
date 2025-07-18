@@ -243,8 +243,8 @@ fun ThreadConversationLayout(
     val mutedItems: List<Conversation> by conversationsViewModel
         .mutedLiveData!!.observeAsState(emptyList())
 
-    var blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
-    var encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    val blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    val encryptedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
     val draftsItems: List<Conversation> by conversationsViewModel
         .draftsLiveData!!.observeAsState(emptyList())
@@ -255,10 +255,10 @@ fun ThreadConversationLayout(
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    var drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    var selectedItems = remember { mutableStateListOf<Conversation>() }
-    var slideDeleteItem = remember { mutableStateOf("") }
+    val selectedItems = remember { mutableStateListOf<Conversation>() }
+    val slideDeleteItem = remember { mutableStateOf("") }
 
     val selectedIconColors = MaterialTheme.colorScheme.primary
     var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }

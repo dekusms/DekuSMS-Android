@@ -62,7 +62,13 @@ workRuntime = "2.10.0"
 activity = "1.10.0"
 x25519 = "2.0"
 
+#fossify
+android-smsmms = "c3e678befd"
+
 [libraries]
+# fossify
+android-smsmms = { module = "org.fossify:android-smsmms", version.ref = "android-smsmms" }
+
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
 amqp-client = { module = "com.rabbitmq:amqp-client", version.ref = "amqpClient" }
 android-activation = { module = "com.sun.mail:android-activation", version.ref = "androidMail" }

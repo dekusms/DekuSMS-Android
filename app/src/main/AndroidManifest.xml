@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:installLocation="auto">
 
-    <uses-feature
-        android:name="android.hardware.telephony"
-        android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    <uses-permission android:name="android.provider.Telephony.SMS_RECEIVED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_MMS" />
-    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission
+        android:name="android.permission.USE_BIOMETRIC"
+        tools:node="remove" />
 
     <queries>
         <intent>
@@ -87,6 +88,8 @@
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
 
+
+        <service android:name="com.android.mms.transaction.TransactionService" />
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
@@ -146,6 +149,7 @@
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
 
                 <data android:mimeType="application/vnd.wap.mms-message" />
+                <data android:mimeType="application/vnd.wap.sic" />
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
@@ -194,16 +198,17 @@
 
         <receiver
             android:name=".BroadcastReceivers.MmsSentReceiverImpl"
+            android:exported="true"
             android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
 
         <receiver
             android:name=".BroadcastReceivers.MmsReceivedReceiverImpl"
+            android:exported="true"
             android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED"/>
 
         <receiver android:name=".BroadcastReceivers.MmsErrorReceivedImpl"
             android:taskAffinity="com.klinker.android.send_message.MMS_ERROR" />
 
-        <service android:name="com.android.mms.transaction.TransactionService" />
     </application>
 
 </manifest>
