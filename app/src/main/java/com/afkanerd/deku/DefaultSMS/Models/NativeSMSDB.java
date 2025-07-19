@@ -301,8 +301,6 @@ public class NativeSMSDB {
                     context,
                     destinationAddress,
                     text,
-                    binaryData,
-                    null,
                     subscriptionId,
                     contentUri
             );

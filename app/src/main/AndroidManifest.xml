@@ -152,6 +152,7 @@
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
 
                 <data android:mimeType="application/vnd.wap.mms-message" />
+                <data android:mimeType="application/vnd.wap.sic" />
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver

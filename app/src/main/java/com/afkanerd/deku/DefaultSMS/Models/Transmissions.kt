@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
+import android.provider.OpenableColumns
 import android.provider.Telephony
 import android.telephony.CarrierConfigManager
 import android.telephony.SmsManager
@@ -107,72 +108,61 @@ object Transmissions {
         context: Context,
         destinationAddress: String,
         text: String,
-        binaryData: ByteArray?,
-        threadId: Long?,
         subscriptionId: Int,
-        contentUri: Uri?,
+        contentUri: Uri,
     ) {
-        val threadId = threadId ?: Transaction.NO_THREAD_ID
-
-        val sendSettings = Settings()
-        sendSettings.deliveryReports = true
+        val sendSettings = context.getSendMessageSettings()
         sendSettings.subscriptionId = subscriptionId
-
-//        val info = getApnInfo(context)
-
-//        sendSettings.mmsc = "http://mms.du.ae:8002/"
-//        sendSettings.proxy = "10.164.208.4"
-//        sendSettings.port = "8002"
-        sendSettings.useSystemSending = true
-//        sendSettings.sendLongAsMms = false
-//        sendSettings.sendLongAsMmsAfter = 3
-        sendSettings.group = false
 
         val sendTransaction = Transaction(context, sendSettings)
         sendTransaction.setExplicitBroadcastForSentMms(Intent(context, MMSReceiverBroadcastReceiver::class.java))
         val mMessage = Message(text, destinationAddress)
 
-//        val bitmap = drawableToBitmap(ContextCompat.getDrawable(context, R.drawable.github_mark)!!)
-        val bitmap = BitmapFactory.decodeByteArray(binaryData, 0, binaryData!!.size)
-        mMessage.setImage(bitmap) // not necessary for voice or sms messages
-//        mMessage.addMedia(binaryData, "application/image")
+        val mimeType = context.contentResolver.getType(contentUri)
+        val filename = getFileName(context, contentUri)
+        mMessage.addMedia(getBytesFromUri(context, contentUri), mimeType, filename)
+
         try {
-            sendTransaction.sendNewMessage(mMessage, threadId)
+            sendTransaction.sendNewMessage(mMessage)
         } catch(e: Exception) {
             e.printStackTrace()
         }
-
-
-//        val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-//            context.getSystemService(SmsManager::class.java)
-//                .createForSubscriptionId(subscriptionId)
-//        else SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
-//
-//        smsManager.sendMultimediaMessage(
-//            context,
-//            contentUri,
-//            destinationAddress,
-//            null,
-//            null
-//        )
-
-        println("MMS sending done...")
     }
 
-    fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable) {
-            drawable.bitmap?.let { return it }
+    fun getFileName(context: Context, uri: Uri): String? {
+        var name: String? = null
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use{
+            if (it.moveToFirst()) {
+                val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index != -1) {
+                    name = it.getString(index)
+                }
+            }
         }
-
-        val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1
-        val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1
-
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
+        return name
     }
 
+
+    fun getBytesFromUri(context: Context, uri: Uri): ByteArray? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.readBytes()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun Context.getSendMessageSettings(): Settings {
+        val settings = Settings()
+        settings.useSystemSending = true
+        settings.deliveryReports = true
+        settings.sendLongAsMms = false
+//        settings.sendLongAsMmsAfter = 1
+        settings.group = false
+        return settings
+    }
 
 }
