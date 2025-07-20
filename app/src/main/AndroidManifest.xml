@@ -204,10 +204,10 @@
             android:name=".BroadcastReceivers.MmsSentReceiverImpl"
             android:taskAffinity="com.klinker.android.messaging.MMS_SENT" />
 
-<!--        <receiver-->
-<!--            android:name=".BroadcastReceivers.MmsReceivedReceiverImpl"-->
-<!--            android:exported="true"-->
-<!--            android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />-->
+        <receiver
+            android:name=".BroadcastReceivers.MmsReceivedReceiverImpl"
+            android:exported="true"
+            android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />
 
     </application>
 

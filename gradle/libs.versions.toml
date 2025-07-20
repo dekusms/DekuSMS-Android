@@ -48,6 +48,7 @@ pagingGuava = "3.3.6"
 preference = "1.2.1"
 prov = "1.58.0.0"
 roomTesting = "2.7.2"
+rulesVersion = "1.6.1"
 rxbinding = "1.0.1"
 securityCrypto = "1.1.0-beta01"
 startupRuntime = "1.2.0"
@@ -100,6 +101,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomTesting" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomTesting" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+androidx-rules = { module = "androidx.test:rules", version.ref = "rulesVersion" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
 androidx-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }

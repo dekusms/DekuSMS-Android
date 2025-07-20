@@ -276,5 +276,7 @@ dependencies {
 
     implementation(libs.android.smsmms)
 //    compile libs.android.smsmms
+
+    androidTestImplementation libs.androidx.rules
 }
 

@@ -478,12 +478,13 @@ class ConversationsViewModel : ViewModel() {
         if (cursorMMS != null && cursorMMS.moveToFirst()) {
             do {
                 val mmsConversation = Conversation.Companion.build(cursorMMS, true)
-                val imageDetails = NativeSMSDB.ParseMMS(context, cursorMMS)
+                val parsedMms = NativeSMSDB.ParseMMS(context, cursorMMS)
+                mmsConversation.date = (mmsConversation.date!!.toLong() * 1000).toString()
+                mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
 
-                if(!imageDetails.first.isNullOrEmpty())
-                    mmsConversation.address = imageDetails.first
-                mmsConversation.mmsImage = imageDetails.second.first
-                mmsConversation.text = imageDetails.second.second
+                mmsConversation.address = parsedMms.address
+                mmsConversation.mmsImage = parsedMms.image
+                mmsConversation.text = parsedMms.text
 
                 conversationList.add(mmsConversation)
             } while (cursorMMS.moveToNext())

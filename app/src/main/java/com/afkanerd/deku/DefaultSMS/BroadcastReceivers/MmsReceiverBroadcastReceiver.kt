@@ -3,73 +3,132 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.util.Log
-import androidx.compose.ui.geometry.isEmpty
-import com.afkanerd.deku.DefaultSMS.BuildConfig
+import android.provider.Telephony
+import android.text.TextUtils
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
+import com.android.mms.transaction.DownloadManager
+import com.android.mms.transaction.PushReceiver
+import com.google.android.mms.MmsException
+import com.google.android.mms.pdu_alt.PduParser
+import com.google.android.mms.pdu_alt.PduPersister
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (BuildConfig.DEBUG)
-            Log.d(javaClass.getName(), "New MMS received..")
-        printIntentExtras(intent)
-    }
+        val id = intent!!.getLongExtra("messageId", -1)
 
-    fun printIntentExtras(intent: Intent?, logTag: String = "IntentExtras") {
-        if (intent == null) {
-            Log.d(logTag, "Intent is null, no extras to print.")
-            return
+        val data = intent.getByteArrayExtra("data")
+        val pdu = PduParser(data).parse()
+
+        val pduPersister = PduPersister.getPduPersister(context)
+
+        val subId = intent.getIntExtra("subscription", -1)
+        val uri = pduPersister.persist(
+            pdu,
+            Telephony.Mms.Inbox.CONTENT_URI,
+            true,
+            false,
+            null,
+            subId
+        )
+
+        var location: String? = "";
+        try {
+            location = MmsHandler.getContentLocation(context!!, uri)
+        } catch(e: Exception ) {
+            location = pduPersister.getContentLocationFromPduHeader(pdu)
+            e.printStackTrace()
         }
 
-        val extras: Bundle? = intent.extras
-        if (extras == null || extras.isEmpty) {
-            Log.d(logTag, "Intent has no extras.")
-            return
-        }
+        println(location)
 
-        Log.d(logTag, "--- Intent Extras ---")
-        for (key: String in extras.keySet()) {
-            val value = extras.get(key)
-            Log.d(logTag, "Key: $key, Value: ${value?.toString()}, Type: ${value?.javaClass?.simpleName ?: "null"}")
-
-            // For more detailed logging of specific types, you can add checks here
-            // Example: Logging array contents
-            if (value != null && value.javaClass.isArray) {
-                when (value) {
-                    is ByteArray -> Log.d(logTag, "  ∟ Value (ByteArray): ${value.contentToString()}")
-                    is CharArray -> Log.d(logTag, "  ∟ Value (CharArray): ${value.contentToString()}")
-                    is ShortArray -> Log.d(logTag, "  ∟ Value (ShortArray): ${value.contentToString()}")
-                    is IntArray -> Log.d(logTag, "  ∟ Value (IntArray): ${value.contentToString()}")
-                    is LongArray -> Log.d(logTag, "  ∟ Value (LongArray): ${value.contentToString()}")
-                    is FloatArray -> Log.d(logTag, "  ∟ Value (FloatArray): ${value.contentToString()}")
-                    is DoubleArray -> Log.d(logTag, "  ∟ Value (DoubleArray): ${value.contentToString()}")
-                    is BooleanArray -> Log.d(logTag, "  ∟ Value (BooleanArray): ${value.contentToString()}")
-                    is Array<*> -> Log.d(logTag, "  ∟ Value (Array): ${value.contentToString()}")
-                    // Add other array types if needed
-                }
-            }
-            // Example: Logging Bundle contents (nested extras)
-            else if (value is Bundle) {
-                Log.d(logTag, "  ∟ Value (Bundle):")
-                logNestedBundle(value, logTag, "    ") // Recursive call for nested bundles
+        var transactionId: String?
+        try {
+            transactionId = PushReceiver.getTransactionId(context, uri)
+        } catch (ex: MmsException) {
+            transactionId = pduPersister.getTransactionIdFromPduHeader(pdu)
+            if (TextUtils.isEmpty(transactionId)) {
+                throw ex
             }
         }
-        Log.d(logTag, "--- End of Intent Extras ---")
-    }
 
-    private fun logNestedBundle(bundle: Bundle, logTag: String, indent: String) {
-        if (bundle.isEmpty) {
-            Log.d(logTag, "$indent<Empty Bundle>")
-            return
+        DownloadManager.getInstance().downloadMultimediaMessage(
+            context,
+            location,
+            transactionId,
+            uri,
+            true,
+            subId
+        )
+
+        CoroutineScope(Dispatchers.Default).launch {
+            ConversationsViewModel().reset(context!!)
         }
-        for (key: String in bundle.keySet()) {
-            val value = bundle.get(key)
-            Log.d(logTag, "IndentKey: $key, Value: ${value?.toString()}, Type: ${value?.javaClass?.simpleName ?: "null"}")
-            if (value is Bundle) {
-                Log.d(logTag, "$indent  ∟ Value (Bundle):")
-                logNestedBundle(value, logTag, "$indent    ") // Recursive call
-            }
-            // You can add similar checks for arrays within nested bundles if needed
-        }
+
+//        val parsedMms = NativeSMSDB.ParseMMS(context, mmsInboxCursor)
+//        val conversation = Conversation.Companion.build(mmsInboxCursor, true)
+//        conversation.address = parsedMms.address
+//        conversation.mmsImage = parsedMms.image
+//        conversation.text = parsedMms.text
+//        conversation.type = Telephony.Mms.MESSAGE_BOX_INBOX
+//        conversation.subscription_id = intent
+//            .getIntExtra("subscription", -1)
+//
+//        val threadId = Telephony.Threads
+//            .getOrCreateThreadId(context, conversation.address)
+//        conversation.thread_id = threadId.toString()
+//        conversation.date = (conversation.date!!.toLong() * 1000).toString()
+//        conversation.date_sent = (conversation.date!!.toLong() * 1000).toString()
+//
+//        CoroutineScope(Dispatchers.Default).launch {
+//            val conversationsViewModel = ConversationsViewModel()
+//            conversationsViewModel.insert(context, conversation)
+//
+//            // TODO: build notifications
+//        }
+
+
+        // Get text and picture from MMS message. Adapted from: https://stackoverflow.com/questions/3012287/how-to-read-mms-data-in-android
+//        var message = ""
+//        var bitmap  = null // picture
+//        val selectionPart = "mid=$id"
+//        val mmsTextUri = "content://mms/part".toUri()
+//        val cursor = context.contentResolver.query(
+//            mmsTextUri, null,
+//            selectionPart, null, null
+//        )
+//        if (cursor!!.moveToFirst()) {
+//            do {
+//                val partId = cursor
+//                    .getString(cursor.getColumnIndex("_id"))
+//
+//                val type = cursor
+//                    .getString(cursor.getColumnIndex("ct"))
+//
+//                // Get text.
+//                if ("text/plain" == type) {
+//                    val data  = cursor
+//                        .getString(cursor.getColumnIndex("_data"))
+//
+//                    if (data != null) {
+//                        message = "TODO: Change this text"
+//                    } else {
+//                        message = "TODO: Change this text"
+//                    }
+//                }
+//                //Get picture.
+//                if ("image/jpeg" == type || "image/bmp" == type ||
+//                    "image/gif" == type || "image/jpg" == type ||
+//                    "image/png" == type
+//                ) {
+//                    bitmap = TODO("Get the Bitmap image from the incoming Pdu")
+//                }
+//            } while (cursor.moveToNext())
     }
 }
+
+

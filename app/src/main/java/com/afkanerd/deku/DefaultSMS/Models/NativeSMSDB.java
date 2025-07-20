@@ -61,7 +61,12 @@ public class NativeSMSDB {
                 null);
     }
 
-    public static Pair<String, Pair<byte[], String>> ParseMMS(Context context, Cursor cursor) {
+    public static class ParsedMms {
+        public String address;
+        public byte[] image;
+        public String text;
+    }
+    public static ParsedMms ParseMMS(Context context, Cursor cursor) {
         Uri uri = Uri.parse("content://mms/part");
         int idIndex = cursor.getColumnIndexOrThrow("_id");
         String id = cursor.getString(idIndex);
@@ -69,9 +74,9 @@ public class NativeSMSDB {
         String mmsId = "mid = " + id;
         Cursor c = context.getContentResolver()
                 .query(uri, null, mmsId, null, null);
-        String address = "";
-        String text = "";
-        byte[] image = null;
+
+        ParsedMms parsedMms = new ParsedMms();
+
         if(c != null && c.moveToFirst()) {
             do {
                 int _idIndex = c.getColumnIndex("_id");
@@ -81,21 +86,19 @@ public class NativeSMSDB {
                 String type = c.getString(typeIndex);
 
                 if ("text/plain".equals(type)) {
-                    Log.d(NativeSMSDB.class.getName(), "MMS has text");
-                    if(text.isBlank())
-                        text = c.getString(c.getColumnIndex("text"));
+                    if(parsedMms.text == null || parsedMms.text.isBlank())
+                        parsedMms.text = c.getString(c.getColumnIndex("text"));
                 } else if (type.contains("image")) {
-                    Log.d(NativeSMSDB.class.getName(), "MMS has a picture in it!");
-                    address = getMmsAddr(context, id);
-                    Log.d(NativeSMSDB.class.getName(), "MMS address: " + address);
-                    if(image == null)
-                        image = getMmsImg(context, pid);
+                    if(parsedMms.address == null || parsedMms.address.isBlank())
+                        parsedMms.address = getMmsAddr(context, id);
+                    if(parsedMms.image == null)
+                        parsedMms.image = getMmsImg(context, pid);
                 }
             } while(c.moveToNext());
             c.close();
         }
 
-        return new Pair<>(address, new Pair<>(image, text));
+        return parsedMms;
     }
 
     public static byte[] getMmsImg(Context context, String id) {

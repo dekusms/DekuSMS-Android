@@ -605,11 +605,16 @@ fun Conversations(
                             if(inPreviewMode) _items!![index]
                             else inboxMessagesItems[index]
                     )?.let { conversation ->
+                        val isMms = conversation.mmsImage != null
                         var showDate by remember { mutableStateOf(index == 0) }
 
                         var timestamp by remember { mutableStateOf(
                             if(inPreviewMode) "1234567"
-                            else Helpers.formatDateExtended(context, conversation.date!!.toLong())) }
+                            else {
+                                Helpers.formatDateExtended(context,
+                                    conversation.date!!.toLong())
+                            })
+                        }
 
                         var date by remember { mutableStateOf(
                             if(inPreviewMode) "1234567"
@@ -638,7 +643,6 @@ fun Conversations(
                             )
                         )
 
-                        val isMms = conversation.mmsImage != null
 
                         if(searchQuery.isNotEmpty()) {
                             text = buildAnnotatedString {
