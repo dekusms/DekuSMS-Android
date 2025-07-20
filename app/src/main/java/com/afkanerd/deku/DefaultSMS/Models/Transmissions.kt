@@ -1,30 +1,18 @@
 package com.afkanerd.deku.DefaultSMS.Models
 
-import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
-import android.provider.Telephony
-import android.telephony.CarrierConfigManager
 import android.telephony.SmsManager
-import androidx.annotation.RequiresPermission
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
-import androidx.core.graphics.createBitmap
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MMSReceiverBroadcastReceiver
-import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MmsReceiverBroadcastReceiver
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MmsSentReceiverImpl
+import com.klinker.android.send_message.MmsSentReceiver
 
 
 object Transmissions {
@@ -106,6 +94,7 @@ object Transmissions {
 
     fun sendMms(
         context: Context,
+        messageId: String,
         destinationAddress: String,
         text: String,
         subscriptionId: Int,
@@ -114,8 +103,11 @@ object Transmissions {
         val sendSettings = context.getSendMessageSettings()
         sendSettings.subscriptionId = subscriptionId
 
+        val intent = Intent(context, MmsSentReceiverImpl::class.java).apply {
+            this.putExtra(MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID, messageId)
+        }
         val sendTransaction = Transaction(context, sendSettings)
-        sendTransaction.setExplicitBroadcastForSentMms(Intent(context, MMSReceiverBroadcastReceiver::class.java))
+        sendTransaction .setExplicitBroadcastForSentMms(intent)
         val mMessage = Message(text, destinationAddress)
 
         val mimeType = context.contentResolver.getType(contentUri)

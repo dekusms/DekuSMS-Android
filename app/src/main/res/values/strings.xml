@@ -413,5 +413,6 @@
     <string name="privacy_policy_text_part">privacy policy</string>
     <string name="send_mms_photo">Send MMS photo</string>
     <string name="mms_selected_image">MMS selected image</string>
+    <string name="unknown_error_sending_mms">"Unknown error sending MMS: "</string>
 
 </resources>

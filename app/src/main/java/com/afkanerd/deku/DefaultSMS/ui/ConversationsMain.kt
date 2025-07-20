@@ -638,6 +638,8 @@ fun Conversations(
                             )
                         )
 
+                        val isMms = conversation.mmsImage != null
+
                         if(searchQuery.isNotEmpty()) {
                             text = buildAnnotatedString {
                                 val startIndex = text.indexOf(searchQuery, ignoreCase = true)
@@ -662,7 +664,8 @@ fun Conversations(
                                 text= text,
                                 timestamp = timestamp,
                                 type= conversation.type,
-                                status = ConversationStatusTypes.fromInt(conversation.status)!!,
+                                status = ConversationStatusTypes
+                                    .fromInt(conversation.status, isMms)!!,
                                 position = position,
                                 date = date,
                                 showDate = showDate,

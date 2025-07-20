@@ -145,7 +145,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.MMSReceiverBroadcastReceiver"
+            android:name=".BroadcastReceivers.MmsReceiverBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>

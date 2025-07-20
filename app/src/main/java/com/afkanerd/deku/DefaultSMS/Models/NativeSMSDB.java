@@ -299,6 +299,7 @@ public class NativeSMSDB {
 
             Transmissions.INSTANCE.sendMms(
                     context,
+                    messageId,
                     destinationAddress,
                     text,
                     subscriptionId,

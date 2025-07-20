@@ -62,8 +62,14 @@ enum class ConversationStatusTypes(val value: Int) {
     STATUS_FAILED(64);
 
     companion object {
-        fun fromInt(value: Int): ConversationStatusTypes? {
-            return ConversationStatusTypes.entries.find { it.value == value }
+        fun fromInt(value: Int, mms: Boolean = false): ConversationStatusTypes? {
+            return if(!mms) ConversationStatusTypes.entries.find { it.value == value } else {
+                when(value) {
+                    Telephony.Mms.MESSAGE_BOX_SENT -> STATUS_NONE
+                    Telephony.Mms.MESSAGE_BOX_FAILED -> STATUS_FAILED
+                    else -> STATUS_PENDING
+                }
+            }
         }
     }
 }
@@ -102,7 +108,6 @@ private fun ConversationReceived(
     text: AnnotatedString,
     date: String,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
-    showDate: Boolean = true,
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
@@ -154,14 +159,6 @@ private fun ConversationReceived(
                     color = color
                 )
             }
-
-            if(showDate) {
-                Text(
-                    text= date,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
-            }
         }
     }
 }
@@ -174,7 +171,6 @@ private fun ConversationSent(
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     date: String = "yesterday",
     isSelected: Boolean = false,
-    showDate: Boolean = true,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
     color: Color = MaterialTheme.colorScheme.onPrimary
@@ -232,24 +228,6 @@ private fun ConversationSent(
                 )
             }
 
-            if(showDate) {
-                Text(
-                    text= if(status == ConversationStatusTypes.STATUS_PENDING)
-                        stringResource(R.string.sms_status_sending)
-                    else if(status == ConversationStatusTypes.STATUS_COMPLETE)
-                        "$date " + stringResource(R.string.sms_status_delivered)
-                    else if(status == ConversationStatusTypes.STATUS_FAILED)
-                        stringResource(R.string.sms_status_failed)
-                    else "$date " + stringResource(R.string.sms_status_sent),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
-                        colorResource(R.color.md_theme_error)
-                    else colorResource(R.color.md_theme_outlineVariant),
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(bottom=4.dp)
-                )
-            }
         }
 
         if(status == ConversationStatusTypes.STATUS_FAILED) {
@@ -309,10 +287,17 @@ fun ConversationsCard(
                                     text =text,
                                     position =position,
                                     date =date,
-                                    showDate = showDate,
                                     isSelected = isSelected,
                                     onClickCallback = onClickCallback,
                                     onLongClickCallback = onLongClickCallback,
+                                )
+                            }
+
+                            if(showDate) {
+                                Text(
+                                    text= date,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.outlineVariant
                                 )
                             }
                         }
@@ -335,9 +320,27 @@ fun ConversationsCard(
                                     date =date,
                                     status =status,
                                     isSelected = isSelected,
-                                    showDate = showDate,
                                     onClickCallback = onClickCallback,
                                     onLongClickCallback = onLongClickCallback,
+                                )
+                            }
+
+                            if(showDate) {
+                                Text(
+                                    text= if(status == ConversationStatusTypes.STATUS_PENDING)
+                                        stringResource(R.string.sms_status_sending)
+                                    else if(status == ConversationStatusTypes.STATUS_COMPLETE)
+                                        "$date " + stringResource(R.string.sms_status_delivered)
+                                    else if(status == ConversationStatusTypes.STATUS_FAILED)
+                                        stringResource(R.string.sms_status_failed)
+                                    else "$date " + stringResource(R.string.sms_status_sent),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
+                                        colorResource(R.color.md_theme_error)
+                                    else colorResource(R.color.md_theme_outlineVariant),
+                                    modifier = Modifier
+                                        .align(Alignment.End)
+                                        .padding(bottom=4.dp)
                                 )
                             }
                         }
