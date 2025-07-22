@@ -46,7 +46,6 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 
 
 class ConversationsViewModel : ViewModel() {
-
     var threadId by mutableStateOf("")
     var address by mutableStateOf("")
     var text by mutableStateOf("")
@@ -87,6 +86,10 @@ class ConversationsViewModel : ViewModel() {
 
     private var conversationsPager: Flow<PagingData<Conversation>>? = null
 //    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
+
+    fun getDefaultRegion(context: Context): String {
+        return Helpers.getUserCountry(context)
+    }
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
@@ -470,7 +473,13 @@ class ConversationsViewModel : ViewModel() {
         val conversationList: MutableList<Conversation> = ArrayList<Conversation>()
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                conversationList.add(Conversation.Companion.build(cursor))
+                val conversation = Conversation.Companion.build(cursor).apply {
+                    this.address = Helpers.getFormatCompleteNumber(
+                        this.address!!,
+                        getDefaultRegion(context)
+                    )
+                }
+                conversationList.add(conversation)
             } while (cursor.moveToNext())
             cursor.close()
         }
@@ -482,7 +491,9 @@ class ConversationsViewModel : ViewModel() {
                 mmsConversation.date = (mmsConversation.date!!.toLong() * 1000).toString()
                 mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
 
-                mmsConversation.address = parsedMms.address
+                if(!parsedMms.address.isNullOrEmpty())
+                    mmsConversation.address = Helpers.getFormatCompleteNumber(parsedMms.address,
+                        getDefaultRegion(context))
                 mmsConversation.mmsImage = parsedMms.image
                 mmsConversation.text = parsedMms.text
 
@@ -519,8 +530,9 @@ class ConversationsViewModel : ViewModel() {
                 intent.hasExtra("address")
             ) {
                 val address = Helpers.getFormatCompleteNumber(
-                    if(intent.hasExtra("address")) intent.getStringExtra("address")
-                    else sendToString, defaultRegion
+                    if(intent.hasExtra("address"))
+                        intent.getStringExtra("address")!!
+                    else sendToString!!, defaultRegion
                 )
                 val threadId = ThreadedConversationsHandler.get(context, address).thread_id
                 return Triple(address, threadId, text)

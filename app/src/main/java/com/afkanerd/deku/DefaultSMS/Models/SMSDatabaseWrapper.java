@@ -13,16 +13,16 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
 
     public static void send_data(Context context, Conversation conversation) throws Exception {
-        String transmissionAddress = Helpers.getFormatForTransmission(conversation.getAddress(),
-                Helpers.getUserCountry(context));
+        String transmissionAddress = Helpers.INSTANCE.getFormatForTransmission(conversation.getAddress(),
+                Helpers.INSTANCE.getUserCountry(context));
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_data(context, conversation.getMessage_id(),
                 transmissionAddress, Base64.decode(conversation.getData(), Base64.DEFAULT),
                 conversation.getSubscription_id(), null);
     }
 
     public static void send_mms(Context context, Conversation conversation, Bundle bundle, Uri contentUri) throws Exception {
-        String transmissionAddress = Helpers.getFormatForTransmission(conversation.getAddress(),
-                Helpers.getUserCountry(context));
+        String transmissionAddress = Helpers.INSTANCE.getFormatForTransmission(conversation.getAddress(),
+                Helpers.INSTANCE.getUserCountry(context));
 
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_mms(
                 context,
@@ -37,8 +37,8 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
     }
 
     public static void send_text(Context context, Conversation conversation, Bundle bundle) throws Exception {
-        String transmissionAddress = Helpers.getFormatForTransmission(conversation.getAddress(),
-                Helpers.getUserCountry(context));
+        String transmissionAddress = Helpers.INSTANCE.getFormatForTransmission(conversation.getAddress(),
+                Helpers.INSTANCE.getUserCountry(context));
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, conversation.getMessage_id(),
                 transmissionAddress, conversation.getText(),
                 conversation.getSubscription_id(), bundle);

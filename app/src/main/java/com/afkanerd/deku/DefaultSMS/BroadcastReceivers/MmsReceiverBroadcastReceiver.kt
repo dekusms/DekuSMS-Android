@@ -65,9 +65,6 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
             subId
         )
 
-        CoroutineScope(Dispatchers.Default).launch {
-            ConversationsViewModel().reset(context!!)
-        }
 
 //        val parsedMms = NativeSMSDB.ParseMMS(context, mmsInboxCursor)
 //        val conversation = Conversation.Companion.build(mmsInboxCursor, true)

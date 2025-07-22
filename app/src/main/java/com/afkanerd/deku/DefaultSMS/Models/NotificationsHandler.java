@@ -77,7 +77,7 @@ public class NotificationsHandler {
     }
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
-        if(conversation != null && !Helpers.isShortCode(conversation.getAddress())) {
+        if(conversation != null && !Helpers.INSTANCE.isShortCode(conversation.getAddress())) {
             Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
 
             replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion

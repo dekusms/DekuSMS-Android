@@ -172,7 +172,8 @@ fun SearchThreadsMain(
                         else message.text!!,
                         date =
                             if (!message.date.isNullOrBlank())
-                                Helpers.formatDate(context, message.date!!.toLong())
+                                Helpers.formatDate(context,
+                                    message.date!!.toLong()) ?: ""
                             else "Tues",
                         isRead = message.isRead,
                         isContact = !contactName.isNullOrBlank(),

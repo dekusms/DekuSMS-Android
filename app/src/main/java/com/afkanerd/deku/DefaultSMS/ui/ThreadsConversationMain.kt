@@ -130,8 +130,8 @@ fun ThreadConversationLayout(
     val newIntent by conversationsViewModel.newIntent.collectAsState()
     LaunchedEffect(newIntent) {
         newIntent?.let { intent ->
-            val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry(context)
-            conversationsViewModel.processIntents(context, intent, defaultRegion)?.let {
+            conversationsViewModel.processIntents(context, intent,
+                conversationsViewModel.getDefaultRegion(context))?.let {
                 conversationsViewModel.setNewIntent(null)
                 it.first?.let{ address ->
                     it.second?.let { threadId ->
@@ -652,7 +652,8 @@ fun ThreadConversationLayout(
 
                                 val date by remember{ mutableStateOf(
                                         if(!message.date.isNullOrBlank())
-                                            Helpers.formatDate(context, message.date!!.toLong())
+                                            Helpers.formatDate(context,
+                                                message.date!!.toLong()) ?: ""
                                         else "Tues",
                                 ) }
 

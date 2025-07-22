@@ -52,7 +52,7 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
                 ? "all" : gatewayServer.getFormat();
         holder.format.setText(dataFormat);
 
-        String date = Helpers.formatDate(holder.itemView.getContext(), gatewayServer.getDate());
+        String date = Helpers.INSTANCE.formatDate(holder.itemView.getContext(), gatewayServer.getDate());
         holder.date.setText(date);
 
         holder.cardView.setOnClickListener(new View.OnClickListener() {

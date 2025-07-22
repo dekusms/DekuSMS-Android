@@ -305,7 +305,7 @@ fun ConversationsCard(
                 }
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
-                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, -> {
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX -> {
                     if(isKey) {
                         ConversationIsKey(isReceived = false)
                     } else {

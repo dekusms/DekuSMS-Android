@@ -31,7 +31,7 @@ object RemoteListenersHandler {
     const val UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID
     const val UNIQUE_WORK_MANAGER_TAG = BuildConfig.APPLICATION_ID + ".REMOTE_LISTENERS"
 
-    fun getPublisherDetails(context: Context?, projectName: String): List<String> {
+    fun getPublisherDetails(context: Context, projectName: String): List<String> {
         val operatorDetails: MutableList<String> = ArrayList()
         val simCards = SIMHandler.getSimCardInformation(context)
 

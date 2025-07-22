@@ -5,11 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MmsReceivedReceiverImpl: BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         println(resultCode)
         printIntentExtras(intent)
+
+        CoroutineScope(Dispatchers.Default).launch {
+//            ConversationsViewModel().reset(context!!)
+        }
     }
 
     fun printIntentExtras(intent: Intent?, logTag: String = "IntentExtras") {

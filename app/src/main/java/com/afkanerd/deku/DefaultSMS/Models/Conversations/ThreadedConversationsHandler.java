@@ -12,10 +12,10 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 public class ThreadedConversationsHandler {
 
     public static ThreadedConversations get(Context context, String address) {
-        final String defaultUserCountry = Helpers.getUserCountry(context);
+        final String defaultUserCountry = Helpers.INSTANCE.getUserCountry(context);
         long threadId = Telephony.Threads.getOrCreateThreadId(context, address);
         ThreadedConversations threadedConversations = new ThreadedConversations();
-        threadedConversations.setAddress(Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+        threadedConversations.setAddress(Helpers.INSTANCE.getFormatCompleteNumber(address, defaultUserCountry));
         threadedConversations.setThread_id(String.valueOf(threadId));
         return threadedConversations;
     }

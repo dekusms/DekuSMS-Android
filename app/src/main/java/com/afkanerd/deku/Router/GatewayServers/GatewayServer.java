@@ -145,7 +145,7 @@ public class GatewayServer {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        boolean isBase64 = Helpers.isBase64Encoded(conversation.getText());
+        boolean isBase64 = Helpers.INSTANCE.isBase64Encoded(conversation.getText());
         List<GatewayServer> gatewayServerList =
                 Datastore.getDatastore(context.getApplicationContext())
                         .gatewayServerDAO()
