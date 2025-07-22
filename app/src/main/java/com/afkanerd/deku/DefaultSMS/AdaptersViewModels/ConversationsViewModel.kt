@@ -497,7 +497,8 @@ class ConversationsViewModel : ViewModel() {
                 mmsConversation.mmsImage = parsedMms.image
                 mmsConversation.text = parsedMms.text
 
-                conversationList.add(mmsConversation)
+                if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
+                    conversationList.add(mmsConversation)
             } while (cursorMMS.moveToNext())
             cursorMMS.close()
         }

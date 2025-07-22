@@ -3,22 +3,59 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Telephony
+import android.provider.Telephony.Mms
 import android.util.Log
+import androidx.core.net.toUri
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
+import com.klinker.android.send_message.MmsReceivedReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MmsReceivedReceiverImpl: BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-        println(resultCode)
-        printIntentExtras(intent)
+class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
+    override fun onMessageReceived(context: Context?, contentUri: Uri?) {
+        contentUri?.let {
+            context?.contentResolver?.query(
+                contentUri,
+                null,
+                null,
+                null,
+                null,
+            )?.let { cursor ->
+                if(cursor.moveToFirst()) {
+                    val mmsConversation = Conversation.build(cursor, true)
+                    val parsedMms = NativeSMSDB.ParseMMS(context, cursor)
 
-        CoroutineScope(Dispatchers.Default).launch {
-//            ConversationsViewModel().reset(context!!)
+                    mmsConversation.date = (mmsConversation.date!!.toLong() * 1000).toString()
+                    mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
+
+                    val defaultRegion = Helpers.getUserCountry(context)
+                    if(!parsedMms.address.isNullOrEmpty())
+                        mmsConversation.address = Helpers.getFormatCompleteNumber(
+                                parsedMms.address, defaultRegion )
+                    mmsConversation.mmsImage = parsedMms.image
+                    mmsConversation.text = parsedMms.text
+
+//                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
+                    Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
+                    println(mmsConversation)
+                }
+            }
         }
     }
+
+    override fun onError(p0: Context?, p1: String?) {
+        TODO("Not yet implemented")
+    }
+
 
     fun printIntentExtras(intent: Intent?, logTag: String = "IntentExtras") {
         if (intent == null) {

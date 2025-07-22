@@ -85,12 +85,12 @@ public class NativeSMSDB {
                 int typeIndex = c.getColumnIndex("ct");
                 String type = c.getString(typeIndex);
 
+                if(parsedMms.address == null || parsedMms.address.isBlank())
+                    parsedMms.address = getMmsAddr(context, id);
                 if ("text/plain".equals(type)) {
                     if(parsedMms.text == null || parsedMms.text.isBlank())
                         parsedMms.text = c.getString(c.getColumnIndex("text"));
                 } else if (type.contains("image")) {
-                    if(parsedMms.address == null || parsedMms.address.isBlank())
-                        parsedMms.address = getMmsAddr(context, id);
                     if(parsedMms.image == null)
                         parsedMms.image = getMmsImg(context, pid);
                 }

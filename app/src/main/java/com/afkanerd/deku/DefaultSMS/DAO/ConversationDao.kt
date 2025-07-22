@@ -34,8 +34,9 @@ interface ConversationDao {
     fun getAllThreading(): LiveData<MutableList<Conversation>>
 
     @Query("SELECT c.*, max(date) FROM Conversation c LEFT JOIN ThreadsConfigurations tc " +
-            "ON c.thread_id = tc.threadId WHERE tc.isArchive = '0' OR tc.threadId IS NULL " +
-            "GROUP BY thread_id ORDER BY date DESC")
+            "ON c.thread_id = tc.threadId WHERE (tc.isArchive = '0' OR tc.threadId IS NULL) " +
+//            "GROUP BY address ORDER BY date DESC")
+    "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingPagingSource(): PagingSource<Int, Conversation>
 
     @Query("SELECT Conversation.*, max(date) as date FROM Conversation, ThreadsConfigurations " +
@@ -61,6 +62,7 @@ interface ConversationDao {
             "ThreadsConfigurations.threadId = Conversation.thread_id " +
             "AND ThreadsConfigurations.isMute = '1' " +
             "GROUP BY thread_id ORDER BY date DESC")
+
     fun getAllThreadingMuted(): LiveData<MutableList<Conversation>>
 
     @Query("SELECT c.*, max(date) FROM Conversation c " +

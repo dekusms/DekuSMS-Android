@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
+import android.telephony.SmsManager
 import android.text.TextUtils
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
@@ -27,10 +28,13 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
         val pduPersister = PduPersister.getPduPersister(context)
 
         val subId = intent.getIntExtra("subscription", -1)
+
+        val createThread = Telephony.Threads
+            .getOrCreateThreadId(context, pdu.from.string)
         val uri = pduPersister.persist(
             pdu,
             Telephony.Mms.Inbox.CONTENT_URI,
-            true,
+            false,
             false,
             null,
             subId
@@ -64,67 +68,6 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
             true,
             subId
         )
-
-
-//        val parsedMms = NativeSMSDB.ParseMMS(context, mmsInboxCursor)
-//        val conversation = Conversation.Companion.build(mmsInboxCursor, true)
-//        conversation.address = parsedMms.address
-//        conversation.mmsImage = parsedMms.image
-//        conversation.text = parsedMms.text
-//        conversation.type = Telephony.Mms.MESSAGE_BOX_INBOX
-//        conversation.subscription_id = intent
-//            .getIntExtra("subscription", -1)
-//
-//        val threadId = Telephony.Threads
-//            .getOrCreateThreadId(context, conversation.address)
-//        conversation.thread_id = threadId.toString()
-//        conversation.date = (conversation.date!!.toLong() * 1000).toString()
-//        conversation.date_sent = (conversation.date!!.toLong() * 1000).toString()
-//
-//        CoroutineScope(Dispatchers.Default).launch {
-//            val conversationsViewModel = ConversationsViewModel()
-//            conversationsViewModel.insert(context, conversation)
-//
-//            // TODO: build notifications
-//        }
-
-
-        // Get text and picture from MMS message. Adapted from: https://stackoverflow.com/questions/3012287/how-to-read-mms-data-in-android
-//        var message = ""
-//        var bitmap  = null // picture
-//        val selectionPart = "mid=$id"
-//        val mmsTextUri = "content://mms/part".toUri()
-//        val cursor = context.contentResolver.query(
-//            mmsTextUri, null,
-//            selectionPart, null, null
-//        )
-//        if (cursor!!.moveToFirst()) {
-//            do {
-//                val partId = cursor
-//                    .getString(cursor.getColumnIndex("_id"))
-//
-//                val type = cursor
-//                    .getString(cursor.getColumnIndex("ct"))
-//
-//                // Get text.
-//                if ("text/plain" == type) {
-//                    val data  = cursor
-//                        .getString(cursor.getColumnIndex("_data"))
-//
-//                    if (data != null) {
-//                        message = "TODO: Change this text"
-//                    } else {
-//                        message = "TODO: Change this text"
-//                    }
-//                }
-//                //Get picture.
-//                if ("image/jpeg" == type || "image/bmp" == type ||
-//                    "image/gif" == type || "image/jpg" == type ||
-//                    "image/png" == type
-//                ) {
-//                    bitmap = TODO("Get the Bitmap image from the incoming Pdu")
-//                }
-//            } while (cursor.moveToNext())
     }
 }
 
