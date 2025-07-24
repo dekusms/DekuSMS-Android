@@ -55,6 +55,7 @@ open class Conversation : Cloneable {
     @ColumnInfo var mmsImage: ByteArray? = null
     @ColumnInfo(defaultValue = "") var mmsMimeType: String? = null
     @ColumnInfo(defaultValue = "") var mmsContentUri: String? = null
+    @ColumnInfo(defaultValue = "") var mmsContentFilename: String? = null
 
     constructor()
 

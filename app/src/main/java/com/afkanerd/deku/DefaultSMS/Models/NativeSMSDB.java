@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class NativeSMSDB {
@@ -63,7 +65,30 @@ public class NativeSMSDB {
         public byte[] content;
         public String text;
         public String mimeType;
+        public String filename;
         public Uri contentUri;
+
+        public Conversation buildConversation(Context context, Conversation conversation) {
+            if(contentUri == null)
+                return conversation;
+
+            String defaultRegion = Helpers.INSTANCE.getUserCountry(context);
+            if(address != null && !address.isEmpty())
+                conversation.setAddress(
+                        Helpers.INSTANCE.getFormatCompleteNumber( address, defaultRegion ));
+            conversation.setText(text);
+            conversation.setMmsMimeType(mimeType);
+            conversation.setMmsContentFilename(filename);
+            conversation.setMmsContentUri(contentUri.toString());
+            conversation.setDate(String.valueOf(Long.parseLong(conversation.getDate()) * 1000));
+            conversation.setDate_sent(String.valueOf(Long.parseLong(conversation.getDate_sent()) * 1000));
+
+            conversation.setMmsContentUri(contentUri.toString());
+            conversation.setMmsMimeType(mimeType);
+            conversation.setText(text);
+
+            return conversation;
+        }
     }
 
     public static ParsedMms ParseMMS(Context context, Cursor cursor) {
@@ -98,16 +123,14 @@ public class NativeSMSDB {
                         parsedMms.content = getMmsContent(context, pid);
                         parsedMms.mimeType = type;
                         parsedMms.contentUri = Uri.parse("content://mms/part/" + pid);
+                    } else {
+                        String text = c.getString(c.getColumnIndex(Telephony.Mms.Part.TEXT));
+                        List<String> values = MmsHandler.INSTANCE.parseAttachmentNames(text);
+                        if(!values.isEmpty() && parsedMms.filename == null) {
+                            parsedMms.filename = values.get(0);
+                        }
                     }
                 }
-//                else if (type.contains("image")) {
-//                    if(parsedMms.content == null)
-//                        parsedMms.content = getMmsContent(context, pid);
-//                } else if (type.contains("video")) {
-//                    Log.d(NativeSMSDB.class.getName(), "Video found!");
-//                } else if (type.contains("audio")) {
-//                    Log.d(NativeSMSDB.class.getName(), "Audio found!");
-//                }
             } while(c.moveToNext());
             c.close();
         }

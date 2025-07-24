@@ -255,6 +255,7 @@ fun ConversationsCard(
     isKey: Boolean = false,
     mmsContentUri: Uri? = null,
     mmsMimeType: String? = null,
+    mmsFilename: String? = null,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
 ) {
@@ -281,7 +282,7 @@ fun ConversationsCard(
                     } else {
                         Column {
                             if(mmsContentUri != null && mmsMimeType != null) {
-                                MmsContentView(mmsContentUri, mmsMimeType)
+                                MmsContentView(mmsContentUri, mmsMimeType, mmsFilename)
                             }
                             if(text.isNotEmpty()) {
                                 ConversationReceived(
@@ -315,6 +316,7 @@ fun ConversationsCard(
                                 MmsContentView(
                                     mmsContentUri,
                                     mmsMimeType,
+                                    mmsFilename,
                                     isSending = true
                                 )
                             }

@@ -2,10 +2,13 @@ package com.afkanerd.deku.DefaultSMS.Commons
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import android.text.format.DateUtils
 import android.util.Base64
+import androidx.compose.ui.graphics.vector.path
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
@@ -259,5 +262,23 @@ object Helpers {
 
         return !((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
                 || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))))
+    }
+
+    fun getFileName(context: Context, uri: Uri): String? {
+        var fileName: String? = null
+        // Try to get the file name from the content resolver
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (displayNameIndex != -1) {
+                    fileName = cursor.getString(displayNameIndex)
+                }
+            }
+        }
+        // If the content resolver fails, try to get the file name from the path
+        if (fileName == null) {
+            fileName = uri.path?.substringAfterLast('/')
+        }
+        return fileName
     }
 }

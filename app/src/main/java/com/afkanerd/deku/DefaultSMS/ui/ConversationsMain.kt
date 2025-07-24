@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -71,11 +72,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -133,6 +136,7 @@ import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.toUri
 
 
 fun backHandler(
@@ -592,7 +596,7 @@ fun Conversations(
                             if(inPreviewMode) _items!![index]
                             else inboxMessagesItems[index]
                     )?.let { conversation ->
-                        val isMms = conversation.mmsImage != null
+                        val isMms = conversation.mmsContentUri != null
                         var showDate by remember { mutableStateOf(index == 0) }
 
                         var timestamp by remember { mutableStateOf(
@@ -667,6 +671,7 @@ fun Conversations(
                                 showDate = showDate,
                                 mmsContentUri = contentUri,
                                 mmsMimeType = conversation.mmsMimeType,
+                                mmsFilename = conversation.mmsContentFilename,
                                 onClickCallback = {
                                     if (selectedItems.isNotEmpty()) {
                                         if (selectedItems.contains(conversation.message_id))
@@ -833,39 +838,25 @@ fun MmsContentView(
 //    content: ByteArray?,
     contentUri: Uri,
     mimeType: String,
+    filename: String?,
     isSending: Boolean = false) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start=8.dp, end=8.dp, top=8.dp),
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp),
         horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
     ) {
         when {
             mimeType.contains("image") -> {
                     AsyncImage(
                         model = contentUri,
-                        contentDescription = "MMS image...",
+                        contentDescription = stringResource(R.string.mms_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(200.dp)
                             .aspectRatio(1f)  // This ensures a square aspect ratio
                             .clip(RoundedCornerShape(10.dp))
                     )
-//                content?.let { bytes ->
-//                    val bitmap = remember(bytes) {
-//                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-//                            .asImageBitmap()
-//                    }
-//                    Image(
-//                        bitmap = bitmap,
-//                        contentDescription = "MMS image...",
-//                        contentScale = ContentScale.Crop,
-//                        modifier = Modifier
-//                            .size(200.dp)
-//                            .aspectRatio(1f)  // This ensures a square aspect ratio
-//                            .clip(RoundedCornerShape(10.dp))
-//                    )
-//                }
             }
             mimeType.contains("video") -> {
                 val imageLoader = ImageLoader.Builder(LocalContext.current)
@@ -881,13 +872,34 @@ fun MmsContentView(
 
                 Image(
                     painter = painter,
-                    contentDescription = "",
+                    contentDescription = stringResource(R.string.mms_video),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(200.dp)
                         .aspectRatio(1f)  // This ensures a square aspect ratio
                         .clip(RoundedCornerShape(10.dp)),
                 )
+            }
+            else -> {
+                val inPreview = LocalInspectionMode.current
+                val filename by remember{
+                    mutableStateOf(if(inPreview) "filename.txt" else filename)
+                }
+                Card {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(painterResource(R.drawable.ic_alert), "")
+                        filename?.let {
+                            Text(
+                                it,
+                                modifier = Modifier.padding(start=16.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -953,5 +965,8 @@ fun PreviewMmsImage() {
     Column {
 //        MmsContentView(byteArray, "image/jpg")
 //        MmsContentView(byteArray, "video/mp4")
+        MmsContentView("content://file/path".toUri(),
+            "text/v-card",
+            "demo.txt")
     }
 }

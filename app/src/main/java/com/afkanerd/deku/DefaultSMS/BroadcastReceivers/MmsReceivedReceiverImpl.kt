@@ -24,21 +24,11 @@ class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
                 if(cursor.moveToFirst()) {
                     val mmsConversation = Conversation.build(cursor, true)
                     val parsedMms = NativeSMSDB.ParseMMS(context, cursor)
-
-                    mmsConversation.date = (mmsConversation.date!!.toLong() * 1000).toString()
-                    mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
-
-                    val defaultRegion = Helpers.getUserCountry(context)
-                    if(!parsedMms.address.isNullOrEmpty())
-                        mmsConversation.address = Helpers.getFormatCompleteNumber(
-                                parsedMms.address, defaultRegion )
-                    mmsConversation.mmsImage = parsedMms.content
-                    mmsConversation.mmsMimeType = parsedMms.mimeType
-                    mmsConversation.text = parsedMms.text
+                    parsedMms.buildConversation(context, mmsConversation)
 
 //                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
-                    Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
-                    println(mmsConversation)
+                    if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
+                        Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
                 }
             }
         }

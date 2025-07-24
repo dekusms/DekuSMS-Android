@@ -41,7 +41,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         Conversation.class,
         RemoteListeners.class,
         ThreadsConfigurations.class},
-        version = 27,
+        version = 28,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -61,6 +61,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 24, to = 25),
         @AutoMigration(from = 25, to = 26),
         @AutoMigration(from = 26, to = 27),
+        @AutoMigration(from = 27, to = 28),
 })
 
 

@@ -414,5 +414,7 @@
     <string name="send_mms_photo">Send MMS photo</string>
     <string name="mms_selected_image">MMS selected image</string>
     <string name="unknown_error_sending_mms">"Unknown error sending MMS: "</string>
+    <string name="mms_image">MMS image...</string>
+    <string name="mms_video">MMS video...</string>
 
 </resources>

@@ -485,18 +485,7 @@ class ConversationsViewModel : ViewModel() {
             do {
                 val mmsConversation = Conversation.Companion.build(cursorMMS, true)
                 val parsedMms = NativeSMSDB.ParseMMS(context, cursorMMS)
-                mmsConversation.date = (mmsConversation.date!!.toLong() * 1000).toString()
-                mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
-
-                if(!parsedMms.address.isNullOrEmpty())
-                    mmsConversation.address = Helpers.getFormatCompleteNumber(
-                        parsedMms.address,
-                        getDefaultRegion(context)
-                    )
-                mmsConversation.text = parsedMms.text
-//                mmsConversation.mmsImage = parsedMms.content
-                mmsConversation.mmsMimeType = parsedMms.mimeType
-                mmsConversation.mmsContentUri = parsedMms.contentUri?.toString()
+                parsedMms.buildConversation(context, mmsConversation);
 
                 if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
                     conversationList.add(mmsConversation)
@@ -601,7 +590,8 @@ class ConversationsViewModel : ViewModel() {
         conversation.address = address
         conversation.status = Telephony.Sms.STATUS_PENDING
         conversation.isRead = true
-        conversation.mmsImage = mmsImage
+//        conversation.mmsImage = mmsImage
+        conversation.mmsContentUri = contentUri.toString()
 
         sendMmsMessage(
             context = context,
