@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -169,7 +170,6 @@ private fun ConversationSent(
     text: AnnotatedString,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
-    date: String = "yesterday",
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
@@ -324,7 +324,6 @@ fun ConversationsCard(
                                 ConversationSent(
                                     text =text,
                                     position =position,
-                                    date =date,
                                     status =status,
                                     isSelected = isSelected,
                                     onClickCallback = onClickCallback,
@@ -622,10 +621,15 @@ private fun call(context: Context, address: String) {
 fun PreviewConversationsReceived() {
     AppTheme(darkTheme = true) {
         Surface(Modifier.safeDrawingPadding()) {
-            ConversationReceived(
-                text = AnnotatedString("Hello world"),
-                date = "yesterday",
-            )
+            Column {
+                ConversationReceived(
+                    text = AnnotatedString("Hello world"),
+                    date = "yesterday",
+                )
+                ConversationSent(
+                    text = AnnotatedString("Hello world"),
+                )
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
@@ -585,13 +586,15 @@ class ConversationsViewModel : ViewModel() {
         conversation.message_id = System.currentTimeMillis().toString()
         conversation.thread_id = threadId
         conversation.subscription_id = subscriptionId
-        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+        conversation.type = Telephony.Mms.MESSAGE_BOX_OUTBOX
         conversation.date = System.currentTimeMillis().toString()
         conversation.address = address
         conversation.status = Telephony.Sms.STATUS_PENDING
         conversation.isRead = true
 //        conversation.mmsImage = mmsImage
         conversation.mmsContentUri = contentUri.toString()
+        conversation.mmsMimeType = context.contentResolver.getType(contentUri)
+        conversation.mmsContentFilename = Helpers.getFileName(context, contentUri)
 
         sendMmsMessage(
             context = context,

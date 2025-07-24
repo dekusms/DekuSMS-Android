@@ -39,7 +39,7 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
                     .getMessage(originalResentMessageId)
 
                 conversation.status = messageBox
-                conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                conversation.type = Telephony.Mms.MESSAGE_BOX_SENT
                 datastore.conversationDao()._update(conversation)
 
             }
