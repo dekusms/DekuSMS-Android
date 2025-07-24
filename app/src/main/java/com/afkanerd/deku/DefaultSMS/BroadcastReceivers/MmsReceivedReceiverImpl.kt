@@ -1,24 +1,15 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Telephony
-import android.provider.Telephony.Mms
 import android.util.Log
-import androidx.core.net.toUri
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.klinker.android.send_message.MmsReceivedReceiver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
     override fun onMessageReceived(context: Context?, contentUri: Uri?) {
@@ -41,7 +32,8 @@ class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
                     if(!parsedMms.address.isNullOrEmpty())
                         mmsConversation.address = Helpers.getFormatCompleteNumber(
                                 parsedMms.address, defaultRegion )
-                    mmsConversation.mmsImage = parsedMms.image
+                    mmsConversation.mmsImage = parsedMms.content
+                    mmsConversation.mmsMimeType = parsedMms.mimeType
                     mmsConversation.text = parsedMms.text
 
 //                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())

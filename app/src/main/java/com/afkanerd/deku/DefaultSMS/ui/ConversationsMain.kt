@@ -1,18 +1,17 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import androidx.compose.foundation.Image
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
-import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -21,19 +20,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Colors
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -48,6 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,7 +53,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -69,19 +64,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -91,7 +80,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,12 +94,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Components.ChatCompose
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationCrudBottomBar
-import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationPositionTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationStatusTypes
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
@@ -128,24 +114,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import androidx.core.net.toUri
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import coil3.ImageLoader
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.crossfade
+import coil3.video.VideoFrameDecoder
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler.call
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.deku.DefaultSMS.ui.Components.ConversationsMainDropDownMenu
 import com.afkanerd.deku.DefaultSMS.ui.Components.MessageInfoAlert
 import com.afkanerd.deku.DefaultSMS.ui.Components.getConversationType
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
-import kotlinx.coroutines.withContext
 import sh.calvin.autolinktext.rememberAutoLinkText
 import java.io.ByteArrayOutputStream
-import androidx.core.graphics.createBitmap
 import com.afkanerd.deku.DefaultSMS.ui.Components.getByteArrayFromUri
-import com.afkanerd.deku.DefaultSMS.ui.Components.mmsImagePicker
+import androidx.core.net.toUri
+import androidx.core.graphics.createBitmap
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 
 
 fun backHandler(
@@ -663,6 +650,11 @@ fun Conversations(
                                 }
                             }
                         }
+
+                        val contentUri by remember{
+                            mutableStateOf(conversation.mmsContentUri?.toUri())
+                        }
+
                         Column {
                             ConversationsCard(
                                 text= text,
@@ -673,7 +665,8 @@ fun Conversations(
                                 position = position,
                                 date = date,
                                 showDate = showDate,
-                                mmsImage = conversation.mmsImage,
+                                mmsContentUri = contentUri,
+                                mmsMimeType = conversation.mmsMimeType,
                                 onClickCallback = {
                                     if (selectedItems.isNotEmpty()) {
                                         if (selectedItems.contains(conversation.message_id))
@@ -733,7 +726,7 @@ fun Conversations(
 
                         scope.launch { listState.animateScrollToItem(0) }
                     },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.outline
                     ),
                     contentPadding = PaddingValues(8.dp),
@@ -836,27 +829,66 @@ fun Conversations(
 }
 
 @Composable
-fun MmsImageView(image: ByteArray, isSending: Boolean = false) {
+fun MmsContentView(
+//    content: ByteArray?,
+    contentUri: Uri,
+    mimeType: String,
+    isSending: Boolean = false) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start=8.dp, end=8.dp, top=8.dp),
         horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
     ) {
-        image.let { bytes ->
-            val bitmap = remember(bytes) {
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    .asImageBitmap()
+        when {
+            mimeType.contains("image") -> {
+                    AsyncImage(
+                        model = contentUri,
+                        contentDescription = "MMS image...",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .aspectRatio(1f)  // This ensures a square aspect ratio
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+//                content?.let { bytes ->
+//                    val bitmap = remember(bytes) {
+//                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+//                            .asImageBitmap()
+//                    }
+//                    Image(
+//                        bitmap = bitmap,
+//                        contentDescription = "MMS image...",
+//                        contentScale = ContentScale.Crop,
+//                        modifier = Modifier
+//                            .size(200.dp)
+//                            .aspectRatio(1f)  // This ensures a square aspect ratio
+//                            .clip(RoundedCornerShape(10.dp))
+//                    )
+//                }
             }
-            Image(
-                bitmap = bitmap,
-                contentDescription = "MMS image...",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(200.dp)
-                    .aspectRatio(1f)  // This ensures a square aspect ratio
-                    .clip(RoundedCornerShape(10.dp))
-            )
+            mimeType.contains("video") -> {
+                val imageLoader = ImageLoader.Builder(LocalContext.current)
+                    .components {
+                        add(VideoFrameDecoder.Factory())
+                    }
+                    .build()
+
+                val painter = rememberAsyncImagePainter(
+                    model = contentUri,
+                    imageLoader = imageLoader,
+                )
+
+                Image(
+                    painter = painter,
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .aspectRatio(1f)  // This ensures a square aspect ratio
+                        .clip(RoundedCornerShape(10.dp)),
+                )
+            }
         }
     }
 }
@@ -871,9 +903,9 @@ fun PreviewConversations() {
             var isSend = false
 
             val byteArray = remember {
-                val bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(bmp)
-                val paint = android.graphics.Paint().apply {
+                val bmp = createBitmap(100, 100)
+                val canvas = Canvas(bmp)
+                val paint = Paint().apply {
                     color = android.graphics.Color.RED
                 }
 
@@ -905,9 +937,9 @@ fun PreviewConversations() {
 @Composable
 fun PreviewMmsImage() {
     val byteArray = remember {
-        val bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(bmp)
-        val paint = android.graphics.Paint().apply {
+        val bmp = createBitmap(100, 100)
+        val canvas = Canvas(bmp)
+        val paint = Paint().apply {
             color = android.graphics.Color.RED
         }
 
@@ -918,5 +950,8 @@ fun PreviewMmsImage() {
         stream.toByteArray()
     }
 
-    MmsImageView(byteArray)
+    Column {
+//        MmsContentView(byteArray, "image/jpg")
+//        MmsContentView(byteArray, "video/mp4")
+    }
 }

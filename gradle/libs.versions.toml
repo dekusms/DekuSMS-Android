@@ -9,6 +9,7 @@ autolinktext = "2.0.2"
 avatarviewCoil = "1.0.7"
 coilCompose = "3.2.0"
 coilNetworkOkhttp = "3.2.0"
+coilVideoVersion = "3.3.0"
 commonsCodec = "1.18.0"
 commonsNet = "3.11.1"
 composeBom = "2025.06.01"
@@ -121,6 +122,7 @@ autolinktext = { module = "sh.calvin.autolinktext:autolinktext", version.ref = "
 avatarview-coil = { module = "io.getstream:avatarview-coil", version.ref = "avatarviewCoil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coilVideoVersion" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-net = { module = "commons-net:commons-net", version.ref = "commonsNet" }
 conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscryptAndroid" }

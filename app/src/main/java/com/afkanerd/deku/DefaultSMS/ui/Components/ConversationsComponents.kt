@@ -281,7 +281,12 @@ fun ChatCompose(
             .imePadding()
             .height(IntrinsicSize.Min)
             .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-            .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp))
+            .clip(RoundedCornerShape(
+                24.dp,
+                24.dp,
+                24.dp,
+                24.dp)
+            )
             .background(MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row {
@@ -292,8 +297,7 @@ fun ChatCompose(
                 verticalArrangement = Arrangement.Bottom
             ) {
                 IconButton(onClick = {
-                    imagePicker.launch(PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    imagePicker.launch(arrayOf("*/*"))
                 }) {
                     Icon(
                         Icons.Outlined.PhotoLibrary,
@@ -919,9 +923,9 @@ fun MessageInfoAlert_Preview() {
 @Composable
 fun mmsImagePicker(
     callback: (Uri) -> Unit
-): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+): ManagedActivityResultLauncher<Array<String>, Uri?> {
     // Registers a photo picker activity launcher in single-select mode.
-    return rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+    return rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         // Callback is invoked after the user selects a media item or closes the
         // photo picker.
         if (uri != null) {

@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui.Components
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Telephony
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -41,9 +42,8 @@ import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
-import com.afkanerd.deku.DefaultSMS.ui.MmsImageView
+import com.afkanerd.deku.DefaultSMS.ui.MmsContentView
 import com.example.compose.AppTheme
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -253,7 +253,8 @@ fun ConversationsCard(
     status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
     isSelected: Boolean = false,
     isKey: Boolean = false,
-    mmsImage: ByteArray? = null,
+    mmsContentUri: Uri? = null,
+    mmsMimeType: String? = null,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
 ) {
@@ -279,8 +280,8 @@ fun ConversationsCard(
                         ConversationIsKey(isReceived = true)
                     } else {
                         Column {
-                            mmsImage?.let {
-                                MmsImageView(it)
+                            if(mmsContentUri != null && mmsMimeType != null) {
+                                MmsContentView(mmsContentUri, mmsMimeType)
                             }
                             if(text.isNotEmpty()) {
                                 ConversationReceived(
@@ -310,8 +311,12 @@ fun ConversationsCard(
                         ConversationIsKey(isReceived = false)
                     } else {
                         Column {
-                            mmsImage?.let {
-                                MmsImageView(it, true)
+                            if(mmsContentUri != null && mmsMimeType != null) {
+                                MmsContentView(
+                                    mmsContentUri,
+                                    mmsMimeType,
+                                    isSending = true
+                                )
                             }
                             if(text.isNotEmpty()) {
                                 ConversationSent(

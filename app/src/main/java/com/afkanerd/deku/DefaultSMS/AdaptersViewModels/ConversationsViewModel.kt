@@ -2,7 +2,6 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
@@ -11,7 +10,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.database.getStringOrNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -40,7 +38,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
 import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 
@@ -492,13 +489,18 @@ class ConversationsViewModel : ViewModel() {
                 mmsConversation.date_sent = (mmsConversation.date!!.toLong() * 1000).toString()
 
                 if(!parsedMms.address.isNullOrEmpty())
-                    mmsConversation.address = Helpers.getFormatCompleteNumber(parsedMms.address,
-                        getDefaultRegion(context))
-                mmsConversation.mmsImage = parsedMms.image
+                    mmsConversation.address = Helpers.getFormatCompleteNumber(
+                        parsedMms.address,
+                        getDefaultRegion(context)
+                    )
                 mmsConversation.text = parsedMms.text
+//                mmsConversation.mmsImage = parsedMms.content
+                mmsConversation.mmsMimeType = parsedMms.mimeType
+                mmsConversation.mmsContentUri = parsedMms.contentUri?.toString()
 
-                if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
+                if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
                     conversationList.add(mmsConversation)
+
             } while (cursorMMS.moveToNext())
             cursorMMS.close()
         }

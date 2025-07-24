@@ -5,8 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -14,7 +12,6 @@ import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -63,9 +60,12 @@ public class NativeSMSDB {
 
     public static class ParsedMms {
         public String address;
-        public byte[] image;
+        public byte[] content;
         public String text;
+        public String mimeType;
+        public Uri contentUri;
     }
+
     public static ParsedMms ParseMMS(Context context, Cursor cursor) {
         Uri uri = Uri.parse("content://mms/part");
         int idIndex = cursor.getColumnIndexOrThrow("_id");
@@ -83,17 +83,31 @@ public class NativeSMSDB {
                 String pid = c.getString(_idIndex);
 
                 int typeIndex = c.getColumnIndex("ct");
+
                 String type = c.getString(typeIndex);
 
                 if(parsedMms.address == null || parsedMms.address.isBlank())
                     parsedMms.address = getMmsAddr(context, id);
+
                 if ("text/plain".equals(type)) {
                     if(parsedMms.text == null || parsedMms.text.isBlank())
                         parsedMms.text = c.getString(c.getColumnIndex("text"));
-                } else if (type.contains("image")) {
-                    if(parsedMms.image == null)
-                        parsedMms.image = getMmsImg(context, pid);
                 }
+                else if(parsedMms.content == null && (type != null && !type.isEmpty())) {
+                    if(!type.equals("application/smil")) {
+                        parsedMms.content = getMmsContent(context, pid);
+                        parsedMms.mimeType = type;
+                        parsedMms.contentUri = Uri.parse("content://mms/part/" + pid);
+                    }
+                }
+//                else if (type.contains("image")) {
+//                    if(parsedMms.content == null)
+//                        parsedMms.content = getMmsContent(context, pid);
+//                } else if (type.contains("video")) {
+//                    Log.d(NativeSMSDB.class.getName(), "Video found!");
+//                } else if (type.contains("audio")) {
+//                    Log.d(NativeSMSDB.class.getName(), "Audio found!");
+//                }
             } while(c.moveToNext());
             c.close();
         }
@@ -101,7 +115,7 @@ public class NativeSMSDB {
         return parsedMms;
     }
 
-    public static byte[] getMmsImg(Context context, String id) {
+    public static byte[] getMmsContent(Context context, String id) {
         Uri uri = Uri.parse("content://mms/part/" + id);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 

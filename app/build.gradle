@@ -278,5 +278,7 @@ dependencies {
 //    compile libs.android.smsmms
 
     androidTestImplementation libs.androidx.rules
+
+    implementation(libs.coil.video)
 }
 
