@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ConversationsViewModel.exportRawWithColumnGuesses(applicationContext)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Fix for three-button nav not properly going edge-to-edge.
             // TODO: https://issuetracker.google.com/issues/298296168

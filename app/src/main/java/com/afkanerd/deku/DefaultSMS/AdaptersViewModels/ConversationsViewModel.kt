@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
@@ -10,6 +11,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.database.getStringOrNull
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -25,11 +28,12 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
-import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
+import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
+import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -39,8 +43,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
-import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 
 
 class ConversationsViewModel : ViewModel() {
@@ -276,12 +278,12 @@ class ConversationsViewModel : ViewModel() {
     }
 
    fun isMuted(context: Context, threadId: String? = null) : Boolean {
-       val datastore = Datastore.getDatastore(context)
-       val thread = datastore.threadsConfigurationsDao().get(threadId ?: this.threadId)
-       if(thread != null)
+        val datastore = Datastore.getDatastore(context)
+        val thread = datastore.threadsConfigurationsDao().get(threadId ?: this.threadId)
+        if(thread != null)
            return thread.isMute
-       return false
-    }
+        return false
+   }
 
     fun unMute(context: Context, threadIds: List<String>) {
         val datastore = Datastore.getDatastore(context)
@@ -606,6 +608,295 @@ class ConversationsViewModel : ViewModel() {
             this.mmsImage = null
             this.encryptedText = ""
             this.clearDraft(context)
+        }
+    }
+
+
+    data class MmsContentDataClass(
+        val _id: Int,
+        val thread_id: Int,
+        val date: Int,
+        val date_sent: Int,
+        val msg_box: Int,
+        val read: Int,
+        val m_id: String??,
+        val sub: String?,
+        val sub_cs: Int,
+        val ct_t: String?,
+        val ct_l: String?,
+        val exp: String? = null,
+        val m_cls: String?,
+        val m_type: Int,
+        val v: Int,
+        val m_size: Int,
+        val pri: Int,
+        val rr: Int,
+        val rpt_a: String? = null,
+        val resp_st: String? = null,
+        val st: String? = null,
+        val tr_id: String? = null,
+        val retr_st: String? = null,
+        val retr_txt: String? = null,
+        val retr_txt_cs: String? = null,
+        val read_status: String? = null,
+        val ct_cls: String? = null,
+        val resp_txt: String? = null,
+        val d_tm: String? = null,
+        val d_rpt: Int,
+        val locked: Int,
+        val sub_id: Int,
+        val seen: Int,
+        val creator: String?,
+        val text_only: Int,
+    )
+
+    data class SmsContentDataClass(
+        val _id: Int,
+        val thread_id: Int,
+        val address: String?,
+        val person: String? = null,
+        val date: Int,
+        val date_sent: Int,
+        val protocol: String? = null,
+        val read: Int,
+        val status: Int,
+        val type: Int,
+        val reply_path_present: String? = null,
+        val subject: String? = null,
+        val body: String,
+        val service_center: String? = null,
+        val locked: Int,
+        val sub_id: Int,
+        val error_code: Int,
+        val creator: String,
+        val seen: Int,
+    )
+
+    data class SmsMmsContents(
+        val mmsContents: Map<String, ArrayList<MmsContentDataClass>>,
+        val mmsPartContents: Map<String, ArrayList<MmsPartContents>>,
+        val smsContents: Map<String, ArrayList<SmsContentDataClass>>,
+    )
+
+    data class MmsPartContents(
+        val _id: Int,
+        val mid: Int,
+        val seq: Int,
+        val ct: String?,
+        val name: String?,
+        val chset: String? = null,
+        val cd: String? = null,
+        val fn: String? = null,
+        val cid: String?,
+        val cl: String?,
+        val ctt_s: String? = null,
+        val ctt_t: String? = null,
+        val _data: String? = null,
+        val text: String?,
+        val sub_id: Int,
+    )
+
+    companion object {
+        /**
+         *
+         * MMS
+         * _id, thread_id, date, date_sent, msg_box, read, m_id, sub, sub_cs, ct_t, ct_l, exp,
+         * m_cls, m_type, v, m_size, pri, rr, rpt_a, resp_st, st, tr_id, retr_st, retr_txt,
+         * retr_txt_cs, read_status, ct_cls, resp_txt, d_tm, d_rpt, locked, sub_id, seen, creator,
+         * text_only
+         *
+         *
+         * MMS/Part
+         * _id, mid, seq, ct, name, chset, cd, fn, cid, cl, ctt_s, ctt_t, _data, text, sub_id
+         *
+         *
+         * SMS
+         * _id, thread_id, address, person, date, date_sent, protocol, read, status, type,
+         * reply_path_present, subject, body, service_center, locked, sub_id, error_code,
+         * creator, seen
+         *
+         */
+
+        fun exportRawWithColumnGuesses(context: Context): String {
+            val mmsContents = arrayListOf<MmsContentDataClass>()
+            val mmsPartsContents = arrayListOf<MmsPartContents>()
+            val smsContents = arrayListOf<SmsContentDataClass>()
+
+            // MMS
+            context.contentResolver.query(
+                Telephony.Mms.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+            )?.let { cursor ->
+                if(cursor.moveToFirst()) {
+                    do {
+                        mmsContents.add(parseRawMmsContents(cursor))
+                    } while(cursor.moveToNext())
+                }
+                cursor.close()
+            }
+
+            // MMS/Parts
+            context.contentResolver.query(
+                "content://mms/part".toUri(),
+                null,
+                null,
+                null,
+                null
+            )?.let { cursor ->
+                if(cursor.moveToFirst()) {
+                    do {
+                        mmsPartsContents.add(parseRawMmsContentsParts(cursor))
+                    } while(cursor.moveToNext())
+                }
+            }
+
+
+            // SMS
+            context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+            )?.let { cursor ->
+                if(cursor.moveToFirst()) {
+                    do {
+                        smsContents.add(parseRawSmsContents(cursor))
+                    } while(cursor.moveToNext())
+                }
+                cursor.close()
+            }
+
+            val smsMmsContents = SmsMmsContents(
+                mapOf(Pair(Telephony.Mms.CONTENT_URI.toString(),
+                    mmsContents)),
+
+                mapOf(Pair("content://mms/part", mmsPartsContents)),
+
+                mapOf(Pair(Telephony.Sms.CONTENT_URI.toString(),
+                    smsContents)),
+            )
+
+            val gson = GsonBuilder()
+                .serializeNulls()
+                .setPrettyPrinting()
+                .create()
+            return gson.toJson(smsMmsContents)
+        }
+
+        private fun parseRawMmsContentsParts(cursor: Cursor): MmsPartContents {
+            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
+            val mid: Int = cursor.getInt(cursor.getColumnIndex("mid"))
+            val seq: Int = cursor.getInt(cursor.getColumnIndex("seq"))
+            val ct: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct"))
+            val name: String? = cursor.getStringOrNull(cursor.getColumnIndex("name"))
+            val cid: String? = cursor.getStringOrNull(cursor.getColumnIndex("cid"))
+            val cl: String? = cursor.getStringOrNull(cursor.getColumnIndex("cl"))
+            val text: String? = cursor.getStringOrNull(cursor.getColumnIndex("text"))
+            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
+
+            return MmsPartContents(
+                _id = _id,
+                mid = mid,
+                seq = seq,
+                ct = ct,
+                name = name,
+                cid = cid,
+                cl = cl,
+                text = text,
+                sub_id = sub_id
+            )
+        }
+
+        private fun parseRawMmsContents(cursor: Cursor): MmsContentDataClass {
+            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
+            val thread_id: Int = cursor.getInt(cursor.getColumnIndex("thread_id"))
+            val date: Int = cursor.getInt(cursor.getColumnIndex("date"))
+            val date_sent: Int = cursor.getInt(cursor.getColumnIndex("date_sent"))
+            val msg_box: Int = cursor.getInt(cursor.getColumnIndex("msg_box"))
+            val read: Int = cursor.getInt(cursor.getColumnIndex("read"))
+            val m_id: String? = cursor.getStringOrNull(cursor.getColumnIndex("m_id"))
+            val sub: String? = cursor.getStringOrNull(cursor.getColumnIndex("sub"))
+            val sub_cs: Int = cursor.getInt(cursor.getColumnIndex("sub_cs"))
+            val ct_t: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct_t"))
+            val ct_l: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct_l"))
+            val m_cls: String? = cursor.getStringOrNull(cursor.getColumnIndex("m_cls"))
+            val m_type: Int = cursor.getInt(cursor.getColumnIndex("m_type"))
+            val v: Int = cursor.getInt(cursor.getColumnIndex("v"))
+            val m_size: Int = cursor.getInt(cursor.getColumnIndex("m_size"))
+            val pri: Int = cursor.getInt(cursor.getColumnIndex("pri"))
+            val rr: Int = cursor.getInt(cursor.getColumnIndex("rr"))
+            val d_rpt: Int = cursor.getInt(cursor.getColumnIndex("d_rpt"))
+            val locked: Int = cursor.getInt(cursor.getColumnIndex("locked"))
+            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
+            val seen: Int = cursor.getInt(cursor.getColumnIndex("seen"))
+            val creator: String? = cursor.getStringOrNull(cursor.getColumnIndex("creator"))
+            val text_only: Int = cursor.getInt(cursor.getColumnIndex("text_only"))
+
+            return MmsContentDataClass(
+                _id = _id,
+                thread_id = thread_id,
+                date = date,
+                date_sent = date_sent,
+                msg_box = msg_box,
+                read = read,
+                m_id = m_id,
+                sub = sub,
+                sub_cs = sub_cs,
+                ct_t = ct_t,
+                ct_l = ct_l,
+                m_cls = m_cls,
+                m_type = m_type,
+                v = v,
+                m_size = m_size,
+                pri = pri,
+                rr = rr,
+                d_rpt = d_rpt,
+                locked = locked,
+                sub_id = sub_id,
+                seen = seen,
+                creator = creator,
+                text_only = text_only
+            )
+        }
+
+        private fun parseRawSmsContents(cursor: Cursor): SmsContentDataClass {
+            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
+            val thread_id: Int = cursor.getInt(cursor.getColumnIndex("thread_id"))
+            val address: String? = cursor.getString(cursor.getColumnIndex("address"))
+            val date: Int = cursor.getInt(cursor.getColumnIndex("date"))
+            val date_sent: Int = cursor.getInt(cursor.getColumnIndex("date_sent"))
+            val read: Int = cursor.getInt(cursor.getColumnIndex("read"))
+            val status: Int = cursor.getInt(cursor.getColumnIndex("status"))
+            val type: Int = cursor.getInt(cursor.getColumnIndex("type"))
+            val body: String = cursor.getString(cursor.getColumnIndex("body"))
+            val locked: Int = cursor.getInt(cursor.getColumnIndex("locked"))
+            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
+            val error_code: Int = cursor
+                .getInt(cursor.getColumnIndex("error_code"))
+            val creator: String = cursor
+                .getString(cursor.getColumnIndex("creator"))
+            val seen: Int = cursor.getInt(cursor.getColumnIndex("seen"))
+
+            return SmsContentDataClass(
+                _id = _id,
+                thread_id = thread_id,
+                address = address,
+                date = date,
+                date_sent = date_sent,
+                read = read,
+                status = status,
+                type = type,
+                body = body,
+                locked = locked,
+                sub_id = sub_id,
+                error_code = error_code,
+                creator = creator,
+                seen = seen
+            )
         }
     }
 
