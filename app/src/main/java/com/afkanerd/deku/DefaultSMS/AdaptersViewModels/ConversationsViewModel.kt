@@ -673,9 +673,9 @@ class ConversationsViewModel : ViewModel() {
     )
 
     data class SmsMmsContents(
-        val mmsContents: Map<String, ArrayList<MmsContentDataClass>>,
-        val mmsPartContents: Map<String, ArrayList<MmsPartContents>>,
-        val smsContents: Map<String, ArrayList<SmsContentDataClass>>,
+        val mms: Map<String, ArrayList<MmsContentDataClass>>,
+        val mms_parts: Map<String, ArrayList<MmsPartContents>>,
+        val sms: Map<String, ArrayList<SmsContentDataClass>>,
     )
 
     data class MmsPartContents(
