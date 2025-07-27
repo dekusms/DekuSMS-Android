@@ -23,3 +23,6 @@ object RemoteListenersAddScreen
 
 @Serializable
 object LogcatScreen
+
+@Serializable
+object DeveloperModeScreen

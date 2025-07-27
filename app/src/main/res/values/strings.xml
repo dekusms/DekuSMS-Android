@@ -416,5 +416,11 @@
     <string name="unknown_error_sending_mms">"Unknown error sending MMS: "</string>
     <string name="mms_image">MMS image...</string>
     <string name="mms_video">MMS video...</string>
+    <string name="export_sms_mms_database">Export SMS/MMS database</string>
+    <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">This exports all SMS and MMS databases. Can be useful if you need to capture all fields as stored by the default SMS apps.</string>
+    <string name="developer_options">Developer options</string>
+    <string name="android_developer">Android developer</string>
+    <string name="sms_mms_import_export">SMS/MMS Import/Export</string>
+    <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
 
 </resources>

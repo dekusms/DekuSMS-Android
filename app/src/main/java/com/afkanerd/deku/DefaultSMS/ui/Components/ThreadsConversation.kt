@@ -29,6 +29,7 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CloudSync
@@ -533,6 +534,25 @@ fun ModalDrawerSheetLayout(
                 },
                 selected = selectedItemIndex == InboxType.REMOTE_LISTENER,
                 onClick = { callback?.let{ it(InboxType.REMOTE_LISTENER) } }
+            )
+
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        Icons.Filled.Android,
+                        contentDescription = stringResource(R.string.android_developer)
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.developer_options),
+                        fontSize = 14.sp
+                    )
+                },
+                badge = {
+                },
+                selected = selectedItemIndex == InboxType.DEVELOPER_MODE,
+                onClick = { callback?.let{ it(InboxType.DEVELOPER_MODE) } }
             )
         }
     }

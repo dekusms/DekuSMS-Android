@@ -91,6 +91,7 @@ import com.afkanerd.deku.DefaultSMS.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
 import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
+import com.afkanerd.deku.DeveloperModeScreen
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
@@ -107,7 +108,8 @@ enum class InboxType(val value: Int) {
     BLOCKED(3),
     DRAFTS(4),
     MUTED(5),
-    REMOTE_LISTENER(6);
+    REMOTE_LISTENER(6),
+    DEVELOPER_MODE(7);
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
@@ -451,6 +453,8 @@ fun ThreadConversationLayout(
                                         )
                                     }
                                 }
+
+                                InboxType.DEVELOPER_MODE -> { }
                             }
                         },
                         scrollBehavior = scrollBehaviour
@@ -491,6 +495,8 @@ fun ThreadConversationLayout(
                             expanded = listState.isScrollingUp()
                         )
                     }
+
+                    InboxType.DEVELOPER_MODE -> {}
                 }
             }
         ) { innerPadding ->
@@ -554,6 +560,10 @@ fun ThreadConversationLayout(
                                     )
                                 }
                         }
+
+                        InboxType.DEVELOPER_MODE -> {
+                            navController.navigate(DeveloperModeScreen)
+                        }
                     }
 //
                     LazyColumn(
@@ -563,7 +573,8 @@ fun ThreadConversationLayout(
                         items(
                             count = when(inboxType) {
                                 InboxType.BLOCKED -> blockedItems.size
-                                InboxType.INBOX -> inboxMessagesItems.itemCount
+                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
+                                    inboxMessagesItems.itemCount
                                 InboxType.ARCHIVED -> archivedMessagesItems.itemCount
                                 InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
                                 InboxType.DRAFTS -> draftMessagesItems.itemCount
@@ -572,7 +583,8 @@ fun ThreadConversationLayout(
                             },
                             key = when(inboxType) {
                                 InboxType.BLOCKED -> {{ blockedItems[it].id }}
-                                InboxType.INBOX -> inboxMessagesItems.itemKey{ it.id }
+                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
+                                    inboxMessagesItems.itemKey{ it.id }
                                 InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
                                 InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
                                 InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
@@ -581,7 +593,8 @@ fun ThreadConversationLayout(
                             }
                         ) { index ->
                             val message = when(inboxType) {
-                                InboxType.INBOX -> inboxMessagesItems[index]
+                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
+                                    inboxMessagesItems[index]
                                 InboxType.ARCHIVED -> archivedMessagesItems[index]
                                 InboxType.ENCRYPTED -> encryptedMessagesItems[index]
                                 InboxType.BLOCKED -> blockedItems[index]

@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ui.DeveloperModeMain
 import com.afkanerd.deku.DefaultSMS.ui.LogcatMain
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
@@ -173,6 +174,9 @@ class MainActivity : AppCompatActivity(){
                             }
                             composable<LogcatScreen>{
                                 LogcatMain()
+                            }
+                            composable<DeveloperModeScreen>{
+                                DeveloperModeMain(navController = navController)
                             }
                         }
                         else {
