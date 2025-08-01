@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
@@ -788,15 +789,24 @@ class ConversationsViewModel : ViewModel() {
         }
 
         private fun parseRawMmsContentsParts(cursor: Cursor): MmsPartContents {
-            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
-            val mid: Int = cursor.getInt(cursor.getColumnIndex("mid"))
-            val seq: Int = cursor.getInt(cursor.getColumnIndex("seq"))
-            val ct: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct"))
-            val name: String? = cursor.getStringOrNull(cursor.getColumnIndex("name"))
-            val cid: String? = cursor.getStringOrNull(cursor.getColumnIndex("cid"))
-            val cl: String? = cursor.getStringOrNull(cursor.getColumnIndex("cl"))
-            val text: String? = cursor.getStringOrNull(cursor.getColumnIndex("text"))
-            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
+            val _id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.Part._ID))
+            val mid: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.Part.MSG_ID))
+            val seq: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.Part.SEQ))
+            val ct: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.CONTENT_TYPE))
+            val name: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.NAME))
+            val cid: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
+            val cl: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
+            val text: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.TEXT))
+            val sub_id: Int = cursor.getInt(cursor
+                .getColumnIndex("sub_id"))
 
             return MmsPartContents(
                 _id = _id,
@@ -811,30 +821,54 @@ class ConversationsViewModel : ViewModel() {
             )
         }
 
+        @SuppressLint("Range")
         private fun parseRawMmsContents(cursor: Cursor): MmsContentDataClass {
-            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
-            val thread_id: Int = cursor.getInt(cursor.getColumnIndex("thread_id"))
-            val date: Int = cursor.getInt(cursor.getColumnIndex("date"))
-            val date_sent: Int = cursor.getInt(cursor.getColumnIndex("date_sent"))
-            val msg_box: Int = cursor.getInt(cursor.getColumnIndex("msg_box"))
-            val read: Int = cursor.getInt(cursor.getColumnIndex("read"))
-            val m_id: String? = cursor.getStringOrNull(cursor.getColumnIndex("m_id"))
-            val sub: String? = cursor.getStringOrNull(cursor.getColumnIndex("sub"))
-            val sub_cs: Int = cursor.getInt(cursor.getColumnIndex("sub_cs"))
-            val ct_t: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct_t"))
-            val ct_l: String? = cursor.getStringOrNull(cursor.getColumnIndex("ct_l"))
-            val m_cls: String? = cursor.getStringOrNull(cursor.getColumnIndex("m_cls"))
-            val m_type: Int = cursor.getInt(cursor.getColumnIndex("m_type"))
-            val v: Int = cursor.getInt(cursor.getColumnIndex("v"))
-            val m_size: Int = cursor.getInt(cursor.getColumnIndex("m_size"))
-            val pri: Int = cursor.getInt(cursor.getColumnIndex("pri"))
-            val rr: Int = cursor.getInt(cursor.getColumnIndex("rr"))
-            val d_rpt: Int = cursor.getInt(cursor.getColumnIndex("d_rpt"))
-            val locked: Int = cursor.getInt(cursor.getColumnIndex("locked"))
-            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
-            val seen: Int = cursor.getInt(cursor.getColumnIndex("seen"))
-            val creator: String? = cursor.getStringOrNull(cursor.getColumnIndex("creator"))
-            val text_only: Int = cursor.getInt(cursor.getColumnIndex("text_only"))
+            val _id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms._ID))
+            val thread_id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.THREAD_ID))
+            val date: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.DATE))
+            val date_sent: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.DATE_SENT))
+            val msg_box: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.MESSAGE_BOX))
+            val read: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.READ))
+            val m_id: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.MESSAGE_ID))
+            val sub: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.SUBJECT))
+            val sub_cs: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.SUBJECT_CHARSET))
+            val ct_t: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.CONTENT_TYPE))
+            val ct_l: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.CONTENT_LOCATION))
+            val m_cls: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.MESSAGE_CLASS))
+            val m_type: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.MESSAGE_TYPE))
+            val v: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.MMS_VERSION))
+            val m_size: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.MESSAGE_SIZE))
+            val pri: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.PRIORITY))
+            val rr: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.READ_REPORT))
+            val d_rpt: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.DELIVERY_REPORT))
+            val locked: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.LOCKED))
+            val sub_id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.SUBSCRIPTION_ID))
+            val seen: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.SEEN))
+            val creator: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.CREATOR))
+            val text_only: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Mms.TEXT_ONLY))
 
             return MmsContentDataClass(
                 _id = _id,
@@ -863,23 +897,36 @@ class ConversationsViewModel : ViewModel() {
             )
         }
 
+        @SuppressLint("Range")
         private fun parseRawSmsContents(cursor: Cursor): SmsContentDataClass {
-            val _id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
-            val thread_id: Int = cursor.getInt(cursor.getColumnIndex("thread_id"))
-            val address: String? = cursor.getString(cursor.getColumnIndex("address"))
-            val date: Int = cursor.getInt(cursor.getColumnIndex("date"))
-            val date_sent: Int = cursor.getInt(cursor.getColumnIndex("date_sent"))
-            val read: Int = cursor.getInt(cursor.getColumnIndex("read"))
-            val status: Int = cursor.getInt(cursor.getColumnIndex("status"))
-            val type: Int = cursor.getInt(cursor.getColumnIndex("type"))
-            val body: String = cursor.getString(cursor.getColumnIndex("body"))
-            val locked: Int = cursor.getInt(cursor.getColumnIndex("locked"))
-            val sub_id: Int = cursor.getInt(cursor.getColumnIndex("sub_id"))
-            val error_code: Int = cursor
-                .getInt(cursor.getColumnIndex("error_code"))
-            val creator: String = cursor
-                .getString(cursor.getColumnIndex("creator"))
-            val seen: Int = cursor.getInt(cursor.getColumnIndex("seen"))
+            val _id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms._ID))
+            val thread_id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.THREAD_ID))
+            val address: String? = cursor.getString(cursor
+                    .getColumnIndex(Telephony.Sms.ADDRESS))
+            val date: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.DATE))
+            val date_sent: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.DATE_SENT))
+            val read: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.READ))
+            val status: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.STATUS))
+            val type: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.TYPE))
+            val body: String = cursor.getString(cursor
+                .getColumnIndex(Telephony.Sms.BODY))
+            val locked: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.LOCKED))
+            val sub_id: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.SUBSCRIPTION_ID))
+            val error_code: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.ERROR_CODE))
+            val creator: String = cursor.getString(cursor
+                    .getColumnIndex(Telephony.Sms.CREATOR))
+            val seen: Int = cursor.getInt(cursor
+                .getColumnIndex(Telephony.Sms.SEEN))
 
             return SmsContentDataClass(
                 _id = _id,
