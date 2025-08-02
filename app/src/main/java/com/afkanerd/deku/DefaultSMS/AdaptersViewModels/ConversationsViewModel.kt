@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
@@ -685,14 +686,14 @@ class ConversationsViewModel : ViewModel() {
         val seq: Int,
         val ct: String?,
         val name: String?,
-        val chset: String? = null,
+        val chset: Int?,
         val cd: String? = null,
         val fn: String? = null,
         val cid: String?,
         val cl: String?,
         val ctt_s: String? = null,
         val ctt_t: String? = null,
-        val _data: String? = null,
+        val _data: String?,
         val text: String?,
         val sub_id: Int,
     )
@@ -788,6 +789,7 @@ class ConversationsViewModel : ViewModel() {
             return gson.toJson(smsMmsContents)
         }
 
+        @SuppressLint("Range")
         private fun parseRawMmsContentsParts(cursor: Cursor): MmsPartContents {
             val _id: Int = cursor.getInt(cursor
                 .getColumnIndex(Telephony.Mms.Part._ID))
@@ -807,6 +809,10 @@ class ConversationsViewModel : ViewModel() {
                 .getColumnIndex(Telephony.Mms.Part.TEXT))
             val sub_id: Int = cursor.getInt(cursor
                 .getColumnIndex("sub_id"))
+            val _data: String? = cursor.getStringOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part._DATA))
+            val chset: Int? = cursor.getIntOrNull(cursor
+                .getColumnIndex(Telephony.Mms.Part.CHARSET))
 
             return MmsPartContents(
                 _id = _id,
@@ -817,7 +823,9 @@ class ConversationsViewModel : ViewModel() {
                 cid = cid,
                 cl = cl,
                 text = text,
-                sub_id = sub_id
+                sub_id = sub_id,
+                _data = _data,
+                chset = chset,
             )
         }
 
