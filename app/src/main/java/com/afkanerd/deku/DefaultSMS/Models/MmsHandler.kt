@@ -44,33 +44,6 @@ object MmsHandler {
         throw MmsException("Cannot get X-Mms-Content-Location from: " + uri)
     }
 
-
-    fun getTransactionId(context: Context, uri: Uri?): String? {
-        val transactionProjectionId = arrayOf(
-            Telephony.Mms.CONTENT_LOCATION,
-            Telephony.Mms.LOCKED
-        )
-
-        val cursor = SqliteWrapper.query(
-            context, context.contentResolver,
-            uri, transactionProjectionId, null, null, null
-        )
-
-        if (cursor != null) {
-            try {
-                if ((cursor.count == 1) && cursor.moveToFirst()) {
-                    val transactionId = cursor.getString(COLUMN_CONTENT_LOCATION)
-                    cursor.close()
-                    return transactionId
-                }
-            } finally {
-                cursor.close()
-            }
-        }
-
-        throw MmsException("Cannot get Transaction-id from: " + uri)
-    }
-
     private const val ELEMENT_TAG_IMAGE: String = "img"
     private const val ELEMENT_TAG_AUDIO: String = "audio"
     private const val ELEMENT_TAG_VIDEO: String = "video"
