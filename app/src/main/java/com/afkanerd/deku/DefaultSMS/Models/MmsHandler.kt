@@ -73,6 +73,7 @@ object MmsHandler {
 
     data class SmsMmsContents(
         val mms: Map<String, ArrayList<MmsContentDataClass>>,
+        val mms_addr: Map<String, ArrayList<MmsAddrContents>>,
         val mms_parts: Map<String, ArrayList<MmsPartContents>>,
         val sms: Map<String, ArrayList<SmsContentDataClass>>,
     )
@@ -93,6 +94,17 @@ object MmsHandler {
         val _data: String?,
         val text: String?,
         val sub_id: Int,
+    )
+
+    data class MmsAddrContents(
+        // _id, msg_id, contact_id, address, type, charset, sub_id
+        val _id: Int,
+        val msg_id : String?,
+        val contact_id: String?,
+        val address: String?,
+        val type: String?,
+        val charset: String?,
+        val sub_id: Int? = null,
     )
 
     const val COLUMN_CONTENT_LOCATION = 0

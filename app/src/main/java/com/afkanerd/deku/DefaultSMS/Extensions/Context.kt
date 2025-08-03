@@ -43,8 +43,11 @@ fun Context.getActivity(): ComponentActivity? = when (this) {
 
 fun Context.exportRawWithColumnGuesses(): String {
     val mmsContents = arrayListOf<MmsHandler.MmsContentDataClass>()
+    val mmsAddrContents = arrayListOf<MmsHandler.MmsAddrContents>()
     val mmsPartsContents = arrayListOf<MmsHandler.MmsPartContents>()
     val smsContents = arrayListOf<MmsHandler.SmsContentDataClass>()
+
+    val mmsIds = mutableSetOf<Int>()
 
     // MMS
     contentResolver.query(
@@ -56,10 +59,30 @@ fun Context.exportRawWithColumnGuesses(): String {
     )?.let { cursor ->
         if(cursor.moveToFirst()) {
             do {
-                mmsContents.add(parseRawMmsContents(cursor))
+                mmsContents.add(parseRawMmsContents(cursor).apply {
+                    mmsIds.add(this._id)
+                })
             } while(cursor.moveToNext())
         }
         cursor.close()
+    }
+
+    // MMSAddr
+    mmsIds.forEach {
+        contentResolver.query(
+            "content://mms/${it}/addr".toUri(),
+            null,
+            null,
+            null,
+            null
+        )?.let { cursor ->
+            if(cursor.moveToFirst()) {
+                do {
+                    mmsAddrContents.add(parseRawMmsAddrContentsParts(cursor))
+                } while(cursor.moveToNext())
+            }
+            cursor.close()
+        }
     }
 
     // MMS/Parts
@@ -102,6 +125,7 @@ fun Context.exportRawWithColumnGuesses(): String {
             )
         ),
 
+        mapOf(Pair("content://mms/{_id}/addr", mmsAddrContents)),
         mapOf(Pair("content://mms/part", mmsPartsContents)),
 
         mapOf(
@@ -117,6 +141,34 @@ fun Context.exportRawWithColumnGuesses(): String {
         .setPrettyPrinting()
         .create()
     return gson.toJson(smsMmsContents)
+}
+
+@SuppressLint("Range")
+private fun parseRawMmsAddrContentsParts(cursor: Cursor): MmsHandler.MmsAddrContents {
+    val _id: Int = cursor.getInt(cursor
+        .getColumnIndex(Telephony.Mms.Addr._ID))
+    val msg_id : String? = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Mms.Addr.MSG_ID))
+    val contact_id: String? = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Mms.Addr.CONTACT_ID))
+    val address: String? = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Mms.Addr.ADDRESS))
+    val type: String? = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Mms.Addr.TYPE))
+    val charset: String? = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Mms.Addr.CHARSET))
+    val sub_id: Int? = cursor.getIntOrNull(cursor
+        .getColumnIndex("sub_id"))
+
+    return MmsHandler.MmsAddrContents(
+        _id = _id,
+        msg_id = msg_id,
+        contact_id = contact_id,
+        address = address,
+        type = type,
+        charset = charset,
+        sub_id = sub_id
+    )
 }
 
 @SuppressLint("Range")
