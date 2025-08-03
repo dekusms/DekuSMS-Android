@@ -95,11 +95,10 @@ fun DeveloperModeMain(
                     }
                 }
 
-                context.importRawColumnGuesses(stringBuilder.toString())
-
+                val details = context.importRawColumnGuesses(stringBuilder.toString())
                 CoroutineScope(Dispatchers.Main).launch {
                     Toast.makeText(context,
-                        context.getString(R.string.conversations_import_complete),
+                        "Mms: ${details.mmsCount}, MmsPart: ${details.mmsPartCount}",
                         Toast.LENGTH_LONG).show();
                 }
             }

@@ -284,12 +284,17 @@ private fun parseRawSmsContents(cursor: Cursor): MmsHandler.SmsContentDataClass 
     )
 }
 
-fun Context.importRawColumnGuesses(data: String) {
+data class SmsMmsImportDetails(var mmsCount: Int, var mmsPartCount: Int)
+
+fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     val gson = GsonBuilder()
         .serializeNulls()
         .setPrettyPrinting()
         .create()
     val smsMmsContents = gson.fromJson(data, MmsHandler.SmsMmsContents::class.java)
+
+    var mmsCount = 0
+    var mmsPartCount = 0
 
     // MMS imports
     val mmsUri = smsMmsContents.mms.keys.first()
@@ -303,6 +308,7 @@ fun Context.importRawColumnGuesses(data: String) {
             ) == null) {
             val values = getMmsInputValues(it)
             val uri = contentResolver.insert(mmsUri.toUri(), values)
+            mmsCount += 1
         }
     }
 
@@ -318,8 +324,11 @@ fun Context.importRawColumnGuesses(data: String) {
         ) == null) {
             val values = getMmsPartInputValues(it)
             val uri = contentResolver.insert(mmsUri.toUri(), values)
+            mmsPartCount += 1
         }
     }
+
+    return SmsMmsImportDetails(mmsCount, mmsPartCount)
 }
 
 private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : ContentValues {
