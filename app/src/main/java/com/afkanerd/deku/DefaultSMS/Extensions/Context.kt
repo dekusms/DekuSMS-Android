@@ -336,7 +336,7 @@ private fun parseRawSmsContents(cursor: Cursor): MmsHandler.SmsContentDataClass 
     )
 }
 
-data class SmsMmsImportDetails(var mmsCount: Int, var mmsPartCount: Int)
+data class SmsMmsImportDetails(var mmsCount: Int, var mmsPartCount: Int, var mmsAddrCount: Int)
 
 fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     val gson = GsonBuilder()
@@ -346,6 +346,7 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     val smsMmsContents = gson.fromJson(data, MmsHandler.SmsMmsContents::class.java)
 
     var mmsCount = 0
+    var mmsAddrCount = 0
     var mmsPartCount = 0
 
     // MMS imports
@@ -364,11 +365,26 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
         }
     }
 
+    val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
+    smsMmsContents.mms_addr[mmsAddrUri]?.forEach {
+        if(contentResolver.query(
+                "content://mms/${it._id}/addr".toUri(),
+                arrayOf("_id"),
+                "${Telephony.Mms._ID}=?",
+                arrayOf("${it._id}"),
+                null
+            ) == null) {
+            val values = getMmsAddrInputValues(it)
+            val uri = contentResolver.insert("content://mms/${it._id}/addr".toUri(), values)
+            mmsAddrCount += 1
+        }
+    }
+
     // MMS/Part imports
     val mmsPartsUri = smsMmsContents.mms_parts.keys.first()
     smsMmsContents.mms_parts[mmsPartsUri]?.forEach {
         if(contentResolver.query(
-            mmsUri.toUri(),
+            mmsPartsUri.toUri(),
             arrayOf("_id"),
             "${Telephony.Mms.Part._ID}=? AND ${Telephony.Mms.Part.MSG_ID}=?",
             arrayOf("${it._id}", "${it.mid}"),
@@ -380,7 +396,19 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
         }
     }
 
-    return SmsMmsImportDetails(mmsCount, mmsPartCount)
+    return SmsMmsImportDetails(mmsCount, mmsPartCount, mmsAddrCount)
+}
+
+private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) : ContentValues {
+    return ContentValues().apply {
+        put("_id", mmsAddrContents._id)
+        put("msg_id ", mmsAddrContents.msg_id)
+        put("contact_id", mmsAddrContents.contact_id)
+        put("address", mmsAddrContents.address)
+        put("type", mmsAddrContents.type)
+        put("charset", mmsAddrContents.charset)
+        put("sub_id", mmsAddrContents.sub_id)
+    }
 }
 
 private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : ContentValues {

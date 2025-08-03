@@ -98,7 +98,8 @@ fun DeveloperModeMain(
                 val details = context.importRawColumnGuesses(stringBuilder.toString())
                 CoroutineScope(Dispatchers.Main).launch {
                     Toast.makeText(context,
-                        "Mms: ${details.mmsCount}, MmsPart: ${details.mmsPartCount}",
+                        "Mms: ${details.mmsCount}, MmsPart: ${details.mmsPartCount}, " +
+                                "MmsAddr: ${details.mmsAddrCount}",
                         Toast.LENGTH_LONG).show();
                 }
             }
