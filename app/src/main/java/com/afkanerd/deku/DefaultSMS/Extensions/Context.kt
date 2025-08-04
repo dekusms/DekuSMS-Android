@@ -1,11 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.Extensions
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.database.Cursor
+import android.os.Build
 import android.provider.Telephony
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.autofill.ContentType
 import androidx.core.database.getIntOrNull
@@ -13,6 +16,9 @@ import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.text.insert
 
 fun Context.getActivity(): ComponentActivity? = when (this) {
@@ -341,7 +347,6 @@ data class SmsMmsImportDetails(var mmsCount: Int, var mmsPartCount: Int, var mms
 fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     val gson = GsonBuilder()
         .serializeNulls()
-        .setPrettyPrinting()
         .create()
     val smsMmsContents = gson.fromJson(data, MmsHandler.SmsMmsContents::class.java)
 
@@ -361,28 +366,13 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
         )?.let { cursor ->
             if(!cursor.moveToFirst()) {
                 val values = getMmsInputValues(it)
-                val uri = contentResolver.insert(mmsUri.toUri(), values)
-                mmsCount += 1
-            }
-        }
-    }
-
-    /**
-     * Making some mistakes here ----
-     */
-    val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
-    smsMmsContents.mms_addr[mmsAddrUri]?.forEach {
-        contentResolver.query(
-            "content://mms/${it._id}/addr".toUri(),
-            arrayOf("_id"),
-            "${Telephony.Mms.Addr._ID}=?",
-            arrayOf("${it._id}"),
-            null
-        )?.let { cursor ->
-            if(!cursor.moveToFirst()) {
-                val values = getMmsAddrInputValues(it)
-                val uri = contentResolver.insert("content://mms/${it._id}/addr".toUri(), values)
-                mmsAddrCount += 1
+                try {
+                    contentResolver.insert(mmsUri.toUri(), values)?.let {
+                        mmsCount += 1
+                    }
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -399,8 +389,36 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
         )?.let { cursor ->
             if(!cursor.moveToFirst()) {
                 val values = getMmsPartInputValues(it)
-                val uri = contentResolver.insert(mmsUri.toUri(), values)
-                mmsPartCount += 1
+                try {
+                    contentResolver.insert(mmsPartsUri.toUri(), values)?.let {
+                        mmsPartCount += 1
+                    }
+                    println()
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    /**
+     * Making some mistakes here ----
+     */
+    val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
+    smsMmsContents.mms_addr[mmsAddrUri]?.forEach {
+        contentResolver.query(
+            "content://mms/${it.msg_id}/addr".toUri(),
+            arrayOf("_id"),
+            "${Telephony.Mms.Addr._ID}=?",
+            arrayOf("${it._id}"),
+            null
+        )?.let { cursor ->
+            if(!cursor.moveToFirst()) {
+                val values = getMmsAddrInputValues(it)
+                contentResolver.insert("content://mms/${it.msg_id}/addr".toUri(), values)?.let {
+                    mmsAddrCount += 1
+                }
+                println()
             }
         }
     }
@@ -410,12 +428,12 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
 
 private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) : ContentValues {
     return ContentValues().apply {
-        put("_id", mmsAddrContents._id)
-        put("msg_id ", mmsAddrContents.msg_id)
-        put("contact_id", mmsAddrContents.contact_id)
-        put("address", mmsAddrContents.address)
-        put("type", mmsAddrContents.type)
-        put("charset", mmsAddrContents.charset)
+//        put("_id", mmsAddrContents._id)
+        put(Telephony.Mms.Addr._ID, mmsAddrContents.msg_id)
+        put(Telephony.Mms.Addr.CONTACT_ID, mmsAddrContents.contact_id)
+        put(Telephony.Mms.Addr.ADDRESS, mmsAddrContents.address)
+        put(Telephony.Mms.Addr.TYPE, mmsAddrContents.type)
+        put(Telephony.Mms.Addr.CHARSET, mmsAddrContents.charset)
         put("sub_id", mmsAddrContents.sub_id)
     }
 }
@@ -424,10 +442,10 @@ private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : 
     return ContentValues().apply {
         put("_data", mmsPartContent._data)
         put("_id", mmsPartContent._id)
-        put("cd", mmsPartContent.cd)
+//        put("cd", mmsPartContent.cd)
         put("chset", mmsPartContent.chset)
         put("cid", mmsPartContent.cid)
-        put("cl", mmsPartContent.cl)
+//        put("cl", mmsPartContent.cl)
         put("ct", mmsPartContent.ct)
         put("ctt_s", mmsPartContent.ctt_s)
         put("ctt_t", mmsPartContent.ctt_t)
@@ -472,10 +490,57 @@ private fun getMmsInputValues(mmsContent: MmsHandler.MmsContentDataClass) : Cont
         put("st", mmsContent.st)
         put("sub", mmsContent.sub)
         put("sub_cs", mmsContent.sub_cs)
-        put("sub_id", mmsContent.sub_id)
+//        put("sub_id", mmsContent.sub_id)
         put("text_only", mmsContent.text_only)
         put("thread_id", mmsContent.thread_id)
         put("tr_id", mmsContent.tr_id)
         put("v", mmsContent.v)
+    }
+}
+
+@SuppressLint("Range")
+fun Context.clearRawColumnGuesses() {
+    contentResolver.query(
+        "content://mms".toUri(),
+        null,
+        null,
+        null,
+        null)?.let { cursor ->
+            if(cursor.moveToFirst()) {
+                do {
+                    val _id = cursor.getInt(cursor.getColumnIndex("_id"))
+                    val deleted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        contentResolver.delete(
+                            "content://mms/$_id/addr".toUri(), null)
+                    } else {
+                        contentResolver.delete(
+                            "content://mms/$_id/addr".toUri(), null, null)
+                    }
+                    println("Deleted: $deleted messages")
+                } while(cursor.moveToNext())
+                cursor.close()
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    Toast.makeText(
+                        this@clearRawColumnGuesses,
+                        "content://mms/{_id}/addr cleared!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+    }
+
+    arrayOf(
+        "content://mms",
+        "content://mms/part",
+    ).forEach { uri ->
+        contentResolver.delete(uri.toUri(), null, null)
+        CoroutineScope(Dispatchers.Main).launch {
+            Toast.makeText(
+                this@clearRawColumnGuesses,
+                "$uri cleared!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 }

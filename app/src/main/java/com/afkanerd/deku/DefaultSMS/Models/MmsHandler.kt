@@ -114,7 +114,6 @@ object MmsHandler {
             Telephony.Mms.LOCKED
         )
 
-
         val cursor = SqliteWrapper.query(
             context,
             context.contentResolver,
