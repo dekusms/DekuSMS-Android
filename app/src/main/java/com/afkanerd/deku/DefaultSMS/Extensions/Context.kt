@@ -352,47 +352,56 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     // MMS imports
     val mmsUri = smsMmsContents.mms.keys.first()
     smsMmsContents.mms[mmsUri]?.forEach {
-        if(contentResolver.query(
-                mmsUri.toUri(),
-                arrayOf("_id"),
-                "${Telephony.Mms._ID}=?",
-                arrayOf("${it._id}"),
-                null
-            ) == null) {
-            val values = getMmsInputValues(it)
-            val uri = contentResolver.insert(mmsUri.toUri(), values)
-            mmsCount += 1
+        contentResolver.query(
+            mmsUri.toUri(),
+            arrayOf("_id"),
+            "${Telephony.Mms._ID}=?",
+            arrayOf("${it._id}"),
+            null
+        )?.let { cursor ->
+            if(!cursor.moveToFirst()) {
+                val values = getMmsInputValues(it)
+                val uri = contentResolver.insert(mmsUri.toUri(), values)
+                mmsCount += 1
+            }
         }
     }
 
+    /**
+     * Making some mistakes here ----
+     */
     val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
     smsMmsContents.mms_addr[mmsAddrUri]?.forEach {
-        if(contentResolver.query(
-                "content://mms/${it._id}/addr".toUri(),
-                arrayOf("_id"),
-                "${Telephony.Mms._ID}=?",
-                arrayOf("${it._id}"),
-                null
-            ) == null) {
-            val values = getMmsAddrInputValues(it)
-            val uri = contentResolver.insert("content://mms/${it._id}/addr".toUri(), values)
-            mmsAddrCount += 1
+        contentResolver.query(
+            "content://mms/${it._id}/addr".toUri(),
+            arrayOf("_id"),
+            "${Telephony.Mms.Addr._ID}=?",
+            arrayOf("${it._id}"),
+            null
+        )?.let { cursor ->
+            if(!cursor.moveToFirst()) {
+                val values = getMmsAddrInputValues(it)
+                val uri = contentResolver.insert("content://mms/${it._id}/addr".toUri(), values)
+                mmsAddrCount += 1
+            }
         }
     }
 
     // MMS/Part imports
     val mmsPartsUri = smsMmsContents.mms_parts.keys.first()
     smsMmsContents.mms_parts[mmsPartsUri]?.forEach {
-        if(contentResolver.query(
+        contentResolver.query(
             mmsPartsUri.toUri(),
             arrayOf("_id"),
             "${Telephony.Mms.Part._ID}=? AND ${Telephony.Mms.Part.MSG_ID}=?",
             arrayOf("${it._id}", "${it.mid}"),
             null
-        ) == null) {
-            val values = getMmsPartInputValues(it)
-            val uri = contentResolver.insert(mmsUri.toUri(), values)
-            mmsPartCount += 1
+        )?.let { cursor ->
+            if(!cursor.moveToFirst()) {
+                val values = getMmsPartInputValues(it)
+                val uri = contentResolver.insert(mmsUri.toUri(), values)
+                mmsPartCount += 1
+            }
         }
     }
 

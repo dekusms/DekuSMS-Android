@@ -4,11 +4,13 @@ import android.graphics.drawable.Icon
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -21,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -28,9 +31,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,6 +63,8 @@ fun DeveloperModeMain(
 ) {
     val context = LocalContext.current
 
+    var disabled by remember{ mutableStateOf(false) }
+
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")) { uri ->
         println(uri)
@@ -75,6 +85,7 @@ fun DeveloperModeMain(
                             context.getString(R.string.conversations_exported_complete),
                             Toast.LENGTH_LONG).show();
                     }
+                    disabled = false
                 }
             }
         }
@@ -102,10 +113,10 @@ fun DeveloperModeMain(
                                 "MmsAddr: ${details.mmsAddrCount}",
                         Toast.LENGTH_LONG).show();
                 }
+                disabled = false
             }
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -127,6 +138,10 @@ fun DeveloperModeMain(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+            if(disabled || LocalInspectionMode.current) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     stringResource(R.string.sms_mms_import_export),
@@ -141,6 +156,7 @@ fun DeveloperModeMain(
                     itemTitle = stringResource(R.string.export_sms_mms_database),
                     itemDescription = stringResource(R.string.this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps),
                 ) {
+                    disabled = true
                     val filename = context.getString(
                         R.string.deku_sms_dev_mode_export,
                         System.currentTimeMillis()
@@ -157,6 +173,7 @@ fun DeveloperModeMain(
                     itemTitle = "Import SMS/MMS database",
                     itemDescription = "This imports all SMS and MMS databases. Can be useful if you need to capture all fields as stored by the default SMS apps.",
                 ) {
+                    disabled = true
                     importLauncher.launch("application/json")
                 }
             }
