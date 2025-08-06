@@ -6,6 +6,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.widget.Toast
@@ -19,6 +20,8 @@ import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.collections.forEach
+import kotlin.text.get
 import kotlin.text.insert
 
 fun Context.getActivity(): ComponentActivity? = when (this) {
@@ -356,74 +359,38 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
 
     // MMS imports
     val mmsUri = smsMmsContents.mms.keys.first()
-    smsMmsContents.mms[mmsUri]?.forEach {
+    val mmsPartsUri = smsMmsContents.mms_parts.keys.first()
+    val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
+
+    smsMmsContents.mms[mmsUri]?.forEach { mms ->
         contentResolver.query(
             mmsUri.toUri(),
             arrayOf("_id"),
             "${Telephony.Mms._ID}=?",
-            arrayOf("${it._id}"),
+            arrayOf("${mms._id}"),
             null
         )?.let { cursor ->
             if(!cursor.moveToFirst()) {
-                val values = getMmsInputValues(it)
+                val values = getMmsInputValues(mms)
                 try {
-                    contentResolver.insert(mmsUri.toUri(), values)?.let {
+                    contentResolver.insert(mmsUri.toUri(), values)?.let { uri ->
+                        smsMmsContents.mms_addr[mmsAddrUri]?.filter {
+                            it.msg_id == mms._id.toString()}?.forEach {
+                                insertMmsAddr("$uri/addr".toUri(), it)?.let {
+                                    mmsAddrCount += 1
+                            }
+                        }
+                        smsMmsContents.mms_parts[mmsPartsUri]?.filter { it.mid == mms._id}?.forEach {
+                            insertMmsPart("$uri/part".toUri(), it)?.let {
+                                mmsPartCount += 1
+                            }
+                        }
                         mmsCount += 1
+                        println()
                     }
                 } catch(e: Exception) {
                     e.printStackTrace()
                 }
-            }
-        }
-    }
-
-    // MMS/Part imports
-    val mmsPartsUri = smsMmsContents.mms_parts.keys.first()
-    smsMmsContents.mms_parts[mmsPartsUri]?.forEach {
-//        val mmsPartUri = "$mmsPartsUri/${it._id}".toUri()
-//        val mmsPartUri = mmsPartsUri.toUri()
-        val mmsPartUri = "content://mms/${it._id}/part".toUri()
-        contentResolver.query(
-//            mmsPartsUri.toUri(),
-            mmsPartUri,
-            arrayOf("_id"),
-            "${Telephony.Mms.Part._ID}=?",
-            arrayOf("${it._id}"),
-            null
-        )?.let { cursor ->
-            if(!cursor.moveToFirst()) {
-                val values = getMmsPartInputValues(it)
-                try {
-                    contentResolver.insert(mmsPartUri, values)?.let {
-                        mmsPartCount += 1
-                    }
-                    println()
-                } catch(e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    /**
-     * Making some mistakes here ----
-     */
-    val mmsAddrUriTemplate = smsMmsContents.mms_addr.keys.first()
-    smsMmsContents.mms_addr[mmsAddrUriTemplate]?.forEach {
-        val mmsAddrUri = "content://mms/${it.msg_id}/addr".toUri()
-        contentResolver.query(
-            mmsAddrUri,
-            arrayOf("_id"),
-            "${Telephony.Mms.Addr._ID}=?",
-            arrayOf("${it._id}"),
-            null
-        )?.let { cursor ->
-            if(!cursor.moveToFirst()) {
-                val values = getMmsAddrInputValues(it)
-                contentResolver.insert(mmsAddrUri, values)?.let {
-                    mmsAddrCount += 1
-                }
-                println()
             }
         }
     }
@@ -431,10 +398,20 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     return SmsMmsImportDetails(mmsCount, mmsPartCount, mmsAddrCount)
 }
 
+private fun Context.insertMmsAddr(uri: Uri, mmsPart: MmsHandler.MmsAddrContents): Uri? {
+    val values = getMmsAddrInputValues(mmsPart)
+    return contentResolver.insert(uri, values)
+}
+
+private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents): Uri? {
+    val values = getMmsPartInputValues(mmsPart)
+    return contentResolver.insert(uri, values)
+}
+
 private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) : ContentValues {
     return ContentValues().apply {
 //        put("_id", mmsAddrContents._id)
-        put(Telephony.Mms.Addr._ID, mmsAddrContents.msg_id)
+//        put(Telephony.Mms.Addr._ID, mmsAddrContents.msg_id)
         put(Telephony.Mms.Addr.CONTACT_ID, mmsAddrContents.contact_id)
         put(Telephony.Mms.Addr.ADDRESS, mmsAddrContents.address)
         put(Telephony.Mms.Addr.TYPE, mmsAddrContents.type)
@@ -445,21 +422,21 @@ private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) :
 
 private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : ContentValues {
     return ContentValues().apply {
-//        put("_data", mmsPartContent._data)
-        put("_id", mmsPartContent._id)
-//        put("cd", mmsPartContent.cd)
-        put("chset", mmsPartContent.chset)
+        put("mid", mmsPartContent.mid)
         put("cid", mmsPartContent.cid)
-//        put("cl", mmsPartContent.cl)
+        put("cl", mmsPartContent.cl)
         put("ct", mmsPartContent.ct)
+        put("chset", mmsPartContent.chset)
+        put("text", mmsPartContent.text)
+//        put("_data", mmsPartContent._data)
+//        put("_id", mmsPartContent._id)
+        put("cd", mmsPartContent.cd)
         put("ctt_s", mmsPartContent.ctt_s)
         put("ctt_t", mmsPartContent.ctt_t)
         put("fn", mmsPartContent.fn)
-        put("mid", mmsPartContent.mid)
         put("name", mmsPartContent.name)
         put("seq", mmsPartContent.seq)
         put("sub_id", mmsPartContent.sub_id)
-        put("text", mmsPartContent.text)
     }
 }
 
