@@ -1,28 +1,30 @@
 package com.afkanerd.deku.DefaultSMS.Extensions
 
 import android.annotation.SuppressLint
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.autofill.ContentType
+import androidx.core.content.FileProvider
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.collections.forEach
-import kotlin.text.get
-import kotlin.text.insert
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+
 
 fun Context.getActivity(): ComponentActivity? = when (this) {
     is ComponentActivity -> this
@@ -405,7 +407,44 @@ private fun Context.insertMmsAddr(uri: Uri, mmsPart: MmsHandler.MmsAddrContents)
 
 private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents): Uri? {
     val values = getMmsPartInputValues(mmsPart)
-    return contentResolver.insert(uri, values)
+    val uri = contentResolver.insert(uri, values)
+    uri?.let { uri ->
+        mmsPart._data?.let {
+            var inputStream: InputStream? = null
+            var outputStream: OutputStream? = null
+
+            // /data/data/com.afkanerd.deku/cache/data/user/0/com.afkanerd.deku/2.jpg
+//            val file = File("/data/data/com.afkanerd.deku/cache/data/user/0/com.afkanerd.deku/2.jpg")
+            val file = File(cacheDir, "data/user/0/com.afkanerd.deku/2.jpg")
+
+            try {
+                val fileProvider = FileProvider.getUriForFile(
+                    this,
+                    BuildConfig.APPLICATION_ID + ".fileprovider",
+                    file
+                )
+                inputStream = contentResolver.openInputStream(fileProvider)
+                outputStream =contentResolver.openOutputStream(uri)
+
+                if (inputStream != null && outputStream != null) {
+                    inputStream.copyTo(outputStream)
+                } else {
+                    // Handle the case where one of the streams is null
+                    return null
+                }
+            } catch (e: Exception) {
+                // Log the exception for debugging
+                e.printStackTrace()
+                println()
+            } finally {
+                // Ensure streams are always closed to prevent resource leaks
+                inputStream?.close()
+                outputStream?.close()
+            }
+
+        }
+    }
+    return uri
 }
 
 private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) : ContentValues {
