@@ -132,7 +132,7 @@ fun Context.exportRawWithColumnGuesses(): String {
         ),
 
         mapOf(Pair("content://mms/{_id}/addr", mmsAddrContents)),
-        mapOf(Pair("content://mms/part", mmsPartsContents)),
+        mapOf(Pair("content://mms/part/{_id}", mmsPartsContents)),
 
         mapOf(
             Pair(
@@ -380,17 +380,21 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     // MMS/Part imports
     val mmsPartsUri = smsMmsContents.mms_parts.keys.first()
     smsMmsContents.mms_parts[mmsPartsUri]?.forEach {
+//        val mmsPartUri = "$mmsPartsUri/${it._id}".toUri()
+//        val mmsPartUri = mmsPartsUri.toUri()
+        val mmsPartUri = "content://mms/${it._id}/part".toUri()
         contentResolver.query(
-            mmsPartsUri.toUri(),
+//            mmsPartsUri.toUri(),
+            mmsPartUri,
             arrayOf("_id"),
-            "${Telephony.Mms.Part._ID}=? AND ${Telephony.Mms.Part.MSG_ID}=?",
-            arrayOf("${it._id}", "${it.mid}"),
+            "${Telephony.Mms.Part._ID}=?",
+            arrayOf("${it._id}"),
             null
         )?.let { cursor ->
             if(!cursor.moveToFirst()) {
                 val values = getMmsPartInputValues(it)
                 try {
-                    contentResolver.insert(mmsPartsUri.toUri(), values)?.let {
+                    contentResolver.insert(mmsPartUri, values)?.let {
                         mmsPartCount += 1
                     }
                     println()
@@ -404,10 +408,11 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     /**
      * Making some mistakes here ----
      */
-    val mmsAddrUri = smsMmsContents.mms_addr.keys.first()
-    smsMmsContents.mms_addr[mmsAddrUri]?.forEach {
+    val mmsAddrUriTemplate = smsMmsContents.mms_addr.keys.first()
+    smsMmsContents.mms_addr[mmsAddrUriTemplate]?.forEach {
+        val mmsAddrUri = "content://mms/${it.msg_id}/addr".toUri()
         contentResolver.query(
-            "content://mms/${it.msg_id}/addr".toUri(),
+            mmsAddrUri,
             arrayOf("_id"),
             "${Telephony.Mms.Addr._ID}=?",
             arrayOf("${it._id}"),
@@ -415,7 +420,7 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
         )?.let { cursor ->
             if(!cursor.moveToFirst()) {
                 val values = getMmsAddrInputValues(it)
-                contentResolver.insert("content://mms/${it.msg_id}/addr".toUri(), values)?.let {
+                contentResolver.insert(mmsAddrUri, values)?.let {
                     mmsAddrCount += 1
                 }
                 println()
@@ -440,7 +445,7 @@ private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) :
 
 private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : ContentValues {
     return ContentValues().apply {
-        put("_data", mmsPartContent._data)
+//        put("_data", mmsPartContent._data)
         put("_id", mmsPartContent._id)
 //        put("cd", mmsPartContent.cd)
         put("chset", mmsPartContent.chset)
