@@ -409,28 +409,22 @@ private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents)
     val values = getMmsPartInputValues(mmsPart)
     val uri = contentResolver.insert(uri, values)
     uri?.let { uri ->
-        mmsPart._data?.let {
+        if(mmsPart._data != null) {
             var inputStream: InputStream? = null
             var outputStream: OutputStream? = null
 
-            // /data/data/com.afkanerd.deku/cache/data/user/0/com.afkanerd.deku/2.jpg
-//            val file = File("/data/data/com.afkanerd.deku/cache/data/user/0/com.afkanerd.deku/2.jpg")
-            val file = File(cacheDir, "data/user/0/com.afkanerd.deku/2.jpg")
-
             try {
-                val fileProvider = FileProvider.getUriForFile(
-                    this,
-                    BuildConfig.APPLICATION_ID + ".fileprovider",
-                    file
-                )
-                inputStream = contentResolver.openInputStream(fileProvider)
+//            val file = File(cacheDir, "data/user/0/com.afkanerd.deku/2.jpg")
+//                val fileProvider = FileProvider.getUriForFile(
+//                    this,
+//                    BuildConfig.APPLICATION_ID + ".fileprovider",
+//                    file
+//                )
+                inputStream = contentResolver.openInputStream(mmsPart._data.toUri())
                 outputStream =contentResolver.openOutputStream(uri)
 
                 if (inputStream != null && outputStream != null) {
                     inputStream.copyTo(outputStream)
-                } else {
-                    // Handle the case where one of the streams is null
-                    return null
                 }
             } catch (e: Exception) {
                 // Log the exception for debugging
@@ -442,6 +436,11 @@ private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents)
                 outputStream?.close()
             }
 
+        }
+        else {
+            if(mmsPart.ct == "text/plain") {
+                println()
+            }
         }
     }
     return uri
