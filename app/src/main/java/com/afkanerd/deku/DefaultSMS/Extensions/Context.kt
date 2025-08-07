@@ -1,9 +1,13 @@
 package com.afkanerd.deku.DefaultSMS.Extensions
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
@@ -11,12 +15,19 @@ import android.os.Environment
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.RemoteInput
 import androidx.core.content.FileProvider
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
+import com.afkanerd.deku.DefaultSMS.R
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -563,4 +574,62 @@ fun Context.clearRawColumnGuesses() {
             ).show()
         }
     }
+}
+
+fun Context.notifyText(conversation: Conversation) {
+    val KEY_TEXT_REPLY = "key_text_reply" // Key for retrieving the input later
+    val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
+
+    val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
+        .setLabel(replyLabel)
+        .build()
+
+    val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        applicationContext,
+        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        Intent(this, IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java), // Intent to handle the reply
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
+    )
+
+    val action: NotificationCompat.Action = NotificationCompat.Action.Builder(
+        null, // Icon for the reply button
+        getString(R.string.notifications_reply_label), // Text for the reply button
+        replyPendingIntent
+    )
+        .addRemoteInput(remoteInput)
+        .setAllowGeneratedReplies(true)
+        .build()
+
+    val builder = NotificationCompat.Builder(
+        this,
+        getString(R.string.incoming_messages_channel_id))
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setContentTitle(conversation.address)
+        .setContentText(conversation.text)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAllowSystemGeneratedContextualActions(true)
+        .addAction(action)
+
+
+    with(NotificationManagerCompat.from(this)) {
+        if (ActivityCompat.checkSelfPermission(
+                this@notifyText,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            // ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            // public fun onRequestPermissionsResult(requestCode: Int, permissions: Array&lt;out String&gt;,
+            //                                        grantResults: IntArray)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return@with
+        }
+        // notificationId is a unique int for each notification that you must define.
+        notify(conversation.thread_id?.toInt() ?: 0, builder.build())
+    }
+
+
 }
