@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Extensions
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
@@ -15,9 +16,11 @@ import android.os.Environment
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.FileProvider
 import androidx.core.database.getIntOrNull
@@ -580,16 +583,16 @@ fun Context.notifyText(conversation: Conversation) {
     val KEY_TEXT_REPLY = "key_text_reply" // Key for retrieving the input later
     val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
 
-    val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
-        .setLabel(replyLabel)
-        .build()
-
     val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
         applicationContext,
         conversation.thread_id?.toInt() ?: 0, // Or a unique request code
         Intent(this, IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java), // Intent to handle the reply
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
+        PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
     )
+
+    val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
+        .setLabel(replyLabel)
+        .build()
 
     val action: NotificationCompat.Action = NotificationCompat.Action.Builder(
         null, // Icon for the reply button
@@ -598,16 +601,43 @@ fun Context.notifyText(conversation: Conversation) {
     )
         .addRemoteInput(remoteInput)
         .setAllowGeneratedReplies(true)
+        .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
         .build()
+
+    // This is crucial for smart replies
+    val user = Person.Builder()
+        .setName("Me")
+        .build()
+
+    val sender = Person.Builder()
+        .setName(conversation.address)
+        .build()
+
+//    val style = NotificationCompat.MessagingStyle(conversation.address!!)
+    val style = NotificationCompat.MessagingStyle(sender)
+        .addMessage(
+            NotificationCompat.MessagingStyle.Message(
+                conversation.text,
+                System.currentTimeMillis(),
+                sender
+            )
+        )
 
     val builder = NotificationCompat.Builder(
         this,
         getString(R.string.incoming_messages_channel_id))
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentTitle(conversation.address)
         .setContentText(conversation.text)
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setStyle(style)
+        .setWhen(System.currentTimeMillis())
+        .setDefaults(Notification.DEFAULT_ALL)
+        .setSmallIcon(R.drawable.ic_stat_name)
+//        .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+        .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+        .setAutoCancel(true)
+        .setOnlyAlertOnce(true)
         .setAllowSystemGeneratedContextualActions(true)
+        .setPriority(Notification.PRIORITY_MAX)
+        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .addAction(action)
 
 
