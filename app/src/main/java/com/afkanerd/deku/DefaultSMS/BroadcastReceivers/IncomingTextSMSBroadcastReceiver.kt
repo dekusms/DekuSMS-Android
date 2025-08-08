@@ -19,6 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
@@ -175,75 +176,9 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.Default).launch {
             conversationsViewModel.insert(context, conversation)
             if (!conversationsViewModel.isMuted(context, conversation.thread_id)) {
-                val builder = Notifications.createNotification(
-                    context=context,
-                    title=Contacts.retrieveContactName(context, conversation.address) ?:
-                    conversation.address!!,
-                    text=conversation.text!!,
-                    requestCode = conversation.thread_id!!.toInt(),
-                    address=conversation.address!!,
-                    contentIntent = Intent(
-                        context,
-                        MainActivity::class.java
-                    ).apply {
-                        putExtra("address", conversation.address)
-                        putExtra("thread_id", conversation.thread_id)
-                        println("ThreadID: ${conversation.thread_id}")
-                        setFlags(
-                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        )
-                    },
-                    muteIntent = Intent(
-                        context,
-                        IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                    ).apply {
-                        action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                            .MUTE_BROADCAST_INTENT
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                            conversation.address)
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                            conversation.thread_id)
-                    },
-                    replyIntent = Intent(
-                        context,
-                        IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                    ).apply {
-                        action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                            .REPLY_BROADCAST_INTENT
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                            conversation.address)
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                            conversation.thread_id)
-                    },
-                    markAsRead = Intent(
-                        context,
-                        IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
-                    ).apply {
-                        action = IncomingTextSMSReplyMuteActionBroadcastReceiver
-                            .MARK_AS_READ_BROADCAST_INTENT
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_ADDRESS,
-                            conversation.address)
-                        putExtra(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.REPLY_THREAD_ID,
-                            conversation.thread_id)
-                    },
-                )
-
-//                Notifications.notify(
-//                    context,
-//                    builder,
-//                    conversation.thread_id!!.toInt()
-//                )
                 context.notifyText(conversation)
             }
         }
-
-
         return conversation
     }
 

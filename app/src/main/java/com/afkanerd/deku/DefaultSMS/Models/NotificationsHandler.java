@@ -36,25 +36,21 @@ public class NotificationsHandler {
         NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context, conversation, null);
 
         Intent replyIntent = getReplyIntent(context, conversation);
-        PendingIntent pendingIntent = getPendingIntent(context, conversation);
+//        PendingIntent pendingIntent = getPendingIntent(context, conversation);
 
-        NotificationCompat.Builder builder = getNotificationBuilder(
-                context,
-                replyIntent,
-                conversation,
-                pendingIntent
-        );
-        builder.setStyle(messagingStyle);
+//        NotificationCompat.Builder builder = getNotificationBuilder(
+//                context,
+//                replyIntent,
+//                conversation,
+//                pendingIntent
+//        );
+//        builder.setStyle(messagingStyle);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-        notificationManagerCompat.notify(Integer.parseInt(conversation.getThread_id()), builder.build());
+//        notificationManagerCompat.notify(Integer.parseInt(conversation.getThread_id()), builder.build());
     }
 
-    public static PendingIntent getPendingIntent(Context context, Conversation conversation) {
-        Intent receivedIntent = getReceivedIntent(context, conversation);
-        return PendingIntent.getActivity(context, Integer.parseInt(conversation.getThread_id()),
-                receivedIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-    }
+
 
     public static Person getPerson(Context context, Conversation conversation) {
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
@@ -80,29 +76,20 @@ public class NotificationsHandler {
         if(conversation != null && !Helpers.INSTANCE.isShortCode(conversation.getAddress())) {
             Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
 
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
-                            .getREPLY_BROADCAST_INTENT(), conversation.getAddress());
-
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
-                            .getREPLY_THREAD_ID(), conversation.getThread_id());
-
-            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
-                            .getREPLY_SUBSCRIPTION_ID(), conversation.getSubscription_id());
-
-            replyBroadcastIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.
-                    Companion.getREPLY_BROADCAST_INTENT());
+//            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+//                            .getREPLY_BROADCAST_INTENT(), conversation.getAddress());
+//
+//            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+//                            .getREPLY_THREAD_ID(), conversation.getThread_id());
+//
+//            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+//                            .getREPLY_SUBSCRIPTION_ID(), conversation.getSubscription_id());
+//
+//            replyBroadcastIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.
+//                    Companion.getREPLY_BROADCAST_INTENT());
             return replyBroadcastIntent;
         }
         return null;
-    }
-
-    public static Intent getReceivedIntent(Context context, Conversation conversation) {
-        Intent receivedSmsIntent = new Intent(context, MainActivity.class);
-        receivedSmsIntent.putExtra("address", conversation.getAddress());
-        receivedSmsIntent.putExtra("thread_id", conversation.getThread_id());
-        receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-        return receivedSmsIntent;
     }
 
     private static class MessageTrackers {
@@ -221,7 +208,7 @@ public class NotificationsHandler {
     getNotificationBuilder(Context context, Intent replyBroadcastIntent, Conversation conversation,
                            PendingIntent pendingIntent){
 
-        String shortcutInfo = getShortcutInfo(context, conversation);
+//        String shortcutInfo = getShortcutInfo(context, conversation);
 
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
@@ -240,7 +227,7 @@ public class NotificationsHandler {
                 .setOnlyAlertOnce(true)
                 .setAllowSystemGeneratedContextualActions(true)
                 .setPriority(Notification.PRIORITY_MAX)
-                .setShortcutId(shortcutInfo)
+//                .setShortcutId(shortcutInfo)
                 .setBubbleMetadata(bubbleMetadata)
                 .setContentIntent(pendingIntent)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE);
@@ -251,8 +238,8 @@ public class NotificationsHandler {
         Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
         markAsReadIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
         markAsReadIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-        markAsReadIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
-                .getMARK_AS_READ_BROADCAST_INTENT());
+//        markAsReadIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+//                .getMARK_AS_READ_BROADCAST_INTENT());
 
         PendingIntent markAsReadPendingIntent =
                 PendingIntent.getBroadcast(context, Integer.parseInt(conversation.getThread_id()),
@@ -272,25 +259,25 @@ public class NotificationsHandler {
                             PendingIntent.FLAG_MUTABLE);
 
             String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
-            RemoteInput remoteInput = new RemoteInput.Builder(
-                    IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
-                    .setLabel(replyLabel)
-                    .build();
-
-            NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(null,
-                    replyLabel, replyPendingIntent)
-                    .addRemoteInput(remoteInput)
-                    .build();
-
-            builder.addAction(replyAction);
+//            RemoteInput remoteInput = new RemoteInput.Builder(
+//                    IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
+//                    .setLabel(replyLabel)
+//                    .build();
+//
+//            NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(null,
+//                    replyLabel, replyPendingIntent)
+//                    .addRemoteInput(remoteInput)
+//                    .build();
+//
+//            builder.addAction(replyAction);
         }
         else if(conversation.getThread_id() != null){
             Intent muteIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
             muteIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
             muteIntent.putExtra(Conversation.ID, conversation.getMessage_id());
             muteIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-            muteIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
-                    .getMUTE_BROADCAST_INTENT());
+//            muteIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
+//                    .getMUTE_BROADCAST_INTENT());
 
             PendingIntent mutePendingIntent =
                     PendingIntent.getBroadcast(context, Integer.parseInt(conversation.getThread_id()),
@@ -306,23 +293,5 @@ public class NotificationsHandler {
         return builder;
     }
 
-    private static String getShortcutInfo(Context context, Conversation conversation) {
-        Uri smsUrl = Uri.parse("smsto:" + conversation.getAddress());
-        Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
-        intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
 
-        Person person = getPerson(context, conversation);
-        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-
-        ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
-                contactName == null ? conversation.getAddress() : contactName)
-                .setLongLived(true)
-                .setIntent(intent)
-                .setShortLabel(contactName == null ? conversation.getAddress() : contactName)
-                .setPerson(person)
-                .build();
-
-        ShortcutManagerCompat.pushDynamicShortcut(context, shortcutInfoCompat);
-        return shortcutInfoCompat.getId();
-    }
 }

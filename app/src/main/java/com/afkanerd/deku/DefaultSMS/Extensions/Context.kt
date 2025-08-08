@@ -12,30 +12,30 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
-import androidx.core.content.FileProvider
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver
-import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.MainActivity
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -579,42 +579,24 @@ fun Context.clearRawColumnGuesses() {
     }
 }
 
+
+val Context.NotificationReplyActionKey: String
+    get() = "NOTIFICATION_REPLY_ACTION_KEY"
+
 fun Context.notifyText(conversation: Conversation) {
-    val KEY_TEXT_REPLY = "key_text_reply" // Key for retrieving the input later
-    val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
+    val contactName = Contacts.retrieveContactName(this, conversation.address)
 
-    val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
-        applicationContext,
-        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
-        Intent(this, IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java), // Intent to handle the reply
-        PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
-    )
-
-    val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
-        .setLabel(replyLabel)
-        .build()
-
-    val action: NotificationCompat.Action = NotificationCompat.Action.Builder(
-        null, // Icon for the reply button
-        getString(R.string.notifications_reply_label), // Text for the reply button
-        replyPendingIntent
-    )
-        .addRemoteInput(remoteInput)
-        .setAllowGeneratedReplies(true)
-        .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
-        .build()
-
-    // This is crucial for smart replies
     val user = Person.Builder()
-        .setName("Me")
+        .setName(resources.getString(R.string.notification_title_reply_you))
         .build()
 
     val sender = Person.Builder()
-        .setName(conversation.address)
+        .setName(contactName)
+        .setKey(conversation.thread_id)
+        .setImportant(true)
         .build()
 
-//    val style = NotificationCompat.MessagingStyle(conversation.address!!)
-    val style = NotificationCompat.MessagingStyle(sender)
+    val style = NotificationCompat.MessagingStyle(user)
         .addMessage(
             NotificationCompat.MessagingStyle.Message(
                 conversation.text,
@@ -622,23 +604,38 @@ fun Context.notifyText(conversation: Conversation) {
                 sender
             )
         )
+        .setGroupConversation(false)
+
+    val bubbleMetadata =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            NotificationCompat.BubbleMetadata
+                .Builder((contactName ?: conversation.address)!!)
+                .setDesiredHeight(400)
+                .build()
+        } else {
+            null
+        }
 
     val builder = NotificationCompat.Builder(
         this,
         getString(R.string.incoming_messages_channel_id))
-        .setContentText(conversation.text)
-        .setStyle(style)
+        .setContentTitle(contactName ?: conversation.address)
         .setWhen(System.currentTimeMillis())
         .setDefaults(Notification.DEFAULT_ALL)
         .setSmallIcon(R.drawable.ic_stat_name)
-//        .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
         .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
         .setAutoCancel(true)
         .setOnlyAlertOnce(true)
         .setAllowSystemGeneratedContextualActions(true)
-        .setPriority(Notification.PRIORITY_MAX)
+        .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
+        .setShortcutId(getShortcutInfoId(conversation, sender, contactName))
+        .setBubbleMetadata(bubbleMetadata)
+        .setContentIntent(getPendingIntent(conversation))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .addAction(action)
+        .setStyle(style)
+        .addAction(getNotificationReplyAction(conversation))
+        .addAction(getNotificationMuteAction(conversation))
+        .addAction(getNotificationMarkAsReadAction(conversation))
 
 
     with(NotificationManagerCompat.from(this)) {
@@ -660,6 +657,132 @@ fun Context.notifyText(conversation: Conversation) {
         // notificationId is a unique int for each notification that you must define.
         notify(conversation.thread_id?.toInt() ?: 0, builder.build())
     }
+}
+
+private fun Context.getPendingIntent(conversation: Conversation): PendingIntent {
+    val receivedSmsIntent = Intent(this, MainActivity::class.java)
+    receivedSmsIntent.putExtra("address", conversation.address)
+    receivedSmsIntent.putExtra("thread_id", conversation.thread_id)
+    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+    return PendingIntent.getActivity(
+        this,
+        conversation.thread_id!!.toInt(),
+        receivedSmsIntent,
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+}
+
+val Context.NotificationMarkAsReadActionIntentAction: String
+    get() = "NOTIFICATION_MARK_AS_READ_ACTION_INTENT_ACTION"
+
+private fun Context.getNotificationMarkAsReadAction(
+    conversation: Conversation
+): NotificationCompat.Action {
+    val markAsReadLabel = resources.getString(R.string.notifications_mark_as_read_label)
+
+    val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        applicationContext,
+        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        Intent(
+            this,
+            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+        ).apply {
+            action = NotificationMarkAsReadActionIntentAction
+            putExtra("address", conversation.address)
+            putExtra("msg_id", conversation.message_id)
+            putExtra("thread_id", conversation.thread_id)
+        },
+        PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
+    )
+
+    return NotificationCompat.Action.Builder(
+        null, // Icon for the reply button
+        markAsReadLabel, // Text for the reply button
+        pendingIntent)
+        .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+        .build()
+}
+
+val Context.NotificationMuteActionIntentAction: String
+    get() = "NOTIFICATION_MUTE_ACTION_INTENT_ACTION"
+
+private fun Context.getNotificationMuteAction(conversation: Conversation): NotificationCompat.Action {
+    val muteLabel = resources.getString(R.string.conversation_menu_muted_label)
+
+    val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        applicationContext,
+        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        Intent(
+            this,
+            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+        ).apply {
+            action = NotificationMuteActionIntentAction
+            putExtra("address", conversation.address)
+            putExtra("thread_id", conversation.thread_id)
+        },
+        PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
+    )
+
+    return NotificationCompat.Action.Builder(
+        null, // Icon for the reply button
+        muteLabel, // Text for the reply button
+        pendingIntent)
+        .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MUTE)
+        .build()
+}
+
+val Context.NotificationReplyActionIntentAction: String
+    get() = "NOTIFICATION_REPLY_ACTION_INTENT_ACTION"
+
+private fun Context.getNotificationReplyAction(conversation: Conversation): NotificationCompat.Action {
+    val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
+    val remoteInput: RemoteInput = RemoteInput.Builder(NotificationReplyActionKey)
+        .setLabel(replyLabel)
+        .build()
+
+    val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        applicationContext,
+        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        Intent(
+            this,
+            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+        ).apply {
+            action = NotificationReplyActionIntentAction
+            putExtra("address", conversation.address)
+            putExtra("thread_id", conversation.thread_id)
+            putExtra("sub_id", conversation.subscription_id)
+        },
+        PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
+    )
 
 
+    return NotificationCompat.Action.Builder(
+        null, // Icon for the reply button
+        replyLabel, // Text for the reply button
+        replyPendingIntent )
+        .addRemoteInput(remoteInput)
+        .setAllowGeneratedReplies(true)
+        .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+        .build()
+}
+
+private fun Context.getShortcutInfoId(
+    conversation: Conversation,
+    person: Person,
+    contactName: String): String {
+
+    val smsUrl = "smsto:${conversation.address}".toUri()
+    val intent = Intent(Intent.ACTION_SENDTO, smsUrl)
+    intent.putExtra(Conversation.THREAD_ID, conversation.thread_id)
+
+    val shortcutInfoCompat = ShortcutInfoCompat.Builder( this, contactName )
+        .setLongLived(true)
+        .setIntent(intent)
+        .setShortLabel(contactName)
+        .setPerson(person)
+        .build()
+
+    ShortcutManagerCompat.pushDynamicShortcut(this, shortcutInfoCompat)
+    return shortcutInfoCompat.id
 }

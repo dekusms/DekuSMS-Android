@@ -82,12 +82,12 @@ object Notifications {
                     getString(context, R.string.notifications_reply_label),
                     replyPendingIntent
                 )
-                    .addRemoteInput(
-                        RemoteInput.Builder(
-                            IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
-                            .setLabel(replyLabel)
-                            .build()
-                    )
+//                    .addRemoteInput(
+////                        RemoteInput.Builder(
+////                            IncomingTextSMSReplyMuteActionBroadcastReceiver.KEY_TEXT_REPLY)
+////                            .setLabel(replyLabel)
+////                            .build()
+//                    )
                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
                     .setShowsUserInterface(false)
                     .build()
