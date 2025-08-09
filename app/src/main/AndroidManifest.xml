@@ -201,6 +201,10 @@
         <service android:name="com.android.mms.transaction.TransactionService"/>
 
         <receiver
+            android:name=".Extensions.Context.NotificationsDelImpl"
+            android:exported="false" />
+
+        <receiver
             android:name=".BroadcastReceivers.MmsSentReceiverImpl"
             android:taskAffinity="com.klinker.android.messaging.MMS_SENT" />
 

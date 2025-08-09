@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -94,6 +95,19 @@ fun Context.notifyText(
     }
 }
 
+const val NotificationsDelAction = "NOTIFICATION_DEL_ACTION"
+class NotificationsDelImpl: BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        println(intent)
+        intent?.let {
+            if(intent.action == NotificationsDelAction) {
+                val threadId = intent.getStringExtra("thread_id") ?: ""
+                context?.cancelNotification(threadId)
+            }
+        }
+    }
+}
+
 fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCompat.Builder {
     val contactName = Contacts
         .retrieveContactName(this, conversation.address)
@@ -136,6 +150,17 @@ fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCo
         .setBubbleMetadata(bubbleMetadata)
         .setContentIntent(getPendingIntent(conversation))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+        .setDeleteIntent(
+            PendingIntent.getBroadcast(
+                this,
+                conversation.thread_id!!.toInt(),
+                Intent(this, NotificationsDelImpl::class.java).apply {
+                    action = NotificationsDelAction
+                    putExtra("thread_id", conversation.thread_id)
+                },
+                PendingIntent.FLAG_MUTABLE
+            )
+        )
         .apply {
             if(!Helpers.isShortCode(conversation.address!!)) {
                 addAction(getNotificationReplyAction(conversation))
@@ -331,7 +356,6 @@ private fun Context.getNotificationSession(threadId: String): List<IncomingNotif
 }
 
 fun Context.cancelNotification(threadId: String) {
-    NotificationManagerCompat.from(this).cancel(threadId.toInt())
     val sharedPreferences = getSharedPreferences(
         notificationSessionsFilename,
         Context.MODE_PRIVATE) ?: return
@@ -340,4 +364,6 @@ fun Context.cancelNotification(threadId: String) {
         remove(threadId)
         apply()
     }
+
+    NotificationManagerCompat.from(this).cancel(threadId.toInt())
 }
