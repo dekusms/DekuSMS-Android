@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.compose.runtime.snapshots.toLong
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -50,7 +51,7 @@ fun Context.notifyText(
         .build()
 
     val style = NotificationCompat.MessagingStyle(user)
-    messages?.forEach {
+    messages?.sortedWith(compareBy {it.date})?.forEach {
         style.addMessage(
             if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 NotificationCompat.MessagingStyle.Message(
