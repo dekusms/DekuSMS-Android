@@ -15,6 +15,8 @@ import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMarkAsReadAct
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMuteActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionKey
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationSession
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.insertNotificationSessions
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
@@ -59,44 +61,38 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
                         databaseConnector!!.conversationDao()._insert(conversation)
-
                         SMSDatabaseWrapper.send_text(context, conversation, null)
-                        val messagingStyle: NotificationCompat.MessagingStyle? =
-                            Notifications.getPreviousNotifications(context)
+                        context.insertNotificationSessions(conversation, true)
 
-                        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                            messagingStyle?.addMessage(
-                                conversation.text,
-                                System.currentTimeMillis(),
-                                ""
-                            )
-                        } else {
-                            val person = Person.Builder()
-                                .setName(context.getString(R.string.notification_title_reply_you))
-                                .build()
-                            messagingStyle?.addMessage(
-                                conversation.text!!,
-                                System.currentTimeMillis(),
-                                person
-                            )
-                        }
+                        val user = Person.Builder()
+                            .setName(context.resources
+                                .getString(R.string.notification_title_reply_you))
+                            .build()
 
-                        val builder = Notifications.createNotification(
-                            context = context,
-                            title = conversation.address!!,
-                            text = conversation.text!!,
-                            requestCode = conversation.thread_id!!.toInt(),
-                            address = conversation.address!!,
-                            contentIntent = Intent(
-                                context,
-                                MainActivity::class.java
-                            ).apply {
-                                putExtra("address", conversation.address)
-                                putExtra("thread_id", conversation.thread_id)
-                            },
-                        ).apply {
-                            setStyle(messagingStyle)
-                            setSilent(true)
+                        val messages = context
+                            .getNotificationSession(conversation.thread_id!!)
+
+                        val style = NotificationCompat.MessagingStyle(user)
+                        messages?.forEach {
+                            style.addMessage(
+                                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                    NotificationCompat.MessagingStyle.Message(
+                                        it.text,
+                                        it.date,
+                                        if(it.self) user else Person.Builder()
+                                            .setName(it.address)
+                                            .setKey(it.threadId)
+                                            .setImportant(true)
+                                            .build()
+                                    )
+                                } else {
+                                    NotificationCompat.MessagingStyle.Message(
+                                        it.text,
+                                        it.date,
+                                        if(it.self) user.name else conversation.address
+                                    )
+                                }
+                            )
                         }
 
                         Notifications.notify(
