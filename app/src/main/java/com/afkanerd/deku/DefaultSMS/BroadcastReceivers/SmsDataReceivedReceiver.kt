@@ -9,6 +9,7 @@ import android.util.Base64
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.MagicNumber
@@ -20,7 +21,6 @@ import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isValidPublicKey
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.makeSelfRequest
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.secureStorePeerPublicKey
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,8 +87,7 @@ class SmsDataReceivedReceiver : BroadcastReceiver() {
                             databaseConnector!!.conversationDao()._insert(conversation)
 
                         if (!ConversationsViewModel().isMuted(context, conversation.thread_id))
-                            NotificationsHandler
-                                .sendIncomingTextMessageNotification( context, conversation )
+                            context.notifyText(conversation)
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()

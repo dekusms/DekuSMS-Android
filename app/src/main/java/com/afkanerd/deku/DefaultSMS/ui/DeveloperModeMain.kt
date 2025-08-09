@@ -1,10 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
-import android.graphics.drawable.Icon
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,10 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.Extensions.clearRawColumnGuesses
-import com.afkanerd.deku.DefaultSMS.Extensions.exportRawWithColumnGuesses
-import com.afkanerd.deku.DefaultSMS.Extensions.importRawColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.clearRawColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.exportRawWithColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.importRawColumnGuesses
 import com.afkanerd.deku.DefaultSMS.R
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
