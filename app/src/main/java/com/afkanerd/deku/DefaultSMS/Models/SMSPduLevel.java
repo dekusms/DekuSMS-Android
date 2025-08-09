@@ -2,7 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.util.Log;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver;
 
 import java.text.ParseException;
 
@@ -84,7 +84,7 @@ public class SMSPduLevel {
     }
 
     public static void parse_address_format(String SMSC_address_format) {
-        Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), "PDU parsing address format: " + SMSC_address_format);
+        Log.d(SmsTextReceivedReceiver.class.getName(), "PDU parsing address format: " + SMSC_address_format);
 
         // TODO: compare and match the different TON and NPI values
         final String TON_INTERNATIONAL = "001";
@@ -94,8 +94,8 @@ public class SMSPduLevel {
 
         String SMSC_TON = SMSC_address_format.substring(0, 3);
         String SMSC_NPI = SMSC_address_format.substring(3);
-        Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), "PDU SMSC_TON: " + SMSC_TON);
-        Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
+        Log.d(SmsTextReceivedReceiver.class.getName(), "PDU SMSC_TON: " + SMSC_TON);
+        Log.d(SmsTextReceivedReceiver.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
     }
 
     // A function that takes a pdu string as input and returns an array of two strings: the OA and DA

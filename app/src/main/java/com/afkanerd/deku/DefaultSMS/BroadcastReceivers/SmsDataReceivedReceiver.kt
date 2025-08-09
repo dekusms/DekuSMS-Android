@@ -21,14 +21,13 @@ import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.makeSelfRequest
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.secureStorePeerPublicKey
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 //import org.bouncycastle.operator.OperatorCreationException;
-class IncomingDataSMSBroadcastReceiver : BroadcastReceiver() {
+class SmsDataReceivedReceiver : BroadcastReceiver() {
     var databaseConnector: Datastore? = null
 
     override fun onReceive(context: Context, intent: Intent) {

@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
@@ -13,14 +12,10 @@ import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
-import androidx.core.app.RemoteInput;
-import androidx.core.content.pm.ShortcutInfoCompat;
-import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.MainActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -74,7 +69,7 @@ public class NotificationsHandler {
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
         if(conversation != null && !Helpers.INSTANCE.isShortCode(conversation.getAddress())) {
-            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
+            Intent replyBroadcastIntent = new Intent(context, SmsMmsActionsImpl.class);
 
 //            replyBroadcastIntent.putExtra(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
 //                            .getREPLY_BROADCAST_INTENT(), conversation.getAddress());
@@ -235,7 +230,7 @@ public class NotificationsHandler {
 
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
-        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
+        Intent markAsReadIntent = new Intent(context, SmsMmsActionsImpl.class);
         markAsReadIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
         markAsReadIntent.putExtra(Conversation.ID, conversation.getMessage_id());
 //        markAsReadIntent.setAction(IncomingTextSMSReplyMuteActionBroadcastReceiver.Companion
@@ -272,7 +267,7 @@ public class NotificationsHandler {
 //            builder.addAction(replyAction);
         }
         else if(conversation.getThread_id() != null){
-            Intent muteIntent = new Intent(context, IncomingTextSMSReplyMuteActionBroadcastReceiver.class);
+            Intent muteIntent = new Intent(context, SmsMmsActionsImpl.class);
             muteIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
             muteIntent.putExtra(Conversation.ID, conversation.getMessage_id());
             muteIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());

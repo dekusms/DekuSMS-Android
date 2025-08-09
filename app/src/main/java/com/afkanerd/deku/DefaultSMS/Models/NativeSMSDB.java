@@ -11,13 +11,12 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
@@ -501,12 +500,12 @@ public class NativeSMSDB {
         }
 
         public static PendingIntent[] getPendingIntentsForData(Context context, String messageId, Bundle bundle) {
-            Intent sentIntent = new Intent(IncomingDataSMSBroadcastReceiver.
+            Intent sentIntent = new Intent(SmsDataReceivedReceiver.
                     Companion.getDATA_SENT_BROADCAST_INTENT());
             sentIntent.setPackage(context.getPackageName());
             sentIntent.putExtra(ID, messageId);
 
-            Intent deliveredIntent = new Intent(IncomingDataSMSBroadcastReceiver.
+            Intent deliveredIntent = new Intent(SmsDataReceivedReceiver.
                     Companion.getDATA_DELIVERED_BROADCAST_INTENT());
             deliveredIntent.setPackage(context.getPackageName());
             deliveredIntent.putExtra(Conversation.ID, messageId);
@@ -530,12 +529,12 @@ public class NativeSMSDB {
         }
 
         public static PendingIntent[] getPendingIntents(Context context, String messageId, Bundle bundle) {
-            Intent sentIntent = new Intent(IncomingTextSMSBroadcastReceiver.Companion
+            Intent sentIntent = new Intent(SmsTextReceivedReceiver.Companion
                     .getSMS_SENT_BROADCAST_INTENT());
             sentIntent.setPackage(context.getPackageName());
             sentIntent.putExtra(ID, messageId);
 
-            Intent deliveredIntent = new Intent(IncomingTextSMSBroadcastReceiver.Companion
+            Intent deliveredIntent = new Intent(SmsTextReceivedReceiver.Companion
                     .getSMS_DELIVERED_BROADCAST_INTENT());
             deliveredIntent.setPackage(context.getPackageName());
             deliveredIntent.putExtra(Conversation.ID, messageId);

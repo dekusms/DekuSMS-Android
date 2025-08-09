@@ -120,7 +120,7 @@
             android:exported="false"/>
 
         <receiver
-            android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
+            android:name=".BroadcastReceivers.SmsDataReceivedReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -132,7 +132,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
+            android:name=".BroadcastReceivers.SmsTextReceivedReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -156,7 +156,7 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver"
+            android:name=".BroadcastReceivers.SmsMmsActionsImpl"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

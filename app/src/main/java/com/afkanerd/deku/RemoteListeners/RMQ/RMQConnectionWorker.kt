@@ -14,12 +14,11 @@ import android.telephony.SubscriptionInfo
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
@@ -37,7 +36,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import org.json.JSONException
 import org.junit.Assert
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
@@ -257,7 +255,7 @@ class RMQConnectionWorker(
 
     private fun handleBroadcast() {
         val intentFilter = IntentFilter()
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)
+        intentFilter.addAction(SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT)
         messageStateChangedBroadcast = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action != null && intentFilter.hasAction(intent.action)) {

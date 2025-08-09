@@ -14,12 +14,10 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.notifyText
 import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.Notifications
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
@@ -29,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
+class SmsTextReceivedReceiver : BroadcastReceiver() {
     /*
     - address received might be different from how address is saved.
     - how it received is the trusted one, but won't match that which has been saved.
@@ -116,7 +114,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 Datastore.getDatastore(context).conversationDao()._update(conversation)
             }
         }
-        else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT) {
+        else if (intent.action == SmsDataReceivedReceiver.DATA_SENT_BROADCAST_INTENT) {
             coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
@@ -132,7 +130,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 Datastore.getDatastore(context).conversationDao()._update(conversation)
             }
         }
-        else if (intent.action == IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
+        else if (intent.action == SmsDataReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
             coroutineScope.launch{
                 val id = intent.getStringExtra(NativeSMSDB.ID)!!
                 val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)

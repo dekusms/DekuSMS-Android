@@ -25,11 +25,10 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
 import com.google.gson.GsonBuilder
@@ -591,7 +590,7 @@ fun Context.notifyText(conversation: Conversation) {
         .build()
 
     val sender = Person.Builder()
-        .setName(contactName)
+        .setName(contactName ?: conversation.address!!)
         .setKey(conversation.thread_id)
         .setImportant(true)
         .build()
@@ -605,21 +604,28 @@ fun Context.notifyText(conversation: Conversation) {
             )
         )
         .setGroupConversation(false)
+        .setConversationTitle(contactName ?: conversation.address!!)
 
     val bubbleMetadata =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             NotificationCompat.BubbleMetadata
-                .Builder((contactName ?: conversation.address)!!)
+                .Builder(contactName ?: conversation.address!!)
                 .setDesiredHeight(400)
                 .build()
         } else {
             null
         }
 
+    val shortcutInfoId = getShortcutInfoId(
+        conversation,
+        sender,
+        contactName ?: conversation.address!!
+    )
+
     val builder = NotificationCompat.Builder(
         this,
         getString(R.string.incoming_messages_channel_id))
-        .setContentTitle(contactName ?: conversation.address)
+//        .setContentTitle(contactName ?: conversation.address)
         .setWhen(System.currentTimeMillis())
         .setDefaults(Notification.DEFAULT_ALL)
         .setSmallIcon(R.drawable.ic_stat_name)
@@ -628,7 +634,7 @@ fun Context.notifyText(conversation: Conversation) {
         .setOnlyAlertOnce(true)
         .setAllowSystemGeneratedContextualActions(true)
         .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
-        .setShortcutId(getShortcutInfoId(conversation, sender, contactName))
+        .setShortcutId(shortcutInfoId)
         .setBubbleMetadata(bubbleMetadata)
         .setContentIntent(getPendingIntent(conversation))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -686,7 +692,7 @@ private fun Context.getNotificationMarkAsReadAction(
         conversation.thread_id?.toInt() ?: 0, // Or a unique request code
         Intent(
             this,
-            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+            SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationMarkAsReadActionIntentAction
             putExtra("address", conversation.address)
@@ -715,7 +721,7 @@ private fun Context.getNotificationMuteAction(conversation: Conversation): Notif
         conversation.thread_id?.toInt() ?: 0, // Or a unique request code
         Intent(
             this,
-            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+            SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationMuteActionIntentAction
             putExtra("address", conversation.address)
@@ -746,7 +752,7 @@ private fun Context.getNotificationReplyAction(conversation: Conversation): Noti
         conversation.thread_id?.toInt() ?: 0, // Or a unique request code
         Intent(
             this,
-            IncomingTextSMSReplyMuteActionBroadcastReceiver::class.java
+            SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationReplyActionIntentAction
             putExtra("address", conversation.address)

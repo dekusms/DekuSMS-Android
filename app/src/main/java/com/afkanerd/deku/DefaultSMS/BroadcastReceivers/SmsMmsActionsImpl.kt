@@ -11,7 +11,6 @@ import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.NotificationMarkAsReadActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.NotificationMuteActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.NotificationReplyActionIntentAction
@@ -29,7 +28,7 @@ import java.lang.Exception
 import com.afkanerd.deku.DefaultSMS.R
 
 
-class IncomingTextSMSReplyMuteActionBroadcastReceiver : BroadcastReceiver() {
+class SmsMmsActionsImpl : BroadcastReceiver() {
     var databaseConnector: Datastore? = null
 
     override fun onReceive(context: Context, intent: Intent) {
