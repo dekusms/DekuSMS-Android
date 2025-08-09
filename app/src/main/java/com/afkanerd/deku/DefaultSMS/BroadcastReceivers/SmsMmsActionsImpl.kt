@@ -15,8 +15,9 @@ import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMarkAsReadAct
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMuteActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionKey
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationSession
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.insertNotificationSessions
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationBuilder
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
+import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
@@ -62,44 +63,8 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                     try {
                         databaseConnector!!.conversationDao()._insert(conversation)
                         SMSDatabaseWrapper.send_text(context, conversation, null)
-                        context.insertNotificationSessions(conversation, true)
+                        context.notifyText(conversation, true)
 
-                        val user = Person.Builder()
-                            .setName(context.resources
-                                .getString(R.string.notification_title_reply_you))
-                            .build()
-
-                        val messages = context
-                            .getNotificationSession(conversation.thread_id!!)
-
-                        val style = NotificationCompat.MessagingStyle(user)
-                        messages?.forEach {
-                            style.addMessage(
-                                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                                    NotificationCompat.MessagingStyle.Message(
-                                        it.text,
-                                        it.date,
-                                        if(it.self) user else Person.Builder()
-                                            .setName(it.address)
-                                            .setKey(it.threadId)
-                                            .setImportant(true)
-                                            .build()
-                                    )
-                                } else {
-                                    NotificationCompat.MessagingStyle.Message(
-                                        it.text,
-                                        it.date,
-                                        if(it.self) user.name else conversation.address
-                                    )
-                                }
-                            )
-                        }
-
-                        Notifications.notify(
-                            context = context,
-                            builder = builder,
-                            notificationId = conversation.thread_id!!.toInt()
-                        )
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

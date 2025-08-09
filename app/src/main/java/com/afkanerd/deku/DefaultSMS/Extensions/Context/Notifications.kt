@@ -28,8 +28,16 @@ import kotlin.concurrent.thread
 val Context.NotificationReplyActionKey: String
     get() = "NOTIFICATION_REPLY_ACTION_KEY"
 
-fun Context.notifyText(conversation: Conversation) {
-    val contactName = Contacts.retrieveContactName(this, conversation.address)
+fun Context.notifyText(
+    conversation: Conversation,
+    self: Boolean = false,
+) {
+    insertNotificationSessions(conversation, self)
+    val builder = getNotificationBuilder(conversation)
+    val messages = getNotificationSession(conversation.thread_id!!)
+
+    val contactName = Contacts
+        .retrieveContactName(this, conversation.address)
 
     val user = Person.Builder()
         .setName(resources.getString(R.string.notification_title_reply_you))
@@ -41,12 +49,27 @@ fun Context.notifyText(conversation: Conversation) {
         .setImportant(true)
         .build()
 
-    val builder = getNotificationBuilder(
-        conversation,
-        user,
-        sender,
-        contactName
-    )
+    val style = NotificationCompat.MessagingStyle(user)
+    messages?.forEach {
+        style.addMessage(
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                NotificationCompat.MessagingStyle.Message(
+                    it.text,
+                    it.date,
+                    if(it.self) user.name else contactName
+                )
+            } else {
+                NotificationCompat.MessagingStyle.Message(
+                    it.text,
+                    it.date,
+                    if(it.self) user else sender
+                )
+            }
+        )
+            .setGroupConversation(false)
+            .setConversationTitle(contactName ?: conversation.address!!)
+    }
+    builder.setStyle(style)
 
     with(NotificationManagerCompat.from(this)) {
         if (ActivityCompat.checkSelfPermission(
@@ -69,12 +92,16 @@ fun Context.notifyText(conversation: Conversation) {
     }
 }
 
-fun Context.getNotificationBuilder(
-    conversation: Conversation,
-    user: Person,
-    sender: Person,
-    contactName: String?,
-): NotificationCompat.Builder {
+fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCompat.Builder {
+    val contactName = Contacts
+        .retrieveContactName(this, conversation.address)
+
+    val sender = Person.Builder()
+        .setName(contactName ?: conversation.address!!)
+        .setKey(conversation.thread_id)
+        .setImportant(true)
+        .build()
+
     val shortcutInfoId = getShortcutInfoId(
         conversation,
         sender,
@@ -90,17 +117,6 @@ fun Context.getNotificationBuilder(
         } else {
             null
         }
-
-    val style = NotificationCompat.MessagingStyle(user)
-        .addMessage(
-            NotificationCompat.MessagingStyle.Message(
-                conversation.text,
-                System.currentTimeMillis(),
-                sender
-            )
-        )
-        .setGroupConversation(false)
-        .setConversationTitle(contactName ?: conversation.address!!)
 
     return NotificationCompat.Builder(
         this,
@@ -118,7 +134,6 @@ fun Context.getNotificationBuilder(
         .setBubbleMetadata(bubbleMetadata)
         .setContentIntent(getPendingIntent(conversation))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .setStyle(style)
         .addAction(getNotificationReplyAction(conversation))
         .addAction(getNotificationMuteAction(conversation))
         .addAction(getNotificationMarkAsReadAction(conversation))
@@ -266,15 +281,16 @@ data class IncomingNotificationSession(
 )
 
 private const val notificationSessionsFilename = "NOTIFICATIONS_SESSIONS"
-fun Context.insertNotificationSessions(conversation: Conversation, self: Boolean) {
-    val sharedPreferences = getActivity()
-        ?.getSharedPreferences(notificationSessionsFilename, Context.MODE_PRIVATE)
-        ?: return
+private fun Context.insertNotificationSessions(conversation: Conversation, self: Boolean) {
+    val sharedPreferences = getSharedPreferences(
+        notificationSessionsFilename,
+        Context.MODE_PRIVATE)
 
     with(sharedPreferences.edit()) {
         val sets = sharedPreferences.getStringSet(
             conversation.thread_id,
-            mutableSetOf<String>()) ?: return
+            mutableSetOf<String>())!!
+
         val newSets: MutableSet<String> = sets.toMutableSet()
         val notifSession = IncomingNotificationSession(
             address = conversation.address!!,
@@ -291,10 +307,10 @@ fun Context.insertNotificationSessions(conversation: Conversation, self: Boolean
     }
 }
 
-fun Context.getNotificationSession(threadId: String): List<IncomingNotificationSession>? {
-    val sharedPreferences = getActivity()
-        ?.getSharedPreferences(notificationSessionsFilename, Context.MODE_PRIVATE)
-        ?: return null
+private fun Context.getNotificationSession(threadId: String): List<IncomingNotificationSession>? {
+    val sharedPreferences = getSharedPreferences(
+        notificationSessionsFilename,
+        Context.MODE_PRIVATE) ?: return null
 
     val sets = sharedPreferences.getStringSet(
         threadId,
@@ -308,10 +324,11 @@ fun Context.getNotificationSession(threadId: String): List<IncomingNotificationS
     return notifications
 }
 
-fun Context.clearNotifications(threadId: String) {
-    val sharedPreferences = getActivity()
-        ?.getSharedPreferences(notificationSessionsFilename, Context.MODE_PRIVATE)
-        ?: return
+fun Context.cancelNotification(threadId: String) {
+    NotificationManagerCompat.from(this).cancel(threadId.toInt())
+    val sharedPreferences = getSharedPreferences(
+        notificationSessionsFilename,
+        Context.MODE_PRIVATE) ?: return
 
     with(sharedPreferences.edit()) {
         remove(threadId)

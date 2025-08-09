@@ -136,6 +136,7 @@ import androidx.core.graphics.createBitmap
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.toUri
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.cancelNotification
 
 
 fun backHandler(
@@ -264,7 +265,7 @@ fun Conversations(
             }
         }
 
-        Notifications.cancel(context, viewModel.threadId.toInt())
+        context.cancelNotification(viewModel.threadId)
     }
 
     val contactName by remember{ mutableStateOf(

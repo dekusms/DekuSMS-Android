@@ -12,6 +12,7 @@ import android.widget.Toast
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationBuilder
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -232,16 +233,17 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                         .message_failed_send_notification_description_a_message_failed_to_send_to) +
                 " ${conversation.address}"
 
-        val builder = Notifications.createNotification(
-            context = context,
-            title = conversation.address!!,
-            text = content,
-            address = conversation.address!!,
-            requestCode = conversation.thread_id!!.toInt(),
-            contentIntent = notificationIntent,
-        )
-
-        Notifications.notify(context, builder, conversation.thread_id!!.toInt())
+//        val builder = Notifications.createNotification(
+//            context = context,
+//            title = conversation.address!!,
+//            text = content,
+//            address = conversation.address!!,
+//            requestCode = conversation.thread_id!!.toInt(),
+//            contentIntent = notificationIntent,
+//        )
+        context.notifyText(conversation.apply {
+            text = content
+        })
     }
 
 }
