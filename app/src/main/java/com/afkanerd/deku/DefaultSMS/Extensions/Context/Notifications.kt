@@ -19,6 +19,7 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.R
@@ -135,7 +136,11 @@ fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCo
         .setBubbleMetadata(bubbleMetadata)
         .setContentIntent(getPendingIntent(conversation))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .addAction(getNotificationReplyAction(conversation))
+        .apply {
+            if(!Helpers.isShortCode(conversation.address!!)) {
+                addAction(getNotificationReplyAction(conversation))
+            }
+        }
         .addAction(getNotificationMuteAction(conversation))
         .addAction(getNotificationMarkAsReadAction(conversation))
 }
