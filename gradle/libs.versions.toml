@@ -61,6 +61,7 @@ workRuntime = "2.10.2"
 activity = "1.10.1"
 x25519 = "2.0"
 android-smsmms = "c3e678befd"
+agpVersion = "8.11.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -150,4 +151,5 @@ x25519 = { module = "com.github.netricecake:x25519", version.ref = "x25519" }
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+#android-application = { id = "com.android.application", version.ref = "agpVersion" }
 

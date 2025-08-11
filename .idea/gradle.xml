@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/smswithoutborders_libsignal-doubleratchet" />
+            <option value="$PROJECT_DIR$/smswithoutborders_libsmsmms" />
           </set>
         </option>
       </GradleProjectSettings>
