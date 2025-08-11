@@ -52,6 +52,7 @@ roomTesting = "2.7.2"
 rulesVersion = "1.6.1"
 rxbinding = "1.0.1"
 securityCrypto = "1.1.0-beta01"
+sqliteKtxVersion = "2.5.2"
 startupRuntime = "1.2.0"
 uiTextGoogleFonts = "1.8.3"
 volley = "1.2.1"
@@ -62,6 +63,8 @@ activity = "1.10.1"
 x25519 = "2.0"
 android-smsmms = "c3e678befd"
 agpVersion = "8.11.0"
+roomCommonJvmVersion = "2.7.2"
+pagingCommonVersion = "3.3.6"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -107,6 +110,7 @@ androidx-rules = { module = "androidx.test:rules", version.ref = "rulesVersion" 
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
 androidx-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+androidx-sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqliteKtxVersion" }
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
 androidx-ui = { module = "androidx.compose.ui:ui" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.8.3" }
@@ -147,6 +151,8 @@ rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxb
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 x25519 = { module = "com.github.netricecake:x25519", version.ref = "x25519" }
+androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvmVersion" }
+androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "pagingCommonVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

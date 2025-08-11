@@ -1,21 +1,20 @@
-package com.afkanerd.deku.DefaultSMS.DAO
+package com.afkanerd.smswithoutborders_libsmsmms.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 
 @Dao
 interface ThreadsConfigurationsDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    fun insert(threadsConfigurations: ThreadsConfigurations): Long
+    fun insert(threads: Threads): Long
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    fun insert(threadsConfigurations: MutableList<ThreadsConfigurations>)
+    fun insert(threadsConfigurations: MutableList<Threads>)
 
     @Query("SELECT * FROM ThreadsConfigurations WHERE threadId = :threadId")
-    fun get(threadId: String): ThreadsConfigurations?
+    fun get(threadId: String): Threads?
 }

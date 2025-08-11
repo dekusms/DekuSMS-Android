@@ -1,4 +1,4 @@
-package com.afkanerd.smswithoutborders_libsmsmms
+package com.afkanerd.deku.DefaultSMS.Models
 
 import android.app.PendingIntent
 import android.content.Context
@@ -7,6 +7,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import android.telephony.SmsManager
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MmsSentReceiverImpl
+import com.klinker.android.send_message.Message
+import com.klinker.android.send_message.Settings
+import com.klinker.android.send_message.Transaction
 
 object Transmissions {
     private const val DATA_TRANSMISSION_PORT: Short = 8200

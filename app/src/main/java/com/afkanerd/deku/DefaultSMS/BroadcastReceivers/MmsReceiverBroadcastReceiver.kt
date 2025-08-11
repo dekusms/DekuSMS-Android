@@ -42,7 +42,7 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
 
         var location: String? = "";
         try {
-            location = MmsHandler.getContentLocation(context!!, uri)
+            location = mmsParser.getMmsContentLocation(uri)
         } catch(e: Exception ) {
             location = pduPersister.getContentLocationFromPduHeader(pdu)
             e.printStackTrace()
