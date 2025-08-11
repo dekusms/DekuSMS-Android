@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">smswithoutborders_libsmsmms</string>
+    <string name="unknown_error_sending_mms">Unknown error sending mms</string>
 </resources>

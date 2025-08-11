@@ -47,4 +47,7 @@ dependencies {
     androidTestImplementation libs.androidx.espresso.core
     annotationProcessor libs.androidx.room.compiler
     implementation libs.kotlinx.serialization.json
+
+    implementation(libs.android.smsmms)
+    implementation libs.libphonenumber
 }

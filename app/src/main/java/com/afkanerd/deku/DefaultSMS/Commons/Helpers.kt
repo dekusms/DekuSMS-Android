@@ -204,21 +204,6 @@ object Helpers {
         return null
     }
 
-    fun getUserCountry(context: Context): String {
-        var countryCode: String? = null
-
-        // Check if network information is available
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        if (cm != null) {
-            // Get the TelephonyManager to access network-related information
-            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager?
-            if (tm != null) {
-                // Get the ISO country code from the network
-                countryCode = tm.getNetworkCountryIso().uppercase()
-            }
-        }
-        return PhoneNumberUtil.getInstance().getCountryCodeForRegion(countryCode).toString()
-    }
 
     fun isBase64Encoded(input: String): Boolean {
         try {

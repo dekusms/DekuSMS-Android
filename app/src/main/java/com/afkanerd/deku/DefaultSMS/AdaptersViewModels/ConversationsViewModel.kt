@@ -1,20 +1,18 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
-import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.telephony.SmsManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.database.getIntOrNull
-import androidx.core.database.getStringOrNull
-import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,17 +25,26 @@ import androidx.paging.cachedIn
 import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MmsSentReceiverImpl
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver.Companion.DATA_DELIVERED_BROADCAST_INTENT
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver.Companion.DATA_SENT_BROADCAST_INTENT
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers.getFormatForTransmission
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers.getUserCountry
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendMmsMessage
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
-import com.afkanerd.deku.DefaultSMS.ui.Components.sendSMS
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.google.gson.GsonBuilder
+import com.klinker.android.send_message.Message
+import com.klinker.android.send_message.Settings
+import com.klinker.android.send_message.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +58,7 @@ class ConversationsViewModel : ViewModel() {
     var threadId by mutableStateOf("")
     var address by mutableStateOf("")
     var text by mutableStateOf("")
+    var data by mutableStateOf<ByteArray?>(null)
     var mmsImage: ByteArray? by mutableStateOf(null)
     var encryptedText by mutableStateOf("")
     var searchQuery by mutableStateOf("")
@@ -246,9 +254,6 @@ class ConversationsViewModel : ViewModel() {
         return conversationsPager!!
     }
 
-    fun insert(context: Context, conversation: Conversation): Long {
-        return Datastore.getDatastore(context).conversationDao()._insert(conversation)
-    }
 
     fun update(context: Context, conversation: Conversation) {
         Datastore.getDatastore(context).conversationDao()._update(conversation)
@@ -419,7 +424,7 @@ class ConversationsViewModel : ViewModel() {
         conversation.address = address
         conversation.status = Telephony.Sms.STATUS_PENDING
 
-        insert(context, conversation);
+        addSms(context, conversation);
         SMSDatabaseWrapper.saveDraft(context, conversation);
     }
 
@@ -569,49 +574,187 @@ class ConversationsViewModel : ViewModel() {
         }
     }
 
-    fun sendSms(context: Context) {
-        sendSMS(
-            context = context,
-            text = text,
-            threadId = threadId,
-            messageId = System.currentTimeMillis().toString(),
+    fun sendData(context: Context) {
+        if (data == null) return
+
+        val conversation = Conversations(sms = smsMmsNatives.Sms(
+            _id = (System.currentTimeMillis() / 1000).toInt(),
+            thread_id = threadId.toInt(),
             address = address,
-            conversationsViewModel = this
-        ) {
-            this.text = ""
-            this.encryptedText = ""
-            this.clearDraft(context)
+            date = (System.currentTimeMillis() / 1000).toInt(),
+            date_sent = 0,
+            read = 1,
+            status = Telephony.Sms.STATUS_PENDING,
+            type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+            body = "",
+            sub_id = subscriptionId,
+        ), sms_data_ = data)
+
+
+        val address = getFormatForTransmission(
+            address,
+            getUserCountry(context)
+        )
+
+        val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            context.getSystemService(SmsManager::class.java)
+                .createForSubscriptionId(subscriptionId)
+        } else {
+            SmsManager.getSmsManagerForSubscriptionId( subscriptionId)
+        }
+
+        val sentIntent = Intent(DATA_SENT_BROADCAST_INTENT)
+        sentIntent.setPackage(context.packageName)
+        sentIntent.putExtra(NativeSMSDB.ID, conversation.sms!!._id)
+
+        val deliveredIntent = Intent(DATA_DELIVERED_BROADCAST_INTENT)
+        deliveredIntent.setPackage(context.packageName)
+        deliveredIntent.putExtra("id", conversation.sms!!._id)
+
+        val sentPendingIntent = PendingIntent.getBroadcast(
+            context,
+            conversation.sms!!._id.toLong().toInt(),
+            sentIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val deliveredPendingIntent = PendingIntent.getBroadcast(
+            context,
+            conversation.sms!!._id.toLong().toInt(),
+            deliveredIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val dataTransmissionPort: Short = 8200
+        try {
+            smsManager.sendDataMessage(
+                address,
+                null,
+                dataTransmissionPort,
+                data,
+                sentPendingIntent,
+                deliveredPendingIntent
+            )
+        } catch (e: Exception) {
+            throw Exception(e)
+        }
+    }
+
+    fun sendSms(
+        context: Context,
+    ) {
+        val address = getFormatForTransmission(
+            address,
+            getUserCountry(context)
+        )
+
+        val conversation = Conversations(sms = smsMmsNatives.Sms(
+            _id = (System.currentTimeMillis() / 1000).toInt(),
+            thread_id = threadId.toInt(),
+            address = address,
+            date = (System.currentTimeMillis() / 1000).toInt(),
+            date_sent = 0,
+            read = 1,
+            status = Telephony.Sms.STATUS_PENDING,
+            type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+            body = text,
+            sub_id = subscriptionId,
+        ))
+
+        viewModelScope.launch {
+            try {
+                this@ConversationsViewModel.addSms(context, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@launch
+            }
+
+            this@ConversationsViewModel.text = ""
+            this@ConversationsViewModel.encryptedText = ""
+            this@ConversationsViewModel.clearDraft(context)
+
+            val payload = E2EEHandler.encryptMessage(context, text, address)
+
+            val settings = Settings()
+            settings.subscriptionId = subscriptionId
+            settings.group = false
+            settings.deliveryReports = true
+            settings.useSystemSending = true
+
+            val message = Message()
+            message.text = payload.first
+            message.addresses = arrayOf(address)
+
+            val transaction = Transaction(context, settings)
+            transaction.sendNewMessage(message)
+
         }
     }
 
     fun sendMms(context: Context, contentUri: Uri) {
-        val conversation = Conversation()
-        conversation.text = text
-        conversation.message_id = System.currentTimeMillis().toString()
-        conversation.thread_id = threadId
-        conversation.subscription_id = subscriptionId
-        conversation.type = Telephony.Mms.MESSAGE_BOX_OUTBOX
-        conversation.date = System.currentTimeMillis().toString()
-        conversation.address = address
-        conversation.status = Telephony.Sms.STATUS_PENDING
-        conversation.isRead = true
-//        conversation.mmsImage = mmsImage
-        conversation.mmsContentUri = contentUri.toString()
-        conversation.mmsMimeType = context.contentResolver.getType(contentUri)
-        conversation.mmsContentFilename = Helpers.getFileName(context, contentUri)
+        val address = getFormatForTransmission(
+            address,
+            getUserCountry(context)
+        )
+        val conversation = Conversations(
+            mms = smsMmsNatives.Mms(
+                _id = (System.currentTimeMillis() / 1000).toInt(),
+                thread_id = threadId.toInt(),
+                date = (System.currentTimeMillis() / 1000).toInt(),
+                date_sent = 0,
+                msg_box = Telephony.Mms.MESSAGE_BOX_OUTBOX,
+                read = 1,
+                sub_id = subscriptionId,
+                seen = 1,
+            ),
+            mms_content_uri = contentUri.toString(),
+            mms_mimetype = context.contentResolver.getType(contentUri),
+            mms_filename = Helpers.getFileName(context, contentUri),
+        )
 
-        sendMmsMessage(
-            context = context,
-            conversation = conversation,
-            conversationsViewModel = this,
-            contentUri = contentUri
-        ) {
-            this.text = ""
-            this.mmsImage = null
-            this.encryptedText = ""
-            this.clearDraft(context)
+        viewModelScope.launch {
+            try {
+                this@ConversationsViewModel.addSms(context, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@launch
+            }
+
+            this@ConversationsViewModel.text = ""
+            this@ConversationsViewModel.mmsImage = null
+            this@ConversationsViewModel.encryptedText = ""
+            this@ConversationsViewModel.clearDraft(context)
+
+            val sendSettings = mmsParser.getSendMessageSettings()
+            sendSettings.subscriptionId = subscriptionId
+
+            val intent = Intent(context, MmsSentReceiverImpl::class.java)
+                .apply {
+                    this.putExtra(
+                        MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
+                        conversation.mms!!._id,
+                    )
+            }
+
+            val sendTransaction = Transaction(context, sendSettings)
+            sendTransaction .setExplicitBroadcastForSentMms(intent)
+
+            val mMessage = Message(text, address)
+            val mimeType = context.contentResolver.getType(contentUri)
+            val filename = mmsParser.getFileName(context, contentUri)
+
+            mMessage.addMedia(
+                mmsParser.getBytesFromUri(context, contentUri),
+                mimeType,
+                filename
+            )
+
+            try {
+                sendTransaction.sendNewMessage(mMessage)
+            } catch(e: Exception) {
+                e.printStackTrace()
+            }
+
         }
     }
-
-
 }

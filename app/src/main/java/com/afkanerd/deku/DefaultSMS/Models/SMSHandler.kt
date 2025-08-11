@@ -3,10 +3,12 @@ package com.afkanerd.deku.DefaultSMS.Models
 import android.content.Context
 import android.net.Uri
 import android.provider.Telephony
-import android.telephony.SmsManager
 import android.util.Base64
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.klinker.android.send_message.Message
+import com.klinker.android.send_message.Settings
+import com.klinker.android.send_message.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,7 +35,7 @@ object SMSHandler {
                 conversation.date = System.currentTimeMillis().toString()
                 conversation.status = Telephony.Sms.STATUS_PENDING
 
-                val id = viewModel.insert(context, conversation)
+                val id = viewModel.addSms(context, conversation)
                 SMSDatabaseWrapper.send_data(context, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -50,7 +52,6 @@ object SMSHandler {
     ) {
         CoroutineScope(Dispatchers.Default).launch{
             try {
-                conversationsViewModel.insert(context, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return@launch
@@ -76,7 +77,7 @@ object SMSHandler {
 
         CoroutineScope(Dispatchers.Default).launch{
             try {
-                conversationsViewModel.insert(context, conversation)
+                conversationsViewModel.addSms(context, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return@launch
@@ -118,20 +119,12 @@ object SMSHandler {
 
     private fun sendTxt(
         context: Context,
-        conversation: Conversation,
+        text: String,
+        addresses: Array<String>,
+        subscriptionId: Int,
         conversationsViewModel: ConversationsViewModel
     ) {
-        try {
-            SMSDatabaseWrapper.send_text(context, conversation, null)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            NativeSMSDB.Outgoing.register_failed(context, conversation.message_id,
-                1 )
-            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-            conversation.error_code = 1
-            conversationsViewModel.update(context, conversation)
-        }
+
     }
 
 }

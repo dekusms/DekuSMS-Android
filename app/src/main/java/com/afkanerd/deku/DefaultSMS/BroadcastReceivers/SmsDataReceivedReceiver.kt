@@ -141,13 +141,13 @@ class SmsDataReceivedReceiver : BroadcastReceiver() {
         return booleanArrayOf(isSelf, isSecured)
     }
 
-    companion object {
-        var DATA_DELIVER_ACTION: String = BuildConfig.APPLICATION_ID + ".DATA_DELIVER_ACTION"
-
-        var DATA_SENT_BROADCAST_INTENT: String =
-            BuildConfig.APPLICATION_ID + ".DATA_SENT_BROADCAST_INTENT"
-
-        var DATA_DELIVERED_BROADCAST_INTENT: String =
-            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT"
-    }
+//    companion object {
+//        var DATA_DELIVER_ACTION: String = BuildConfig.APPLICATION_ID + ".DATA_DELIVER_ACTION"
+//
+//        var DATA_SENT_BROADCAST_INTENT: String =
+//            BuildConfig.APPLICATION_ID + ".DATA_SENT_BROADCAST_INTENT"
+//
+//        var DATA_DELIVERED_BROADCAST_INTENT: String =
+//            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT"
+//    }
 }

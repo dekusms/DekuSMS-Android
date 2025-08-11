@@ -581,26 +581,7 @@ fun sendSMS(
     conversationsViewModel: ConversationsViewModel,
     onCompleteCallback: () -> Unit
 ) {
-    val conversation = Conversation()
-    conversation.text = text
-    conversation.message_id = messageId
-    conversation.thread_id = threadId
-    conversation.subscription_id = conversationsViewModel.subscriptionId
-    conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-    conversation.date = System.currentTimeMillis().toString()
-    conversation.address = address
-    conversation.status = Telephony.Sms.STATUS_PENDING
-    conversation.isRead = true
 
-    sendTextMessage(
-        context = context,
-        text = text,
-        address = address,
-        conversation = conversation,
-        conversationsViewModel = conversationsViewModel,
-        messageId = null,
-        onCompleteCallback = onCompleteCallback
-    )
 }
 
 enum class ConversationsPredefinedTypes {

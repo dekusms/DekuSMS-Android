@@ -2,8 +2,10 @@ package com.afkanerd.smswithoutborders_libsmsmms.data.data.models
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.provider.Telephony
 import android.util.Xml
+import com.klinker.android.send_message.Settings
 import org.xmlpull.v1.XmlPullParser
 
 object mmsParser {
@@ -114,6 +116,48 @@ object mmsParser {
             }
         }
         return null
+    }
+
+    fun getFileName(context: Context, uri: Uri): String? {
+        var name: String? = null
+        val cursor = context.contentResolver.query(
+            uri,
+            null,
+            null,
+            null,
+            null
+        )
+
+        cursor?.use{
+            if (it.moveToFirst()) {
+                val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index != -1) {
+                    name = it.getString(index)
+                }
+            }
+        }
+        return name
+    }
+
+    fun getBytesFromUri(context: Context, uri: Uri): ByteArray? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.readBytes()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun getSendMessageSettings(): Settings {
+        val settings = Settings()
+        settings.useSystemSending = true
+        settings.deliveryReports = true
+        settings.sendLongAsMms = false
+//        settings.sendLongAsMmsAfter = 1
+        settings.group = false
+        return settings
     }
 
 }

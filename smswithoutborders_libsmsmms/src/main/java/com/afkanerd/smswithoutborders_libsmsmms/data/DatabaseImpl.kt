@@ -6,6 +6,7 @@ import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ConversationDao
 import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ThreadsConfigurationsDao
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Archive
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
@@ -14,7 +15,10 @@ import kotlin.concurrent.Volatile
 @Database(
     entities = [
         Archive::class,
-        Conversations::class,
+        smsMmsNatives.Sms::class,
+        smsMmsNatives.Mms::class,
+        smsMmsNatives.MmsPart::class,
+        smsMmsNatives.MmsAddr::class,
         Threads::class],
     version = 1
 )

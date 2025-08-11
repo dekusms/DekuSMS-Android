@@ -128,8 +128,8 @@ interface ConversationDao {
             "WHERE thread_id = :threadId AND read = 0")
     fun getUnreadCount(threadId: String): Int
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun _insert(conversations: Conversations): Long
+    @Insert
+    fun insert(conversations: Conversations): Long
 
     @Transaction
     fun reset(conversationsList: MutableList<Conversations>) {
@@ -141,10 +141,10 @@ interface ConversationDao {
     fun insertAll(conversationsList: MutableList<Conversations>): MutableList<Long>
 
     @Update
-    fun _update(conversations: Conversations): Int
+    fun update(conversations: Conversations): Int
 
     @Update
-    fun update(Conversations: MutableList<Conversations>): Int
+    fun update(conversations: MutableList<Conversations>): Int
 
     @Query("UPDATE Conversations SET read = :isRead WHERE thread_id = :threadId")
     fun updateRead(isRead: Boolean, threadId: String): Int

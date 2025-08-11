@@ -4,6 +4,7 @@ import androidx.room.Entity
 import kotlinx.serialization.Serializable
 
 object smsMmsNatives {
+
     @Entity
     @Serializable
     data class Sms(
@@ -15,17 +16,17 @@ object smsMmsNatives {
         val date_sent: Int,
         val protocol: String? = null,
         val read: Int,
-        val status: Int,
-        val type: Int,
+        var status: Int,
+        var type: Int,
         val reply_path_present: String? = null,
         val subject: String? = null,
         val body: String,
         val service_center: String? = null,
-        val locked: Int,
+        val locked: Int? = null,
         val sub_id: Int,
-        val error_code: Int,
-        val creator: String,
-        val seen: Int,
+        val error_code: Int? = null,
+        val creator: String? = null,
+        val seen: Int? = null,
     )
 
     @Entity
@@ -36,19 +37,19 @@ object smsMmsNatives {
         val date: Int,
         val date_sent: Int,
         val msg_box: Int,
-        val read: Int,
-        val m_id: String??,
-        val sub: String?,
-        val sub_cs: Int,
-        val ct_t: String?,
-        val ct_l: String?,
+        val read: Int? = null,
+        val m_id: String? = null,
+        val sub: String? = null,
+        val sub_cs: Int? = null,
+        val ct_t: String? = null,
+        val ct_l: String? = null,
         val exp: String? = null,
-        val m_cls: String?,
-        val m_type: Int,
-        val v: Int,
-        val m_size: Int,
-        val pri: Int,
-        val rr: Int,
+        val m_cls: String? = null,
+        val m_type: Int? = null,
+        val v: Int? = null,
+        val m_size: Int? = null,
+        val pri: Int? = null,
+        val rr: Int? = null,
         val rpt_a: String? = null,
         val resp_st: String? = null,
         val st: String? = null,
@@ -60,12 +61,12 @@ object smsMmsNatives {
         val ct_cls: String? = null,
         val resp_txt: String? = null,
         val d_tm: String? = null,
-        val d_rpt: Int,
-        val locked: Int,
-        val sub_id: Int,
-        val seen: Int,
-        val creator: String?,
-        val text_only: Int,
+        val d_rpt: Int? = null,
+        val locked: Int? = null,
+        val sub_id: Int? = null,
+        val seen: Int? = null,
+        val creator: String? = null,
+        val text_only: Int? = null,
     )
 
     @Entity

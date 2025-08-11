@@ -12,7 +12,6 @@ import android.widget.Toast
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationBuilder
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -172,7 +171,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
 
         val conversationsViewModel = ConversationsViewModel()
         CoroutineScope(Dispatchers.Default).launch {
-            conversationsViewModel.insert(context, conversation)
+            conversationsViewModel.addSms(context, conversation)
             if (!conversationsViewModel.isMuted(context, conversation.thread_id)) {
                 context.notifyText(conversation)
             }
