@@ -207,7 +207,7 @@
             android:exported="false" />
 
         <receiver
-            android:name=".BroadcastReceivers.MmsSentReceiverImpl"
+            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl"
             android:taskAffinity="com.klinker.android.messaging.MMS_SENT" />
 
         <receiver

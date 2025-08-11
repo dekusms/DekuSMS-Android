@@ -25,7 +25,6 @@ import androidx.paging.cachedIn
 import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.ConversationsScreen
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MmsSentReceiverImpl
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver.Companion.DATA_DELIVERED_BROADCAST_INTENT
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver.Companion.DATA_SENT_BROADCAST_INTENT
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
@@ -87,144 +86,140 @@ class ConversationsViewModel : ViewModel() {
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
 //    lateinit var threadingPager: Pager<Int, Conversation>
-    private lateinit var threadingPager: Flow<PagingData<Conversation>>
-    private lateinit var archivedPager: Flow<PagingData<Conversation>>
-    private lateinit var encryptedPager: Flow<PagingData<Conversation>>
-    private lateinit var draftPager: Flow<PagingData<Conversation>>
-    private lateinit var mutedPager: Flow<PagingData<Conversation>>
-    private lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
+//    private lateinit var threadingPager: Flow<PagingData<Conversation>>
+//    private lateinit var archivedPager: Flow<PagingData<Conversation>>
+//    private lateinit var encryptedPager: Flow<PagingData<Conversation>>
+//    private lateinit var draftPager: Flow<PagingData<Conversation>>
+//    private lateinit var mutedPager: Flow<PagingData<Conversation>>
+//    private lateinit var remoteListenerPager: Flow<PagingData<Conversation>>
 
-    private var conversationsPager: Flow<PagingData<Conversation>>? = null
 //    private lateinit var conversationsPager: Flow<PagingData<Conversation>>
-
-    fun getDefaultRegion(context: Context): String {
-        return Helpers.getUserCountry(context)
-    }
 
     fun setNewIntent(intent: Intent?) {
         _newIntent.value = intent
     }
 
-    fun getInboxType(isDefault: Boolean = false): InboxType {
-        inboxType = if(remoteListenersLiveData?.value?.isNotEmpty() == true && !isDefault) {
-            InboxType.REMOTE_LISTENER
-        } else InboxType.INBOX
-        return inboxType
-    }
+//    fun getInboxType(isDefault: Boolean = false): InboxType {
+//        inboxType = if(remoteListenersLiveData?.value?.isNotEmpty() == true && !isDefault) {
+//            InboxType.REMOTE_LISTENER
+//        } else InboxType.INBOX
+//        return inboxType
+//    }
 
-    fun getThreadingPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::threadingPager.isInitialized) {
-            threadingPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getAllThreadingPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return threadingPager
-    }
-
-    fun getArchivedPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::archivedPager.isInitialized) {
-            archivedPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getArchivedPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return archivedPager
-    }
-
-    fun getEncryptedPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::encryptedPager.isInitialized) {
-            encryptedPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getAllThreadingPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return encryptedPager
-    }
-
-    fun getDraftPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::draftPager.isInitialized) {
-            draftPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getDraftsPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return draftPager
-    }
-
-    fun getMutedPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::mutedPager.isInitialized) {
-            mutedPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getMutedPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return mutedPager
-    }
-
-    fun getRemoteListenersPagingSource(context: Context): Flow<PagingData<Conversation>> {
-        if(!::remoteListenerPager.isInitialized) {
-            remoteListenerPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getRemoteListenersPagingSource()
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return remoteListenerPager
-    }
+//    fun getThreadingPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::threadingPager.isInitialized) {
+//            threadingPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getAllThreadingPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return threadingPager
+//    }
+//
+//    fun getArchivedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::archivedPager.isInitialized) {
+//            archivedPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getArchivedPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return archivedPager
+//    }
+//
+//    fun getEncryptedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::encryptedPager.isInitialized) {
+//            encryptedPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getAllThreadingPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return encryptedPager
+//    }
+//
+//    fun getDraftPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::draftPager.isInitialized) {
+//            draftPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getDraftsPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return draftPager
+//    }
+//
+//    fun getMutedPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::mutedPager.isInitialized) {
+//            mutedPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getMutedPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return mutedPager
+//    }
+//
+//    fun getRemoteListenersPagingSource(context: Context): Flow<PagingData<Conversation>> {
+//        if(!::remoteListenerPager.isInitialized) {
+//            remoteListenerPager = Pager(
+//                config=PagingConfig(
+//                    pageSize,
+//                    prefetchDistance,
+//                    enablePlaceholder,
+//                    initialLoadSize,
+//                    maxSize
+//                ),
+//                pagingSourceFactory = {
+//                    Datastore.getDatastore(context).conversationDao()
+//                        .getRemoteListenersPagingSource()
+//                }
+//            ).flow.cachedIn(viewModelScope)
+//        }
+//        return remoteListenerPager
+//    }
+//
 
     fun getThread(context: Context): List<Conversation> {
         return Datastore.getDatastore(context).conversationDao().getAll(threadId)
@@ -232,26 +227,6 @@ class ConversationsViewModel : ViewModel() {
 
     fun get(context: Context): List<Conversation> {
         return Datastore.getDatastore(context).conversationDao().getComplete()
-    }
-
-    fun getConversationLivePaging(context: Context): Flow<PagingData<Conversation>> {
-//        if(!::conversationsPager.isInitialized) {
-        if(conversationsPager == null) {
-            conversationsPager = Pager(
-                config=PagingConfig(
-                    pageSize,
-                    prefetchDistance,
-                    enablePlaceholder,
-                    initialLoadSize,
-                    maxSize
-                ),
-                pagingSourceFactory = {
-                    Datastore.getDatastore(context).conversationDao()
-                        .getConversationPaging(threadId)
-                }
-            ).flow.cachedIn(viewModelScope)
-        }
-        return conversationsPager!!
     }
 
 
@@ -451,61 +426,6 @@ class ConversationsViewModel : ViewModel() {
         }
     }
 
-
-    fun importAll(context: Context, detailsOnly:Boolean = false): List<Conversation> {
-        val json = Json { ignoreUnknownKeys = true }
-        val conversations = json.decodeFromString<MutableList<Conversation>>(importDetails)
-        if(!detailsOnly) {
-            val databaseConnector = Datastore.getDatastore(context)
-            databaseConnector.conversationDao().insertAll(conversations)
-        }
-        return conversations
-    }
-
-    fun getAllExport(context: Context): String {
-        val databaseConnector = Datastore.getDatastore(context)
-        val conversations = databaseConnector!!.conversationDao().getComplete()
-
-        val gsonBuilder = GsonBuilder()
-        gsonBuilder.setPrettyPrinting().serializeNulls()
-
-        val gson = gsonBuilder.create()
-        return gson.toJson(conversations)
-    }
-
-    fun reset(context: Context) {
-        val cursor = NativeSMSDB.fetchAllSMS(context)
-        val cursorMMS = NativeSMSDB.fetchAllMMS(context)
-
-        val conversationList: MutableList<Conversation> = ArrayList<Conversation>()
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                val conversation = Conversation.Companion.build(cursor).apply {
-                    this.address = Helpers.getFormatCompleteNumber(
-                        this.address!!,
-                        getDefaultRegion(context)
-                    )
-                }
-                conversationList.add(conversation)
-            } while (cursor.moveToNext())
-            cursor.close()
-        }
-
-        if (cursorMMS != null && cursorMMS.moveToFirst()) {
-            do {
-                val mmsConversation = Conversation.Companion.build(cursorMMS, true)
-                val parsedMms = NativeSMSDB.ParseMMS(context, cursorMMS)
-                parsedMms.buildConversation(context, mmsConversation);
-
-                if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
-                    conversationList.add(mmsConversation)
-
-            } while (cursorMMS.moveToNext())
-            cursorMMS.close()
-        }
-
-        Datastore.getDatastore(context).conversationDao().reset(conversationList)
-    }
 
     fun clear(context: Context) {
         Telephony.Sms.MESSAGE_TYPE_DRAFT

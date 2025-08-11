@@ -50,4 +50,5 @@ dependencies {
 
     implementation(libs.android.smsmms)
     implementation libs.libphonenumber
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }

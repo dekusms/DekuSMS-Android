@@ -2,20 +2,12 @@ package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
 import android.app.Activity
 import android.content.BroadcastReceiver
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.database.sqlite.SQLiteException
-import android.net.Uri
 import android.provider.Telephony
 import android.widget.Toast
-import com.klinker.android.send_message.MmsSentReceiver.EXTRA_CONTENT_URI
-import java.io.File
-import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.R
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +29,7 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
         originalResentMessageId?.let {
             CoroutineScope(Dispatchers.Default).launch {
                 context.getDatabase().conversationDao()
-                    ?.getMessage(originalResentMessageId)?.let { conversation ->
+                    ?.getConversation(originalResentMessageId)?.let { conversation ->
                         conversation.sms?.status = messageBox
                         conversation.sms?.type = Telephony.Mms.MESSAGE_BOX_SENT
                         conversation.mms_content_uri = uri

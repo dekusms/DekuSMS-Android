@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import android.provider.BlockedNumberContract
+import android.provider.Telephony
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +49,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -68,6 +71,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.CombinedLoadStates
@@ -78,9 +86,9 @@ import androidx.paging.compose.itemKey
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.ComposeNewMessageScreen
+import com.afkanerd.deku.DefaultSMS.Extensions.Context.getActivity
 import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler
 import com.afkanerd.deku.DefaultSMS.R
@@ -95,33 +103,28 @@ import com.afkanerd.deku.DeveloperModeScreen
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDefaultRegion
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-enum class InboxType(val value: Int) {
-    INBOX(0),
-    ARCHIVED(1),
-    ENCRYPTED(2),
-    BLOCKED(3),
-    DRAFTS(4),
-    MUTED(5),
-    REMOTE_LISTENER(6),
-    DEVELOPER_MODE(7);
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class
 )
 @Composable
 fun ThreadConversationLayout(
-    conversationsViewModel: ConversationsViewModel,
+    threadsViewModel: ThreadsViewModel,
     navController: NavController,
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
+    val lifeCycleOwner = LocalLifecycleOwner.current
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || Subroutines.isDefault(context)) }
 
@@ -129,73 +132,92 @@ fun ThreadConversationLayout(
         isDefault = Subroutines.isDefault(context)
     }
 
-    val newIntent by conversationsViewModel.newIntent.collectAsState()
-    LaunchedEffect(newIntent) {
-        newIntent?.let { intent ->
-            conversationsViewModel.processIntents(context, intent,
-                conversationsViewModel.getDefaultRegion(context))?.let {
-                conversationsViewModel.setNewIntent(null)
-                it.first?.let{ address ->
-                    it.second?.let { threadId ->
-                        it.third?.let{ message ->
-                            conversationsViewModel.text = message
-                        }
-                        conversationsViewModel.navigateToConversation(
-                            conversationsViewModel = conversationsViewModel,
-                            address = address,
-                            threadId = threadId,
-                            subscriptionId = SIMHandler.getDefaultSimSubscription(context),
-                            navController = navController,
-                        )
-                    }
-                }
-            }
+    // TODO: Handle intent from other apps situations
+//    val newIntent by conversationsViewModel.newIntent.collectAsState()
+//    LaunchedEffect(newIntent) {
+//        newIntent?.let { intent ->
+//            conversationsViewModel.processIntents(
+//                context,
+//                intent,
+//                context.getDefaultRegion()
+//            )?.let {
+//                conversationsViewModel.setNewIntent(null)
+//                it.first?.let{ address ->
+//                    it.second?.let { threadId ->
+//                        it.third?.let{ message ->
+//                            conversationsViewModel.text = message
+//                        }
+//                        conversationsViewModel.navigateToConversation(
+//                            conversationsViewModel = conversationsViewModel,
+//                            address = address,
+//                            threadId = threadId,
+//                            subscriptionId = SIMHandler.getDefaultSimSubscription(context),
+//                            navController = navController,
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    var inboxType by remember { mutableStateOf(ThreadsViewModel.InboxType.INBOX )}
+    DisposableEffect(lifeCycleOwner) {
+        val observer = Observer<ThreadsViewModel.InboxType> { newInboxType ->
+            inboxType = newInboxType
+        }
+        threadsViewModel.selectedInbox.observe(lifeCycleOwner, observer)
+
+        onDispose {
+            threadsViewModel.selectedInbox.removeObserver(observer)
         }
     }
 
-    val counts by conversationsViewModel.getCount(context).observeAsState(null)
+    var selectedItems by remember { mutableStateOf(listOf<Threads>()) }
+    DisposableEffect(lifeCycleOwner) {
+        val observer = Observer<MutableList<Threads>> { threads ->
+            selectedItems = threads
+        }
+        threadsViewModel.selectedItems.observe(lifeCycleOwner, observer)
 
-    var inboxType by remember { mutableStateOf(
-        conversationsViewModel.getInboxType(isDefault)
-    ) }
+        onDispose {
+            threadsViewModel.selectedItems.removeObserver(observer)
+        }
+    }
 
-    val inboxMessagesPagers = conversationsViewModel
-        .getThreadingPagingSource(context)
+    val inboxMessagesPagers = threadsViewModel.getThreads(context)
 
-    val archivedMessagesPagers = conversationsViewModel
-        .getArchivedPagingSource(context)
-
-    val encryptedMessagesPagers = conversationsViewModel
-        .getEncryptedPagingSource(context)
-
-    val draftMessagesPagers = conversationsViewModel
-        .getDraftPagingSource(context)
-
-    val mutedMessagesPagers = conversationsViewModel
-        .getMutedPagingSource(context)
-
-    val remoteMessagesPagers = conversationsViewModel
-        .getRemoteListenersPagingSource(context)
+//    val archivedMessagesPagers = conversationsViewModel
+//        .getArchivedPagingSource(context)
+//
+//    val encryptedMessagesPagers = conversationsViewModel
+//        .getEncryptedPagingSource(context)
+//
+//    val draftMessagesPagers = conversationsViewModel
+//        .getDraftPagingSource(context)
+//
+//    val mutedMessagesPagers = conversationsViewModel
+//        .getMutedPagingSource(context)
+//
+//    val remoteMessagesPagers = conversationsViewModel
+//        .getRemoteListenersPagingSource(context)
 
     val inboxMessagesItems = inboxMessagesPagers.collectAsLazyPagingItems()
-    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
-    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
-    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
-    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
-    val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
+//    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
+//    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
+//    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
+//    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
+//    val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
 
-    val blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+//    val blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    val selectedItems = remember { mutableStateListOf<Conversation>() }
     val slideDeleteItem = remember { mutableStateOf("") }
 
     val selectedIconColors = MaterialTheme.colorScheme.primary
-    var selectedItemIndex by remember { mutableStateOf(conversationsViewModel.inboxType) }
 
     var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
@@ -203,52 +225,49 @@ fun ThreadConversationLayout(
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
-    LaunchedEffect(encryptedMessagesItems.loadState != Loading) {
-        encryptedMessagesItems.itemSnapshotList
-    }
+    // TODO: Handle blocked messages
+//    LaunchedEffect(inboxType) {
+//        selectedItemIndex = inboxType
+//        if(inboxType == InboxType.BLOCKED && isDefault) {
+//            coroutineScope.launch {
+//                conversationsViewModel.get(context).let {
+//                    blockedItems.addAll(it.filter {
+//                        BlockedNumberContract.isBlocked(context, it.address)
+//                    })
+//                }
+//            }
+//        }
+//    }
 
-    LaunchedEffect(inboxType) {
-        selectedItemIndex = inboxType
-        if(inboxType == InboxType.BLOCKED && isDefault) {
-            coroutineScope.launch {
-                conversationsViewModel.get(context).let {
-                    blockedItems.addAll(it.filter {
-                        BlockedNumberContract.isBlocked(context, it.address)
-                    })
-                }
-            }
-        }
-    }
+//    LaunchedEffect(remoteMessagesItems) {
+//        if(!isDefault && remoteMessagesItems.itemCount > 0)
+//            inboxType = InboxType.REMOTE_LISTENER
+//    }
 
-    LaunchedEffect(remoteMessagesItems) {
-        if(!isDefault && remoteMessagesItems.itemCount > 0)
-            inboxType = InboxType.REMOTE_LISTENER
-    }
+//    LaunchedEffect(conversationsViewModel.importDetails) {
+//        rememberImportMenuExpanded = conversationsViewModel.importDetails.isNotBlank()
+//    }
 
-    LaunchedEffect(conversationsViewModel.importDetails) {
-        rememberImportMenuExpanded = conversationsViewModel.importDetails.isNotBlank()
-    }
-
-    BackHandler {
-        if(conversationsViewModel.inboxType != InboxType.INBOX) {
-            conversationsViewModel.inboxType = InboxType.INBOX
-            selectedItemIndex = InboxType.INBOX
-            inboxType = InboxType.INBOX
-        }
-        else if(!selectedItems.isEmpty()) {
-            selectedItems.clear()
-        }
-        else {
-            if(context is AppCompatActivity) {
-                context.finish()
-            }
-        }
-    }
+//    BackHandler {
+//        if(conversationsViewModel.inboxType != InboxType.INBOX) {
+//            conversationsViewModel.inboxType = InboxType.INBOX
+//            selectedItemIndex = InboxType.INBOX
+//            inboxType = InboxType.INBOX
+//        }
+//        else if(!selectedItems.isEmpty()) {
+//            selectedItems.clear()
+//        }
+//        else {
+//            if(context is AppCompatActivity) {
+//                context.finish()
+//            }
+//        }
+//    }
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
-        conversationViewModel = conversationsViewModel,
+        threadsViewModel = threadsViewModel,
     ) {
         rememberMenuExpanded = it
     }
@@ -256,27 +275,28 @@ fun ThreadConversationLayout(
     ModalNavigationDrawer(
         modifier = Modifier.safeDrawingPadding(),
         drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheetLayout(
-                callback = { type ->
-                    scope.launch {
-                        drawerState.apply {
-                            if(isClosed) open() else close()
-                            inboxType = type
-                            selectedItemIndex = type
-                            conversationsViewModel.inboxType = type
-                        }
-                    }
-                },
-                selectedItemIndex = selectedItemIndex,
-                counts = counts,
-            )
-        },
+        drawerContent = {},
+//        drawerContent = {
+//            ModalDrawerSheetLayout(
+//                callback = { type ->
+//                    scope.launch {
+//                        drawerState.apply {
+//                            if(isClosed) open() else close()
+//                            inboxType = type
+//                            selectedItemIndex = type
+//                            conversationsViewModel.inboxType = type
+//                        }
+//                    }
+//                },
+//                selectedItemIndex = selectedItemIndex,
+//                counts = 0,
+//            )
+//        },
     ) {
         Scaffold (
             modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
-                if(selectedItems.isEmpty() && inboxType == InboxType.INBOX) {
+                if(selectedItems.isEmpty() && inboxType == ThreadsViewModel.InboxType.INBOX) {
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
@@ -333,7 +353,7 @@ fun ThreadConversationLayout(
                         },
                         navigationIcon = {
                             IconButton(onClick = {
-                                selectedItems.clear()
+                                threadsViewModel.removeAllSelectedItems()
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
@@ -344,25 +364,13 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             IconButton(onClick = {
-                                if(inboxType == InboxType.ARCHIVED) {
-                                    coroutineScope.launch {
-                                        val threads : List<String> = selectedItems.map{
-                                            it.thread_id!!
-                                        }
-                                        conversationsViewModel.unArchive(context, threads)
-                                        selectedItems.clear()
-                                    }
+                                if(inboxType == ThreadsViewModel.InboxType.ARCHIVED) {
+                                    TODO("Unarchive")
                                 } else {
-                                    coroutineScope.launch {
-                                        val threads : List<String> = selectedItems.map{
-                                            it.thread_id!!
-                                        }
-                                        conversationsViewModel.archive(context, threads)
-                                        selectedItems.clear()
-                                    }
+                                    TODO("Archive")
                                 }
                             }) {
-                                if(inboxType == InboxType.ARCHIVED) {
+                                if(inboxType == ThreadsViewModel.InboxType.ARCHIVED) {
                                     Icon(
                                         imageVector = Icons.Filled.Unarchive,
                                         tint = selectedIconColors,
@@ -398,22 +406,22 @@ fun ThreadConversationLayout(
                         title = {
                             Text(
                                 text= when(inboxType) {
-                                    InboxType.ARCHIVED ->
+                                    ThreadsViewModel.InboxType.ARCHIVED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_archived)
-                                    InboxType.ENCRYPTED ->
+                                    ThreadsViewModel.InboxType.ENCRYPTED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_encryption)
-                                    InboxType.BLOCKED ->
+                                    ThreadsViewModel.InboxType.BLOCKED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_blocked)
-                                    InboxType.MUTED ->
+                                    ThreadsViewModel.InboxType.MUTED ->
                                         stringResource(R.string
                                             .conversation_menu_muted_label)
-                                    InboxType.DRAFTS ->
+                                    ThreadsViewModel.InboxType.DRAFTS ->
                                         stringResource(R.string
                                             .conversations_navigation_view_drafts)
-                                    InboxType.REMOTE_LISTENER ->
+                                    ThreadsViewModel.InboxType.REMOTE_LISTENER ->
                                         stringResource(R.string.remote_listeners)
                                     else -> ""
                                 },
@@ -436,13 +444,13 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             when(inboxType) {
-                                InboxType.INBOX -> {}
-                                InboxType.ARCHIVED -> {}
-                                InboxType.ENCRYPTED -> {}
-                                InboxType.BLOCKED -> {}
-                                InboxType.DRAFTS -> {}
-                                InboxType.MUTED -> {}
-                                InboxType.REMOTE_LISTENER -> {
+                                ThreadsViewModel.InboxType.INBOX -> {}
+                                ThreadsViewModel.InboxType.ARCHIVED -> {}
+                                ThreadsViewModel.InboxType.ENCRYPTED -> {}
+                                ThreadsViewModel.InboxType.BLOCKED -> {}
+                                ThreadsViewModel.InboxType.DRAFTS -> {}
+                                ThreadsViewModel.InboxType.MUTED -> {}
+                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
                                     IconButton(onClick = {
                                         navController.navigate(RemoteListenersAddScreen)
                                     }) {
@@ -454,7 +462,7 @@ fun ThreadConversationLayout(
                                     }
                                 }
 
-                                InboxType.DEVELOPER_MODE -> { }
+                                ThreadsViewModel.InboxType.DEVELOPER_MODE -> { }
                             }
                         },
                         scrollBehavior = scrollBehaviour
@@ -463,7 +471,7 @@ fun ThreadConversationLayout(
             },
             floatingActionButton = {
                 when(inboxType) {
-                    InboxType.INBOX -> {
+                    ThreadsViewModel.InboxType.INBOX -> {
                         if(isDefault || inPreviewMode) {
                             ExtendedFloatingActionButton(
                                 onClick = {
@@ -478,12 +486,12 @@ fun ThreadConversationLayout(
                             )
                         }
                     }
-                    InboxType.ARCHIVED -> {}
-                    InboxType.ENCRYPTED -> {}
-                    InboxType.BLOCKED -> {}
-                    InboxType.DRAFTS -> {}
-                    InboxType.MUTED -> {}
-                    InboxType.REMOTE_LISTENER -> {
+                    ThreadsViewModel.InboxType.ARCHIVED -> {}
+                    ThreadsViewModel.InboxType.ENCRYPTED -> {}
+                    ThreadsViewModel.InboxType.BLOCKED -> {}
+                    ThreadsViewModel.InboxType.DRAFTS -> {}
+                    ThreadsViewModel.InboxType.MUTED -> {}
+                    ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
                         ExtendedFloatingActionButton(
                             onClick = {
                                 navController.navigate(RemoteListenersScreen)
@@ -496,22 +504,22 @@ fun ThreadConversationLayout(
                         )
                     }
 
-                    InboxType.DEVELOPER_MODE -> {}
+                    ThreadsViewModel.InboxType.DEVELOPER_MODE -> {}
                 }
             }
         ) { innerPadding ->
             Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                if(!isDefault && inboxType != InboxType.REMOTE_LISTENER) {
+                if(!isDefault && inboxType != ThreadsViewModel.InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
-                        conversationsViewModel.loadNatives(context)
+                        TODO("Fix making defaults")
                         isDefault = true
                     }
                 }
                 else {
                     when(inboxType) {
-                        InboxType.INBOX -> {
+                        ThreadsViewModel.InboxType.INBOX -> {
                             if(inboxMessagesItems.loadState.refresh != Loading &&
                                 inboxMessagesItems.itemCount < 1)
                                 Column(
@@ -525,43 +533,45 @@ fun ThreadConversationLayout(
                                     )
                                 }
                         }
-                        InboxType.ARCHIVED -> {
-                            if(archivedMessagesItems.loadState.refresh != Loading &&
-                                archivedMessagesItems.itemCount < 1)
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        stringResource(R.string.homepage_archive_no_message),
-                                        fontSize = 24.sp
-                                    )
-                                }
+                        ThreadsViewModel.InboxType.ARCHIVED -> {
+//                            if(archivedMessagesItems.loadState.refresh != Loading &&
+//                                archivedMessagesItems.itemCount < 1)
+//                                Column(
+//                                    modifier = Modifier.fillMaxSize(),
+//                                    verticalArrangement = Arrangement.Center,
+//                                    horizontalAlignment = Alignment.CenterHorizontally
+//                                ) {
+//                                    Text(
+//                                        stringResource(R.string.homepage_archive_no_message),
+//                                        fontSize = 24.sp
+//                                    )
+//                                }
+                            TODO("Implement Archives")
                         }
-                        InboxType.ENCRYPTED -> {}
-                        InboxType.BLOCKED -> {}
-                        InboxType.DRAFTS -> {}
-                        InboxType.MUTED -> {}
-                        InboxType.REMOTE_LISTENER -> {
-                            if(remoteMessagesItems.loadState.refresh != Loading &&
-                                remoteMessagesItems.itemCount < 1)
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        stringResource(R.string
-                                            .no_messages_sent_from_remote_listeners),
-                                        fontSize = 16.sp,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                        ThreadsViewModel.InboxType.ENCRYPTED -> {}
+                        ThreadsViewModel.InboxType.BLOCKED -> {}
+                        ThreadsViewModel.InboxType.DRAFTS -> {}
+                        ThreadsViewModel.InboxType.MUTED -> {}
+                        ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
+//                            if(remoteMessagesItems.loadState.refresh != Loading &&
+//                                remoteMessagesItems.itemCount < 1)
+//                                Column(
+//                                    modifier = Modifier.fillMaxSize(),
+//                                    verticalArrangement = Arrangement.Center,
+//                                    horizontalAlignment = Alignment.CenterHorizontally
+//                                ) {
+//                                    Text(
+//                                        stringResource(R.string
+//                                            .no_messages_sent_from_remote_listeners),
+//                                        fontSize = 16.sp,
+//                                        color = MaterialTheme.colorScheme.secondary,
+//                                        textAlign = TextAlign.Center
+//                                    )
+//                                }
+                            TODO("Implement remote listener")
                         }
 
-                        InboxType.DEVELOPER_MODE -> {
+                        ThreadsViewModel.InboxType.DEVELOPER_MODE -> {
                             navController.navigate(DeveloperModeScreen)
                         }
                     }
@@ -571,37 +581,40 @@ fun ThreadConversationLayout(
                         state = listState
                     )  {
                         items(
-                            count = when(inboxType) {
-                                InboxType.BLOCKED -> blockedItems.size
-                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
-                                    inboxMessagesItems.itemCount
-                                InboxType.ARCHIVED -> archivedMessagesItems.itemCount
-                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
-                                InboxType.DRAFTS -> draftMessagesItems.itemCount
-                                InboxType.MUTED -> mutedMessagesItems.itemCount
-                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
-                            },
-                            key = when(inboxType) {
-                                InboxType.BLOCKED -> {{ blockedItems[it].id }}
-                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
-                                    inboxMessagesItems.itemKey{ it.id }
-                                InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
-                                InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
-                                InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
-                                InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
-                                InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
-                            }
+                            inboxMessagesItems.itemCount,
+//                            count = when(inboxType) {
+//                                ThreadsViewModel.InboxType.INBOX, ThreadsViewModel.InboxType.DEVELOPER_MODE ->
+//                                    inboxMessagesItems.itemCount
+//                                ThreadsViewModel.InboxType.BLOCKED -> blockedItems.size
+//                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
+//                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
+//                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemCount
+//                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemCount
+//                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
+//                            },
+                                inboxMessagesItems.itemKey{ it.threadId }
+//                            key = when(inboxType) {
+//                                ThreadsViewModel.InboxType.BLOCKED -> {{ blockedItems[it].id }}
+//                                ThreadsViewModel.InboxType.INBOX, ThreadsViewModel.InboxType.DEVELOPER_MODE ->
+//                                    inboxMessagesItems.itemKey{ it.id }
+//                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
+//                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
+//                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
+//                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
+//                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
+//                            }
                         ) { index ->
-                            val message = when(inboxType) {
-                                InboxType.INBOX, InboxType.DEVELOPER_MODE ->
-                                    inboxMessagesItems[index]
-                                InboxType.ARCHIVED -> archivedMessagesItems[index]
-                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
-                                InboxType.BLOCKED -> blockedItems[index]
-                                InboxType.DRAFTS -> draftMessagesItems[index]
-                                InboxType.MUTED -> mutedMessagesItems[index]
-                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
-                            }
+                            val message = inboxMessagesItems[index]
+//                            val message = when(inboxType) {
+//                                ThreadsViewModel.InboxType.INBOX, InboxType.DEVELOPER_MODE ->
+//                                    inboxMessagesItems[index]
+//                                InboxType.ARCHIVED -> archivedMessagesItems[index]
+//                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
+//                                InboxType.BLOCKED -> blockedItems[index]
+//                                InboxType.DRAFTS -> draftMessagesItems[index]
+//                                InboxType.MUTED -> mutedMessagesItems[index]
+//                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
+//                            }
 
                             message?.address?.let { address ->
                                 val isBlocked by remember { mutableStateOf(
@@ -627,55 +640,53 @@ fun ThreadConversationLayout(
                                     }
                                 }
 
-                                var isMute by remember { mutableStateOf( false) }
-                                LaunchedEffect(message.thread_id) {
-                                    coroutineScope.launch {
-                                        isMute = conversationsViewModel.isMuted(context,
-                                            message.thread_id)
-                                    }
-                                }
+//                                var isMute by remember { mutableStateOf( false) }
+//                                LaunchedEffect(message.thread_id) {
+//                                    coroutineScope.launch {
+//                                        isMute = conversationsViewModel.isMuted(context,
+//                                            message.thread_id)
+//                                    }
+//                                }
 
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = {
-                                        when(it) {
-                                            SwipeToDismissBoxValue.StartToEnd -> {
-                                                slideDeleteItem.value = message.thread_id!!
-                                                rememberDeleteMenu = true
-                                                return@rememberSwipeToDismissBoxState false
-                                            }
-                                            SwipeToDismissBoxValue.EndToStart -> {
-                                                coroutineScope.launch {
-                                                    when(inboxType) {
-                                                        InboxType.ARCHIVED ->
-                                                            conversationsViewModel.unArchive(context,
-                                                                message.thread_id)
-                                                        else -> conversationsViewModel.archive(context,
-                                                            message.thread_id)
-                                                    }
-                                                }
-                                                return@rememberSwipeToDismissBoxState true
-                                            }
-                                            SwipeToDismissBoxValue.Settled ->
-                                                return@rememberSwipeToDismissBoxState false
-                                        }
-                                    },
-//                                    positionalThreshold = { it * .75f }
-                                    positionalThreshold = { it * .85f }
-                                )
+                                // TODO: Swipe action
+
+                                val dismissState = rememberSwipeToDismissBoxState()
+//                                val dismissState = rememberSwipeToDismissBoxState(
+//                                    confirmValueChange = {
+//                                        when(it) {
+//                                            SwipeToDismissBoxValue.StartToEnd -> {
+//                                                slideDeleteItem.value = message.thread_id!!
+//                                                rememberDeleteMenu = true
+//                                                return@rememberSwipeToDismissBoxState false
+//                                            }
+//                                            SwipeToDismissBoxValue.EndToStart -> {
+//                                                coroutineScope.launch {
+//                                                    when(inboxType) {
+//                                                        InboxType.ARCHIVED ->
+//                                                            conversationsViewModel.unArchive(context,
+//                                                                message.thread_id)
+//                                                        else -> conversationsViewModel.archive(context,
+//                                                            message.thread_id)
+//                                                    }
+//                                                }
+//                                                return@rememberSwipeToDismissBoxState true
+//                                            }
+//                                            SwipeToDismissBoxValue.Settled ->
+//                                                return@rememberSwipeToDismissBoxState false
+//                                        }
+//                                    },
+////                                    positionalThreshold = { it * .75f }
+//                                    positionalThreshold = { it * .85f }
+//                                )
 
                                 val date by remember{ mutableStateOf(
-                                        if(!message.date.isNullOrBlank())
+                                        if(message.date > 0)
                                             Helpers.formatDate(context,
-                                                message.date!!.toLong()) ?: ""
+                                                message.date) ?: ""
                                         else "Tues",
                                 ) }
 
-                                val content by remember { mutableStateOf(
-                                    if(message.text.isNullOrBlank())
-                                        context.getString(R.string
-                                            .conversation_threads_secured_content)
-                                    else message.text!!,
-                                ) }
+                                val content by remember { mutableStateOf( message.snippet) }
 
                                 SwipeToDismissBox(
                                     state = dismissState,
@@ -683,44 +694,46 @@ fun ThreadConversationLayout(
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,
-                                            inboxType == InboxType.ARCHIVED
+                                            inboxType == ThreadsViewModel.InboxType.ARCHIVED
                                         )
                                     }
                                 ) {
                                     ThreadConversationCard(
-                                        id = message.thread_id!!,
-                                        firstName = firstName!!,
+                                        id = message.threadId.toString(),
+                                        firstName = firstName,
                                         lastName = lastName,
                                         phoneNumber = address,
                                         content = content,
                                         date = date,
-                                        isRead = message.isRead,
+                                        isRead = !message.unread,
                                         isContact = isDefault && !contactName.isNullOrBlank(),
                                         isBlocked = isBlocked,
                                         modifier = Modifier.combinedClickable(
                                             onClick = {
-                                                if(selectedItems.isEmpty()) {
-                                                    conversationsViewModel.navigateToConversation(
-                                                        conversationsViewModel,
-                                                        address = message.address!!,
-                                                        threadId = message.thread_id!!,
-                                                        subscriptionId =
-                                                        SIMHandler.getDefaultSimSubscription(context),
-                                                        navController = navController,
-                                                    )
-                                                } else {
-                                                    if(selectedItems.contains(message))
-                                                        selectedItems.remove(message)
-                                                    else
-                                                        selectedItems.add(message)
-                                                }
+//                                                if(selectedItems.isEmpty()) {
+//                                                    conversationsViewModel.navigateToConversation(
+//                                                        conversationsViewModel,
+//                                                        address = message.address!!,
+//                                                        threadId = message.thread_id!!,
+//                                                        subscriptionId =
+//                                                        SIMHandler.getDefaultSimSubscription(context),
+//                                                        navController = navController,
+//                                                    )
+//                                                } else {
+//                                                    if(selectedItems.contains(message))
+//                                                        selectedItems.remove(message)
+//                                                    else
+//                                                        selectedItems.add(message)
+//                                                }
+                                                TODO("Implement message select")
                                             },
                                             onLongClick = {
-                                                selectedItems.add(message)
+                                                TODO("Implement long click")
+//                                                selectedItems.add(message)
                                             }
                                         ),
                                         isSelected = isSelected,
-                                        isMuted = isMute,
+                                        isMuted = false,
                                         type = message.type
                                     )
                                 }
@@ -731,46 +744,47 @@ fun ThreadConversationLayout(
                     if(rememberDeleteMenu) {
                         DeleteConfirmationAlert(
                             confirmCallback = {
-                                coroutineScope.launch {
-                                    val threads: List<String> = selectedItems.map { it.thread_id!! }
-                                    conversationsViewModel.deleteThreads(context,
-                                        threads.ifEmpty { listOf(slideDeleteItem.value) }
-                                    )
-                                    selectedItems.clear()
-                                    rememberDeleteMenu = false
-                                }
+//                                coroutineScope.launch {
+//                                    val threads: List<String> = selectedItems.map { it.thread_id!! }
+//                                    conversationsViewModel.deleteThreads(context,
+//                                        threads.ifEmpty { listOf(slideDeleteItem.value) }
+//                                    )
+//                                    selectedItems.clear()
+//                                    rememberDeleteMenu = false
+//                                }
+                                TODO("Implement delete")
                             }
                         ) {
                             rememberDeleteMenu = false
-                            selectedItems.clear()
+//                            selectedItems.clear()
                         }
                     }
 
-                    if(rememberImportMenuExpanded) {
-                        val importConversations by remember { mutableStateOf(conversationsViewModel
-                            .importAll(context, detailsOnly = true)) }
-                        val numThreads by remember { mutableStateOf(
-                            importConversations.map { it.thread_id }.toSet()
-                        ) }
-                        ImportDetails(
-                            numOfConversations = importConversations.size,
-                            numOfThreads = numThreads.size,
-                            resetConfirmCallback = {
-                                coroutineScope.launch {
-                                    conversationsViewModel.clear(context)
-                                    conversationsViewModel.importAll(context)
-                                    conversationsViewModel.importDetails = ""
-                                }
-                            },
-                            confirmCallback = {
-                                coroutineScope.launch {
-                                    conversationsViewModel.importAll(context)
-                                    conversationsViewModel.importDetails = ""
-                                }
-                            }) {
-                            conversationsViewModel.importDetails = ""
-                        }
-                    }
+//                    if(rememberImportMenuExpanded) {
+//                        val importConversations by remember { mutableStateOf(conversationsViewModel
+//                            .importAll(context, detailsOnly = true)) }
+//                        val numThreads by remember { mutableStateOf(
+//                            importConversations.map { it.thread_id }.toSet()
+//                        ) }
+//                        ImportDetails(
+//                            numOfConversations = importConversations.size,
+//                            numOfThreads = numThreads.size,
+//                            resetConfirmCallback = {
+//                                coroutineScope.launch {
+//                                    conversationsViewModel.clear(context)
+//                                    conversationsViewModel.importAll(context)
+//                                    conversationsViewModel.importDetails = ""
+//                                }
+//                            },
+//                            confirmCallback = {
+//                                coroutineScope.launch {
+//                                    conversationsViewModel.importAll(context)
+//                                    conversationsViewModel.importDetails = ""
+//                                }
+//                            }) {
+//                            conversationsViewModel.importDetails = ""
+//                        }
+//                    }
 
                 }
             }
@@ -786,19 +800,24 @@ fun ThreadConversationLayout(
 fun PreviewMessageCard() {
     AppTheme(darkTheme = true) {
         Surface(Modifier.safeDrawingPadding()) {
-            val messages: MutableList<Conversation> =
+            val messages: MutableList<Threads> =
                 remember { mutableListOf( ) }
             for(i in 0..10) {
-                val thread = Conversation()
-                thread.thread_id = i.toString()
-                thread.address = "$i"
-                thread.text = "Hello world: $i"
-                thread.date = ""
+                val thread = Threads(
+                    threadId = i.toInt(),
+                    address = "$i",
+                    snippet = "Hello world: $i",
+                    date = System.currentTimeMillis(),
+                    unread = true,
+                    isMute = true,
+                    type = Telephony.Sms.MESSAGE_TYPE_SENT
+                )
                 messages.add(thread)
             }
+            val threadsViewModel: ThreadsViewModel = viewModel()
             ThreadConversationLayout(
+                threadsViewModel = threadsViewModel,
                 navController = rememberNavController(),
-                conversationsViewModel = ConversationsViewModel()
             )
         }
     }
@@ -809,11 +828,10 @@ fun PreviewMessageCard() {
 fun PreviewMessageCardRemoteListeners_Preview() {
     AppTheme(darkTheme = true) {
         Surface(Modifier.safeDrawingPadding()) {
+            val threadsViewModel: ThreadsViewModel = viewModel()
             ThreadConversationLayout(
+                threadsViewModel = threadsViewModel,
                 navController = rememberNavController(),
-                conversationsViewModel = ConversationsViewModel().apply {
-                    inboxType = InboxType.REMOTE_LISTENER
-                }
             )
         }
     }

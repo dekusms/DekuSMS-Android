@@ -71,6 +71,9 @@ import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
 import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getAllExport
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.importSmsMessages
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -539,7 +542,7 @@ fun ModalDrawerSheetLayout(
 @Composable
 fun ThreadsMainDropDown(
     expanded: Boolean = false,
-    conversationViewModel: ConversationsViewModel,
+    threadsViewModel: ThreadsViewModel,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -553,9 +556,8 @@ fun ThreadsMainDropDown(
                 with(context.contentResolver.openFileDescriptor(uri, "w")) {
                     this?.fileDescriptor.let { fd ->
                         val fileOutputStream = FileOutputStream(fd);
-                        fileOutputStream.write(conversationViewModel
-                            .getAllExport(context).encodeToByteArray());
-                        // Let the document provider know you're done by closing the stream.
+                        fileOutputStream.write(context
+                            .getAllExport(context).encodeToByteArray())
                         fileOutputStream.close();
                     }
                     this?.close();
@@ -584,7 +586,7 @@ fun ThreadsMainDropDown(
                         }
                     }
                 }
-                conversationViewModel.importDetails = stringBuilder.toString()
+                context.importSmsMessages(context,stringBuilder.toString())
                 CoroutineScope(Dispatchers.Main).launch {
                     Toast.makeText(context,
                         context.getString(R.string.conversations_import_complete),

@@ -6,5 +6,5 @@ import androidx.room.PrimaryKey
 @Entity
 data class Archive(
     @PrimaryKey
-    var thread_id: String,
+    var threadId: String,
 )
