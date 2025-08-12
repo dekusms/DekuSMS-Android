@@ -10,7 +10,7 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.afkanerd.smswithoutborders_libsmsmms"
+//        applicationId "com.afkanerd.smswithoutborders_libsmsmms"
         minSdk 24
         targetSdk 36
         versionCode 1

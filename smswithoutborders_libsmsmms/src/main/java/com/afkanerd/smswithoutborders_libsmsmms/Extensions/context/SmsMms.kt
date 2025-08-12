@@ -126,20 +126,20 @@ fun Context.sendSms(
         throw e
     }
 
-    val payload = E2EEHandler.encryptMessage(context, text, address)
-
-    val settings = Settings()
-    settings.subscriptionId = subscriptionId
-    settings.group = false
-    settings.deliveryReports = true
-    settings.useSystemSending = true
-
-    val message = Message()
-    message.text = payload.first
-    message.addresses = arrayOf(address)
-
-    val transaction = Transaction(context, settings)
-    transaction.sendNewMessage(message)
+//    val payload = E2EEHandler.encryptMessage(context, text, address)
+//
+//    val settings = Settings()
+//    settings.subscriptionId = subscriptionId
+//    settings.group = false
+//    settings.deliveryReports = true
+//    settings.useSystemSending = true
+//
+//    val message = Message()
+//    message.text = payload.first
+//    message.addresses = arrayOf(address)
+//
+//    val transaction = Transaction(context, settings)
+//    transaction.sendNewMessage(message)
 }
 
 @Throws

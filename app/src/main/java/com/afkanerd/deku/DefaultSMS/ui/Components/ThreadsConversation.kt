@@ -69,10 +69,7 @@ import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
 import com.afkanerd.deku.DefaultSMS.SettingsActivity
-import com.afkanerd.deku.DefaultSMS.ui.InboxType
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getAllExport
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.importSmsMessages
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -357,8 +354,8 @@ fun ThreadConversationCard(
 
 @Composable
 fun ModalDrawerSheetLayout(
-    callback: ((InboxType) -> Unit)? = null,
-    selectedItemIndex: InboxType = InboxType.INBOX,
+    callback: ((ThreadsViewModel.InboxType) -> Unit)? = null,
+    selectedItemIndex: ThreadsViewModel.InboxType = ThreadsViewModel.InboxType.INBOX,
     counts: ThreadsCount? = null,
 ) {
     ModalDrawerSheet {
@@ -387,8 +384,8 @@ fun ModalDrawerSheetLayout(
                             Text(counts.unreadCount.toString(), fontSize = 14.sp)
                     }
                 },
-                selected = selectedItemIndex == InboxType.INBOX,
-                onClick = { callback?.let{ it(InboxType.INBOX) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.INBOX,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.INBOX) } }
             )
             NavigationDrawerItem(
                 icon = {
@@ -409,8 +406,8 @@ fun ModalDrawerSheetLayout(
                             Text(counts.archivedCount.toString(), fontSize = 14.sp)
                     }
                 },
-                selected = selectedItemIndex == InboxType.ARCHIVED,
-                onClick = { callback?.let{ it(InboxType.ARCHIVED) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.ARCHIVED,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.ARCHIVED) } }
             )
 
             HorizontalDivider(Modifier.padding(8.dp))
@@ -434,8 +431,8 @@ fun ModalDrawerSheetLayout(
                             Text(counts.draftsCount.toString(), fontSize = 14.sp)
                     }
                 },
-                selected = selectedItemIndex == InboxType.DRAFTS,
-                onClick = { callback?.let{ it(InboxType.DRAFTS) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.DRAFTS,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.DRAFTS) } }
             )
 
             NavigationDrawerItem(
@@ -453,8 +450,8 @@ fun ModalDrawerSheetLayout(
                 },
                 badge = {
                 },
-                selected = selectedItemIndex == InboxType.ENCRYPTED,
-                onClick = { callback?.let{ it(InboxType.ENCRYPTED) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.ENCRYPTED,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.ENCRYPTED) } }
             )
 
             NavigationDrawerItem(
@@ -472,8 +469,8 @@ fun ModalDrawerSheetLayout(
                 },
                 badge = {
                 },
-                selected = selectedItemIndex == InboxType.MUTED,
-                onClick = { callback?.let{ it(InboxType.MUTED) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.MUTED,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.MUTED) } }
             )
 
             NavigationDrawerItem(
@@ -491,8 +488,8 @@ fun ModalDrawerSheetLayout(
                 },
                 badge = {
                 },
-                selected = selectedItemIndex == InboxType.BLOCKED,
-                onClick = { callback?.let{ it(InboxType.BLOCKED) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.BLOCKED,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.BLOCKED) } }
             )
 
             HorizontalDivider(Modifier.padding(8.dp))
@@ -512,8 +509,8 @@ fun ModalDrawerSheetLayout(
                 },
                 badge = {
                 },
-                selected = selectedItemIndex == InboxType.REMOTE_LISTENER,
-                onClick = { callback?.let{ it(InboxType.REMOTE_LISTENER) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.REMOTE_LISTENER,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.REMOTE_LISTENER) } }
             )
 
             NavigationDrawerItem(
@@ -531,8 +528,8 @@ fun ModalDrawerSheetLayout(
                 },
                 badge = {
                 },
-                selected = selectedItemIndex == InboxType.DEVELOPER_MODE,
-                onClick = { callback?.let{ it(InboxType.DEVELOPER_MODE) } }
+                selected = selectedItemIndex == ThreadsViewModel.InboxType.DEVELOPER_MODE,
+                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.DEVELOPER_MODE) } }
             )
         }
     }
@@ -554,19 +551,20 @@ fun ThreadsMainDropDown(
         uri?.let {
             CoroutineScope(Dispatchers.IO).launch {
                 with(context.contentResolver.openFileDescriptor(uri, "w")) {
-                    this?.fileDescriptor.let { fd ->
-                        val fileOutputStream = FileOutputStream(fd);
-                        fileOutputStream.write(context
-                            .getAllExport(context).encodeToByteArray())
-                        fileOutputStream.close();
-                    }
-                    this?.close();
-
-                    CoroutineScope(Dispatchers.Main).launch {
-                        Toast.makeText(context,
-                            context.getString(R.string.conversations_exported_complete),
-                            Toast.LENGTH_LONG).show();
-                    }
+                    // TODO: fix export
+//                    this?.fileDescriptor.let { fd ->
+//                        val fileOutputStream = FileOutputStream(fd);
+//                        fileOutputStream.write(context
+//                            .getAllExport(context).encodeToByteArray())
+//                        fileOutputStream.close();
+//                    }
+//                    this?.close();
+//
+//                    CoroutineScope(Dispatchers.Main).launch {
+//                        Toast.makeText(context,
+//                            context.getString(R.string.conversations_exported_complete),
+//                            Toast.LENGTH_LONG).show();
+//                    }
                 }
             }
         }
@@ -576,22 +574,23 @@ fun ThreadsMainDropDown(
         ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             CoroutineScope(Dispatchers.IO).launch {
-                val stringBuilder = StringBuilder()
-                context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                        var line: String? = reader.readLine()
-                        while (line != null) {
-                            stringBuilder.append(line)
-                            line = reader.readLine()
-                        }
-                    }
-                }
-                context.importSmsMessages(context,stringBuilder.toString())
-                CoroutineScope(Dispatchers.Main).launch {
-                    Toast.makeText(context,
-                        context.getString(R.string.conversations_import_complete),
-                        Toast.LENGTH_LONG).show();
-                }
+                // TODO: implement
+//                val stringBuilder = StringBuilder()
+//                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+//                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
+//                        var line: String? = reader.readLine()
+//                        while (line != null) {
+//                            stringBuilder.append(line)
+//                            line = reader.readLine()
+//                        }
+//                    }
+//                }
+//                context.importSmsMessages(context,stringBuilder.toString())
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    Toast.makeText(context,
+//                        context.getString(R.string.conversations_import_complete),
+//                        Toast.LENGTH_LONG).show();
+//                }
             }
         }
     }
@@ -696,7 +695,7 @@ fun ThreadsMainDropDown(
                 onClick = {
                     CoroutineScope(Dispatchers.Default).launch {
                         dismissCallback?.let { it(false) }
-                        conversationViewModel.reset(context)
+//                        conversationViewModel.reset(context)
                     }
                 }
             )
@@ -778,7 +777,7 @@ fun ImportDetailsPreview() {
 fun ModalDrawerSheetLayoutPreview() {
     AppTheme {
         ModalDrawerSheetLayout(
-            selectedItemIndex = InboxType.INBOX,
+            selectedItemIndex = ThreadsViewModel.InboxType.INBOX,
             counts = ThreadsCount(unreadCount = 12, archivedCount = 3, draftsCount = 1)
         )
     }
@@ -791,7 +790,7 @@ fun MainMenuDropDown_Preview() {
     AppTheme {
         ThreadsMainDropDown(
             expanded = true,
-            conversationViewModel = remember { ConversationsViewModel() }
+            threadsViewModel = remember { ThreadsViewModel() }
         )
     }
 }
