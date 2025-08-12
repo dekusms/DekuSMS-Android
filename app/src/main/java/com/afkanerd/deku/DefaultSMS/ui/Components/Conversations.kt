@@ -42,9 +42,8 @@ import androidx.core.net.toUri
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendTextMessage
 import com.afkanerd.deku.DefaultSMS.ui.MmsContentView
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.example.compose.AppTheme
 
 enum class ConversationPositionTypes(val value: Int) {
@@ -496,27 +495,27 @@ private fun getPredefinedType(type: Int) : ConversationsPredefinedTypes? {
 
 fun getConversationType(
     index: Int,
-    conversation: Conversation,
-    conversations: List<Conversation>
+    conversation: Conversations,
+    conversations: List<Conversations>
 ): ConversationPositionTypes {
     if(conversations.size < 2) {
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
     if(index == 0) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[1].type)) {
-            if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[1].sms?.type!!)) {
+            if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[1].sms?.date!!.toLong())) {
                 return ConversationPositionTypes.END
             }
         }
-        if(!Helpers.isSameHour(conversation.date!!.toLong(), conversations[1].date!!.toLong())) {
+        if(!Helpers.isSameHour(conversation.sms?.date!!.toLong(), conversations[1].sms?.date!!.toLong())) {
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
     }
     if(index == conversations.size - 1) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations.last().type) &&
+        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations.last().sms?.type!!) &&
             Helpers.isSameMinute(
-                conversation.date!!.toLong(),
-                conversations[index -1].date!!.toLong())
+                conversation.sms?.date!!.toLong(),
+                conversations[index -1].sms?.date!!.toLong())
         ) {
             return ConversationPositionTypes.START_TIMESTAMP
         }
@@ -524,29 +523,29 @@ fun getConversationType(
     }
 
     if(index + 1 < conversations.size && index - 1 > -1 ) {
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type)
+        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index - 1].sms?.type!!)
             &&
-            getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type)
+            getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index + 1].sms?.type!!)
         ) {
-            if(Helpers.isSameHour(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
-                if(Helpers.isSameMinute(conversation.date!!.toLong(),
-                        conversations[index -1].date!!.toLong()) &&
-                    Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index +1].date!!.toLong())) {
+            if(Helpers.isSameHour(conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())) {
+                if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(),
+                        conversations[index -1].sms?.date!!.toLong()) &&
+                    Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())) {
                     return ConversationPositionTypes.MIDDLE
                 }
-                if(Helpers.isSameMinute(conversation.date!!.toLong(), conversations[index -1].date!!.toLong())) {
+                if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())) {
                     return ConversationPositionTypes.START
                 }
             }
         }
 
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index + 1].type))
+        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index + 1].sms?.type!!))
         {
             if(Helpers.isSameHour(
-                    conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                    conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
             ) {
                 if(Helpers.isSameMinute(
-                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                        conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
                 ) {
                     return ConversationPositionTypes.END
                 }
@@ -554,13 +553,13 @@ fun getConversationType(
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
 
-        if(getPredefinedType(conversation.type) == getPredefinedType(conversations[index - 1].type))
+        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index - 1].sms?.type!!))
         {
             if(Helpers.isSameMinute(
-                    conversation.date!!.toLong(), conversations[index -1].date!!.toLong())
+                    conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())
             ) {
                 if(Helpers.isSameHour(
-                        conversation.date!!.toLong(), conversations[index +1].date!!.toLong())
+                        conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
                 ) {
                     return ConversationPositionTypes.START_TIMESTAMP
                 }

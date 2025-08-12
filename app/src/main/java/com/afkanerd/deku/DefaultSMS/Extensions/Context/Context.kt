@@ -27,8 +27,6 @@ import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
 import com.google.gson.GsonBuilder

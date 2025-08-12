@@ -21,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDefaultRegion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ object RemoteListenersHandler {
         val operatorDetails: MutableList<String> = ArrayList()
         val simCards = SIMHandler.getSimCardInformation(context)
 
-        val operatorCountry = Helpers.getUserCountry(context)
+        val operatorCountry = context.getDefaultRegion()
         simCards?.let {
             for (i in simCards.indices) {
                 val mcc = simCards[i].mcc.toString()

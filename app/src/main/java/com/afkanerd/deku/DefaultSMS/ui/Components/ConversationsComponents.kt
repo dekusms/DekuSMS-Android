@@ -119,11 +119,11 @@ import coil.request.ImageRequest
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.MainActivity
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.example.compose.AppTheme
 import com.jakewharton.rxbinding.view.RxMenuItem.icon
 import io.getstream.avatarview.AvatarView
@@ -582,7 +582,7 @@ fun ShortCodeAlert(
 
 @Composable
 fun MessageInfoAlert(
-    conversation: Conversation,
+    conversation: Conversations,
     dismissCallback: (() -> Unit)? = null,
 ) {
     val type = stringResource(R.string.text_message_1)
@@ -606,32 +606,32 @@ fun MessageInfoAlert(
                     stringResource(R.string.priority, priority),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-                if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
+                if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
-                        stringResource(R.string.from, conversation.address ?: ""),
+                        stringResource(R.string.from, conversation.sms?.address ?: ""),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 Text(
                     stringResource(
-                        R.string.to, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
-                            conversation.address ?: ""
+                        R.string.to, if (conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            conversation.sms?.address ?: ""
                         else "N/A"
                     ),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
                     stringResource(
-                        R.string.sent, if (conversation.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
-                            formatDate(conversation.date?.toLong() ?: 0L)
-                        else formatDate(conversation.date_sent?.toLong() ?: 0L)
+                        R.string.sent, if (conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+                            formatDate(conversation.sms?.date?.toLong() ?: 0L)
+                        else formatDate(conversation.sms?.date_sent?.toLong() ?: 0L)
                     ),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-                if(conversation.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
+                if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX)
                     Text(
                         stringResource(
                             R.string.received,
-                            formatDate(conversation.date?.toLong() ?: 0L)
+                            formatDate(conversation.sms?.date?.toLong() ?: 0L)
                         ),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -712,8 +712,8 @@ fun SimChooser(
 @Composable
 fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    items: List<Conversation> = emptyList(),
-    onInfoRequested: (Conversation) -> Unit = {},
+    items: List<Conversations> = emptyList(),
+    onInfoRequested: (Conversations) -> Unit = {},
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
 ) {
@@ -728,61 +728,62 @@ fun ConversationCrudBottomBar(
                 }) {
                     Icon(Icons.Default.Close, stringResource(R.string.cancel_selected_messages))
                 }
+                TODO("Implement this")
 
-                Text(
-                    viewModel.selectedItems.size.toString(),
-                    fontSize = 24.sp,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-
-                Spacer(Modifier.weight(1f))
-
-                if(viewModel.selectedItems.size < 2) {
-                    IconButton(onClick = {
-                        val conversations = items.first {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        onInfoRequested(conversations)
-                    }) {
-                        Icon(Icons.Filled.Info, stringResource(R.string.message_information))
-                    }
-
-                    IconButton(onClick = {
-                        val conversation = items.firstOrNull {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        copyItem(context, conversation?.text!!)
-                        onCompleted?.invoke()
-                    }) {
-                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
-                    }
-
-                    IconButton(onClick = {
-                        TODO("Implement forward message")
-                    }) {
-                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
-                            stringResource(R.string.forward_message)
-                        )
-                    }
-
-                    IconButton(onClick = {
-                        val conversation = items.firstOrNull {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        shareItem(context, conversation?.text!!)
-                        onCompleted?.let { it() }
-                    }) {
-                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
-                    }
-                }
+//                Text(
+//                    viewModel.selectedItems.size.toString(),
+//                    fontSize = 24.sp,
+//                    modifier = Modifier.align(Alignment.CenterVertically)
+//                )
+//
+//                Spacer(Modifier.weight(1f))
+//
+//                if(viewModel.selectedItems.size < 2) {
+//                    IconButton(onClick = {
+//                        val conversations = items.first {
+//                            it.message_id in viewModel.selectedItems
+//                        }
+//                        onInfoRequested(conversations)
+//                    }) {
+//                        Icon(Icons.Filled.Info, stringResource(R.string.message_information))
+//                    }
+//
+//                    IconButton(onClick = {
+//                        val conversation = items.firstOrNull {
+//                            it.message_id in viewModel.selectedItems
+//                        }
+//                        copyItem(context, conversation?.text!!)
+//                        onCompleted?.invoke()
+//                    }) {
+//                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
+//                    }
+//
+//                    IconButton(onClick = {
+//                        TODO("Implement forward message")
+//                    }) {
+//                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
+//                            stringResource(R.string.forward_message)
+//                        )
+//                    }
+//
+//                    IconButton(onClick = {
+//                        val conversation = items.firstOrNull {
+//                            it.message_id in viewModel.selectedItems
+//                        }
+//                        shareItem(context, conversation?.text!!)
+//                        onCompleted?.let { it() }
+//                    }) {
+//                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
+//                    }
+//                }
 
                 IconButton(onClick = {
                     CoroutineScope(Dispatchers.Default).launch {
-                        val conversations = items.filter {
-                            it.message_id in viewModel.selectedItems
-                        }
-                        viewModel.delete(context, conversations)
-                        onCompleted?.let { it() }
+//                        val conversations = items.filter {
+//                            it.message_id in viewModel.selectedItems
+//                        }
+//                        viewModel.delete(context, conversations)
+//                        onCompleted?.let { it() }
                     }
                 }) {
                     Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))
@@ -904,21 +905,21 @@ fun SimChooserPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "SIM Chooser Light")
-@Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun MessageInfoAlert_Preview() {
-    AppTheme {
-        val conversation = Conversation()
-        conversation.address = "+2371234567"
-        conversation.date = System.currentTimeMillis().toString()
-        conversation.date_sent = System.currentTimeMillis().toString()
-        conversation.type = Telephony.Sms.MESSAGE_TYPE_INBOX
-        MessageInfoAlert(
-            conversation
-        ) {}
-    }
-}
+//@Preview(showBackground = true, name = "SIM Chooser Light")
+//@Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//fun MessageInfoAlert_Preview() {
+//    AppTheme {
+//        val conversation = Conversation()
+//        conversation.sms?.address = "+2371234567"
+//        conversation.date = System.currentTimeMillis().toString()
+//        conversation.date_sent = System.currentTimeMillis().toString()
+//        conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_INBOX
+//        MessageInfoAlert(
+//            conversation
+//        ) {}
+//    }
+//}
 
 @Composable
 fun mmsImagePicker(

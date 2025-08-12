@@ -10,7 +10,6 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.MagicNumber
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.extractPublicKeyFromPayload
@@ -21,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.isValidPublicKey
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.makeSelfRequest
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.secureStorePeerPublicKey
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,40 +55,41 @@ class SmsDataReceivedReceiver : BroadcastReceiver() {
                     val byteData = Base64.decode(data, Base64.DEFAULT)
                     val isValidKey = isValidPublicKey(byteData)
 
-                    val conversation = Conversation()
-                    conversation.data = data
-                    conversation.address = address
-                    conversation.isIs_key = isValidKey
-                    conversation.message_id = messageId
-                    conversation.thread_id = threadId
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-                    conversation.subscription_id = subscriptionId
-                    conversation.date_sent = dateSent
-                    conversation.date = date
-
-                    var isSelf = false
-                    var isSecured = false
-                    if (isValidKey) {
-                        try {
-                            val res = processAndGetFlags(context, byteData, address)
-                            isSelf = res[0]
-                            isSecured = res[1]
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                    conversation.isIs_key = true
-                    conversation.isIs_encrypted = isSecured
-                    conversation.isData = true
-
-                    val finalIsSelf = isSelf
-                    CoroutineScope(Dispatchers.Default).launch {
-                        val conversations =
-                            databaseConnector!!.conversationDao()._insert(conversation)
-
-                        if (!ConversationsViewModel().isMuted(context, conversation.thread_id))
-                            context.notifyText(conversation)
-                    }
+                    TODO("Data not completely implemented")
+//                    val conversation = Conversations()
+//                    conversation.data = data
+//                    conversation.address = address
+//                    conversation.isIs_key = isValidKey
+//                    conversation.message_id = messageId
+//                    conversation.thread_id = threadId
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+//                    conversation.subscription_id = subscriptionId
+//                    conversation.date_sent = dateSent
+//                    conversation.date = date
+//
+//                    var isSelf = false
+//                    var isSecured = false
+//                    if (isValidKey) {
+//                        try {
+//                            val res = processAndGetFlags(context, byteData, address)
+//                            isSelf = res[0]
+//                            isSecured = res[1]
+//                        } catch (e: Exception) {
+//                            e.printStackTrace()
+//                        }
+//                    }
+//                    conversation.isIs_key = true
+//                    conversation.isIs_encrypted = isSecured
+//                    conversation.isData = true
+//
+//                    val finalIsSelf = isSelf
+//                    CoroutineScope(Dispatchers.Default).launch {
+//                        val conversations =
+//                            databaseConnector!!.conversationDao()._insert(conversation)
+//
+//                        if (!ConversationsViewModel().isMuted(context, conversation.thread_id))
+//                            context.notifyText(conversation)
+//                    }
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }

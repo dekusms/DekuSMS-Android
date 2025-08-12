@@ -113,13 +113,15 @@ class MainActivity : AppCompatActivity(){
         }
         else {
             intent.let {
-                conversationViewModel.setNewIntent(it)
+                // TODO("Implement this)
+//                conversationViewModel.setNewIntent(it)
             }
         }
     }
 
     private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
-        conversationViewModel.newLayoutInfo = newLayoutInfo
+        // TODO("Fix this")
+//        conversationViewModel.newLayoutInfo = newLayoutInfo
         setContent {
             AppTheme {
                 navController = rememberNavController()
@@ -198,18 +200,21 @@ class MainActivity : AppCompatActivity(){
                 HomeScreenComposable()
             }
 
-            if(conversationViewModel.address.isNotEmpty() &&
-                conversationViewModel.threadId.isNotEmpty()
-            )
-                Column { ConversationScreenComposable() }
-            else
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    NoMessageSelected()
-                }
+
+
+            TODO("Remove this line")
+//            if(conversationViewModel.address.isNotEmpty() &&
+//                conversationViewModel.threadId.isNotEmpty()
+//            )
+//                Column { ConversationScreenComposable() }
+//            else
+//                Column(
+//                    modifier = Modifier.fillMaxSize(),
+//                    verticalArrangement = Arrangement.Center,
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//                    NoMessageSelected()
+//                }
         }
     }
 
@@ -228,10 +233,11 @@ class MainActivity : AppCompatActivity(){
 
     @Composable
     fun HomeScreenComposable() {
-        ThreadConversationLayout(
-            conversationsViewModel = conversationViewModel,
-            navController = navController,
-        )
+        TODO("")
+//        ThreadConversationLayout(
+//            conversationsViewModel = conversationViewModel,
+//            navController = navController,
+//        )
     }
 
     @Composable
@@ -273,10 +279,11 @@ class MainActivity : AppCompatActivity(){
     override fun onDestroy() {
         super.onDestroy()
 
-        CoroutineScope(Dispatchers.Default).launch {
-            if(conversationViewModel.text.isNotEmpty())
-                conversationViewModel.insertDraft(applicationContext)
-        }
+        TODO("")
+//        CoroutineScope(Dispatchers.Default).launch {
+//            if(conversationViewModel.text.isNotEmpty())
+//                conversationViewModel.insertDraft(applicationContext)
+//        }
     }
 
     override fun onResume() {

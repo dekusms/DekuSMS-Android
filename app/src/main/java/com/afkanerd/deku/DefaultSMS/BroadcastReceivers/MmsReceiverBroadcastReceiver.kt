@@ -7,7 +7,7 @@ import android.provider.Telephony
 import android.telephony.SmsManager
 import android.text.TextUtils
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.android.mms.transaction.DownloadManager
 import com.android.mms.transaction.PushReceiver
 import com.google.android.mms.MmsException
@@ -42,7 +42,7 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
 
         var location: String? = "";
         try {
-            location = mmsParser.getMmsContentLocation(uri)
+            location = mmsParser.getMmsContentLocation(context!!,uri)
         } catch(e: Exception ) {
             location = pduPersister.getContentLocationFromPduHeader(pdu)
             e.printStackTrace()

@@ -7,18 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
-import android.os.Bundle
 import android.os.IBinder
-import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
@@ -311,30 +307,31 @@ class RMQConnectionWorker(
         deliveryTag: Long,
         rmqConnectionId: Long
     ) {
-        val messageId = System.currentTimeMillis()
-
-        val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
-
-        val bundle = Bundle()
-        bundle.putString(RMQConnectionHandler.MESSAGE_SID, smsRequest.sid)
-        bundle.putString(RMQConnectionHandler.RMQ_CONSUMER_TAG, consumerTag)
-        bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
-        bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
-
-        val conversation = Conversation()
-        conversation.message_id = messageId.toString()
-        conversation.text = smsRequest.text
-        conversation.address = smsRequest.to
-        conversation.subscription_id = subscriptionId
-        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-        conversation.date = System.currentTimeMillis().toString()
-        conversation.thread_id = threadId.toString()
-        conversation.status = Telephony.Sms.STATUS_PENDING
-        conversation.isRemoteListener = true
-
-        databaseConnector.conversationDao()._insert(conversation)
-        SMSDatabaseWrapper.send_text(context, conversation, bundle)
-        Log.d(javaClass.name, "SMS sent...")
+        TODO("Implement this for RMQ")
+//        val messageId = System.currentTimeMillis()
+//
+//        val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
+//
+//        val bundle = Bundle()
+//        bundle.putString(RMQConnectionHandler.MESSAGE_SID, smsRequest.sid)
+//        bundle.putString(RMQConnectionHandler.RMQ_CONSUMER_TAG, consumerTag)
+//        bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
+//        bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
+//
+//        val conversation = Conversation()
+//        conversation.message_id = messageId.toString()
+//        conversation.text = smsRequest.text
+//        conversation.address = smsRequest.to
+//        conversation.subscription_id = subscriptionId
+//        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+//        conversation.date = System.currentTimeMillis().toString()
+//        conversation.thread_id = threadId.toString()
+//        conversation.status = Telephony.Sms.STATUS_PENDING
+//        conversation.isRemoteListener = true
+//
+//        databaseConnector.conversationDao()._insert(conversation)
+//        SMSDatabaseWrapper.send_text(context, conversation, bundle)
+//        Log.d(javaClass.name, "SMS sent...")
     }
 
     private fun getDeliverCallback(

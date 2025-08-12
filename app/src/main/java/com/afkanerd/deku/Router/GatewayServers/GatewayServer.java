@@ -19,7 +19,6 @@ import androidx.work.Operation;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.Models.RouterHandler;
@@ -140,56 +139,56 @@ public class GatewayServer {
                 }
             };
 
-    public static void route(Context context, final Conversation conversation) {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
+//    public static void route(Context context, final Conversation conversation) {
+//        Constraints constraints = new Constraints.Builder()
+//                .setRequiredNetworkType(NetworkType.CONNECTED)
+//                .build();
+//
+//        boolean isBase64 = Helpers.INSTANCE.isBase64Encoded(conversation.getText());
+//        List<GatewayServer> gatewayServerList =
+//                Datastore.getDatastore(context.getApplicationContext())
+//                        .gatewayServerDAO()
+//                        .getAllList();
+//
+//        for (GatewayServer gatewayServer1 : gatewayServerList) {
+//            if(gatewayServer1.getFormat() != null &&
+//                    gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
+//                continue;
+//
+//            try {
+//                OneTimeWorkRequest routeMessageWorkRequest =
+//                        new OneTimeWorkRequest.Builder(RouterWorkManager.class)
+//                                .setConstraints(constraints)
+//                                .setBackoffCriteria(
+//                                        BackoffPolicy.LINEAR,
+//                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+//                                        TimeUnit.MILLISECONDS
+//                                )
+//                                .addTag(RouterHandler.TAG_NAME_GATEWAY_SERVER)
+//                                .addTag(RouterHandler.INSTANCE
+//                                        .getTagForMessages(conversation.getMessage_id()))
+//                                .addTag(RouterHandler.INSTANCE
+//                                        .getTagForGatewayServers(gatewayServer1.getId()))
+//                                .setInputData(new Data.Builder()
+//                                        .putLong(RouterWorkManager.Companion.getGATEWAY_SERVER_ID(),
+//                                                gatewayServer1.getId())
+//                                        .putString(RouterWorkManager.Companion.getCONVERSATION_ID(),
+//                                                conversation.getMessage_id())
+//                                        .build())
+//                                .build();
+//
+//                String uniqueWorkName = conversation.getMessage_id() + ":" +
+//                        gatewayServer1.getURL() + ":" + gatewayServer1.getProtocol();
+//                WorkManager workManager = WorkManager.getInstance(context);
+//                Operation operation = workManager.enqueueUniqueWork(
+//                        uniqueWorkName,
+//                        ExistingWorkPolicy.KEEP,
+//                        routeMessageWorkRequest);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
 
-        boolean isBase64 = Helpers.INSTANCE.isBase64Encoded(conversation.getText());
-        List<GatewayServer> gatewayServerList =
-                Datastore.getDatastore(context.getApplicationContext())
-                        .gatewayServerDAO()
-                        .getAllList();
-
-        for (GatewayServer gatewayServer1 : gatewayServerList) {
-            if(gatewayServer1.getFormat() != null &&
-                    gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
-                continue;
-
-            try {
-                OneTimeWorkRequest routeMessageWorkRequest =
-                        new OneTimeWorkRequest.Builder(RouterWorkManager.class)
-                                .setConstraints(constraints)
-                                .setBackoffCriteria(
-                                        BackoffPolicy.LINEAR,
-                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                        TimeUnit.MILLISECONDS
-                                )
-                                .addTag(RouterHandler.TAG_NAME_GATEWAY_SERVER)
-                                .addTag(RouterHandler.INSTANCE
-                                        .getTagForMessages(conversation.getMessage_id()))
-                                .addTag(RouterHandler.INSTANCE
-                                        .getTagForGatewayServers(gatewayServer1.getId()))
-                                .setInputData(new Data.Builder()
-                                        .putLong(RouterWorkManager.Companion.getGATEWAY_SERVER_ID(),
-                                                gatewayServer1.getId())
-                                        .putString(RouterWorkManager.Companion.getCONVERSATION_ID(),
-                                                conversation.getMessage_id())
-                                        .build())
-                                .build();
-
-                String uniqueWorkName = conversation.getMessage_id() + ":" +
-                        gatewayServer1.getURL() + ":" + gatewayServer1.getProtocol();
-                WorkManager workManager = WorkManager.getInstance(context);
-                Operation operation = workManager.enqueueUniqueWork(
-                        uniqueWorkName,
-                        ExistingWorkPolicy.KEEP,
-                        routeMessageWorkRequest);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
+//    }
 
 }

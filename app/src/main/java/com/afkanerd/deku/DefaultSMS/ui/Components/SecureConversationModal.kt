@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
-import com.afkanerd.deku.DefaultSMS.Models.SMSHandler.sendDataMessage
 import com.afkanerd.deku.DefaultSMS.R
 import com.example.compose.AppTheme
 import kotlinx.coroutines.launch
@@ -88,21 +87,22 @@ fun SecureRequestAcceptModal(
                 )
 
                 Button (onClick = {
-                    E2EEHandler.clear(context, viewModel.address)
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
-                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                        E2EEHandler.MagicNumber.REQUEST)
-                    // TODO: Add support for dual sim here
-                    sendDataMessage(
-                        context=context,
-                        viewModel=viewModel,
-                        data=txPublicKey
-                    )
-                    scope.launch { state.hide() }.invokeOnCompletion {
-                        if(!state.isVisible) {
-                            dismissCallback?.let { it() }
-                        }
-                    }
+                    // TODO("Support this")
+//                    E2EEHandler.clear(context, viewModel.address)
+//                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
+//                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+//                        E2EEHandler.MagicNumber.REQUEST)
+//                    // TODO: Add support for dual sim here
+//                    sendDataMessage(
+//                        context=context,
+//                        viewModel=viewModel,
+//                        data=txPublicKey
+//                    )
+//                    scope.launch { state.hide() }.invokeOnCompletion {
+//                        if(!state.isVisible) {
+//                            dismissCallback?.let { it() }
+//                        }
+//                    }
                 }, modifier = Modifier.padding(16.dp)) {
                     Text(stringResource(R.string.request))
                 }
@@ -123,25 +123,26 @@ fun SecureRequestAcceptModal(
                 )
 
                 Button(onClick = {
-                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
-                    val isSelf = E2EEHandler.isSelf(context, viewModel.address)
-                    if(!isSelf) {
-                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                            E2EEHandler.MagicNumber.ACCEPT)
-
-                        // TODO: put a pending intent here that makes save on message delivered
-                        sendDataMessage(context, txPublicKey, viewModel)
-                    } else {
-                        E2EEHandler.secureStorePeerPublicKey(
-                            context,
-                            viewModel.address,
-                            publicKey, true)
-                    }
-                    scope.launch { state.hide() }.invokeOnCompletion {
-                        if(!state.isVisible) {
-                            dismissCallback?.let { it() }
-                        }
-                    }
+                    TODO("Support this")
+//                    val publicKey = E2EEHandler.generateKey(context, viewModel.address)
+//                    val isSelf = E2EEHandler.isSelf(context, viewModel.address)
+//                    if(!isSelf) {
+//                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+//                            E2EEHandler.MagicNumber.ACCEPT)
+//
+//                        // TODO: put a pending intent here that makes save on message delivered
+//                        sendDataMessage(context, txPublicKey, viewModel)
+//                    } else {
+//                        E2EEHandler.secureStorePeerPublicKey(
+//                            context,
+//                            viewModel.address,
+//                            publicKey, true)
+//                    }
+//                    scope.launch { state.hide() }.invokeOnCompletion {
+//                        if(!state.isVisible) {
+//                            dismissCallback?.let { it() }
+//                        }
+//                    }
                 }) {
                     Text(stringResource(R.string.conversations_secure_conversation_request_agree))
                 }

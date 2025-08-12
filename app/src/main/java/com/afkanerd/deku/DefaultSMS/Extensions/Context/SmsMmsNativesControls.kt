@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import com.afkanerd.deku.DefaultSMS.Models.MmsHandler
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,10 +40,10 @@ import java.io.OutputStream
  */
 
 fun Context.exportRawWithColumnGuesses(): String {
-    val mmsContents = arrayListOf<MmsHandler.MmsContentDataClass>()
-    val mmsAddrContents = arrayListOf<MmsHandler.MmsAddrContents>()
-    val mmsPartsContents = arrayListOf<MmsHandler.MmsPartContents>()
-    val smsContents = arrayListOf<MmsHandler.SmsContentDataClass>()
+    val mmsContents = arrayListOf<smsMmsNatives.Mms>()
+    val mmsAddrContents = arrayListOf<smsMmsNatives.MmsAddr>()
+    val mmsPartsContents = arrayListOf<smsMmsNatives.MmsPart>()
+    val smsContents = arrayListOf<smsMmsNatives.Sms>()
 
     val mmsIds = mutableSetOf<Int>()
 
@@ -115,7 +115,7 @@ fun Context.exportRawWithColumnGuesses(): String {
         cursor.close()
     }
 
-    val smsMmsContents = MmsHandler.SmsMmsContents(
+    val smsMmsContents = smsMmsNatives.SmsMmsContents(
         mapOf(
             Pair(
                 Telephony.Mms.CONTENT_URI.toString(),
@@ -142,75 +142,77 @@ fun Context.exportRawWithColumnGuesses(): String {
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsAddrContentsParts(cursor: Cursor): MmsHandler.MmsAddrContents {
-    val _id: Int = cursor.getInt(cursor
-        .getColumnIndex(Telephony.Mms.Addr._ID))
-    val msg_id : String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Addr.MSG_ID))
-    val contact_id: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Addr.CONTACT_ID))
-    val address: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Addr.ADDRESS))
-    val type: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Addr.TYPE))
-    val charset: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Addr.CHARSET))
-    val sub_id: Int? = cursor.getIntOrNull(cursor
-        .getColumnIndex("sub_id"))
-
-    return MmsHandler.MmsAddrContents(
-        _id = _id,
-        msg_id = msg_id,
-        contact_id = contact_id,
-        address = address,
-        type = type,
-        charset = charset,
-        sub_id = sub_id
-    )
+private fun parseRawMmsAddrContentsParts(cursor: Cursor): smsMmsNatives.MmsAddr {
+    TODO("Implement parsers")
+//    val _id: Int = cursor.getInt(cursor
+//        .getColumnIndex(Telephony.Mms.Addr._ID))
+//    val msg_id : String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Addr.MSG_ID))
+//    val contact_id: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Addr.CONTACT_ID))
+//    val address: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Addr.ADDRESS))
+//    val type: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Addr.TYPE))
+//    val charset: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Addr.CHARSET))
+//    val sub_id: Int? = cursor.getIntOrNull(cursor
+//        .getColumnIndex("sub_id"))
+//
+//    return smsMmsNatives.MmsAddr(
+//        _id = _id,
+//        msg_id = msg_id,
+//        contact_id = contact_id,
+//        address = address,
+//        type = type,
+//        charset = charset,
+//        sub_id = sub_id
+//    )
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsContentsParts(cursor: Cursor): MmsHandler.MmsPartContents {
-    val _id: Int = cursor.getInt(cursor
-        .getColumnIndex(Telephony.Mms.Part._ID))
-    val mid: Int = cursor.getInt(cursor
-        .getColumnIndex(Telephony.Mms.Part.MSG_ID))
-    val seq: Int = cursor.getInt(cursor
-        .getColumnIndex(Telephony.Mms.Part.SEQ))
-    val ct: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.CONTENT_TYPE))
-    val name: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.NAME))
-    val cid: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
-    val cl: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
-    val text: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.TEXT))
-    val sub_id: Int = cursor.getInt(cursor
-        .getColumnIndex("sub_id"))
-    val _data: String? = cursor.getStringOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part._DATA))
-    val chset: Int? = cursor.getIntOrNull(cursor
-        .getColumnIndex(Telephony.Mms.Part.CHARSET))
-
-    return MmsHandler.MmsPartContents(
-        _id = _id,
-        mid = mid,
-        seq = seq,
-        ct = ct,
-        name = name,
-        cid = cid,
-        cl = cl,
-        text = text,
-        sub_id = sub_id,
-        _data = _data,
-        chset = chset,
-    )
+private fun parseRawMmsContentsParts(cursor: Cursor): smsMmsNatives.MmsPart {
+    TODO("Implement parsers")
+//    val _id: Int = cursor.getInt(cursor
+//        .getColumnIndex(Telephony.Mms.Part._ID))
+//    val mid: Int = cursor.getInt(cursor
+//        .getColumnIndex(Telephony.Mms.Part.MSG_ID))
+//    val seq: Int = cursor.getInt(cursor
+//        .getColumnIndex(Telephony.Mms.Part.SEQ))
+//    val ct: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.CONTENT_TYPE))
+//    val name: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.NAME))
+//    val cid: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
+//    val cl: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.CONTENT_ID))
+//    val text: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.TEXT))
+//    val sub_id: Int = cursor.getInt(cursor
+//        .getColumnIndex("sub_id"))
+//    val _data: String? = cursor.getStringOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part._DATA))
+//    val chset: Int? = cursor.getIntOrNull(cursor
+//        .getColumnIndex(Telephony.Mms.Part.CHARSET))
+//
+//    return smsMmsNatives.MmsPart(
+//        _id = _id,
+//        mid = mid,
+//        seq = seq,
+//        ct = ct,
+//        name = name,
+//        cid = cid,
+//        cl = cl,
+//        text = text,
+//        sub_id = sub_id,
+//        _data = _data,
+//        chset = chset,
+//    )
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsContents(cursor: Cursor): MmsHandler.MmsContentDataClass {
+private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
     val _id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -258,7 +260,7 @@ private fun parseRawMmsContents(cursor: Cursor): MmsHandler.MmsContentDataClass 
     val text_only: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.TEXT_ONLY))
 
-    return MmsHandler.MmsContentDataClass(
+    return smsMmsNatives.Mms(
         _id = _id,
         thread_id = thread_id,
         date = date,
@@ -286,7 +288,7 @@ private fun parseRawMmsContents(cursor: Cursor): MmsHandler.MmsContentDataClass 
 }
 
 @SuppressLint("Range")
-private fun parseRawSmsContents(cursor: Cursor): MmsHandler.SmsContentDataClass {
+private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
     val _id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -316,7 +318,7 @@ private fun parseRawSmsContents(cursor: Cursor): MmsHandler.SmsContentDataClass 
     val seen: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.SEEN))
 
-    return MmsHandler.SmsContentDataClass(
+    return smsMmsNatives.Sms(
         _id = _id,
         thread_id = thread_id,
         address = address,
@@ -340,7 +342,7 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     val gson = GsonBuilder()
         .serializeNulls()
         .create()
-    val smsMmsContents = gson.fromJson(data, MmsHandler.SmsMmsContents::class.java)
+    val smsMmsContents = gson.fromJson(data, smsMmsNatives.SmsMmsContents::class.java)
 
     var mmsCount = 0
     var mmsAddrCount = 0
@@ -387,12 +389,12 @@ fun Context.importRawColumnGuesses(data: String): SmsMmsImportDetails {
     return SmsMmsImportDetails(mmsCount, mmsPartCount, mmsAddrCount)
 }
 
-private fun Context.insertMmsAddr(uri: Uri, mmsPart: MmsHandler.MmsAddrContents): Uri? {
+private fun Context.insertMmsAddr(uri: Uri, mmsPart: smsMmsNatives.MmsAddr): Uri? {
     val values = getMmsAddrInputValues(mmsPart)
     return contentResolver.insert(uri, values)
 }
 
-private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents): Uri? {
+private fun Context.insertMmsPart(uri: Uri, mmsPart: smsMmsNatives.MmsPart): Uri? {
     val values = getMmsPartInputValues(mmsPart)
     val uri = contentResolver.insert(uri, values)
     uri?.let { uri ->
@@ -407,7 +409,7 @@ private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents)
 //                    BuildConfig.APPLICATION_ID + ".fileprovider",
 //                    file
 //                )
-                inputStream = contentResolver.openInputStream(mmsPart._data.toUri())
+                inputStream = contentResolver.openInputStream(mmsPart._data!!.toUri())
                 outputStream =contentResolver.openOutputStream(uri)
 
                 if (inputStream != null && outputStream != null) {
@@ -433,7 +435,7 @@ private fun Context.insertMmsPart(uri: Uri, mmsPart: MmsHandler.MmsPartContents)
     return uri
 }
 
-private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) : ContentValues {
+private fun getMmsAddrInputValues(mmsAddrContents: smsMmsNatives.MmsAddr) : ContentValues {
     return ContentValues().apply {
 //        put("_id", mmsAddrContents._id)
 //        put(Telephony.Mms.Addr._ID, mmsAddrContents.msg_id)
@@ -445,7 +447,7 @@ private fun getMmsAddrInputValues(mmsAddrContents: MmsHandler.MmsAddrContents) :
     }
 }
 
-private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : ContentValues {
+private fun getMmsPartInputValues(mmsPartContent: smsMmsNatives.MmsPart) : ContentValues {
     return ContentValues().apply {
         put("mid", mmsPartContent.mid)
         put("cid", mmsPartContent.cid)
@@ -465,7 +467,7 @@ private fun getMmsPartInputValues(mmsPartContent: MmsHandler.MmsPartContents) : 
     }
 }
 
-private fun getMmsInputValues(mmsContent: MmsHandler.MmsContentDataClass) : ContentValues {
+private fun getMmsInputValues(mmsContent: smsMmsNatives.Mms) : ContentValues {
     return ContentValues().apply {
         put(Telephony.Mms._ID, mmsContent._id)
         put(Telephony.Mms.CREATOR, mmsContent.creator)

@@ -3,31 +3,14 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.provider.Telephony
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMarkAsReadActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMuteActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionIntentAction
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionKey
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.getNotificationBuilder
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.lang.Exception
-import com.afkanerd.deku.DefaultSMS.R
 
 
 class SmsMmsActionsImpl : BroadcastReceiver() {
@@ -48,38 +31,40 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                 val reply = remoteInput.getCharSequence(context.NotificationReplyActionKey)
                 if (reply == null || reply.toString().isEmpty()) return
 
-                val conversation = Conversation()
-                val messageId = System.currentTimeMillis().toString()
-                conversation.address = address
-                conversation.subscription_id = subscriptionId
-                conversation.thread_id = threadId
-                conversation.text = reply.toString()
-                conversation.message_id = messageId
-                conversation.date = System.currentTimeMillis().toString()
-                conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
-                conversation.status = Telephony.TextBasedSmsColumns.STATUS_PENDING
-
-                CoroutineScope(Dispatchers.Default).launch {
-                    try {
-                        databaseConnector!!.conversationDao()._insert(conversation)
-                        SMSDatabaseWrapper.send_text(context, conversation, null)
-                        context.notifyText(conversation, true)
-
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+                // TODO("Implement this methods)
+//                val conversation = Conversation()
+//                val messageId = System.currentTimeMillis().toString()
+//                conversation.address = address
+//                conversation.subscription_id = subscriptionId
+//                conversation.thread_id = threadId
+//                conversation.text = reply.toString()
+//                conversation.message_id = messageId
+//                conversation.date = System.currentTimeMillis().toString()
+//                conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
+//                conversation.status = Telephony.TextBasedSmsColumns.STATUS_PENDING
+//
+//                CoroutineScope(Dispatchers.Default).launch {
+//                    try {
+//                        databaseConnector!!.conversationDao()._insert(conversation)
+//                        SMSDatabaseWrapper.send_text(context, conversation, null)
+//                        context.notifyText(conversation, true)
+//
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
             }
         }
         else if (intent.action != null && intent.action == context.NotificationMarkAsReadActionIntentAction) {
             val threadId = intent.getStringExtra("thread_id")
             try {
-                CoroutineScope(Dispatchers.Default).launch {
-                    NativeSMSDB.Incoming.update_read(context, 1, threadId, null)
-                    databaseConnector!!.conversationDao().updateRead(true, threadId!!)
-                    val notificationManager = NotificationManagerCompat.from(context)
-                    notificationManager.cancel(threadId.toInt())
-                }
+                TODO("Implement this methods")
+//                CoroutineScope(Dispatchers.Default).launch {
+//                    NativeSMSDB.Incoming.update_read(context, 1, threadId, null)
+//                    databaseConnector!!.conversationDao().updateRead(true, threadId!!)
+//                    val notificationManager = NotificationManagerCompat.from(context)
+//                    notificationManager.cancel(threadId.toInt())
+//                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -87,11 +72,13 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
         else if (intent.action != null && intent.action == context.NotificationMuteActionIntentAction) {
             val threadId = intent.getStringExtra("thread_id")
 
-            CoroutineScope(Dispatchers.Default).launch {
-                ConversationsViewModel().mute(context, threadId!!)
-                val notificationManager = NotificationManagerCompat.from(context)
-                notificationManager.cancel(threadId.toInt())
-            }
+
+            TODO("Implement this methods")
+//            CoroutineScope(Dispatchers.Default).launch {
+//                ConversationsViewModel().mute(context, threadId!!)
+//                val notificationManager = NotificationManagerCompat.from(context)
+//                notificationManager.cancel(threadId.toInt())
+//            }
         }
     }
 }

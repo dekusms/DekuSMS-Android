@@ -91,7 +91,6 @@ interface ConversationDao {
         })
     }
 
-
     @Query("SELECT c.*, max(date) FROM Conversations c LEFT JOIN Archive tc " +
             "ON c.thread_id = tc.threadId " +
             "WHERE " +

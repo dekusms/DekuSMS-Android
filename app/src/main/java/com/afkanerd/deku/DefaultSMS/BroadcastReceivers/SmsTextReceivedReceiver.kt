@@ -14,13 +14,13 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
 import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +58,8 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                                         subscriptionId, date, dateSent)
 
                         CoroutineScope(Dispatchers.Default).launch {
-                            GatewayServer.route(context, conversation)
+                            TODO("Implement route")
+//                            GatewayServer.route(context, conversation)
                         }
                     }
                 } catch (e: IOException) {
@@ -67,116 +68,119 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
             }
         }
         else if (intent.action == SMS_SENT_BROADCAST_INTENT) {
-            coroutineScope.launch{
-                val id = intent.getStringExtra(NativeSMSDB.ID)!!
-
-                val datastore = Datastore.getDatastore(context)
-                val conversation = datastore.conversationDao().getMessage(id)
-
-                if (resultCode == Activity.RESULT_OK) {
-                    NativeSMSDB.Outgoing.register_sent(context, id)
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                } else {
-                    try {
-                        NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
-                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                        conversation.error_code = resultCode
-
-                    } catch (e: Exception) {
-                        Log.e(javaClass.name,
-                            "Exception with sent message broadcast", e)
-                    } finally {
-                        conversation.thread_id?.let {
-                            notifyMessageFailedToSend(context, conversation)
-                        }
-                    }
-                }
-                datastore.conversationDao()._update(conversation)
-            }
+            TODO("Implement this method")
+//            coroutineScope.launch{
+//                val id = intent.getStringExtra(NativeSMSDB.ID)!!
+//
+//                val datastore = Datastore.getDatastore(context)
+//                val conversation = datastore.conversationDao().getMessage(id)
+//
+//                if (resultCode == Activity.RESULT_OK) {
+//                    NativeSMSDB.Outgoing.register_sent(context, id)
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+//                } else {
+//                    try {
+//                        NativeSMSDB.Outgoing.register_failed(context, id, resultCode)
+//                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+//                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+//                        conversation.error_code = resultCode
+//
+//                    } catch (e: Exception) {
+//                        Log.e(javaClass.name,
+//                            "Exception with sent message broadcast", e)
+//                    } finally {
+//                        conversation.thread_id?.let {
+//                            notifyMessageFailedToSend(context, conversation)
+//                        }
+//                    }
+//                }
+//                datastore.conversationDao()._update(conversation)
+//            }
         }
         else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {
-            coroutineScope.launch {
-                val id = intent.getStringExtra(NativeSMSDB.ID)!!
-                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
-
-                if (resultCode == Activity.RESULT_OK) {
-                    NativeSMSDB.Outgoing.register_delivered(context, id)
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                } else {
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                    conversation.error_code = resultCode
-                }
-                Datastore.getDatastore(context).conversationDao()._update(conversation)
-            }
+            TODO("Implement this method")
+//            coroutineScope.launch {
+//                val id = intent.getStringExtra(NativeSMSDB.ID)!!
+//                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
+//
+//                if (resultCode == Activity.RESULT_OK) {
+//                    NativeSMSDB.Outgoing.register_delivered(context, id)
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+//                } else {
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+//                    conversation.error_code = resultCode
+//                }
+//                Datastore.getDatastore(context).conversationDao()._update(conversation)
+//            }
         }
-        else if (intent.action == SmsDataReceivedReceiver.DATA_SENT_BROADCAST_INTENT) {
-            coroutineScope.launch{
-                val id = intent.getStringExtra(NativeSMSDB.ID)!!
-                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
-
-                if (resultCode == Activity.RESULT_OK) {
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                } else {
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                    conversation.error_code = resultCode
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                }
-                Datastore.getDatastore(context).conversationDao()._update(conversation)
-            }
-        }
-        else if (intent.action == SmsDataReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
-            coroutineScope.launch{
-                val id = intent.getStringExtra(NativeSMSDB.ID)!!
-                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
-
-                if (resultCode == Activity.RESULT_OK) {
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                } else {
-                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                    conversation.error_code = resultCode
-                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                }
-                Datastore.getDatastore(context).conversationDao()._update(conversation)
-            }
-        }
+//        else if (intent.action == SmsDataReceivedReceiver.DATA_SENT_BROADCAST_INTENT) {
+//            coroutineScope.launch{
+//                val id = intent.getStringExtra(NativeSMSDB.ID)!!
+//                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
+//
+//                if (resultCode == Activity.RESULT_OK) {
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_NONE
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+//                } else {
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+//                    conversation.error_code = resultCode
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+//                }
+//                Datastore.getDatastore(context).conversationDao()._update(conversation)
+//            }
+//        }
+//        else if (intent.action == SmsDataReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT) {
+//            coroutineScope.launch{
+//                val id = intent.getStringExtra(NativeSMSDB.ID)!!
+//                val conversation = Datastore.getDatastore(context).conversationDao().getMessage(id)
+//
+//                if (resultCode == Activity.RESULT_OK) {
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_COMPLETE
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+//                } else {
+//                    conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+//                    conversation.error_code = resultCode
+//                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+//                }
+//                Datastore.getDatastore(context).conversationDao()._update(conversation)
+//            }
+//        }
     }
 
     private fun insertConversation(context: Context, address: String, messageId: String,
                            threadId: String, body: String, subscriptionId: Int, date: String,
-                           dateSent: String): Conversation {
-        val conversation = Conversation()
-        conversation.message_id = messageId
-        conversation.thread_id = threadId
-        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-        conversation.address = address
-        conversation.subscription_id = subscriptionId
-        conversation.date = date
-        conversation.date_sent = dateSent
-
-        val text = try {
-            val res = processEncryptedIncoming(context, address, body)
-            conversation.isIs_encrypted = res.second
-            res.first
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            body
-        }
-        conversation.text = text
-
-        val conversationsViewModel = ConversationsViewModel()
-        CoroutineScope(Dispatchers.Default).launch {
-            conversationsViewModel.addSms(context, conversation)
-            if (!conversationsViewModel.isMuted(context, conversation.thread_id)) {
-                context.notifyText(conversation)
-            }
-        }
-        return conversation
+                           dateSent: String): Conversations {
+        TODO("Fix implementation")
+//        val conversation = Conversation()
+//        conversation.message_id = messageId
+//        conversation.thread_id = threadId
+//        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+//        conversation.address = address
+//        conversation.subscription_id = subscriptionId
+//        conversation.date = date
+//        conversation.date_sent = dateSent
+//
+//        val text = try {
+//            val res = processEncryptedIncoming(context, address, body)
+//            conversation.isIs_encrypted = res.second
+//            res.first
+//        } catch (e: Throwable) {
+//            e.printStackTrace()
+//            body
+//        }
+//        conversation.text = text
+//
+//        val conversationsViewModel = ConversationsViewModel()
+//        CoroutineScope(Dispatchers.Default).launch {
+//            conversationsViewModel.addSms(context, conversation)
+//            if (!conversationsViewModel.isMuted(context, conversation.thread_id)) {
+//                context.notifyText(conversation)
+//            }
+//        }
+//        return conversation
     }
 
 
@@ -220,29 +224,30 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         var SMS_DELIVERED_BROADCAST_INTENT: String = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT"
     }
 
-    private fun notifyMessageFailedToSend(context: Context, conversation: Conversation) {
-        val notificationIntent = Intent(context, MainActivity::class.java).apply {
-            putExtra("thread_id", conversation.thread_id)
-            putExtra("address", conversation.address)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        val content = context
-                .getString(R.string
-                        .message_failed_send_notification_description_a_message_failed_to_send_to) +
-                " ${conversation.address}"
-
-//        val builder = Notifications.createNotification(
-//            context = context,
-//            title = conversation.address!!,
-//            text = content,
-//            address = conversation.address!!,
-//            requestCode = conversation.thread_id!!.toInt(),
-//            contentIntent = notificationIntent,
-//        )
-        context.notifyText(conversation.apply {
-            text = content
-        })
+    private fun notifyMessageFailedToSend(context: Context, conversation: Conversations) {
+        TODO("Fix implementation")
+//        val notificationIntent = Intent(context, MainActivity::class.java).apply {
+//            putExtra("thread_id", conversation.thread_id)
+//            putExtra("address", conversation.address)
+//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//        }
+//
+//        val content = context
+//                .getString(R.string
+//                        .message_failed_send_notification_description_a_message_failed_to_send_to) +
+//                " ${conversation.address}"
+//
+////        val builder = Notifications.createNotification(
+////            context = context,
+////            title = conversation.address!!,
+////            text = content,
+////            address = conversation.address!!,
+////            requestCode = conversation.thread_id!!.toInt(),
+////            contentIntent = notificationIntent,
+////        )
+//        context.notifyText(conversation.apply {
+//            text = content
+//        })
     }
 
 }

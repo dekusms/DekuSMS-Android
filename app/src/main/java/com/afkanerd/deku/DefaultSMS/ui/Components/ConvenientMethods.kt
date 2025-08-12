@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.startActivity
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +28,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.core.graphics.createBitmap
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 
 object ConvenientMethods {
 
@@ -66,9 +66,9 @@ object ConvenientMethods {
         return output
     }
 
-    fun deriveMetaDate(conversation: Conversation): String{
+    fun deriveMetaDate(conversation: Conversations): String{
         val dateFormat: DateFormat = SimpleDateFormat("h:mm a");
-        return dateFormat.format(Date(conversation.date!!.toLong()));
+        return dateFormat.format(Date(conversation.sms?.date!!.toLong()));
     }
 
 }

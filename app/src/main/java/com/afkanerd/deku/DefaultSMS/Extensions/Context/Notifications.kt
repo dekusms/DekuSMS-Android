@@ -22,9 +22,9 @@ import androidx.core.net.toUri
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.google.gson.Gson
 import kotlin.concurrent.thread
 
@@ -32,23 +32,23 @@ val Context.NotificationReplyActionKey: String
     get() = "NOTIFICATION_REPLY_ACTION_KEY"
 
 fun Context.notifyText(
-    conversation: Conversation,
+    conversation: Conversations,
     self: Boolean = false,
 ) {
     insertNotificationSessions(conversation, self)
     val builder = getNotificationBuilder(conversation)
-    val messages = getNotificationSession(conversation.thread_id!!)
+    val messages = getNotificationSession(conversation.sms?.thread_id!!)
 
     val contactName = Contacts
-        .retrieveContactName(this, conversation.address)
+        .retrieveContactName(this, conversation.sms?.address)
 
     val user = Person.Builder()
         .setName(resources.getString(R.string.notification_title_reply_you))
         .build()
 
     val sender = Person.Builder()
-        .setName(contactName ?: conversation.address!!)
-        .setKey(conversation.thread_id)
+        .setName(contactName ?: conversation.sms?.address!!)
+        .setKey(conversation.sms?.thread_id.toString())
         .setImportant(true)
         .build()
 
@@ -70,7 +70,7 @@ fun Context.notifyText(
             }
         )
             .setGroupConversation(false)
-            .setConversationTitle(contactName ?: conversation.address!!)
+            .setConversationTitle(contactName ?: conversation.sms?.address!!)
     }
     builder.setStyle(style)
 
@@ -91,7 +91,7 @@ fun Context.notifyText(
             return@with
         }
         // notificationId is a unique int for each notification that you must define.
-        notify(conversation.thread_id?.toInt() ?: 0, builder.build())
+        notify(conversation.sms?.thread_id ?: 0, builder.build())
     }
 }
 
@@ -108,26 +108,26 @@ class NotificationsDelImpl: BroadcastReceiver() {
     }
 }
 
-fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCompat.Builder {
+fun Context.getNotificationBuilder( conversation: Conversations): NotificationCompat.Builder {
     val contactName = Contacts
-        .retrieveContactName(this, conversation.address)
+        .retrieveContactName(this, conversation.sms?.address)
 
     val sender = Person.Builder()
-        .setName(contactName ?: conversation.address!!)
-        .setKey(conversation.thread_id)
+        .setName(contactName ?: conversation.sms?.address!!)
+        .setKey(conversation.sms?.thread_id.toString())
         .setImportant(true)
         .build()
 
     val shortcutInfoId = getShortcutInfoId(
         conversation,
         sender,
-        contactName ?: conversation.address!!
+        contactName ?: conversation.sms?.address!!
     )
 
     val bubbleMetadata =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             NotificationCompat.BubbleMetadata
-                .Builder(contactName ?: conversation.address!!)
+                .Builder(contactName ?: conversation.sms?.address!!)
                 .setDesiredHeight(400)
                 .build()
         } else {
@@ -153,16 +153,16 @@ fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCo
         .setDeleteIntent(
             PendingIntent.getBroadcast(
                 this,
-                conversation.thread_id!!.toInt(),
+                conversation.sms?.thread_id!!,
                 Intent(this, NotificationsDelImpl::class.java).apply {
                     action = NotificationsDelAction
-                    putExtra("thread_id", conversation.thread_id)
+                    putExtra("thread_id", conversation.sms?.thread_id)
                 },
                 PendingIntent.FLAG_MUTABLE
             )
         )
         .apply {
-            if(!Helpers.isShortCode(conversation.address!!)) {
+            if(!Helpers.isShortCode(conversation.sms?.address!!)) {
                 addAction(getNotificationReplyAction(conversation))
             }
         }
@@ -170,15 +170,15 @@ fun Context.getNotificationBuilder( conversation: Conversation ): NotificationCo
         .addAction(getNotificationMarkAsReadAction(conversation))
 }
 
-private fun Context.getPendingIntent(conversation: Conversation): PendingIntent {
+private fun Context.getPendingIntent(conversation: Conversations): PendingIntent {
     val receivedSmsIntent = Intent(this, MainActivity::class.java)
-    receivedSmsIntent.putExtra("address", conversation.address)
-    receivedSmsIntent.putExtra("thread_id", conversation.thread_id)
+    receivedSmsIntent.putExtra("address", conversation.sms?.address)
+    receivedSmsIntent.putExtra("thread_id", conversation.sms?.thread_id)
     receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
     return PendingIntent.getActivity(
         this,
-        conversation.thread_id!!.toInt(),
+        conversation.sms?.thread_id!!,
         receivedSmsIntent,
         PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
@@ -188,21 +188,21 @@ val Context.NotificationMarkAsReadActionIntentAction: String
     get() = "NOTIFICATION_MARK_AS_READ_ACTION_INTENT_ACTION"
 
 private fun Context.getNotificationMarkAsReadAction(
-    conversation: Conversation
+    conversation: Conversations
 ): NotificationCompat.Action {
     val markAsReadLabel = resources.getString(R.string.notifications_mark_as_read_label)
 
     val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
         applicationContext,
-        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        conversation.sms?.thread_id ?: 0, // Or a unique request code
         Intent(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationMarkAsReadActionIntentAction
-            putExtra("address", conversation.address)
-            putExtra("msg_id", conversation.message_id)
-            putExtra("thread_id", conversation.thread_id)
+            putExtra("address", conversation.sms?.address)
+            putExtra("msg_id", conversation.sms?._id)
+            putExtra("thread_id", conversation.sms?.thread_id)
         },
         PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
     )
@@ -218,19 +218,19 @@ private fun Context.getNotificationMarkAsReadAction(
 val Context.NotificationMuteActionIntentAction: String
     get() = "NOTIFICATION_MUTE_ACTION_INTENT_ACTION"
 
-private fun Context.getNotificationMuteAction(conversation: Conversation): NotificationCompat.Action {
+private fun Context.getNotificationMuteAction(conversation: Conversations): NotificationCompat.Action {
     val muteLabel = resources.getString(R.string.conversation_menu_muted_label)
 
     val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
         applicationContext,
-        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        conversation.sms?.thread_id ?: 0, // Or a unique request code
         Intent(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationMuteActionIntentAction
-            putExtra("address", conversation.address)
-            putExtra("thread_id", conversation.thread_id)
+            putExtra("address", conversation.sms?.address)
+            putExtra("thread_id", conversation.sms?.thread_id)
         },
         PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
     )
@@ -246,7 +246,9 @@ private fun Context.getNotificationMuteAction(conversation: Conversation): Notif
 val Context.NotificationReplyActionIntentAction: String
     get() = "NOTIFICATION_REPLY_ACTION_INTENT_ACTION"
 
-private fun Context.getNotificationReplyAction(conversation: Conversation): NotificationCompat.Action {
+private fun Context.getNotificationReplyAction(
+    conversation: Conversations
+): NotificationCompat.Action {
     val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
     val remoteInput: RemoteInput = RemoteInput.Builder(NotificationReplyActionKey)
         .setLabel(replyLabel)
@@ -254,15 +256,15 @@ private fun Context.getNotificationReplyAction(conversation: Conversation): Noti
 
     val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
         applicationContext,
-        conversation.thread_id?.toInt() ?: 0, // Or a unique request code
+        conversation.sms?.thread_id ?: 0, // Or a unique request code
         Intent(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
             action = NotificationReplyActionIntentAction
-            putExtra("address", conversation.address)
-            putExtra("thread_id", conversation.thread_id)
-            putExtra("sub_id", conversation.subscription_id)
+            putExtra("address", conversation.sms?.address)
+            putExtra("thread_id", conversation.sms?.thread_id)
+            putExtra("sub_id", conversation.sms?.sub_id)
         },
         PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
     )
@@ -279,13 +281,13 @@ private fun Context.getNotificationReplyAction(conversation: Conversation): Noti
 }
 
 private fun Context.getShortcutInfoId(
-    conversation: Conversation,
+    conversation: Conversations,
     person: Person,
     contactName: String): String {
 
-    val smsUrl = "smsto:${conversation.address}".toUri()
+    val smsUrl = "smsto:${conversation.sms?.address}".toUri()
     val intent = Intent(Intent.ACTION_SENDTO, smsUrl)
-    intent.putExtra(Conversation.THREAD_ID, conversation.thread_id)
+    intent.putExtra("thread_id", conversation.sms?.thread_id)
 
     val shortcutInfoCompat = ShortcutInfoCompat.Builder( this, contactName )
         .setLongLived(true)
@@ -312,39 +314,39 @@ data class IncomingNotificationSession(
 )
 
 private const val notificationSessionsFilename = "NOTIFICATIONS_SESSIONS"
-private fun Context.insertNotificationSessions(conversation: Conversation, self: Boolean) {
+private fun Context.insertNotificationSessions(conversation: Conversations, self: Boolean) {
     val sharedPreferences = getSharedPreferences(
         notificationSessionsFilename,
         Context.MODE_PRIVATE)
 
     with(sharedPreferences.edit()) {
         val sets = sharedPreferences.getStringSet(
-            conversation.thread_id,
+            conversation.sms?.thread_id.toString(),
             mutableSetOf<String>())!!
 
         val newSets: MutableSet<String> = sets.toMutableSet()
         val notifSession = IncomingNotificationSession(
-            address = conversation.address!!,
-            threadId = conversation.thread_id!!,
-            text = conversation.text!!,
-            date = conversation.date?.toLong() ?: 0,
+            address = conversation.sms?.address!!,
+            threadId = conversation.sms?.thread_id!!.toString(),
+            text = conversation.sms?.body!!,
+            date = conversation.sms?.date?.toLong() ?: 0,
             self = self,
         )
         val gson = Gson().toJson(notifSession)
         newSets.add(gson)
 
-        putStringSet(conversation.thread_id, newSets)
+        putStringSet(conversation.sms?.thread_id.toString(), newSets)
         apply()
     }
 }
 
-private fun Context.getNotificationSession(threadId: String): List<IncomingNotificationSession>? {
+private fun Context.getNotificationSession(threadId: Int): List<IncomingNotificationSession>? {
     val sharedPreferences = getSharedPreferences(
         notificationSessionsFilename,
         Context.MODE_PRIVATE) ?: return null
 
     val sets = sharedPreferences.getStringSet(
-        threadId,
+        threadId.toString(),
         mutableSetOf<String>()) ?: return null
 
     val notifications = mutableListOf<IncomingNotificationSession>()

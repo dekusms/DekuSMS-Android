@@ -1,0 +1,263 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 29,
+    "identityHash": "167501f0fe5e1ea357256066233abd0a",
+    "entities": [
+      {
+        "tableName": "GatewayServer",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `smtp_host` TEXT, `smtp_username` TEXT, `smtp_password` TEXT, `smtp_from` TEXT, `smtp_recipient` TEXT, `smtp_subject` TEXT, `smtp_port` INTEGER, `ftp_host` TEXT, `ftp_username` TEXT, `ftp_password` TEXT, `ftp_remote_path` TEXT, `ftp_working_directory` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "URL",
+            "columnName": "URL",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tag",
+            "columnName": "tag",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "format",
+            "columnName": "format",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "smtp.smtp_host",
+            "columnName": "smtp_host",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_username",
+            "columnName": "smtp_username",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_password",
+            "columnName": "smtp_password",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_from",
+            "columnName": "smtp_from",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_recipient",
+            "columnName": "smtp_recipient",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_subject",
+            "columnName": "smtp_subject",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "smtp.smtp_port",
+            "columnName": "smtp_port",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ftp.ftp_host",
+            "columnName": "ftp_host",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ftp.ftp_username",
+            "columnName": "ftp_username",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ftp.ftp_password",
+            "columnName": "ftp_password",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ftp.ftp_remote_path",
+            "columnName": "ftp_remote_path",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ftp.ftp_working_directory",
+            "columnName": "ftp_working_directory",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "RemoteListenersQueues",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `gatewayClientId` INTEGER NOT NULL, `name` TEXT, `binding1Name` TEXT, `binding2Name` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gatewayClientId",
+            "columnName": "gatewayClientId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "binding1Name",
+            "columnName": "binding1Name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "binding2Name",
+            "columnName": "binding2Name",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "RemoteListeners",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `hostUrl` TEXT, `username` TEXT, `password` TEXT, `port` INTEGER NOT NULL, `friendlyConnectionName` TEXT, `virtualHost` TEXT, `connectionTimeout` INTEGER NOT NULL, `prefetch_count` INTEGER NOT NULL, `heartbeat` INTEGER NOT NULL, `protocol` TEXT NOT NULL, `projectName` TEXT, `projectBinding` TEXT, `projectBinding2` TEXT, `activated` INTEGER NOT NULL DEFAULT 0, `state` INTEGER NOT NULL DEFAULT 0)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hostUrl",
+            "columnName": "hostUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "password",
+            "columnName": "password",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "port",
+            "columnName": "port",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "friendlyConnectionName",
+            "columnName": "friendlyConnectionName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "virtualHost",
+            "columnName": "virtualHost",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "connectionTimeout",
+            "columnName": "connectionTimeout",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prefetch_count",
+            "columnName": "prefetch_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "heartbeat",
+            "columnName": "heartbeat",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "projectName",
+            "columnName": "projectName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "projectBinding",
+            "columnName": "projectBinding",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "projectBinding2",
+            "columnName": "projectBinding2",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "activated",
+            "columnName": "activated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '167501f0fe5e1ea357256066233abd0a')"
+    ]
+  }
+}

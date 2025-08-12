@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.klinker.android.send_message.MmsReceivedReceiver
 
@@ -22,13 +21,14 @@ class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
                 null,
             )?.let { cursor ->
                 if(cursor.moveToFirst()) {
-                    val mmsConversation = Conversation.build(cursor, true)
-                    val parsedMms = NativeSMSDB.ParseMMS(context, cursor)
-                    parsedMms.buildConversation(context, mmsConversation)
-
-//                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
-                    if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
-                        Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
+                    TODO("Store the MMS into database")
+//                    val mmsConversation = Conversations.build(cursor, true)
+//                    val parsedMms = NativeSMSDB.ParseMMS(context, cursor)
+//                    parsedMms.buildConversation(context, mmsConversation)
+//
+////                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
+//                    if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
+//                        Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
                 }
             }
         }

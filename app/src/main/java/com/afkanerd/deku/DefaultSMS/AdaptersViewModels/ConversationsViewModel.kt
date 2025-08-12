@@ -1,52 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels
 
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.BlockedNumberContract
-import android.provider.Telephony
-import android.telephony.SmsManager
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import androidx.window.layout.WindowLayoutInfo
-import com.afkanerd.deku.ConversationsScreen
-import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers.getFormatForTransmission
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
-import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.google.gson.GsonBuilder
-import com.klinker.android.send_message.Message
-import com.klinker.android.send_message.Settings
-import com.klinker.android.send_message.Transaction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 
 class ConversationsViewModel : ViewModel() {

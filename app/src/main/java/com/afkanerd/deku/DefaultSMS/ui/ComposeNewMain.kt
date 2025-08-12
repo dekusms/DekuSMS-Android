@@ -146,18 +146,19 @@ fun ComposeNewMessage(
             items(_items ?: items) { contact ->
                 Card(
                     onClick = {
-                        conversationsViewModel.address = contact.number
-                        conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
-                            conversationsViewModel.address).thread_id
-
-                        conversationsViewModel.navigateToConversation(
-                            conversationsViewModel = conversationsViewModel,
-                            address = conversationsViewModel.address,
-                            threadId = conversationsViewModel.threadId,
-                            subscriptionId =
-                            SIMHandler.getDefaultSimSubscription(context),
-                            navController = navController,
-                        )
+                        TODO("Support this")
+//                        conversationsViewModel.address = contact.number
+//                        conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
+//                            conversationsViewModel.address).thread_id
+//
+//                        conversationsViewModel.navigateToConversation(
+//                            conversationsViewModel = conversationsViewModel,
+//                            address = conversationsViewModel.address,
+//                            threadId = conversationsViewModel.threadId,
+//                            subscriptionId =
+//                            SIMHandler.getDefaultSimSubscription(context),
+//                            navController = navController,
+//                        )
                     },
                     Modifier
                         .fillMaxWidth()
@@ -209,9 +210,9 @@ fun PreviewComposeMessage() {
         contact.id = i.toLong()
         contacts.add(contact)
     }
-    ComposeNewMessage(
-        navController = rememberNavController(),
-        viewModel = ContactsViewModel(),
-        _items = contacts
-    )
+//    ComposeNewMessage(
+//        navController = rememberNavController(),
+//        viewModel = ContactsViewModel(),
+//        _items = contacts
+//    )
 }

@@ -18,7 +18,8 @@ import androidx.annotation.NonNull;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations;
+//import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -67,27 +68,27 @@ public class NativeSMSDB {
         public String filename;
         public Uri contentUri;
 
-        public Conversation buildConversation(Context context, Conversation conversation) {
-            if(contentUri == null)
-                return conversation;
-
-            String defaultRegion = Helpers.INSTANCE.getUserCountry(context);
-            if(address != null && !address.isEmpty())
-                conversation.setAddress(
-                        Helpers.INSTANCE.getFormatCompleteNumber( address, defaultRegion ));
-            conversation.setText(text);
-            conversation.setMmsMimeType(mimeType);
-            conversation.setMmsContentFilename(filename);
-            conversation.setMmsContentUri(contentUri.toString());
-            conversation.setDate(String.valueOf(Long.parseLong(conversation.getDate()) * 1000));
-            conversation.setDate_sent(String.valueOf(Long.parseLong(conversation.getDate_sent()) * 1000));
-
-            conversation.setMmsContentUri(contentUri.toString());
-            conversation.setMmsMimeType(mimeType);
-            conversation.setText(text);
-
-            return conversation;
-        }
+//        public Conversations buildConversation(Context context, Conversations conversation) {
+//            if(contentUri == null)
+//                return conversation;
+//
+//            String defaultRegion = Helpers.INSTANCE.getUserCountry(context);
+//            if(address != null && !address.isEmpty())
+//                conversation.setAddress(
+//                        Helpers.INSTANCE.getFormatCompleteNumber( address, defaultRegion ));
+//            conversation.setText(text);
+//            conversation.setMmsMimeType(mimeType);
+//            conversation.setMmsContentFilename(filename);
+//            conversation.setMmsContentUri(contentUri.toString());
+//            conversation.setDate(String.valueOf(Long.parseLong(conversation.getDate()) * 1000));
+//            conversation.setDate_sent(String.valueOf(Long.parseLong(conversation.getDate_sent()) * 1000));
+//
+//            conversation.setMmsContentUri(contentUri.toString());
+//            conversation.setMmsMimeType(mimeType);
+//            conversation.setText(text);
+//
+//            return conversation;
+//        }
     }
 
     public static ParsedMms ParseMMS(Context context, Cursor cursor) {
@@ -124,10 +125,10 @@ public class NativeSMSDB {
                         parsedMms.contentUri = Uri.parse("content://mms/part/" + pid);
                     } else {
                         String text = c.getString(c.getColumnIndex(Telephony.Mms.Part.TEXT));
-                        List<String> values = MmsHandler.INSTANCE.parseAttachmentNames(text);
-                        if(!values.isEmpty() && parsedMms.filename == null) {
-                            parsedMms.filename = values.get(0);
-                        }
+//                        List<String> values = MmsHandler.INSTANCE.parseAttachmentNames(text);
+//                        if(!values.isEmpty() && parsedMms.filename == null) {
+//                            parsedMms.filename = values.get(0);
+//                        }
                     }
                 }
             } while(c.moveToNext());
@@ -336,14 +337,14 @@ public class NativeSMSDB {
                     subscriptionId
             );
 
-            Transmissions.INSTANCE.sendMms(
-                    context,
-                    messageId,
-                    destinationAddress,
-                    text,
-                    subscriptionId,
-                    contentUri
-            );
+//            Transmissions.INSTANCE.sendMms(
+//                    context,
+//                    messageId,
+//                    destinationAddress,
+//                    text,
+//                    subscriptionId,
+//                    contentUri
+//            );
 
             return pendingOutputs;
         }
@@ -364,13 +365,13 @@ public class NativeSMSDB {
                     subscriptionId
             );
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
-            Transmissions.INSTANCE.sendTextSMS(
-                    context,
-                    destinationAddress,
-                    text,
-                    pendingIntents[0], pendingIntents[1],
-                    subscriptionId
-            );
+//            Transmissions.INSTANCE.sendTextSMS(
+//                    context,
+//                    destinationAddress,
+//                    text,
+//                    pendingIntents[0], pendingIntents[1],
+//                    subscriptionId
+//            );
             return pendingOutputs;
         }
 
@@ -384,9 +385,9 @@ public class NativeSMSDB {
 
             String[] outputs = register_pending_data(context, messageId, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
-            PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
-            Transmissions.INSTANCE.sendDataSMS(destinationAddress, data,
-                    pendingIntents[0], pendingIntents[1], subscriptionId);
+//            PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
+//            Transmissions.INSTANCE.sendDataSMS(destinationAddress, data,
+//                    pendingIntents[0], pendingIntents[1], subscriptionId);
             return outputs;
         }
 
@@ -499,34 +500,34 @@ public class NativeSMSDB {
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
-        public static PendingIntent[] getPendingIntentsForData(Context context, String messageId, Bundle bundle) {
-            Intent sentIntent = new Intent(SmsDataReceivedReceiver.
-                    Companion.getDATA_SENT_BROADCAST_INTENT());
-            sentIntent.setPackage(context.getPackageName());
-            sentIntent.putExtra(ID, messageId);
-
-            Intent deliveredIntent = new Intent(SmsDataReceivedReceiver.
-                    Companion.getDATA_DELIVERED_BROADCAST_INTENT());
-            deliveredIntent.setPackage(context.getPackageName());
-            deliveredIntent.putExtra(Conversation.ID, messageId);
-
-            if(bundle != null) {
-                sentIntent.putExtras(bundle);
-                deliveredIntent.putExtras(bundle);
-            }
-
-            PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                    (int)Long.parseLong(messageId),
-                    sentIntent,
-                    PendingIntent.FLAG_IMMUTABLE);
-
-            PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                    (int)Long.parseLong(messageId),
-                    deliveredIntent,
-                    PendingIntent.FLAG_IMMUTABLE);
-
-            return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
-        }
+//        public static PendingIntent[] getPendingIntentsForData(Context context, String messageId, Bundle bundle) {
+//            Intent sentIntent = new Intent(SmsDataReceivedReceiver.
+//                    Companion.getDATA_SENT_BROADCAST_INTENT());
+//            sentIntent.setPackage(context.getPackageName());
+//            sentIntent.putExtra(ID, messageId);
+//
+//            Intent deliveredIntent = new Intent(SmsDataReceivedReceiver.
+//                    Companion.getDATA_DELIVERED_BROADCAST_INTENT());
+//            deliveredIntent.setPackage(context.getPackageName());
+//            deliveredIntent.putExtra(Conversation.ID, messageId);
+//
+//            if(bundle != null) {
+//                sentIntent.putExtras(bundle);
+//                deliveredIntent.putExtras(bundle);
+//            }
+//
+//            PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
+//                    (int)Long.parseLong(messageId),
+//                    sentIntent,
+//                    PendingIntent.FLAG_IMMUTABLE);
+//
+//            PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
+//                    (int)Long.parseLong(messageId),
+//                    deliveredIntent,
+//                    PendingIntent.FLAG_IMMUTABLE);
+//
+//            return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
+//        }
 
         public static PendingIntent[] getPendingIntents(Context context, String messageId, Bundle bundle) {
             Intent sentIntent = new Intent(SmsTextReceivedReceiver.Companion
@@ -537,7 +538,7 @@ public class NativeSMSDB {
             Intent deliveredIntent = new Intent(SmsTextReceivedReceiver.Companion
                     .getSMS_DELIVERED_BROADCAST_INTENT());
             deliveredIntent.setPackage(context.getPackageName());
-            deliveredIntent.putExtra(Conversation.ID, messageId);
+//            deliveredIntent.putExtra(Conversation.ID, messageId);
 
             if(bundle != null) {
                 sentIntent.putExtras(bundle);

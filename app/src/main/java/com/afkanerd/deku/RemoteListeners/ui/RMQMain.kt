@@ -128,7 +128,8 @@ fun RMQMainComposable(
                     putBoolean(context.getString(R.string.configs_load_natives), true)
                 }
                 CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.reset(context)
+                    TODO()
+//                    conversationsViewModel.reset(context)
                     launch(Dispatchers.Main) {
                         Toast.makeText(context, "Messages loaded!", Toast.LENGTH_LONG).show()
                     }
@@ -391,44 +392,44 @@ fun openNotificationSettings(context: Context) {
     context.startActivity(intent)
 }
 
-@Composable
-@Preview
-fun ConnectionCards_Preview() {
-    AppTheme {
-        val remoteListeners = RemoteListeners()
-        remoteListeners.id = 0
-        remoteListeners.hostUrl = "amqp://example.com"
-        remoteListeners.virtualHost = "/"
-        remoteListeners.port = 5671
-        remoteListeners.username = "example_user"
-
-        val remoteListeners1 = RemoteListeners()
-        remoteListeners1.id = 1
-        remoteListeners1.hostUrl = "amqp://example.com"
-        remoteListeners1.virtualHost = "/"
-        remoteListeners1.port = 5671
-        remoteListeners1.username = "example_user"
-
-        RMQMainComposable(
-            listOf(remoteListeners, remoteListeners1),
-            RemoteListenersViewModel(),
-            RemoteListenerQueuesViewModel(),
-            ConversationsViewModel(),
-            rememberNavController(),
-        )
-    }
-}
-
-@Composable
-@Preview
-fun ConnectionEmptyCards_Preview() {
-    AppTheme {
-        RMQMainComposable(
-            emptyList(),
-            RemoteListenersViewModel(),
-            RemoteListenerQueuesViewModel(),
-            ConversationsViewModel(),
-            rememberNavController(),
-        )
-    }
-}
+//@Composable
+//@Preview
+//fun ConnectionCards_Preview() {
+//    AppTheme {
+//        val remoteListeners = RemoteListeners()
+//        remoteListeners.id = 0
+//        remoteListeners.hostUrl = "amqp://example.com"
+//        remoteListeners.virtualHost = "/"
+//        remoteListeners.port = 5671
+//        remoteListeners.username = "example_user"
+//
+//        val remoteListeners1 = RemoteListeners()
+//        remoteListeners1.id = 1
+//        remoteListeners1.hostUrl = "amqp://example.com"
+//        remoteListeners1.virtualHost = "/"
+//        remoteListeners1.port = 5671
+//        remoteListeners1.username = "example_user"
+//
+//        RMQMainComposable(
+//            listOf(remoteListeners, remoteListeners1),
+//            RemoteListenersViewModel(),
+//            RemoteListenerQueuesViewModel(),
+//            ConversationsViewModel(),
+//            rememberNavController(),
+//        )
+//    }
+//}
+//
+//@Composable
+//@Preview
+//fun ConnectionEmptyCards_Preview() {
+//    AppTheme {
+//        RMQMainComposable(
+//            emptyList(),
+//            RemoteListenersViewModel(),
+//            RemoteListenerQueuesViewModel(),
+//            ConversationsViewModel(),
+//            rememberNavController(),
+//        )
+//    }
+//}

@@ -22,11 +22,12 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
 import com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity
+import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
 
 class GatewayServerRoutedActivity : AppCompatActivity() {
     private val gatewayServerRouterViewModel: GatewayServerRouterViewModel by viewModels()
     private lateinit var routedMessageRecyclerView: RecyclerView
-    private lateinit var gatewayServerRouterRecyclerAdapter: GatewayServerRouterRecyclerAdapter
+//    private lateinit var gatewayServerRouterRecyclerAdapter: GatewayServerRouterRecyclerAdapter
 
     private var actionMode: ActionMode? = null
     private lateinit var toolbar: Toolbar
@@ -45,16 +46,16 @@ class GatewayServerRoutedActivity : AppCompatActivity() {
         routedMessageRecyclerView = findViewById(R.id.routed_messages_recycler_view)
         routedMessageRecyclerView.setLayoutManager(linearLayoutManager)
 
-        gatewayServerRouterRecyclerAdapter = GatewayServerRouterRecyclerAdapter()
-        gatewayServerRouterRecyclerAdapter.setHasStableIds(true)
-
-        routedMessageRecyclerView.setAdapter(gatewayServerRouterRecyclerAdapter)
-        gatewayServerRouterViewModel.getMessages(applicationContext).observe(this, Observer {
-            sortAndSubmit(applicationContext, it)
-        })
-
-        gatewayServerRouterRecyclerAdapter.selectedItems.observe(this, Observer {
-        })
+//        gatewayServerRouterRecyclerAdapter = GatewayServerRouterRecyclerAdapter()
+//        gatewayServerRouterRecyclerAdapter.setHasStableIds(true)
+//
+//        routedMessageRecyclerView.setAdapter(gatewayServerRouterRecyclerAdapter)
+//        gatewayServerRouterViewModel.getMessages(applicationContext).observe(this, Observer {
+//            sortAndSubmit(applicationContext, it)
+//        })
+//
+//        gatewayServerRouterRecyclerAdapter.selectedItems.observe(this, Observer {
+//        })
     }
 
     private fun sortAndSubmit(context: Context, workInfoList: List<WorkInfo>) {
@@ -66,23 +67,24 @@ class GatewayServerRoutedActivity : AppCompatActivity() {
                 println("${workInfoPair.first}:${workInfoPair.second}")
                 Datastore.getDatastore(context).gatewayServerDAO()[workInfoPair.second]
                         .let {gatewayServer->
-                            RouterItem(Datastore.getDatastore(context).conversationDao()
-                                    .getMessage(workInfoPair.first)).let {
-                                it.routingUniqueId = workInfo.id.toString()
-                                it.routingStatus = RouterHandler.reverseState(context,
-                                        workInfo.state)
-                                routerItemsList.add(Pair(it, gatewayServer))
-                            }
+                            TODO("Implement this method")
+//                            RouterItem(context.getDatabase().conversationDao()
+//                                    .getMessage(workInfoPair.first)).let {
+//                                it.routingUniqueId = workInfo.id.toString()
+//                                it.routingStatus = RouterHandler.reverseState(context,
+//                                        workInfo.state)
+//                                routerItemsList.add(Pair(it, gatewayServer))
+//                            }
                         }
             }
             runOnUiThread {
-                gatewayServerRouterRecyclerAdapter.mDiffer.submitList(routerItemsList)
-                if (routerItemsList.isNotEmpty())
-                    findViewById<View>(R.id.router_no_showable_messages_text).visibility = View.GONE
-                else {
-                    findViewById<View>(R.id.router_no_showable_messages_text).visibility = View.VISIBLE
-                    routedMessageRecyclerView.smoothScrollToPosition(0)
-                }
+//                gatewayServerRouterRecyclerAdapter.mDiffer.submitList(routerItemsList)
+//                if (routerItemsList.isNotEmpty())
+//                    findViewById<View>(R.id.router_no_showable_messages_text).visibility = View.GONE
+//                else {
+//                    findViewById<View>(R.id.router_no_showable_messages_text).visibility = View.VISIBLE
+//                    routedMessageRecyclerView.smoothScrollToPosition(0)
+//                }
             }
         }
     }
