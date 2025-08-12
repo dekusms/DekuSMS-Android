@@ -12,6 +12,7 @@ coilNetworkOkhttp = "3.2.0"
 coilVideoVersion = "3.3.0"
 commonsCodec = "1.18.0"
 commonsNet = "3.11.1"
+compilerVersion = "1.1.1"
 composeBom = "2025.06.01"
 composeBomVersion = "2025.06.01"
 conscryptAndroid = "2.5.3"
@@ -49,6 +50,10 @@ pagingCompose = "3.3.6"
 pagingGuava = "3.3.6"
 preference = "1.2.1"
 prov = "1.58.0.0"
+roomGuavaVersion = "2.7.2"
+roomKtxVersion = "2.7.2"
+roomRxjava2Version = "2.7.2"
+roomRxjava3Version = "2.7.2"
 roomTesting = "2.7.2"
 rulesVersion = "1.6.1"
 rxbinding = "1.0.1"
@@ -105,8 +110,12 @@ androidx-paging-guava = { module = "androidx.paging:paging-guava", version.ref =
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingGuava" }
 androidx-preference = { module = "androidx.preference:preference", version.ref = "preference" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomTesting" }
+androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomGuavaVersion" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtxVersion" }
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomTesting" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomTesting" }
+androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "roomRxjava2Version" }
+androidx-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "roomRxjava3Version" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 androidx-rules = { module = "androidx.test:rules", version.ref = "rulesVersion" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
@@ -132,6 +141,7 @@ coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coilVideoVersion" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-net = { module = "commons-net:commons-net", version.ref = "commonsNet" }
+compiler = { module = "android.arch.persistence.room:compiler", version.ref = "compilerVersion" }
 conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscryptAndroid" }
 fuel = { module = "com.github.kittinunf.fuel:fuel", version.ref = "fuelVersion" }
 fuel-android = { module = "com.github.kittinunf.fuel:fuel-android", version.ref = "fuelVersion" }

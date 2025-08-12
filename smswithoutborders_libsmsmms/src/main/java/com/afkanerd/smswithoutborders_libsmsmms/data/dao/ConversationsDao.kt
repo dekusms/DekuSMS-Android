@@ -1,10 +1,7 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data.dao
 
-import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.paging.PagingSource
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -14,7 +11,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 
 @Dao
-interface ConversationDao {
+interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE Conversations._id = :messageId")
     fun getConversation(messageId: String): Conversations
@@ -41,10 +38,10 @@ interface ConversationDao {
     fun unreadCount(threadId: Int): Int
 
     @Insert
-    fun insertConversation(conversation: Conversations): Int?
+    fun insertConversation(conversation: Conversations)
 
     @Insert
-    fun insertConversations(conversation: List<Conversations>): Int?
+    fun insertConversations(conversation: List<Conversations>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertThread(thread: Threads)
@@ -53,8 +50,8 @@ interface ConversationDao {
     fun insertThreads(thread: List<Threads>)
 
     @Transaction
-    fun insert(conversations: Conversations): Int? {
-        val id = insertConversation(conversations)
+    fun insert(conversations: Conversations){
+        insertConversation(conversations)
         conversations.sms?.let {
             insertThread(
                 Threads(
@@ -68,7 +65,6 @@ interface ConversationDao {
                 )
             )
         }
-        return id
     }
 
     @Transaction

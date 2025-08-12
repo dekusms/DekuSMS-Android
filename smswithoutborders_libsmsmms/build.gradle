@@ -3,6 +3,7 @@ plugins {
     id 'com.android.library'
     alias(libs.plugins.org.jetbrains.kotlin.android)
     id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.0'
+    id 'com.google.devtools.ksp' version '2.2.0-2.0.2'
 }
 
 android {
@@ -51,4 +52,29 @@ dependencies {
     implementation(libs.android.smsmms)
     implementation libs.libphonenumber
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    def room_version = "2.7.2"
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See KSP Quickstart to add KSP to your build
+    ksp "androidx.room:room-compiler:$room_version"
+
+    // If this project only uses Java source, use the Java annotationProcessor
+    // No additional plugins are necessary
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    // optional - RxJava2 support for Room
+    implementation libs.androidx.room.rxjava2
+
+    // optional - RxJava3 support for Room
+    implementation libs.androidx.room.rxjava3
+
+    // optional - Guava support for Room, including Optional and ListenableFuture
+    implementation libs.androidx.room.guava
+
+    // optional - Test helpers
+    testImplementation "androidx.room:room-testing:$room_version"
+
+    // optional - Paging 3 Integration
+    implementation "androidx.room:room-paging:$room_version"
 }

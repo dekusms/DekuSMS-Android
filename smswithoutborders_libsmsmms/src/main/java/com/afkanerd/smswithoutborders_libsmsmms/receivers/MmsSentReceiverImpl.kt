@@ -28,13 +28,13 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
 
         originalResentMessageId?.let {
             CoroutineScope(Dispatchers.Default).launch {
-                context.getDatabase().conversationDao()
+                context.getDatabase().conversationsDao()
                     ?.getConversation(originalResentMessageId)?.let { conversation ->
                         conversation.sms?.status = messageBox
                         conversation.sms?.type = Telephony.Mms.MESSAGE_BOX_SENT
                         conversation.mms_content_uri = uri
                         conversation.mms_filepath = filepath
-                        context.getDatabase().conversationDao()?.update(conversation)
+                        context.getDatabase().conversationsDao()?.update(conversation)
                     }
             }
         }

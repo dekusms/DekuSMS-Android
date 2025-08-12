@@ -18,12 +18,12 @@ class ConversationsViewModel: ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
-    fun add(context: Context, conversation: Conversations): Int? {
-        return context.getDatabase().conversationDao()?.insert(conversation)
+    fun add(context: Context, conversation: Conversations) {
+        context.getDatabase().conversationsDao()?.insert(conversation)
     }
 
     fun update(context: Context, conversation: Conversations): Int? {
-        return context.getDatabase().conversationDao()?.update(conversation)
+        return context.getDatabase().conversationsDao()?.update(conversation)
     }
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
@@ -39,7 +39,7 @@ class ConversationsViewModel: ViewModel() {
                     maxSize
                 ),
                 pagingSourceFactory = {
-                    context.getDatabase().conversationDao()!!.getConversations(threadId)
+                    context.getDatabase().conversationsDao()!!.getConversations(threadId)
                 }
             ).flow.cachedIn(viewModelScope)
         }

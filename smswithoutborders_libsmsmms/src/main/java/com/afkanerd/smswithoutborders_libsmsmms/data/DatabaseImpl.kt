@@ -2,9 +2,9 @@ package com.afkanerd.smswithoutborders_libsmsmms.data
 
 import android.content.Context
 import androidx.room.Database
-import androidx.room.Room.databaseBuilder
+import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ConversationDao
+import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ConversationsDao
 import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ThreadsDao
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Archive
@@ -15,15 +15,12 @@ import kotlin.concurrent.Volatile
 @Database(
     entities = [
         Archive::class,
-        smsMmsNatives.Sms::class,
-        smsMmsNatives.Mms::class,
-        smsMmsNatives.MmsPart::class,
-        smsMmsNatives.MmsAddr::class,
+        Conversations::class,
         Threads::class],
-    version = 1
+    version = 1,
 )
 abstract class DatabaseImpl : RoomDatabase() {
-    abstract fun conversationDao(): ConversationDao?
+    abstract fun conversationsDao(): ConversationsDao?
     abstract fun threadsDao(): ThreadsDao?
 
     companion object {
@@ -40,9 +37,11 @@ abstract class DatabaseImpl : RoomDatabase() {
         }
 
         private fun create(context: Context): DatabaseImpl {
-            return databaseBuilder(context, DatabaseImpl::class.java, databaseName)
-                .enableMultiInstanceInvalidation()
-                .build()
+            return Room.databaseBuilder(
+                context,
+                DatabaseImpl::class.java,
+                databaseName
+            ).enableMultiInstanceInvalidation().build()
         }
     }
 }

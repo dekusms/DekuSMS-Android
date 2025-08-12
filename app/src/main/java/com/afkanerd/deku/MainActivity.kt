@@ -57,6 +57,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersVi
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity(){
     private lateinit var navController: NavHostController
 
     private val conversationViewModel: ConversationsViewModel by viewModels()
+    private val threadsViewModel: ThreadsViewModel by viewModels()
     private val searchViewModel: SearchViewModel by viewModels()
     private val contactsViewModel: ContactsViewModel by viewModels()
 
@@ -233,11 +235,10 @@ class MainActivity : AppCompatActivity(){
 
     @Composable
     fun HomeScreenComposable() {
-        TODO("")
-//        ThreadConversationLayout(
-//            conversationsViewModel = conversationViewModel,
-//            navController = navController,
-//        )
+        ThreadConversationLayout(
+            threadsViewModel = threadsViewModel,
+            navController = navController,
+        )
     }
 
     @Composable
