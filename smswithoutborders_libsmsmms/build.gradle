@@ -83,33 +83,33 @@ dependencies {
     implementation composeBom
     androidTestImplementation composeBom
 
-    // Choose one of the following:
-    // Material Design 3
-    implementation libs.androidx.compose.material3.material3
-
-    // Android Studio Preview support
-    implementation libs.ui.tooling.preview
-    debugImplementation libs.ui.tooling
-
-    // UI Tests
-    androidTestImplementation libs.androidx.ui.test.junit4
-    debugImplementation libs.ui.test.manifest
-
-    // Optional - Included automatically by material, only add when you need
-    // the icons but not the material library (e.g. when using Material3 or a
-    // custom design system based on Foundation)
-    implementation libs.material.icons.core
-    // Optional - Add full set of material icons
-    implementation libs.androidx.compose.material.material.icons.extended
-    // Optional - Add window size utils
-    implementation libs.androidx.adaptive
-
-    // Optional - Integration with activities
-    implementation libs.androidx.activity.compose
-    // Optional - Integration with ViewModels
-    implementation libs.androidx.lifecycle.viewmodel.compose.v285
-    // Optional - Integration with LiveData
-    implementation libs.runtime.livedata
-    // Optional - Integration with RxJava
-    implementation libs.runtime.rxjava2
+//    // Choose one of the following:
+//    // Material Design 3
+//    implementation libs.androidx.compose.material3.material3
+//
+//    // Android Studio Preview support
+//    implementation libs.ui.tooling.preview
+//    debugImplementation libs.ui.tooling
+//
+//    // UI Tests
+//    androidTestImplementation libs.androidx.ui.test.junit4
+//    debugImplementation libs.ui.test.manifest
+//
+//    // Optional - Included automatically by material, only add when you need
+//    // the icons but not the material library (e.g. when using Material3 or a
+//    // custom design system based on Foundation)
+//    implementation libs.material.icons.core
+//    // Optional - Add full set of material icons
+//    implementation libs.androidx.compose.material.material.icons.extended
+//    // Optional - Add window size utils
+//    implementation libs.androidx.adaptive
+//
+//    // Optional - Integration with activities
+//    implementation libs.androidx.activity.compose
+//    // Optional - Integration with ViewModels
+//    implementation libs.androidx.lifecycle.viewmodel.compose.v285
+//    // Optional - Integration with LiveData
+//    implementation libs.runtime.livedata
+//    // Optional - Integration with RxJava
+//    implementation libs.runtime.rxjava2
 }
