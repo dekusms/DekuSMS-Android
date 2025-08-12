@@ -202,8 +202,6 @@ class MainActivity : AppCompatActivity(){
                 HomeScreenComposable()
             }
 
-
-
             TODO("Remove this line")
 //            if(conversationViewModel.address.isNotEmpty() &&
 //                conversationViewModel.threadId.isNotEmpty()

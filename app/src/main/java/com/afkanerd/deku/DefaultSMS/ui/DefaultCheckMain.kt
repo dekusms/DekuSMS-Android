@@ -5,11 +5,9 @@ import android.app.role.RoleManager
 import android.content.Context
 import android.content.Context.ROLE_SERVICE
 import android.content.Intent
-import android.net.Uri
+import android.content.res.Configuration
 import android.os.Build
 import android.provider.Telephony
-import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.afkanerd.deku.DefaultSMS.R
@@ -38,15 +36,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.preference.PreferenceManager
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import androidx.core.content.edit
 import com.example.compose.AppTheme
-
+import androidx.core.net.toUri
+import androidx.preference.PreferenceManager
 
 @Composable
 fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
@@ -104,7 +97,7 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
         TextButton(
             onClick = {
                 val url = context.getString(R.string.privacy_policy_url) // Your existing URL string resource
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 context.startActivity(intent)
             }
         ) {
@@ -138,7 +131,7 @@ fun makeDefault(context: Context): Intent {
 }
 
 @Preview(showBackground = true, name = "DefaultCheckMain Light")
-@Preview(showBackground = true, name = "DefaultCheckMain Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "DefaultCheckMain Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DefaultCheckMainPreview() {
     AppTheme {
