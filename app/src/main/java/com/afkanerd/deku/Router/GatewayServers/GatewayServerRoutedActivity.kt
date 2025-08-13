@@ -7,11 +7,9 @@ import android.util.Pair
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
@@ -22,7 +20,6 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
 import com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
 
 class GatewayServerRoutedActivity : AppCompatActivity() {
     private val gatewayServerRouterViewModel: GatewayServerRouterViewModel by viewModels()

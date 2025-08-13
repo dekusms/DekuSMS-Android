@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

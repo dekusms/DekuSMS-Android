@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.widget.Toast
-import com.afkanerd.smswithoutborders_libsmsmms.Extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

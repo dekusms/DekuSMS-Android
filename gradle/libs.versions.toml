@@ -5,6 +5,7 @@ amqpClient = "5.25.0"
 androidMail = "1.6.7"
 androidSmsmmsVersion = "5.2.6"
 androidxComposeBom = "2025.05.00"
+androidxComposeBomVersion = "2025.07.00"
 appcompat = "1.7.1"
 autolinktext = "2.0.2"
 avatarviewCoil = "1.0.7"
@@ -43,6 +44,8 @@ lifecycleViewmodelKtxVersion = "2.9.2"
 lz4 = "1.3.0"
 material = "1.12.0"
 material3 = "1.3.2"
+material3AdaptiveNavigationSuiteVersion = "1.5.0-alpha01"
+material3WindowSizeClassVersion = "1.3.2"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.1"
 navigationFragment = "2.9.1"
@@ -74,6 +77,8 @@ agpVersion = "8.11.0"
 roomCommonJvmVersion = "2.7.2"
 pagingCommonVersion = "3.3.6"
 runtimeVersion = "1.8.3"
+uiToolingPreviewVersion = "1.8.3"
+uiToolingVersion = "1.8.3"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -87,9 +92,11 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-bom-v20250200 = { module = "androidx.compose:compose-bom", version.ref = "composeBomVersion" }
 androidx-compose-bom-v20250500 = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-bom-v20250700 = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBomVersion" }
 androidx-compose-material-material = { module = "androidx.compose.material:material" }
 androidx-compose-material-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material3-material32 = { module = "androidx.compose.material3:material3" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core = { module = "androidx.core:core", version.ref = "ktx" }
 androidx-core-ktx-v1131 = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -110,6 +117,8 @@ androidx-material = { module = "androidx.compose.material:material", version = "
 androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-material3-adaptive-navigation-suite = { module = "androidx.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3AdaptiveNavigationSuiteVersion" }
+androidx-material3-window-size-class1 = { module = "androidx.compose.material3:material3-window-size-class", version.ref = "material3WindowSizeClassVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
 androidx-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationTesting" }
@@ -180,10 +189,13 @@ ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+x-x-x = { module = "org.jetbrains.kotlin.android:2.0.0" }
 x25519 = { module = "com.github.netricecake:x25519", version.ref = "x25519" }
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvmVersion" }
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "pagingCommonVersion" }
 androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
+androidx-compose-ui-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreviewVersion" }
+androidx-compose-ui-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiToolingVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
