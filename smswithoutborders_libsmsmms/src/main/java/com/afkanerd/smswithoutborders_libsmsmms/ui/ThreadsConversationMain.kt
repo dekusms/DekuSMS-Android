@@ -488,7 +488,6 @@ fun ThreadConversationLayout(
             ) {
                 if(!isDefault && inboxType != ThreadsViewModel.InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
-                        TODO("Fix making defaults")
                         isDefault = true
                     }
                 }
@@ -682,7 +681,8 @@ fun ThreadConversationLayout(
                                         isBlocked = isBlocked,
                                         modifier = Modifier.combinedClickable(
                                             onClick = {
-//                                                if(selectedItems.isEmpty()) {
+                                                if(selectedItems.isEmpty()) {
+                                                    TODO("Implement navigate to cards")
 //                                                    threadsViewModel.navigateToConversation(
 //                                                        threadsViewModel,
 //                                                        address = message.address!!,
@@ -691,13 +691,13 @@ fun ThreadConversationLayout(
 //                                                        SIMHandler.getDefaultSimSubscription(context),
 //                                                        navController = navController,
 //                                                    )
-//                                                } else {
+                                                } else {
+                                                    TODO("Implement add and remove items from selected")
 //                                                    if(selectedItems.contains(message))
 //                                                        selectedItems.remove(message)
 //                                                    else
 //                                                        selectedItems.add(message)
-//                                                }
-                                                TODO("Implement message select")
+                                                }
                                             },
                                             onLongClick = {
                                                 TODO("Implement long click")

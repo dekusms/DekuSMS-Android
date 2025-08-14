@@ -66,12 +66,12 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
                 .fillMaxSize()
                 .weight(1f)
         ) {
-//            Image(
-//                painter= painterResource(R.drawable.set_default_sms_app),
-//                contentDescription = stringResource(R.string.welcome_image),
-//                contentScale = ContentScale.Fit,
-//                modifier = Modifier.size(350.dp)
-//            )
+            Image(
+                painter= painterResource(R.drawable.set_default_sms_app),
+                contentDescription = stringResource(R.string.welcome_image),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(350.dp)
+            )
             Spacer(Modifier.size(32.dp))
 
             Button(
@@ -91,22 +91,22 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
         }
         TextButton(
             onClick = {
-//                val url = context.getString(R.string.privacy_policy_url) // Your existing URL string resource
-//                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-//                context.startActivity(intent)
+                val url = context.getString(R.string.privacy_policy_url) // Your existing URL string resource
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                context.startActivity(intent)
             }
         ) {
-//            val annotatedString = buildAnnotatedString {
-//                append(stringResource(R.string.read_our_text_part))
-//                append(" ")
-//                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-//                    append(stringResource(R.string.privacy_policy_text_part))
-//                }
-//            }
-//            Text(
-//                text = annotatedString,
-//                style = MaterialTheme.typography.labelLarge
-//            )
+            val annotatedString = buildAnnotatedString {
+                append(stringResource(R.string.read_our_text_part))
+                append(" ")
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                    append(stringResource(R.string.privacy_policy_text_part))
+                }
+            }
+            Text(
+                text = annotatedString,
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }
