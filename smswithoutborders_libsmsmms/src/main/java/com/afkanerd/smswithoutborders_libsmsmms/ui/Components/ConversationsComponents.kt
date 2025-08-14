@@ -115,18 +115,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import coil.request.ImageRequest
 import coil3.compose.AsyncImage
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
-import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.ui.Conversations
-import com.afkanerd.deku.MainActivity
+import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.example.compose.AppTheme
-import com.jakewharton.rxbinding.view.RxMenuItem.icon
-import io.getstream.avatarview.AvatarView
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionBitmap
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -397,14 +391,13 @@ fun ChatCompose(
                                 )
                             } else {
                                 if(subscriptionId > -1) {
-                                    val iconBitmap = SIMHandler.getSubscriptionBitmap(
-                                        context,
-                                        subscriptionId
-                                    ).asImageBitmap()
-                                    Image(
-                                        iconBitmap,
-                                        stringResource(R.string.choose_sim_card)
-                                    )
+                                    context.getSubscriptionBitmap(subscriptionId)
+                                        ?.asImageBitmap()?.let { image ->
+                                            Image(
+                                                image,
+                                                stringResource(R.string.choose_sim_card)
+                                            )
+                                        }
                                 }
                             }
                         }
@@ -676,7 +669,7 @@ fun SimChooser(
             onDismissRequest = { dismissCallback?.invoke() },
         ) {
             if(!LocalInspectionMode.current)
-            SIMHandler.getSimCardInformation(context).forEach {
+            context.getSimCardInformation()?.forEach {
                 DropdownMenuItem(
                     leadingIcon = {
                         if(LocalInspectionMode.current) {
@@ -686,10 +679,10 @@ fun SimChooser(
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         } else {
-                            val iconBitmap = SIMHandler
-                                .getSubscriptionBitmap(context, it.subscriptionId)
-                                .asImageBitmap()
-                            Image(iconBitmap, stringResource(R.string.choose_sim_card))
+                            context.getSubscriptionBitmap(it.subscriptionId)
+                                ?.asImageBitmap()?.let { image ->
+                                    Image(image, stringResource(R.string.choose_sim_card))
+                                }
                         }
                     },
                     text = {
@@ -794,48 +787,18 @@ fun ConversationCrudBottomBar(
     )
 }
 
-private fun copyItem(context: Context, text: String) {
-    val clip = ClipData.newPlainText(text, text)
-    val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(clip)
 
-    Toast.makeText(
-        context, context.getString(R.string.conversation_copied),
-        Toast.LENGTH_SHORT
-    ).show()
-}
-
-private fun shareItem(context: Context, text: String) {
-    val sendIntent = Intent().apply {
-        setAction(Intent.ACTION_SEND)
-        putExtra(Intent.EXTRA_TEXT, text)
-        setType("text/plain")
-    }
-
-    val shareIntent = Intent.createChooser(sendIntent, null)
-    // Only use for components you have control over
-    val excludedComponentNames = arrayOf(
-        ComponentName(
-            BuildConfig.APPLICATION_ID,
-            MainActivity::class.java.name
-        )
-    )
-    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
-    context.startActivity(shareIntent)
-}
 
 @Preview(showBackground = true, name = "Search Counter Light")
 @Preview(showBackground = true, name = "Search Counter Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun SearchCounterComposePreview() {
-    AppTheme {
-        SearchCounterCompose(
-            index = "5",
-            total = "20",
-            forwardClick = {},
-            backwardClick = {}
-        )
-    }
+    SearchCounterCompose(
+        index = "5",
+        total = "20",
+        forwardClick = {},
+        backwardClick = {}
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -843,13 +806,11 @@ fun SearchCounterComposePreview() {
 @Preview(showBackground = true, name = "Search TopAppBar Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun SearchTopAppBarTextPreview() {
-    AppTheme {
-        SearchTopAppBarText(
-            searchQuery = "Sample search",
-            cancelCallback = {},
-            searchCallback = {}
-        )
-    }
+    SearchTopAppBarText(
+        searchQuery = "Sample search",
+        cancelCallback = {},
+        searchCallback = {}
+    )
 }
 
 @RequiresExtension(extension = Build.VERSION_CODES.UPSIDE_DOWN_CAKE, version = 15)
@@ -858,14 +819,12 @@ fun SearchTopAppBarTextPreview() {
 @Preview(showBackground = true, name = "Chat Compose Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ChatComposePreview() {
-    AppTheme {
-        ChatCompose(
-            value = "Hello there!",
-            encryptedValue = "U2FsdGVkX1+...", // Example encrypted
-            shouldPulse = true,
-            sentCallback = {}
-        )
-    }
+    ChatCompose(
+        value = "Hello there!",
+        encryptedValue = "U2FsdGVkX1+...", // Example encrypted
+        shouldPulse = true,
+        sentCallback = {}
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -873,36 +832,29 @@ fun ChatComposePreview() {
 @Preview(showBackground = true, name = "Failed Message Modal Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun FailedMessageOptionsModalPreview() {
-    AppTheme {
-        // For ModalBottomSheet, it's good to have a visible state in preview
-        FailedMessageOptionsModal(
-            retryCallback = {},
-            deleteCallback = {},
-            dismissCallback = {}
-        )
-    }
+    FailedMessageOptionsModal(
+        retryCallback = {},
+        deleteCallback = {},
+        dismissCallback = {}
+    )
 }
 
 @Preview(showBackground = true, name = "Short Code Alert Light")
 @Preview(showBackground = true, name = "Short Code Alert Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ShortCodeAlertPreview() {
-    AppTheme {
-        ShortCodeAlert(dismissCallback = {})
-    }
+    ShortCodeAlert(dismissCallback = {})
 }
 
 @Preview(showBackground = true, name = "SIM Chooser Light")
 @Preview(showBackground = true, name = "SIM Chooser Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun SimChooserPreview() {
-    AppTheme {
-        SimChooser(
-            expanded = true, // Make it visible in preview
-            onClickCallback = {},
-            dismissCallback = {}
-        )
-    }
+    SimChooser(
+        expanded = true, // Make it visible in preview
+        onClickCallback = {},
+        dismissCallback = {}
+    )
 }
 
 //@Preview(showBackground = true, name = "SIM Chooser Light")
@@ -954,15 +906,15 @@ fun ComposeMmsImage(
         Row {
             Column {
                 if(LocalInspectionMode.current) {
-                    Image(
-                        painter = painterResource(R.drawable.github_mark),
-                        contentDescription = stringResource(R.string.mms_selected_image),
-                        modifier = Modifier
-                            .padding(padding)
-                            .size(size)
-                            .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
-                        contentScale = ContentScale.Crop,
-                    )
+//                    Image(
+//                        painter = painterResource(R.drawable.github_mark),
+//                        contentDescription = stringResource(R.string.mms_selected_image),
+//                        modifier = Modifier
+//                            .padding(padding)
+//                            .size(size)
+//                            .clip(RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp)),
+//                        contentScale = ContentScale.Crop,
+//                    )
                 }
                 else {
                     println("Rendering MMS: $uri")

@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.ui
 
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.text.format.DateUtils
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -81,6 +82,7 @@ import com.afkanerd.deku.DeveloperModeScreen
 import com.afkanerd.deku.Modules.Subroutines
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersScreen
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
@@ -657,7 +659,7 @@ fun ThreadConversationLayout(
 
                                 val date by remember{ mutableStateOf(
                                         if(message.date > 0)
-                                            Helpers.formatDate(context,
+                                            DateTimeUtils.formatDate(context,
                                                 message.date) ?: ""
                                         else "Tues",
                                 ) }

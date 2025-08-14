@@ -1,4 +1,4 @@
-package com.afkanerd.smswithoutborders_libsmsmms.Extensions.context
+package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
 import android.app.PendingIntent
 import android.content.Context
@@ -10,7 +10,6 @@ import android.telephony.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.klinker.android.send_message.Message

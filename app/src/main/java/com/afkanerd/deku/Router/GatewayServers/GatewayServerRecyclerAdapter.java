@@ -15,6 +15,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.SMTP;
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +53,7 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
                 ? "all" : gatewayServer.getFormat();
         holder.format.setText(dataFormat);
 
-        String date = Helpers.INSTANCE.formatDate(holder.itemView.getContext(), gatewayServer.getDate());
+        String date = DateTimeUtils.INSTANCE.formatDate(holder.itemView.getContext(), gatewayServer.getDate());
         holder.date.setText(date);
 
         holder.cardView.setOnClickListener(new View.OnClickListener() {

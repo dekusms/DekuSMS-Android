@@ -70,8 +70,8 @@ import androidx.paging.LoadState.Loading
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.formatDate
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
@@ -261,7 +261,6 @@ fun ThreadConversationLayout(
                     }
                 },
                 selectedItemIndex = ThreadsViewModel.InboxType.INBOX,
-                counts = 0,
             )
         },
     ) {
@@ -654,7 +653,8 @@ fun ThreadConversationLayout(
 
                                 val date by remember{ mutableStateOf(
                                         if(message.date > 0)
-                                            context.formatDate( message.date) ?: ""
+                                            DateTimeUtils
+                                                .formatDate( context,message.date) ?: ""
                                         else "Tues",
                                 ) }
 

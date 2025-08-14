@@ -28,11 +28,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
-import com.afkanerd.deku.DefaultSMS.R
-import com.example.compose.AppTheme
+import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
+import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -163,25 +161,21 @@ fun SecureRequestAcceptModal(
 @Preview(showBackground = true, name = "Secure Request Modal - Request Flow")
 @Composable
 fun SecureRequestModal_RequestFlow_Preview() {
-    AppTheme {
-        SecureRequestAcceptModal(
-            viewModel = remember { ConversationsViewModel() },
-            isSecureRequest = true,
-            dismissCallback = {}
-        )
-    }
+    SecureRequestAcceptModal(
+        viewModel = remember { ConversationsViewModel() },
+        isSecureRequest = true,
+        dismissCallback = {}
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Preview(showBackground = true, name = "Secure Request Modal - Accept Flow")
 @Composable
 fun SecureRequestModal_AcceptFlow_Preview() {
-    AppTheme {
-        SecureRequestAcceptModal(
-            viewModel = remember { ConversationsViewModel() },
-            isSecureRequest = false,
-            dismissCallback = {}
-        )
-    }
+    SecureRequestAcceptModal(
+        viewModel = remember { ConversationsViewModel() },
+        isSecureRequest = false,
+        dismissCallback = {}
+    )
 }
 

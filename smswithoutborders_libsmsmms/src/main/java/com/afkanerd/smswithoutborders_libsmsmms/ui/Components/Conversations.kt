@@ -1,7 +1,5 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.Telephony
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.wrapContentSize
@@ -32,19 +29,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
-import androidx.room.util.TableInfo
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.ui.MmsContentView
+import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.example.compose.AppTheme
+import com.afkanerd.smswithoutborders_libsmsmms.ui.MmsContentView
 
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
@@ -88,14 +81,14 @@ private fun ConversationIsKey(isReceived: Boolean = false) {
                 text=stringResource(R.string.secure_communications_request_received),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(24.dp),
-                color = colorResource(R.color.md_theme_secondary)
+//                color = colorResource(R.color.md_theme_secondary)
             )
         } else {
             Text(
                 text=stringResource(R.string.secure_communication_requested),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(24.dp),
-                color = colorResource(R.color.md_theme_secondary)
+//                color = colorResource(R.color.md_theme_secondary)
             )
         }
     }
@@ -111,7 +104,7 @@ private fun ConversationReceived(
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
-    color: Color = colorResource(R.color.md_theme_onBackground)
+//    color: Color = colorResource(R.color.md_theme_onBackground)
 ) {
     val receivedShape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
     val receivedStartShape = RoundedCornerShape(28.dp, 28.dp, 28.dp, 1.dp)
@@ -156,7 +149,7 @@ private fun ConversationReceived(
                     text = text,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
-                    color = color
+//                    color = color
                 )
             }
         }
@@ -233,8 +226,11 @@ private fun ConversationSent(
             Column(modifier = Modifier
                 .align(Alignment.CenterVertically)) {
                 IconButton(onClick = {}) {
-                    Icon(Icons.Default.Info, "Message failed icon",
-                        tint=colorResource(R.color.md_theme_error))
+                    Icon(
+                        Icons.Default.Info,
+                        "Message failed icon",
+//                        tint=colorResource(R.color.md_theme_error)
+                    )
                 }
             }
         }
@@ -264,7 +260,7 @@ fun ConversationsCard(
             Text(
                 text=timestamp,
                 style= MaterialTheme.typography.labelSmall,
-                color = colorResource(R.color.md_theme_outlineVariant),
+//                color = colorResource(R.color.md_theme_outlineVariant),
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
@@ -340,9 +336,9 @@ fun ConversationsCard(
                                         stringResource(R.string.sms_status_failed)
                                     else "$date " + stringResource(R.string.sms_status_sent),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
-                                        colorResource(R.color.md_theme_error)
-                                    else colorResource(R.color.md_theme_outlineVariant),
+//                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
+//                                        colorResource(R.color.md_theme_error)
+//                                    else colorResource(R.color.md_theme_outlineVariant),
                                     modifier = Modifier
                                         .align(Alignment.End)
                                         .padding(bottom=4.dp)
@@ -502,18 +498,25 @@ fun getConversationType(
         return ConversationPositionTypes.NORMAL_TIMESTAMP
     }
     if(index == 0) {
-        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[1].sms?.type!!)) {
-            if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[1].sms?.date!!.toLong())) {
+        if(getPredefinedType(
+                conversation.sms?.type!!) ==
+            getPredefinedType(conversations[1].sms?.type!!)) {
+            if(DateTimeUtils.isSameMinute(
+                    conversation.sms?.date!!.toLong(),
+                    conversations[1].sms?.date!!.toLong())) {
                 return ConversationPositionTypes.END
             }
         }
-        if(!Helpers.isSameHour(conversation.sms?.date!!.toLong(), conversations[1].sms?.date!!.toLong())) {
+        if(!DateTimeUtils.isSameHour( conversation.sms?.date!!.toLong(),
+                conversations[1].sms?.date!!.toLong())) {
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
     }
+
     if(index == conversations.size - 1) {
-        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations.last().sms?.type!!) &&
-            Helpers.isSameMinute(
+        if(getPredefinedType(conversation.sms?.type!!) ==
+            getPredefinedType(conversations.last().sms?.type!!) &&
+            DateTimeUtils.isSameMinute(
                 conversation.sms?.date!!.toLong(),
                 conversations[index -1].sms?.date!!.toLong())
         ) {
@@ -523,29 +526,35 @@ fun getConversationType(
     }
 
     if(index + 1 < conversations.size && index - 1 > -1 ) {
-        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index - 1].sms?.type!!)
-            &&
-            getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index + 1].sms?.type!!)
+        if(getPredefinedType(conversation.sms?.type!!) ==
+            getPredefinedType(conversations[index - 1].sms?.type!!) &&
+            getPredefinedType(conversation.sms?.type!!) ==
+            getPredefinedType(conversations[index + 1].sms?.type!!)
         ) {
-            if(Helpers.isSameHour(conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())) {
-                if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(),
+            if(DateTimeUtils.isSameHour(conversation.sms?.date!!.toLong(),
+                    conversations[index -1].sms?.date!!.toLong())) {
+                if(DateTimeUtils.isSameMinute(conversation.sms?.date!!.toLong(),
                         conversations[index -1].sms?.date!!.toLong()) &&
-                    Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())) {
+                    DateTimeUtils.isSameMinute(conversation.sms?.date!!.toLong(),
+                        conversations[index +1].sms?.date!!.toLong())) {
                     return ConversationPositionTypes.MIDDLE
                 }
-                if(Helpers.isSameMinute(conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())) {
+                if(DateTimeUtils.isSameMinute(conversation.sms?.date!!.toLong(),
+                        conversations[index -1].sms?.date!!.toLong())) {
                     return ConversationPositionTypes.START
                 }
             }
         }
 
-        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index + 1].sms?.type!!))
-        {
-            if(Helpers.isSameHour(
-                    conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
+        if(getPredefinedType(conversation.sms?.type!!) ==
+            getPredefinedType(conversations[index + 1].sms?.type!!)) {
+            if(DateTimeUtils.isSameHour(
+                    conversation.sms?.date!!.toLong(),
+                    conversations[index +1].sms?.date!!.toLong())
             ) {
-                if(Helpers.isSameMinute(
-                        conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
+                if(DateTimeUtils.isSameMinute(
+                        conversation.sms?.date!!.toLong(),
+                        conversations[index +1].sms?.date!!.toLong())
                 ) {
                     return ConversationPositionTypes.END
                 }
@@ -553,13 +562,15 @@ fun getConversationType(
             return ConversationPositionTypes.NORMAL_TIMESTAMP
         }
 
-        if(getPredefinedType(conversation.sms?.type!!) == getPredefinedType(conversations[index - 1].sms?.type!!))
-        {
-            if(Helpers.isSameMinute(
-                    conversation.sms?.date!!.toLong(), conversations[index -1].sms?.date!!.toLong())
+        if(getPredefinedType(conversation.sms?.type!!) ==
+            getPredefinedType(conversations[index - 1].sms?.type!!)) {
+            if(DateTimeUtils.isSameMinute(
+                    conversation.sms?.date!!.toLong(),
+                    conversations[index -1].sms?.date!!.toLong())
             ) {
-                if(Helpers.isSameHour(
-                        conversation.sms?.date!!.toLong(), conversations[index +1].sms?.date!!.toLong())
+                if(DateTimeUtils.isSameHour(
+                        conversation.sms?.date!!.toLong(),
+                        conversations[index +1].sms?.date!!.toLong())
                 ) {
                     return ConversationPositionTypes.START_TIMESTAMP
                 }
@@ -571,45 +582,24 @@ fun getConversationType(
     return ConversationPositionTypes.NORMAL
 }
 
-fun sendSMS(
-    context: Context,
-    text: String,
-    messageId: String,
-    threadId: String,
-    address: String,
-    conversationsViewModel: ConversationsViewModel,
-    onCompleteCallback: () -> Unit
-) {
-
-}
 
 enum class ConversationsPredefinedTypes {
     OUTGOING,
     INCOMING
 }
 
-private fun call(context: Context, address: String) {
-    val callIntent = Intent(Intent.ACTION_DIAL).apply {
-        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        setData("tel:$address".toUri());
-    }
-    context.startActivity(callIntent);
-}
-
 @Preview
 @Composable
 fun PreviewConversationsReceived() {
-    AppTheme(darkTheme = true) {
-        Surface(Modifier.safeDrawingPadding()) {
-            Column {
-                ConversationReceived(
-                    text = AnnotatedString("Hello world"),
-                    date = "yesterday",
-                )
-                ConversationSent(
-                    text = AnnotatedString("Hello world"),
-                )
-            }
+    Surface(Modifier.safeDrawingPadding()) {
+        Column {
+            ConversationReceived(
+                text = AnnotatedString("Hello world"),
+                date = "yesterday",
+            )
+            ConversationSent(
+                text = AnnotatedString("Hello world"),
+            )
         }
     }
 }

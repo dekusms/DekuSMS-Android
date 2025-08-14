@@ -1,16 +1,26 @@
 package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.telecom.TelecomManager
+import android.telephony.SubscriptionInfo
+import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.widget.Toast
+import androidx.annotation.RequiresPermission
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
@@ -113,5 +123,90 @@ fun Context.retrieveContactName(phoneNumber: String): String? {
         cursor.close()
     }
 
+    return null
+}
+
+fun Context.retrieveContactPhoto(phoneNumber: String?): String? {
+    val uri = Uri.withAppendedPath(
+        ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+        Uri.encode(phoneNumber)
+    )
+    val cursor = contentResolver.query(
+        uri,
+        arrayOf<String>(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI),
+        null,
+        null, null
+    )
+
+    var contactPhotoThumbUri: String? = ""
+    if (cursor == null) return null
+
+    try {
+        if (cursor.moveToFirst()) {
+            val displayContactPhoto =
+                cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
+            contactPhotoThumbUri = cursor.getString(displayContactPhoto).toString()
+        }
+    } finally {
+        cursor.close()
+    }
+    return contactPhotoThumbUri
+}
+
+fun Context.call(address: String) {
+    val callIntent = Intent(Intent.ACTION_DIAL).apply {
+        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        setData("tel:$address".toUri());
+    }
+    startActivity(callIntent);
+}
+
+fun Context.getSimCardInformation(): MutableList<SubscriptionInfo>? {
+    val subscriptionManager =
+        getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+    if (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_PHONE_STATE
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        return subscriptionManager.getActiveSubscriptionInfoList()
+    }
+    return null
+}
+
+fun Context.isDualSim(context: Context): Boolean {
+    val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        manager.activeModemCount > 1
+    } else manager.getPhoneCount() > 1
+}
+
+
+fun Context.getDefaultSimSubscription(): Int? {
+    // TODO: check if there's even a simcard and handle it accordingly
+    val subId = SubscriptionManager.getDefaultSmsSubscriptionId()
+    if (subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID)  //            return getSimCardInformation(context).get(0).getSubscriptionId();
+        return null
+    return subId
+}
+
+fun Context.getSubscriptionName(subscriptionId: Int): String {
+    val subscriptionInfos = getSimCardInformation()
+    for (subscriptionInfo in subscriptionInfos!!)
+        if (subscriptionInfo.subscriptionId == subscriptionId) {
+            if (subscriptionInfo.carrierName != null) {
+                return subscriptionInfo.displayName.toString()
+            }
+        }
+    return ""
+}
+
+fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
+    val subscriptionInfos = getSimCardInformation()
+
+    for (subscriptionInfo in subscriptionInfos!!)
+        if (subscriptionInfo.subscriptionId == subscriptionId) {
+            return subscriptionInfo.createIconBitmap(this)
+    }
     return null
 }

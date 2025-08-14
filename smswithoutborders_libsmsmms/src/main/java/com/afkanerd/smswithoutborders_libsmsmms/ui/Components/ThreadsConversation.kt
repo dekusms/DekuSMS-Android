@@ -2,12 +2,9 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.provider.Telephony
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,26 +58,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.afkanerd.deku.DefaultSMS.AboutActivity
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.getActivity
-import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsCount
-import com.afkanerd.deku.DefaultSMS.SettingsActivity
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
+import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
+import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactPhoto
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
-import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
-import java.io.FileOutputStream
-import java.io.InputStreamReader
 
 @Composable
 fun DeleteConfirmationAlert(
@@ -219,9 +207,9 @@ private fun ThreadConversationsAvatar(
     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
         if (isContact) {
             val contactPhotoUri = remember(phoneNumber) {
-                Contacts.retrieveContactPhoto(context, phoneNumber)
+                context.retrieveContactPhoto(phoneNumber)
             }
-            if (contactPhotoUri.isNotEmpty() && contactPhotoUri != "null") {
+            if (!contactPhotoUri.isNullOrEmpty() && contactPhotoUri != "null") {
                 AsyncImage(
                     model = contactPhotoUri,
                     contentDescription = "Contact Image",
@@ -356,7 +344,6 @@ fun ThreadConversationCard(
 fun ModalDrawerSheetLayout(
     callback: ((ThreadsViewModel.InboxType) -> Unit)? = null,
     selectedItemIndex: ThreadsViewModel.InboxType = ThreadsViewModel.InboxType.INBOX,
-    counts: ThreadsCount? = null,
 ) {
     ModalDrawerSheet {
         Text(
@@ -379,10 +366,7 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                 badge = {
-                    counts?.let {
-                        if(counts.unreadCount > 0)
-                            Text(counts.unreadCount.toString(), fontSize = 14.sp)
-                    }
+                    Text("0", fontSize = 14.sp)
                 },
                 selected = selectedItemIndex == ThreadsViewModel.InboxType.INBOX,
                 onClick = { callback?.let{ it(ThreadsViewModel.InboxType.INBOX) } }
@@ -401,10 +385,7 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                 badge = {
-                    counts?.let {
-                        if(counts.archivedCount > 0)
-                            Text(counts.archivedCount.toString(), fontSize = 14.sp)
-                    }
+                    Text("0", fontSize = 14.sp)
                 },
                 selected = selectedItemIndex == ThreadsViewModel.InboxType.ARCHIVED,
                 onClick = { callback?.let{ it(ThreadsViewModel.InboxType.ARCHIVED) } }
@@ -426,10 +407,7 @@ fun ModalDrawerSheetLayout(
                     )
                 },
                 badge = {
-                    counts?.let {
-                        if(counts.draftsCount > 0)
-                            Text(counts.draftsCount.toString(), fontSize = 14.sp)
-                    }
+                    Text("0", fontSize = 14.sp)
                 },
                 selected = selectedItemIndex == ThreadsViewModel.InboxType.DRAFTS,
                 onClick = { callback?.let{ it(ThreadsViewModel.InboxType.DRAFTS) } }
@@ -612,12 +590,13 @@ fun ThreadsMainDropDown(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-                    context.startActivity(
-                        Intent(context, SettingsActivity::class.java).apply {
-                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-                        }
-                    )
-                    context.getActivity()?.finish()
+//                    context.startActivity(
+//                        Intent(context, SettingsActivity::class.java).apply {
+//                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+//                        }
+//                    )
+//                    context.getActivity()?.finish()
+                    TODO("Implement settings")
                 }
             )
 
@@ -660,11 +639,12 @@ fun ThreadsMainDropDown(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-                    context.startActivity(
-                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
-                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-                        }
-                    )
+//                    context.startActivity(
+//                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
+//                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+//                        }
+//                    )
+                    TODO("Implement routed settings")
                 }
             )
 
@@ -677,11 +657,7 @@ fun ThreadsMainDropDown(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-                    context.startActivity(
-                        Intent(context, AboutActivity::class.java).apply {
-                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-                        }
-                    )
+                    TODO("Implement about settings")
                 }
             )
 
@@ -748,74 +724,63 @@ fun SwipeToDeleteBackground(
 @Preview(showBackground = true, name = "Delete Confirmation Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DeleteConfirmationAlertPreview() {
-    AppTheme {
-        DeleteConfirmationAlert(
-            confirmCallback = {},
-            dismissCallback = {}
-        )
-    }
+    DeleteConfirmationAlert(
+        confirmCallback = {},
+        dismissCallback = {}
+    )
 }
 
 @Preview(showBackground = true, name = "Import Details Light")
 @Preview(showBackground = true, name = "Import Details Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ImportDetailsPreview() {
-    AppTheme {
-        ImportDetails(
-            numOfConversations = 150,
-            numOfThreads = 25,
-            confirmCallback = {},
-            resetConfirmCallback = {},
-            dismissCallback = {}
-        )
-    }
+    ImportDetails(
+        numOfConversations = 150,
+        numOfThreads = 25,
+        confirmCallback = {},
+        resetConfirmCallback = {},
+        dismissCallback = {}
+    )
 }
 
 @Preview(showBackground = true, name = "Modal Drawer Light")
 @Preview(showBackground = true, name = "Modal Drawer Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ModalDrawerSheetLayoutPreview() {
-    AppTheme {
-        ModalDrawerSheetLayout(
-            selectedItemIndex = ThreadsViewModel.InboxType.INBOX,
-            counts = ThreadsCount(unreadCount = 12, archivedCount = 3, draftsCount = 1)
-        )
-    }
+    ModalDrawerSheetLayout(
+        selectedItemIndex = ThreadsViewModel.InboxType.INBOX,
+    )
 }
 
 @Preview(name = "MainMenu Light")
 @Preview(name = "MainMenu Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MainMenuDropDown_Preview() {
-    AppTheme {
-        ThreadsMainDropDown(
-            expanded = true,
-            threadsViewModel = remember { ThreadsViewModel() }
-        )
-    }
+    ThreadsMainDropDown(
+        expanded = true,
+        threadsViewModel = remember { ThreadsViewModel() }
+    )
 }
 
 @Preview
 @Composable
 fun ThreadConversationCard_Preview() {
-    AppTheme(darkTheme = true) {
-        ThreadConversationCard(
-            phoneNumber = "+237652156811",
-            id = "1",
-            firstName = "Jane",
-            lastName = "Doe",
-            content = "Hello world",
-            date = "today",
-            isRead = false,
-            isContact = false,
-            unreadCount = 0,
-            modifier = Modifier,
-            isSelected = false,
-            isMuted = false,
-            isBlocked = false,
-            type = 0
-        )
-    }
+    ThreadConversationCard(
+        phoneNumber = "+237652156811",
+        id = "1",
+        firstName = "Jane",
+        lastName = "Doe",
+        content = "Hello world",
+        date = "today",
+        isRead = false,
+        isContact = false,
+        unreadCount = 0,
+        modifier = Modifier,
+        isSelected = false,
+        isMuted = false,
+        isBlocked = false,
+        type = 0
+    )
 }
 
 
