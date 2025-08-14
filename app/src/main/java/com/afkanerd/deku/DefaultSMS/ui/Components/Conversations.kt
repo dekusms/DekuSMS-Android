@@ -42,8 +42,8 @@ import androidx.core.net.toUri
 import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.ui.MmsContentView
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.ui.MmsContentView
 import com.example.compose.AppTheme
 
 enum class ConversationPositionTypes(val value: Int) {

@@ -5,10 +5,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Preview(showBackground = true)

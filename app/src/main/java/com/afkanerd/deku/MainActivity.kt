@@ -31,13 +31,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
-import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
-import com.afkanerd.deku.DefaultSMS.ui.ThreadConversationLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,6 +53,10 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersVi
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -155,13 +155,14 @@ class MainActivity : AppCompatActivity(){
                                 ContactDetailsScreenComposable()
                             }
                             composable<RemoteListenersScreen>{
-                                RMQMainComposable(
-                                    remoteListenerViewModel = remoteListenersViewModel,
-                                    remoteListenerQueuesViewModel =
-                                        remoteListenersProjectsViewModel,
-                                    conversationsViewModel = conversationViewModel,
-                                    navController = navController
-                                )
+                                TODO("Implement RMQ")
+//                                RMQMainComposable(
+//                                    remoteListenerViewModel = remoteListenersViewModel,
+//                                    remoteListenerQueuesViewModel =
+//                                        remoteListenersProjectsViewModel,
+//                                    conversationsViewModel = conversationViewModel,
+//                                    navController = navController
+//                                )
                             }
                             composable<RemoteListenersAddScreen>{
                                 RMQAddComposable(

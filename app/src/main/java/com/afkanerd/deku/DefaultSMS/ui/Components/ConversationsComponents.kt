@@ -121,7 +121,6 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.ui.Conversations
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.example.compose.AppTheme
