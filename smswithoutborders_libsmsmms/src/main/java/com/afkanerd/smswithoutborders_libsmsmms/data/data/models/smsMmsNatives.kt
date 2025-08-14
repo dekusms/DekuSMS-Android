@@ -8,7 +8,7 @@ object smsMmsNatives {
     @Entity
     @Serializable
     data class Sms(
-        val _id: Int,
+        val _id: Int? = null,
         val thread_id: Int,
         val address: String?,
         val person: String? = null,

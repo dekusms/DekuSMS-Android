@@ -157,7 +157,6 @@ public class NativeSMSDB {
         return outputStream.toByteArray();
     }
 
-
     public static String getMmsAddr(Context context, String id) {
         String sel = "msg_id=" + id;
         String uriString = MessageFormat.format("content://mms/{0}/addr", id);

@@ -13,10 +13,14 @@ import androidx.paging.cachedIn
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.loadRawSmsMmsDb
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ThreadsViewModel: ViewModel() {
     private val _newIntent = MutableStateFlow<Intent?>(null)
@@ -84,8 +88,17 @@ class ThreadsViewModel: ViewModel() {
         return threadsPager!!
     }
 
-    fun reset(context: Context) {
-        TODO("Implement reset functionality")
+    fun loadNatives(
+        context: Context,
+        completeCallback: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val conversations = context.loadRawSmsMmsDb()
+                context.getDatabase().conversationsDao()?.insertAll(conversations)
+            }
+            completeCallback()
+        }
     }
 
     data class ProcessedIntents(val address: String?, val threadId: Int?, val text: String?)

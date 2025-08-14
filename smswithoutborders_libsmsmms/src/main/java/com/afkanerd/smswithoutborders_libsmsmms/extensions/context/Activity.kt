@@ -19,7 +19,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import kotlin.jvm.java
 
 object ActivitiesConstant {
-    const val ACTIVITIES_FILENAMES = "activitiesFilenames"
+    const val ACTIVITIES_FILENAMES = "com.afkanerd.deku.activities"
     const val NATIVES_LOADED = "nativesLoaded"
 }
 

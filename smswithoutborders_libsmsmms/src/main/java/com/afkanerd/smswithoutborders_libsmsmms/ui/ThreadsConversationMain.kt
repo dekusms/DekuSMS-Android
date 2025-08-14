@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -73,8 +75,10 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsCanSwipe
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.DeleteConfirmationAlert
@@ -240,7 +244,19 @@ fun ThreadConversationLayout(
 //        }
 //    }
 
+    var messagesLoading by remember { mutableStateOf(false)}
+    LaunchedEffect(isDefault) {
+        if(!context.getNativesLoaded() && isDefault) {
+            messagesLoading = true
+            threadsViewModel.loadNatives(context) {
+                context.setNativesLoaded(true)
+                messagesLoading = false
+            }
+        }
+    }
+
     var rememberMenuExpanded by remember { mutableStateOf( false)}
+
     ThreadsMainDropDown(
         expanded=rememberMenuExpanded,
         threadsViewModel = threadsViewModel,
@@ -484,13 +500,24 @@ fun ThreadConversationLayout(
             }
         ) { innerPadding ->
             Box(
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxWidth()
             ) {
+                if(inPreviewMode || messagesLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
+                }
+
                 if(!isDefault && inboxType != ThreadsViewModel.InboxType.REMOTE_LISTENER) {
                     DefaultCheckMain {
                         isDefault = true
                     }
                 }
+
                 else {
                     when(inboxType) {
                         ThreadsViewModel.InboxType.INBOX -> {
@@ -761,10 +788,7 @@ fun ThreadConversationLayout(
                 }
             }
         }
-
     }
-
-
 }
 
 @Preview

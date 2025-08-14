@@ -10,9 +10,9 @@ import kotlinx.serialization.Serializable
 @Entity
 data class Conversations(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @Embedded val sms: smsMmsNatives.Sms? = null,
-    @Embedded("mms_") val mms: smsMmsNatives.Mms? = null,
-    @Embedded("mms_part_") val mmsPart: smsMmsNatives.MmsPart? = null,
+    @Embedded var sms: smsMmsNatives.Sms? = null,
+    @Embedded("mms_") var mms: smsMmsNatives.Mms? = null,
+    @Embedded("mms_part_") var mmsPart: smsMmsNatives.MmsPart? = null,
     val sms_data_: ByteArray? = null,
     val mms_text: String? = null,
     var mms_content_uri: String? = null,

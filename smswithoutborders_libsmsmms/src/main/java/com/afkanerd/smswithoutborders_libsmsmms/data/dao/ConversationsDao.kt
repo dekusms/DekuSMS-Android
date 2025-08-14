@@ -68,19 +68,19 @@ interface ConversationsDao {
     }
 
     @Transaction
-    fun insertAll(conversationsList: MutableList<Conversations>) {
+    fun insertAll(conversationsList: List<Conversations>) {
         insertConversations(conversationsList)
         insertThreads(conversationsList.run {
             val threads = mutableListOf<Threads>()
             forEach {
                 threads.add(Threads(
                     threadId = it.sms!!.thread_id,
-                    snippet = it.sms.body,
-                    date = (it.sms.date * 1000L),
-                    unread = unreadCount(it.sms.thread_id) > 0,
-                    address = it.sms.address!!,
+                    snippet = it.sms!!.body,
+                    date = (it.sms!!.date * 1000L),
+                    unread = unreadCount(it.sms!!.thread_id) > 0,
+                    address = it.sms!!.address!!,
                     isMute = false,
-                    type = it.sms.type
+                    type = it.sms!!.type
                 ))
             }
             threads

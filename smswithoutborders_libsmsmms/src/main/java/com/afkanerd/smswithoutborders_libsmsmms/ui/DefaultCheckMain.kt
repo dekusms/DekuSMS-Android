@@ -46,9 +46,10 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
     val context = LocalContext.current
 
     val getDefaultPermission =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                context.setNativesLoaded(true)
+                context.setNativesLoaded(false)
                 permissionGrantedCallback?.invoke()
             }
         }
