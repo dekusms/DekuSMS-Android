@@ -9,7 +9,13 @@ fun Context.alertNotEncryptedCommunicationDisabled(): Boolean {
     return sharedPreferences.getBoolean("encryption_disable", false)
 }
 
-fun canSwipe(context: Context): Boolean {
-    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-    return sharedPreferences.getBoolean("swipe_actions", true)
+object Settings {
+    const val FILENAME: String = "com.afkanerd.deku.settings"
+    const val SETTINGS_CAN_SWIPE = "SETTINGS_CAN_SWIPE"
+}
+
+fun Context.settingsCanSwipe(): Boolean {
+    val sharedPreferences = getSharedPreferences(
+        Settings.FILENAME, Context.MODE_PRIVATE)
+    return sharedPreferences.getBoolean(Settings.SETTINGS_CAN_SWIPE, false)
 }

@@ -69,32 +69,21 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState.Loading
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.ComposeNewMessageScreen
-import com.afkanerd.deku.DefaultSMS.Extensions.isScrollingUp
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
-import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler
-import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.SearchThreadScreen
-import com.afkanerd.deku.DefaultSMS.ui.Components.DeleteConfirmationAlert
-import com.afkanerd.deku.DefaultSMS.ui.Components.SwipeToDeleteBackground
-import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadConversationCard
-import com.afkanerd.deku.DefaultSMS.ui.Components.ThreadsMainDropDown
-import com.afkanerd.deku.DeveloperModeScreen
-import com.afkanerd.deku.Modules.Subroutines
-import com.afkanerd.deku.RemoteListenersAddScreen
-import com.afkanerd.deku.RemoteListenersScreen
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.formatDate
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsCanSwipe
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.DeleteConfirmationAlert
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ImportDetails
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ModalDrawerSheetLayout
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SwipeToDeleteBackground
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ThreadsMainDropDown
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
-import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -673,7 +662,7 @@ fun ThreadConversationLayout(
 
                                 SwipeToDismissBox(
                                     state = dismissState,
-                                    gesturesEnabled = SettingsHandler.canSwipe(context),
+                                    gesturesEnabled = context.settingsCanSwipe(),
                                     backgroundContent = {
                                         SwipeToDeleteBackground(
                                             dismissState,
@@ -781,41 +770,37 @@ fun ThreadConversationLayout(
 @Preview
 @Composable
 fun PreviewMessageCard() {
-    AppTheme(darkTheme = true) {
-        Surface(Modifier.safeDrawingPadding()) {
-            val messages: MutableList<Threads> =
-                remember { mutableListOf( ) }
-            for(i in 0..10) {
-                val thread = Threads(
-                    threadId = i.toInt(),
-                    address = "$i",
-                    snippet = "Hello world: $i",
-                    date = System.currentTimeMillis(),
-                    unread = true,
-                    isMute = true,
-                    type = Telephony.Sms.MESSAGE_TYPE_SENT
-                )
-                messages.add(thread)
-            }
-            val threadsViewModel: ThreadsViewModel = viewModel()
-            ThreadConversationLayout(
-                threadsViewModel = threadsViewModel,
-                navController = rememberNavController(),
+    Surface(Modifier.safeDrawingPadding()) {
+        val messages: MutableList<Threads> =
+            remember { mutableListOf( ) }
+        for(i in 0..10) {
+            val thread = Threads(
+                threadId = i.toInt(),
+                address = "$i",
+                snippet = "Hello world: $i",
+                date = System.currentTimeMillis(),
+                unread = true,
+                isMute = true,
+                type = Telephony.Sms.MESSAGE_TYPE_SENT
             )
+            messages.add(thread)
         }
+        val threadsViewModel: ThreadsViewModel = viewModel()
+        ThreadConversationLayout(
+            threadsViewModel = threadsViewModel,
+            navController = rememberNavController(),
+        )
     }
 }
 
 @Preview
 @Composable
 fun PreviewMessageCardRemoteListeners_Preview() {
-    AppTheme(darkTheme = true) {
-        Surface(Modifier.safeDrawingPadding()) {
-            val threadsViewModel: ThreadsViewModel = viewModel()
-            ThreadConversationLayout(
-                threadsViewModel = threadsViewModel,
-                navController = rememberNavController(),
-            )
-        }
+    Surface(Modifier.safeDrawingPadding()) {
+        val threadsViewModel: ThreadsViewModel = viewModel()
+        ThreadConversationLayout(
+            threadsViewModel = threadsViewModel,
+            navController = rememberNavController(),
+        )
     }
 }
