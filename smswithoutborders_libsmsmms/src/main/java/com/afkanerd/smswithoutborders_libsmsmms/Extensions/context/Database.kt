@@ -1,8 +1,6 @@
-package com.afkanerd.smswithoutborders_libsmsmms.Extensions.context
+package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
 import android.content.Context
-import android.net.Uri
-import android.provider.Telephony
 import com.afkanerd.smswithoutborders_libsmsmms.data.DatabaseImpl
 
 fun Context.getDatabase(): DatabaseImpl {

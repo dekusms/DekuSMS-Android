@@ -1,7 +1,17 @@
-package com.afkanerd.smswithoutborders_libsmsmms.Extensions.context
+package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.provider.BlockedNumberContract
+import android.provider.ContactsContract
+import android.provider.Telephony
+import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
+import android.widget.Toast
+import androidx.core.content.ContextCompat.getString
+import androidx.core.content.ContextCompat.startActivity
+import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 
@@ -18,7 +28,7 @@ fun Context.getDefaultRegion(): String {
             countryCode = tm.networkCountryIso.uppercase()
         }
     }
-    return com.google.i18n.phonenumbers.PhoneNumberUtil.getInstance()
+    return PhoneNumberUtil.getInstance()
         .getCountryCodeForRegion(countryCode).toString()
 }
 
@@ -59,4 +69,49 @@ fun Context.makeE16PhoneNumber(address: String): String {
         e.printStackTrace()
     }
     return address
+}
+
+fun Context.getThreadId(address: String): Long{
+    return Telephony.Threads.getOrCreateThreadId(this, address);
+}
+
+fun Context.blockContact(address: String) {
+    val contentValues = ContentValues();
+    contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address);
+    val uri = contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+        contentValues);
+
+    Toast.makeText(this,
+        getString(this, R.string.conversations_menu_block_toast),
+        Toast.LENGTH_SHORT).show();
+    val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+    startActivity(this,
+        telecomManager.createManageBlockedNumbersIntent(), null);
+}
+
+fun Context.retrieveContactName(phoneNumber: String): String? {
+    val uri = Uri.withAppendedPath(
+        ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+        Uri.encode(phoneNumber)
+    )
+    val cursor = contentResolver.query(
+        uri,
+        arrayOf<String>(ContactsContract.PhoneLookup.DISPLAY_NAME),
+        null,
+        null, null
+    )
+
+    if (cursor == null) return null
+
+    try {
+        if (cursor.moveToFirst()) {
+            val displayNameIndex =
+                cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME)
+            return cursor.getString(displayNameIndex)
+        }
+    } finally {
+        cursor.close()
+    }
+
+    return null
 }

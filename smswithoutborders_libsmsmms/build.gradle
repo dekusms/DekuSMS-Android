@@ -73,6 +73,8 @@ dependencies {
     implementation libs.androidx.paging.common
     implementation libs.androidx.runtime
     implementation libs.androidx.compose.ui.ui.tooling.preview
+    implementation libs.androidx.navigation.runtime.ktx
+    implementation libs.navigation.compose
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
@@ -150,4 +152,9 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata'
     // Optional - Integration with RxJava
     implementation 'androidx.compose.runtime:runtime-rxjava2'
+
+    implementation "com.google.accompanist:accompanist-permissions:0.37.3"
+    implementation("androidx.paging:paging-compose:3.3.6")
+
+    implementation("androidx.preference:preference:1.2.1")
 }

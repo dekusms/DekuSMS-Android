@@ -1,6 +1,7 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -10,6 +11,8 @@ import androidx.paging.cachedIn
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class ConversationsViewModel: ViewModel() {
     var pageSize: Int = 10

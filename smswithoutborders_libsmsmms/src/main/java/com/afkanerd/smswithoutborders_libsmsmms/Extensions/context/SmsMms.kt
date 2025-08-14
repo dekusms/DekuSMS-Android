@@ -10,10 +10,10 @@ import android.telephony.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.klinker.android.send_message.Message
-import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import kotlin.jvm.java
 
