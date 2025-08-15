@@ -70,8 +70,11 @@ class ThreadsViewModel: ViewModel() {
 
     private var threadsPager: Flow<PagingData<Threads>>? = null
 
-    fun getThreads(context: Context): Flow<PagingData<Threads>> {
-        if(threadsPager == null) {
+    fun getThreads(
+        context: Context,
+        type: InboxType = InboxType.INBOX
+    ): Flow<PagingData<Threads>> {
+        if(threadsPager == null || type != InboxType.INBOX) {
             threadsPager = Pager(
                 config=PagingConfig(
                     pageSize,
@@ -81,7 +84,11 @@ class ThreadsViewModel: ViewModel() {
                     maxSize
                 ),
                 pagingSourceFactory = {
-                    context.getDatabase().threadsDao()!!.getThreads()
+                    when(type) {
+                        InboxType.ARCHIVED -> context.getDatabase().threadsDao()!!.getArchived()
+                        else -> context.getDatabase().threadsDao()!!.getThreads()
+                    }
+
                 }
             ).flow.cachedIn(viewModelScope)
         }

@@ -35,7 +35,9 @@ interface ConversationsDao {
                     unread = unreadCount(sms.thread_id) > 0,
                     address = sms.address!!,
                     isMute = false,
-                    type = sms.type
+                    type = sms.type,
+                    conversationId = sms._id ?: -1,
+                    isArchive = false
                 )
             )
         } else {
@@ -46,8 +48,10 @@ interface ConversationsDao {
                     date = sms.date,
                     unread = unreadCount(sms.thread_id) > 0,
                     address = sms.address!!,
+                    type = sms.type,
+                    conversationId = sms._id ?: -1,
                     isMute = thread.isMute,
-                    type = sms.type
+                    isArchive = thread.isArchive
                 )
             )
         }
@@ -101,21 +105,9 @@ interface ConversationsDao {
     @Transaction
     fun insertAll(conversationsList: List<Conversations>) {
         insertConversations(conversationsList)
-        insertThreads(conversationsList.run {
-            val threads = mutableListOf<Threads>()
-            forEach {
-                threads.add(Threads(
-                    threadId = it.sms!!.thread_id,
-                    snippet = it.sms!!.body,
-                    date = it.sms!!.date,
-                    unread = unreadCount(it.sms!!.thread_id) > 0,
-                    address = it.sms!!.address!!,
-                    isMute = false,
-                    type = it.sms!!.type
-                ))
-            }
-            threads
-        })
+        conversationsList.forEach {
+            it.sms?.let { sms -> insertUpdateThread(sms) }
+        }
     }
 
     @Query("SELECT c.*, max(date) FROM Conversations c LEFT JOIN Archive tc " +

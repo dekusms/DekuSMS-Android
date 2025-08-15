@@ -133,10 +133,6 @@ fun ThreadConversationLayout(
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || context.isDefault()) }
 
-//    LaunchedEffect(true) {
-//        isDefault = context.isDefault()
-//    }
-
     val newIntent by threadsViewModel.newIntent.collectAsState()
     ProcessIntents(newIntent)
 
@@ -165,9 +161,8 @@ fun ThreadConversationLayout(
     }
 
     val inboxMessagesPagers = threadsViewModel.getThreads(context)
-
-//    val archivedMessagesPagers = threadsViewModel
-//        .getArchivedPagingSource(context)
+    val archivedMessagesPagers = threadsViewModel.getThreads(context,
+        ThreadsViewModel.InboxType.ARCHIVED)
 //
 //    val encryptedMessagesPagers = threadsViewModel
 //        .getEncryptedPagingSource(context)
@@ -182,7 +177,7 @@ fun ThreadConversationLayout(
 //        .getRemoteListenersPagingSource(context)
 
     val inboxMessagesItems = inboxMessagesPagers.collectAsLazyPagingItems()
-//    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
+    val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
 //    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
 //    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
 //    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
@@ -270,13 +265,14 @@ fun ThreadConversationLayout(
         drawerContent = {
             ModalDrawerSheetLayout(
                 callback = { type ->
+                    threadsViewModel.setInboxType(type)
                     scope.launch {
                         drawerState.apply {
                             if(isClosed) open() else close()
                         }
                     }
                 },
-                selectedItemIndex = ThreadsViewModel.InboxType.INBOX,
+                selectedItemIndex = inboxType,
             )
         },
     ) {
@@ -517,42 +513,22 @@ fun ThreadConversationLayout(
                         isDefault = true
                     }
                 }
-
                 else {
                     when(inboxType) {
-                        ThreadsViewModel.InboxType.INBOX -> {
-                            if(inboxMessagesItems.loadState.refresh != Loading &&
-                                inboxMessagesItems.itemCount < 1)
+                        ThreadsViewModel.InboxType.ARCHIVED -> {
+                            if(archivedMessagesItems.loadState.refresh != Loading &&
+                                archivedMessagesItems.itemCount < 1)
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        stringResource(R.string.homepage_no_message),
+                                        stringResource(R.string.homepage_archive_no_message),
                                         fontSize = 24.sp
                                     )
                                 }
                         }
-                        ThreadsViewModel.InboxType.ARCHIVED -> {
-//                            if(archivedMessagesItems.loadState.refresh != Loading &&
-//                                archivedMessagesItems.itemCount < 1)
-//                                Column(
-//                                    modifier = Modifier.fillMaxSize(),
-//                                    verticalArrangement = Arrangement.Center,
-//                                    horizontalAlignment = Alignment.CenterHorizontally
-//                                ) {
-//                                    Text(
-//                                        stringResource(R.string.homepage_archive_no_message),
-//                                        fontSize = 24.sp
-//                                    )
-//                                }
-                            TODO("Implement Archives")
-                        }
-                        ThreadsViewModel.InboxType.ENCRYPTED -> {}
-                        ThreadsViewModel.InboxType.BLOCKED -> {}
-                        ThreadsViewModel.InboxType.DRAFTS -> {}
-                        ThreadsViewModel.InboxType.MUTED -> {}
                         ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
 //                            if(remoteMessagesItems.loadState.refresh != Loading &&
 //                                remoteMessagesItems.itemCount < 1)
@@ -571,10 +547,23 @@ fun ThreadConversationLayout(
 //                                }
                             TODO("Implement remote listener")
                         }
-
                         ThreadsViewModel.InboxType.DEVELOPER_MODE -> {
                             TODO("Implement navigate to thread view")
 //                            navController.navigate(DeveloperModeScreen)
+                        }
+                        else -> {
+                            if(inboxMessagesItems.loadState.refresh != Loading &&
+                                inboxMessagesItems.itemCount < 1)
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        stringResource(R.string.homepage_no_message),
+                                        fontSize = 24.sp
+                                    )
+                                }
                         }
                     }
 //
@@ -583,40 +572,35 @@ fun ThreadConversationLayout(
                         state = listState
                     )  {
                         items(
-                            inboxMessagesItems.itemCount,
-//                            count = when(inboxType) {
-//                                ThreadsViewModel.InboxType.INBOX, ThreadsViewModel.InboxType.DEVELOPER_MODE ->
-//                                    inboxMessagesItems.itemCount
+                            count = when(inboxType) {
+                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.BLOCKED -> blockedItems.size
-//                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
-//                            },
-                                inboxMessagesItems.itemKey{ it.threadId }
-//                            key = when(inboxType) {
+                                else -> inboxMessagesItems.itemCount
+                            },
+                            key = when(inboxType) {
+                                ThreadsViewModel.InboxType.ARCHIVED ->
+                                    archivedMessagesItems.itemKey{ it.threadId }
 //                                ThreadsViewModel.InboxType.BLOCKED -> {{ blockedItems[it].id }}
-//                                ThreadsViewModel.InboxType.INBOX, ThreadsViewModel.InboxType.DEVELOPER_MODE ->
-//                                    inboxMessagesItems.itemKey{ it.id }
-//                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
-//                            }
+                                else -> inboxMessagesItems.itemKey{ it.threadId }
+                            }
                         ) { index ->
-                            val message = inboxMessagesItems[index]
-//                            val message = when(inboxType) {
-//                                ThreadsViewModel.InboxType.INBOX, InboxType.DEVELOPER_MODE ->
-//                                    inboxMessagesItems[index]
-//                                InboxType.ARCHIVED -> archivedMessagesItems[index]
+                            val message = when(inboxType) {
+                                ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems[index]
+                                else -> inboxMessagesItems[index]
 //                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
 //                                InboxType.BLOCKED -> blockedItems[index]
 //                                InboxType.DRAFTS -> draftMessagesItems[index]
 //                                InboxType.MUTED -> mutedMessagesItems[index]
 //                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
-//                            }
+                            }
 
                             message?.address?.let { address ->
                                 val isBlocked = if(isDefault)

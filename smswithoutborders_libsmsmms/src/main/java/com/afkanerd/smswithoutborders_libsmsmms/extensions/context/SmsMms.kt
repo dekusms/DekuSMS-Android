@@ -287,31 +287,6 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
             cursor.close()
         }
     }
-//
-//    contentResolver.query(
-//        "content://mms/part".toUri(),
-//        null,
-//        null,
-//        null,
-//        null
-//    )?.let { cursor ->
-//        if(cursor.moveToFirst()) {
-//            do {
-//                parseRawMmsContentsParts(cursor).let { parsedMmsParts ->
-//                    if(conversationsList.find {
-//                            it.mmsPart?._id == parsedMmsParts._id } == null) {
-//                        conversationsList.add(Conversations(mmsPart = parsedMmsParts))
-//                    } else {
-//                        conversationsList.find { it.mmsPart?.mid == parsedMmsParts.mid }
-//                            ?.mmsPart = parsedMmsParts
-//                    }
-//                }
-//            } while(cursor.moveToNext())
-//            cursor.close()
-//        }
-//    }
-
-
 
     return conversationsList
 }

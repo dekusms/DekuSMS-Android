@@ -14,6 +14,10 @@ interface ThreadsDao {
     @Query("SELECT * FROM Threads ORDER BY date DESC")
     fun getThreads(): PagingSource<Int, Threads>
 
+    @Query("SELECT * FROM Threads JOIN Archive ON Threads.threadId = Archive.threadId " +
+            "WHERE Archive.threadId = null ORDER BY date DESC")
+    fun getArchived(): PagingSource<Int, Threads>
+
     @Query("SELECT * FROM Threads WHERE threadId = :threadId")
     fun get(threadId: Int): Threads?
 

@@ -1,5 +1,6 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data.entities
 
+import android.provider.Telephony
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
@@ -9,9 +10,11 @@ import androidx.room.PrimaryKey
 data class Threads(
     @PrimaryKey var threadId: Int,
     var address: String,
-    var isMute: Boolean = false,
     var snippet: String,
-    @ColumnInfo(defaultValue = "0") var date: Int,
+    var date: Int,
+    var type: Int,
+    var conversationId: Int,
+    var isMute: Boolean = false,
     var unread: Boolean = true,
-    var type: Int
+    var isArchive: Boolean = false,
 )
