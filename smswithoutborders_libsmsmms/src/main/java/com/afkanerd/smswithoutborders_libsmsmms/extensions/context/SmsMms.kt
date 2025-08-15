@@ -237,45 +237,56 @@ fun Context.sendMms(
 fun Context.loadRawSmsMmsDb() : List<Conversations>{
     val conversationsList = arrayListOf<Conversations>()
 
-//    contentResolver.query(
-//        Telephony.Mms.CONTENT_URI,
-//        null,
-//        null,
-//        null,
-//        null
-//    )?.let { cursor ->
-//        if(cursor.moveToFirst()) {
-//            do {
-//                parseRawMmsContents(cursor).let { parsedMms ->
-//                    if(conversationsList.find {
-//                        it.mms?._id == parsedMms._id } == null) {
-//                        conversationsList.add(Conversations(mms = parsedMms))
-//                    } else {
-//                        conversationsList.find {
-//                            it.mms?._id == parsedMms._id
-//                        }?.apply {
-//                            mms = parsedMms
-//                            val pSmsMms = parseMms(cursor)
-//                            sms = if(this.sms == null) {
-//                                smsMmsNatives.Sms(
-//                                    thread_id = parsedMms.thread_id,
-//                                    address = pSmsMms.address,
-//                                    sub_id = parsedMms.sub_id ?: -1,
-//                                    date = parsedMms.date,
-//                                    date_sent = parsedMms.date_sent,
-//                                    type = parsedMms.m_type!!,
-//                                    status = parsedMms.msg_box,
-//                                    body = pSmsMms.text ?: "",
-//                                    read = parsedMms.read ?: 0
-//                                )
-//                            } else { this.sms }
-//                        }
-//                    }
-//                }
-//            } while(cursor.moveToNext())
-//            cursor.close()
-//        }
-//    }
+    // SMS
+    contentResolver.query(
+        Telephony.Sms.CONTENT_URI,
+        null,
+        null,
+        null,
+        null
+    )?.let { cursor ->
+        if(cursor.moveToFirst()) {
+            do {
+                parseRawSmsContents(cursor).let { it ->
+                    conversationsList.add(Conversations(sms = it))
+                }
+            } while(cursor.moveToNext())
+        }
+        cursor.close()
+    }
+
+    contentResolver.query(
+        Telephony.Mms.CONTENT_URI,
+        null,
+        null,
+        null,
+        null
+    )?.let { cursor ->
+        if(cursor.moveToFirst()) {
+            do {
+                parseRawMmsContents(cursor).let { mms ->
+                    val conversation = Conversations(mms = mms).apply {
+                        parseMms(cursor)?.let { parsedMms ->
+                            if(parsedMms.address.isNullOrEmpty()) return@let
+                            this.sms = smsMmsNatives.Sms(
+                                thread_id = getThreadId(parsedMms.address!!).toInt(),
+                                address = parsedMms.address,
+                                sub_id = mms.sub_id ?: -1,
+                                date = mms.date,
+                                date_sent = mms.date_sent,
+                                type = mms.m_type!!,
+                                status = mms.msg_box,
+                                body = parsedMms.text ?: "",
+                                read = mms.read ?: -1
+                            )
+                        }
+                    }
+                    if(conversation.sms != null) conversationsList.add(conversation)
+                }
+            } while(cursor.moveToNext())
+            cursor.close()
+        }
+    }
 //
 //    contentResolver.query(
 //        "content://mms/part".toUri(),
@@ -301,28 +312,6 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
 //    }
 
 
-    // SMS
-    contentResolver.query(
-        Telephony.Sms.CONTENT_URI,
-        null,
-        null,
-        null,
-        null
-    )?.let { cursor ->
-        if(cursor.moveToFirst()) {
-            do {
-                parseRawSmsContents(cursor).let { parsedSms ->
-                    if(conversationsList.find {
-                            it.sms?._id == parsedSms._id } == null) {
-                        conversationsList.add(Conversations(sms = parsedSms))
-                    } else {
-                        conversationsList.find { it.sms?._id == parsedSms._id }?.sms = parsedSms
-                    }
-                }
-            } while(cursor.moveToNext())
-        }
-        cursor.close()
-    }
 
     return conversationsList
 }
@@ -622,6 +611,7 @@ private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
     )
 }
 class ParsedMms{
+    var mid: Int? = null
     var address: String? = null
     var content: ByteArray? = null
     var text: String? = null
@@ -630,16 +620,20 @@ class ParsedMms{
     var contentUri: Uri? = null
 }
 
-fun Context.parseMms(cursor: Cursor): ParsedMms {
+fun Context.parseMms(cursor: Cursor): ParsedMms? {
     val uri = "content://mms/part".toUri()
     val idIndex = cursor.getColumnIndex("_id")
-    val id = getString(idIndex)
+    if(idIndex == -1) return null
+
+    val id = cursor.getString(idIndex)
 
     val mmsId = "mid = $id"
     val c = contentResolver
         .query(uri, null, mmsId, null, null)
 
-    val parsedMms: ParsedMms = ParsedMms()
+    val parsedMms = ParsedMms().apply {
+        this.mid = id.toInt()
+    }
 
     if (c != null && c.moveToFirst()) {
         do {
