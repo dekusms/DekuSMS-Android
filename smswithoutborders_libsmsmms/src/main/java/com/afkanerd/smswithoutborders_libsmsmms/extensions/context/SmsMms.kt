@@ -18,9 +18,11 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.google.gson.GsonBuilder
 import com.klinker.android.send_message.Message
+import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -54,7 +56,7 @@ fun Context.sendData(
     )
 
     try {
-        ConversationsViewModel().add(this, conversation)
+        ConversationsViewModel().addConversation(this, conversation)
     } catch (e: Exception) {
         throw e
     }
@@ -109,14 +111,14 @@ fun Context.sendData(
 fun Context.sendSms(
     text: String,
     address: String,
-    threadId: String,
+    threadId: Int,
     subscriptionId: Int,
 ): Conversations {
     val address = makeE16PhoneNumber(address)
 
     val conversation = Conversations(sms = smsMmsNatives.Sms(
         _id = (System.currentTimeMillis() / 1000).toInt(),
-        thread_id = threadId.toInt(),
+        thread_id = threadId,
         address = address,
         date = (System.currentTimeMillis() / 1000).toInt(),
         date_sent = 0,
@@ -128,25 +130,37 @@ fun Context.sendSms(
     ))
 
     try {
-        ConversationsViewModel().add(this, conversation)
+        ConversationsViewModel().addConversation(this, conversation)
     } catch (e: Exception) {
         throw e
     }
 
-//    val payload = E2EEHandler.encryptMessage(context, text, address)
-//
-//    val settings = Settings()
-//    settings.subscriptionId = subscriptionId
-//    settings.group = false
-//    settings.deliveryReports = true
-//    settings.useSystemSending = true
-//
-//    val message = Message()
-//    message.text = payload.first
-//    message.addresses = arrayOf(address)
-//
-//    val transaction = Transaction(context, settings)
-//    transaction.sendNewMessage(message)
+    val settings = Settings()
+    settings.subscriptionId = subscriptionId
+    settings.group = false
+    settings.deliveryReports = true
+    settings.useSystemSending = true
+
+    val message = Message()
+    message.text = text
+    message.addresses = arrayOf(address)
+
+    val transaction = Transaction(this, settings)
+    transaction.setExplicitBroadcastForSentSms(
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            this.putExtra("address", address)
+            this.putExtra("thread_id", threadId)
+            this.putExtra("sub_id", subscriptionId)
+        }
+    )
+    transaction.setExplicitBroadcastForDeliveredSms(
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            this.putExtra("address", address)
+            this.putExtra("thread_id", threadId)
+            this.putExtra("sub_id", subscriptionId)
+        }
+    )
+    transaction.sendNewMessage(message)
     return conversation
 }
 
@@ -177,7 +191,7 @@ fun Context.sendMms(
     )
 
     try {
-        ConversationsViewModel().add(this, conversation)
+        ConversationsViewModel().addConversation(this, conversation)
     } catch (e: Exception) {
         e.printStackTrace()
         throw e

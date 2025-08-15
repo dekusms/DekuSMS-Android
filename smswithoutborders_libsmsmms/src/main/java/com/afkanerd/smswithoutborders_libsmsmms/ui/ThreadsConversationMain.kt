@@ -619,23 +619,19 @@ fun ThreadConversationLayout(
 //                            }
 
                             message?.address?.let { address ->
-                                val isBlocked by remember { mutableStateOf(
-                                    if(isDefault)
-                                        BlockedNumberContract.isBlocked(context, message.address)
-                                    else false
-                                )}
+                                val isBlocked = if(isDefault)
+                                    BlockedNumberContract.isBlocked(context, address)
+                                else false
 
-                                val contactName: String? by remember { mutableStateOf(
-                                    if(isDefault)
-                                        context.retrieveContactName(message.address)
-                                    else message.address
-                                )}
+                                val contactName = if(isDefault)
+                                        context.retrieveContactName(address)
+                                else address
 
-                                var firstName = message.address
+                                var firstName = address
                                 var lastName = ""
                                 val isSelected = selectedItems.contains(message)
                                 if (!contactName.isNullOrEmpty()) {
-                                    contactName!!.split(" ").let {
+                                    contactName.split(" ").let {
                                         firstName = it[0]
                                         if (it.size > 1)
                                             lastName = it[1]
@@ -676,15 +672,8 @@ fun ThreadConversationLayout(
 //                                    positionalThreshold = { it * .75f }
                                     positionalThreshold = { it * .85f }
                                 )
-
-                                val date by remember{ mutableStateOf(
-                                        if(message.date > 0)
-                                            DateTimeUtils
-                                                .formatDate( context,message.date) ?: ""
-                                        else "Tues",
-                                ) }
-
-                                val content by remember { mutableStateOf( message.snippet) }
+                                val date = if(message.date > 0) DateTimeUtils
+                                    .formatDate( context, (message.date * 1000L)) ?: "" else "Tues"
 
                                 SwipeToDismissBox(
                                     state = dismissState,
@@ -701,7 +690,7 @@ fun ThreadConversationLayout(
                                         firstName = firstName,
                                         lastName = lastName,
                                         phoneNumber = address,
-                                        content = content,
+                                        content = message.snippet,
                                         date = date,
                                         isRead = !message.unread,
                                         isContact = isDefault && !contactName.isNullOrBlank(),
@@ -712,7 +701,7 @@ fun ThreadConversationLayout(
                                                     TODO("Implement navigate to cards")
 //                                                    threadsViewModel.navigateToConversation(
 //                                                        threadsViewModel,
-//                                                        address = message.address!!,
+//                                                        address = address!!,
 //                                                        threadId = message.thread_id!!,
 //                                                        subscriptionId =
 //                                                        SIMHandler.getDefaultSimSubscription(context),
@@ -802,7 +791,7 @@ fun PreviewMessageCard() {
                 threadId = i.toInt(),
                 address = "$i",
                 snippet = "Hello world: $i",
-                date = System.currentTimeMillis(),
+                date = (System.currentTimeMillis() / 1000).toInt(),
                 unread = true,
                 isMute = true,
                 type = Telephony.Sms.MESSAGE_TYPE_SENT

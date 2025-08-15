@@ -213,13 +213,14 @@ fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
     return null
 }
 
-fun Context.registerIncomingText(
+fun Context.registerSmsToLocalDb(
     messageId: String,
     address: String,
     body: String,
     subscriptionId: Int,
     date: Long,
-    dateSent: Long
+    dateSent: Long,
+    type: Int,
 ) {
     val contentValues = ContentValues()
     contentValues.put(Telephony.Sms._ID, messageId)
@@ -228,9 +229,7 @@ fun Context.registerIncomingText(
     contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId)
     contentValues.put(Telephony.TextBasedSmsColumns.DATE, date)
     contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT, dateSent)
-    contentValues.put( Telephony.TextBasedSmsColumns.TYPE,
-        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-    )
+    contentValues.put( Telephony.TextBasedSmsColumns.TYPE, type)
 
     try {
          contentResolver.insert(

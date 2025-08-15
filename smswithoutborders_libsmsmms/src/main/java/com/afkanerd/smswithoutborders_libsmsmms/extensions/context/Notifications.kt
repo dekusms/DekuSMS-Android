@@ -98,7 +98,7 @@ class NotificationsDelImpl: BroadcastReceiver() {
         println(intent)
         intent?.let {
             if(intent.action == NotificationsDelAction) {
-                val threadId = intent.getStringExtra("thread_id") ?: ""
+                val threadId = intent.getIntExtra("thread_id", -1)
                 context?.cancelNotification(threadId)
             }
         }
@@ -347,15 +347,15 @@ private fun Context.getNotificationSession(threadId: Int): List<IncomingNotifica
     return notifications
 }
 
-fun Context.cancelNotification(threadId: String) {
+fun Context.cancelNotification(threadId: Int) {
     val sharedPreferences = getSharedPreferences(
         notificationSessionsFilename,
         Context.MODE_PRIVATE) ?: return
 
     with(sharedPreferences.edit()) {
-        remove(threadId)
+        remove(threadId.toString())
         apply()
     }
 
-    NotificationManagerCompat.from(this).cancel(threadId.toInt())
+    NotificationManagerCompat.from(this).cancel(threadId)
 }

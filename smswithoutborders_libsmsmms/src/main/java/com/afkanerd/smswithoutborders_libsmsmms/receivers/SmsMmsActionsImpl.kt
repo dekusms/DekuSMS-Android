@@ -20,7 +20,7 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
             val remoteInput = RemoteInput.getResultsFromIntent(intent)
             if (remoteInput != null) {
                 val address = intent.getStringExtra("address")
-                val threadId = intent.getStringExtra("thread_id")
+                val threadId = intent.getIntExtra("thread_id", -1)
 
                 val subId = context.getDefaultSimSubscription()!!
                 val subscriptionId = intent.getIntExtra("sub_id", subId)
@@ -32,7 +32,7 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                     context.sendSms(
                         text = reply.toString(),
                         address = address!!,
-                        threadId = threadId!!,
+                        threadId = threadId,
                         subscriptionId = subscriptionId
                     ).let { conversation ->
                         context.notifyText(conversation, true)

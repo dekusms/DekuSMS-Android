@@ -4,6 +4,7 @@ import android.R.attr.data
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
+import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -14,10 +15,13 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerIncomingText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ConversationsViewModel: ViewModel() {
     var pageSize: Int = 10
@@ -26,13 +30,9 @@ class ConversationsViewModel: ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
-    fun add(context: Context, conversation: Conversations) {
-        context.getDatabase().conversationsDao()?.insert(conversation)
-    }
-
-    fun update(context: Context, conversation: Conversations): Int? {
-        return context.getDatabase().conversationsDao()?.update(conversation)
-    }
+//    fun update(context: Context, conversation: Conversations): Int? {
+//        return context.getDatabase().conversationsDao()?.update(conversation)
+//    }
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
 
@@ -54,23 +54,48 @@ class ConversationsViewModel: ViewModel() {
         return conversationsPager!!
     }
 
-    fun addIncomingConversation(
+    fun addConversation(
+        context: Context,
+        conversation: Conversations,
+    ): Conversations {
+        context.registerSmsToLocalDb(
+            messageId = conversation.sms!!._id.toString(),
+            address = conversation.sms!!.address!!,
+            body = conversation.sms!!.body,
+            subscriptionId = conversation.sms!!.sub_id,
+            date = conversation.sms!!.date.toLong(),
+            dateSent = conversation.sms!!.date_sent.toLong(),
+            type = conversation.sms!!.type,
+        )
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().conversationsDao()?.insert(conversation)
+            }
+        }
+        return conversation
+    }
+
+    fun addConversation(
         context: Context,
         messageId: String,
         address: String,
         body: String,
         subscriptionId: Int,
         date: Long,
-        dateSent: Long
+        dateSent: Long,
+        type: Int,
+        status: Int,
     ): Conversations {
         val threadId = context.getThreadId(address)
-        context.registerIncomingText(
+        context.registerSmsToLocalDb(
             messageId = messageId,
             address = address,
             body = body,
             subscriptionId = subscriptionId,
             date = date,
-            dateSent = dateSent
+            dateSent = dateSent,
+            type = type,
         )
 
         val conversation = Conversations(
@@ -79,10 +104,10 @@ class ConversationsViewModel: ViewModel() {
                 thread_id = threadId.toInt(),
                 address = address,
                 date = (System.currentTimeMillis() / 1000).toInt(),
-                date_sent = 0,
-                read = 1,
-                status = Telephony.Sms.STATUS_NONE,
-                type = Telephony.Sms.MESSAGE_TYPE_INBOX,
+                date_sent = (dateSent / 1000).toInt(),
+                read = 0,
+                status = status,
+                type = type,
                 body = body,
                 sub_id = subscriptionId,
             )

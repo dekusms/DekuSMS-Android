@@ -1,6 +1,7 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -18,6 +19,7 @@ import kotlin.concurrent.Volatile
         Conversations::class,
         Threads::class],
     version = 1,
+    exportSchema = true
 )
 abstract class DatabaseImpl : RoomDatabase() {
     abstract fun conversationsDao(): ConversationsDao?

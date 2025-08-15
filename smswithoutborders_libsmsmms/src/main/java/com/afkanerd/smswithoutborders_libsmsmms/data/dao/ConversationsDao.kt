@@ -57,7 +57,7 @@ interface ConversationsDao {
                 Threads(
                     threadId = it.thread_id,
                     snippet = it.body,
-                    date = (it.date * 1000L),
+                    date = it.date,
                     unread = unreadCount(it.thread_id) > 0,
                     address = it.address!!,
                     isMute = false,
@@ -76,7 +76,7 @@ interface ConversationsDao {
                 threads.add(Threads(
                     threadId = it.sms!!.thread_id,
                     snippet = it.sms!!.body,
-                    date = (it.sms!!.date * 1000L),
+                    date = it.sms!!.date,
                     unread = unreadCount(it.sms!!.thread_id) > 0,
                     address = it.sms!!.address!!,
                     isMute = false,

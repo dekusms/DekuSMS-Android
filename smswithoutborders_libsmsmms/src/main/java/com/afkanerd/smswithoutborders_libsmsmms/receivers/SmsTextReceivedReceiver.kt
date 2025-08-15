@@ -13,7 +13,6 @@ import android.widget.Toast
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerIncomingText
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -190,25 +189,27 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         val bodyBuffer = StringBuilder()
         var dateSent: Long = 0
         val date = System.currentTimeMillis()
+        var status = -1
 
         for (currentSMS in Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
             address = currentSMS.displayOriginatingAddress
-            val text_message = currentSMS.displayMessageBody
+            bodyBuffer.append(currentSMS.displayMessageBody)
             dateSent = currentSMS.timestampMillis
-            bodyBuffer.append(text_message)
+            status = currentSMS.status
         }
         val body = bodyBuffer.toString()
 
         // TODO: process encrypted message
-
-        return ConversationsViewModel().addIncomingConversation(
+        return ConversationsViewModel().addConversation(
             context = context,
             messageId = messageId.toString(),
             body = body,
             subscriptionId = subscriptionId,
             date = date,
             dateSent = dateSent,
-            address = address!!
+            address = address!!,
+            type = Telephony.Sms.MESSAGE_TYPE_INBOX,
+            status = status
         )
     }
 
