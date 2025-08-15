@@ -110,18 +110,18 @@ interface ConversationsDao {
         }
     }
 
-    @Query("SELECT c.*, max(date) FROM Conversations c LEFT JOIN Archive tc " +
+    @Query("SELECT c.*, max(c.date) FROM Conversations c LEFT JOIN Threads tc " +
             "ON c.thread_id = tc.threadId " +
-            "WHERE " +
-            "(type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
+            "WHERE tc.isArchive = 0 AND " +
+            "(c.type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
             "(tc.threadId IS NULL)" +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingSearch(searchString: String): List<Conversations>?
 
-    @Query("SELECT c.*, max(date) FROM Conversations c LEFT JOIN ARCHIVE tc " +
+    @Query("SELECT c.*, max(c.date) FROM Conversations c LEFT JOIN Threads tc " +
             "ON c.thread_id = tc.threadId " +
-            "WHERE c.thread_id = :threadId AND " +
-            "(type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
+            "WHERE c.thread_id = :threadId AND tc.isArchive = 0 AND" +
+            "(c.type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
             "(tc.threadId IS NULL )" +
             "GROUP BY thread_id ORDER BY date DESC")
     fun getAllThreadingSearch(searchString: String, threadId: String): List<Conversations>?

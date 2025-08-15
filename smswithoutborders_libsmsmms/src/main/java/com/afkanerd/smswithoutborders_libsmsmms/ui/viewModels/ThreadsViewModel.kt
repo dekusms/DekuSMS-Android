@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -44,22 +45,15 @@ class ThreadsViewModel: ViewModel() {
         _selectedInbox.value = type
     }
 
-    private val _selectedItems = MutableLiveData<MutableList<Threads>>(
-        mutableListOf<Threads>()) // default
-    val selectedItems: LiveData<MutableList<Threads>> get() = _selectedItems
+    private val _selectedItems = MutableStateFlow<List<Threads>>(emptyList()) // default
+    val selectedItems: StateFlow<List<Threads>> = _selectedItems.asStateFlow()
 
-    fun addSelectedItem(thread: Threads) {
-        _selectedItems.postValue(_selectedItems.value.apply { this?.add(thread) })
-    }
-
-    fun removeSelectedItem(thread: Threads) {
-        _selectedItems.postValue(_selectedItems.value.apply {
-            this?.remove(thread)
-        })
+    fun setSelectedItems(threads: List<Threads>) {
+        _selectedItems.value = threads
     }
 
     fun removeAllSelectedItems() {
-        _selectedItems.postValue(mutableListOf())
+        _selectedItems.value = emptyList()
     }
 
     var pageSize: Int = 10
@@ -105,6 +99,34 @@ class ThreadsViewModel: ViewModel() {
             ).flow.cachedIn(viewModelScope)
         }
         return archivePager!!
+    }
+
+    fun deleteThreads(context: Context, threads: List<Threads>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.deleteThreads(threads)
+            }
+        }
+    }
+
+    fun unArchiveThreads(context: Context, threads: List<Threads>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.update(threads.apply {
+                    forEach { it.isArchive = false }
+                })
+            }
+        }
+    }
+
+    fun archiveThreads(context: Context, threads: List<Threads>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.update(threads.apply {
+                    forEach { it.isArchive = true }
+                })
+            }
+        }
     }
 
     fun loadNatives(

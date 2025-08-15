@@ -2,9 +2,11 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
 
 import android.Manifest
 import android.content.Context
+import android.content.res.Configuration
 import android.provider.Telephony
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +44,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -61,6 +64,7 @@ import coil3.compose.AsyncImage
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactPhoto
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -68,6 +72,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -222,7 +227,7 @@ private fun ThreadConversationsAvatar(
                     Color("$id / $firstName".toHslColor())
                 }
                 val initials = (firstName.take(1) + lastName.take(1)).uppercase()
-                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
                     drawCircle(SolidColor(color))
                 }
                 Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
@@ -721,7 +726,7 @@ fun SwipeToDeleteBackground(
 }
 
 @Preview(showBackground = true, name = "Delete Confirmation Light")
-@Preview(showBackground = true, name = "Delete Confirmation Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "Delete Confirmation Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DeleteConfirmationAlertPreview() {
     DeleteConfirmationAlert(
@@ -731,7 +736,7 @@ fun DeleteConfirmationAlertPreview() {
 }
 
 @Preview(showBackground = true, name = "Import Details Light")
-@Preview(showBackground = true, name = "Import Details Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "Import Details Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ImportDetailsPreview() {
     ImportDetails(
@@ -744,7 +749,7 @@ fun ImportDetailsPreview() {
 }
 
 @Preview(showBackground = true, name = "Modal Drawer Light")
-@Preview(showBackground = true, name = "Modal Drawer Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "Modal Drawer Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ModalDrawerSheetLayoutPreview() {
     ModalDrawerSheetLayout(
@@ -753,7 +758,7 @@ fun ModalDrawerSheetLayoutPreview() {
 }
 
 @Preview(name = "MainMenu Light")
-@Preview(name = "MainMenu Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "MainMenu Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MainMenuDropDown_Preview() {
     ThreadsMainDropDown(
@@ -783,5 +788,34 @@ fun ThreadConversationCard_Preview() {
     )
 }
 
+
+@Composable
+fun GetSwipeBehaviour(
+    thread: Threads,
+    inboxType: ThreadsViewModel.InboxType
+): SwipeToDismissBoxState {
+    return rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            when(it) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    TODO()
+                    return@rememberSwipeToDismissBoxState false
+                }
+                SwipeToDismissBoxValue.EndToStart -> {
+                    TODO()
+                    when(inboxType) {
+                        ThreadsViewModel.InboxType.ARCHIVED -> TODO()
+                        else -> TODO()
+                    }
+                    return@rememberSwipeToDismissBoxState true
+                }
+                SwipeToDismissBoxValue.Settled ->
+                    return@rememberSwipeToDismissBoxState false
+            }
+        },
+        positionalThreshold = { it * .85f }
+    )
+
+}
 
 

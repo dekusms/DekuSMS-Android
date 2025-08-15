@@ -74,7 +74,6 @@ import androidx.paging.compose.itemKey
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
@@ -82,7 +81,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoa
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsCanSwipe
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.DeleteConfirmationAlert
-import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ImportDetails
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.GetSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ModalDrawerSheetLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SwipeToDeleteBackground
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ThreadConversationCard
@@ -148,17 +147,7 @@ fun ThreadConversationLayout(
         }
     }
 
-    var selectedItems by remember { mutableStateOf(listOf<Threads>()) }
-    DisposableEffect(lifeCycleOwner) {
-        val observer = Observer<MutableList<Threads>> { threads ->
-            selectedItems = threads
-        }
-        threadsViewModel.selectedItems.observe(lifeCycleOwner, observer)
-
-        onDispose {
-            threadsViewModel.selectedItems.removeObserver(observer)
-        }
-    }
+    val selectedItems by threadsViewModel.selectedItems.collectAsState()
 
     val inboxMessagesPagers = threadsViewModel.getThreads(context)
     val archivedMessagesPagers = threadsViewModel.getArchives(context)
@@ -348,9 +337,12 @@ fun ThreadConversationLayout(
                         actions = {
                             IconButton(onClick = {
                                 if(inboxType == ThreadsViewModel.InboxType.ARCHIVED) {
-                                    TODO("Unarchive")
+                                    threadsViewModel.unArchiveThreads(
+                                        context, selectedItems)
+                                    threadsViewModel.removeAllSelectedItems()
                                 } else {
-                                    TODO("Archive")
+                                    threadsViewModel.archiveThreads(context, selectedItems)
+                                    threadsViewModel.removeAllSelectedItems()
                                 }
                             }) {
                                 if(inboxType == ThreadsViewModel.InboxType.ARCHIVED) {
@@ -591,7 +583,7 @@ fun ThreadConversationLayout(
                                 else -> inboxMessagesItems.itemKey{ it.threadId }
                             }
                         ) { index ->
-                            val message = when(inboxType) {
+                            val thread = when(inboxType) {
                                 ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems[index]
                                 else -> inboxMessagesItems[index]
 //                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
@@ -601,7 +593,7 @@ fun ThreadConversationLayout(
 //                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
                             }
 
-                            message?.address?.let { address ->
+                            thread?.address?.let { address ->
                                 val isBlocked = if(isDefault)
                                     BlockedNumberContract.isBlocked(context, address)
                                 else false
@@ -612,7 +604,7 @@ fun ThreadConversationLayout(
 
                                 var firstName = address
                                 var lastName = ""
-                                val isSelected = selectedItems.contains(message)
+
                                 if (!contactName.isNullOrEmpty()) {
                                     contactName.split(" ").let {
                                         firstName = it[0]
@@ -621,42 +613,10 @@ fun ThreadConversationLayout(
                                     }
                                 }
 
-//                                var isMute by remember { mutableStateOf( false) }
-//                                LaunchedEffect(message.thread_id) {
-//                                    coroutineScope.launch {
-//                                        isMute = threadsViewModel.isMuted(context,
-//                                            message.thread_id)
-//                                    }
-//                                }
+                                val dismissState = GetSwipeBehaviour(thread, inboxType)
 
-                                // TODO: Swipe action
-
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = {
-                                        when(it) {
-                                            SwipeToDismissBoxValue.StartToEnd -> {
-                                                slideDeleteItem.value = message.threadId.toString()
-                                                rememberDeleteMenu = true
-                                                return@rememberSwipeToDismissBoxState false
-                                            }
-                                            SwipeToDismissBoxValue.EndToStart -> {
-                                                coroutineScope.launch {
-                                                    when(inboxType) {
-                                                        ThreadsViewModel.InboxType.ARCHIVED -> TODO()
-                                                        else -> TODO()
-                                                    }
-                                                }
-                                                return@rememberSwipeToDismissBoxState true
-                                            }
-                                            SwipeToDismissBoxValue.Settled ->
-                                                return@rememberSwipeToDismissBoxState false
-                                        }
-                                    },
-//                                    positionalThreshold = { it * .75f }
-                                    positionalThreshold = { it * .85f }
-                                )
-                                val date = if(message.date > 0) DateTimeUtils
-                                    .formatDate( context, (message.date * 1000L)) ?: "" else "Tues"
+                                val date = if(thread.date > 0) DateTimeUtils
+                                    .formatDate( context, (thread.date * 1000L)) ?: "" else "Tues"
 
                                 SwipeToDismissBox(
                                     state = dismissState,
@@ -669,13 +629,13 @@ fun ThreadConversationLayout(
                                     }
                                 ) {
                                     ThreadConversationCard(
-                                        id = message.threadId.toString(),
+                                        id = thread.threadId.toString(),
                                         firstName = firstName,
                                         lastName = lastName,
                                         phoneNumber = address,
-                                        content = message.snippet,
+                                        content = thread.snippet,
                                         date = date,
-                                        isRead = !message.unread,
+                                        isRead = !thread.unread,
                                         isContact = isDefault && !contactName.isNullOrBlank(),
                                         isBlocked = isBlocked,
                                         modifier = Modifier.combinedClickable(
@@ -691,21 +651,28 @@ fun ThreadConversationLayout(
 //                                                        navController = navController,
 //                                                    )
                                                 } else {
-                                                    TODO("Implement add and remove items from selected")
-//                                                    if(selectedItems.contains(message))
-//                                                        selectedItems.remove(message)
-//                                                    else
-//                                                        selectedItems.add(message)
+                                                    threadsViewModel.setSelectedItems(
+                                                        selectedItems.toMutableList().apply {
+                                                            if(selectedItems.contains(thread))
+                                                                remove(thread)
+                                                            else add(thread)
+                                                        }
+                                                    )
                                                 }
                                             },
                                             onLongClick = {
-                                                TODO("Implement long click")
-//                                                selectedItems.add(message)
+                                                threadsViewModel.setSelectedItems(
+                                                    selectedItems.toMutableList().apply {
+                                                        if(selectedItems.contains(thread))
+                                                            remove(thread)
+                                                        else add(thread)
+                                                    }
+                                                )
                                             }
                                         ),
-                                        isSelected = isSelected,
-                                        isMuted = false,
-                                        type = message.type
+                                        isSelected = selectedItems.contains(thread),
+                                        isMuted = thread.isMute,
+                                        type = thread.type
                                     )
                                 }
                             }
@@ -715,19 +682,16 @@ fun ThreadConversationLayout(
                     if(rememberDeleteMenu) {
                         DeleteConfirmationAlert(
                             confirmCallback = {
-//                                coroutineScope.launch {
-//                                    val threads: List<String> = selectedItems.map { it.thread_id!! }
-//                                    threadsViewModel.deleteThreads(context,
-//                                        threads.ifEmpty { listOf(slideDeleteItem.value) }
-//                                    )
-//                                    selectedItems.clear()
-//                                    rememberDeleteMenu = false
-//                                }
-                                TODO("Implement delete")
+                                threadsViewModel.deleteThreads(
+                                    context,
+                                    selectedItems
+                                )
+                                threadsViewModel.removeAllSelectedItems()
+                                rememberDeleteMenu = false
                             }
                         ) {
                             rememberDeleteMenu = false
-//                            selectedItems.clear()
+                            threadsViewModel.removeAllSelectedItems()
                         }
                     }
 
