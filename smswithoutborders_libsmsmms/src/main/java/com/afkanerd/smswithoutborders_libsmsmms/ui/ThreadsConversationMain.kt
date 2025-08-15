@@ -161,8 +161,7 @@ fun ThreadConversationLayout(
     }
 
     val inboxMessagesPagers = threadsViewModel.getThreads(context)
-    val archivedMessagesPagers = threadsViewModel.getThreads(context,
-        ThreadsViewModel.InboxType.ARCHIVED)
+    val archivedMessagesPagers = threadsViewModel.getArchives(context)
 //
 //    val encryptedMessagesPagers = threadsViewModel
 //        .getEncryptedPagingSource(context)
@@ -778,7 +777,9 @@ fun PreviewMessageCard() {
                 date = (System.currentTimeMillis() / 1000).toInt(),
                 unread = true,
                 isMute = true,
-                type = Telephony.Sms.MESSAGE_TYPE_SENT
+                type = Telephony.Sms.MESSAGE_TYPE_SENT,
+                conversationId = i,
+                isArchive = false
             )
             messages.add(thread)
         }
