@@ -15,7 +15,7 @@ object smsMmsNatives {
         val date: Int,
         val date_sent: Int,
         val protocol: String? = null,
-        val read: Int,
+        var read: Int,
         var status: Int,
         var type: Int,
         val reply_path_present: String? = null,

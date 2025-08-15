@@ -35,7 +35,9 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                 if (resultCode == Activity.RESULT_OK) {
                     CoroutineScope(Dispatchers.IO).launch {
                         val conversation = registerIncomingText(context, intent)
-                        context.notifyText(conversation)
+                        context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
+                            if(!it.isMute) context.notifyText(conversation)
+                        }
                     }
                 }
             }

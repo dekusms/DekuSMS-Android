@@ -25,9 +25,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.google.gson.Gson
 import kotlin.concurrent.thread
 
-val Context.NotificationReplyActionKey: String
-    get() = "NOTIFICATION_REPLY_ACTION_KEY"
-
 fun Context.notifyText(
     conversation: Conversations,
     self: Boolean = false,
@@ -207,9 +204,6 @@ fun Context.getNotificationBuilder(
 //    )
 //}
 
-val Context.NotificationMarkAsReadActionIntentAction: String
-    get() = "NOTIFICATION_MARK_AS_READ_ACTION_INTENT_ACTION"
-
 private fun Context.getNotificationMarkAsReadAction(
     conversation: Conversations
 ): NotificationCompat.Action {
@@ -222,10 +216,9 @@ private fun Context.getNotificationMarkAsReadAction(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = NotificationMarkAsReadActionIntentAction
-            putExtra("address", conversation.sms?.address)
-            putExtra("msg_id", conversation.sms?._id)
-            putExtra( "thread_id", conversation.sms?.thread_id )
+            action = SmsMmsActionsImpl.notificationMarkAsReadActionIntentAction
+            putExtra("id", conversation.sms?._id)
+            putExtra("thread_id", conversation.sms?.thread_id)
         },
         PendingIntent.FLAG_MUTABLE // Flags for the PendingIntent
     )
@@ -238,11 +231,8 @@ private fun Context.getNotificationMarkAsReadAction(
         .build()
 }
 
-val Context.NotificationMuteActionIntentAction: String
-    get() = "NOTIFICATION_MUTE_ACTION_INTENT_ACTION"
-
 private fun Context.getNotificationMuteAction(conversation: Conversations): NotificationCompat.Action {
-    val muteLabel = resources.getString(R.string.conversation_menu_muted_label)
+    val muteLabel = resources.getString(R.string.conversation_menu_mute)
 
     val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
         applicationContext,
@@ -251,7 +241,7 @@ private fun Context.getNotificationMuteAction(conversation: Conversations): Noti
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = NotificationMuteActionIntentAction
+            action = SmsMmsActionsImpl.notificationMuteActionIntentAction
             putExtra("address", conversation.sms?.address)
             putExtra( "thread_id", conversation.sms?.thread_id )
         },
@@ -266,14 +256,12 @@ private fun Context.getNotificationMuteAction(conversation: Conversations): Noti
         .build()
 }
 
-val Context.NotificationReplyActionIntentAction: String
-    get() = "NOTIFICATION_REPLY_ACTION_INTENT_ACTION"
-
 private fun Context.getNotificationReplyAction(
     conversation: Conversations
 ): NotificationCompat.Action {
     val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
-    val remoteInput: RemoteInput = RemoteInput.Builder(NotificationReplyActionKey)
+    val remoteInput: RemoteInput = RemoteInput
+        .Builder(SmsMmsActionsImpl.notificationReplyActionKey)
         .setLabel(replyLabel)
         .build()
 
@@ -284,7 +272,7 @@ private fun Context.getNotificationReplyAction(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = NotificationReplyActionIntentAction
+            action = SmsMmsActionsImpl.notificationReplyActionIntentAction
             putExtra("address", conversation.sms?.address)
             putExtra( "thread_id", conversation.sms?.thread_id )
             putExtra("sub_id", conversation.sms?.sub_id)

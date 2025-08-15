@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -23,22 +24,39 @@ interface ConversationsDao {
     @Update
     fun updateThread(thread: Threads)
 
-    @Transaction
-    fun update(conversation: Conversations) {
-        updateConversation(conversation)
-        conversation.sms?.let {
+    fun insertUpdateThread(sms: smsMmsNatives.Sms) {
+        val thread = getThread(sms.thread_id)
+        if(thread == null) {
+            insertThread(
+                Threads(
+                    threadId = sms.thread_id,
+                    snippet = sms.body,
+                    date = sms.date,
+                    unread = unreadCount(sms.thread_id) > 0,
+                    address = sms.address!!,
+                    isMute = false,
+                    type = sms.type
+                )
+            )
+        } else {
             updateThread(
                 Threads(
-                    threadId = it.thread_id,
-                    snippet = it.body,
-                    date = it.date,
-                    unread = unreadCount(it.thread_id) > 0,
-                    address = it.address!!,
-                    isMute = false,
-                    type = it.type
+                    threadId = thread.threadId,
+                    snippet = sms.body,
+                    date = sms.date,
+                    unread = unreadCount(sms.thread_id) > 0,
+                    address = sms.address!!,
+                    isMute = thread.isMute,
+                    type = sms.type
                 )
             )
         }
+    }
+
+    @Transaction
+    fun update(conversation: Conversations) {
+        updateConversation(conversation)
+        conversation.sms?.let { insertUpdateThread(it) }
     }
 
     @Update
@@ -71,22 +89,13 @@ interface ConversationsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertThreads(thread: List<Threads>)
 
+    @Query("SELECT * FROM Threads WHERE threadId = :threadId")
+    fun getThread(threadId: Int): Threads?
+
     @Transaction
-    fun insert(conversations: Conversations){
-        insertConversation(conversations)
-        conversations.sms?.let {
-            insertThread(
-                Threads(
-                    threadId = it.thread_id,
-                    snippet = it.body,
-                    date = it.date,
-                    unread = unreadCount(it.thread_id) > 0,
-                    address = it.address!!,
-                    isMute = false,
-                    type = it.type
-                )
-            )
-        }
+    fun insert(conversation: Conversations){
+        insertConversation(conversation)
+        conversation.sms?.let { insertUpdateThread(it) }
     }
 
     @Transaction

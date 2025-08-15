@@ -14,4 +14,9 @@ interface ThreadsDao {
     @Query("SELECT * FROM Threads ORDER BY date DESC")
     fun getThreads(): PagingSource<Int, Threads>
 
+    @Query("SELECT * FROM Threads WHERE threadId = :threadId")
+    fun get(threadId: Int): Threads?
+
+    @Query("UPDATE Threads SET isMute = :isMute WHERE threadId = :threadId")
+    fun setMute(isMute: Boolean, threadId: Int)
 }
