@@ -31,10 +31,10 @@ val Context.NotificationReplyActionKey: String
 fun Context.notifyText(
     conversation: Conversations,
     self: Boolean = false,
+    actions: Boolean = true,
 ) {
-    insertNotificationSessions(conversation, self)
-    val builder = getNotificationBuilder(conversation)
-    val messages = getNotificationSession(conversation.sms?.thread_id!!)
+    if(actions) insertNotificationSessions(conversation, self)
+    val builder = getNotificationBuilder(conversation, actions)
 
     val address = conversation.sms!!.address!!
     val contactName = retrieveContactName(address)
@@ -50,19 +50,42 @@ fun Context.notifyText(
         .build()
 
     val style = NotificationCompat.MessagingStyle(user)
-    messages?.sortedWith(compareBy {it.date})?.forEach {
+    if(actions) {
+        val messages = getNotificationSession(conversation.sms?.thread_id!!)
+        messages?.sortedWith(compareBy {it.date})?.forEach {
+            style.addMessage(
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    NotificationCompat.MessagingStyle.Message(
+                        it.text,
+                        it.date,
+                        if(it.self) user.name else contactName
+                    )
+                } else {
+                    NotificationCompat.MessagingStyle.Message(
+                        it.text,
+                        it.date,
+                        if(it.self) user else sender
+                    )
+                }
+            )
+                .setGroupConversation(false)
+                .setConversationTitle(contactName ?: conversation.sms?.address!!)
+        }
+    } else {
         style.addMessage(
             if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 NotificationCompat.MessagingStyle.Message(
-                    it.text,
-                    it.date,
-                    if(it.self) user.name else contactName
+                    conversation.sms?.body,
+                    System.currentTimeMillis(),
+                    getString(R.string.message_failed_send_notification_description_a_message_failed_to_send_to)
                 )
             } else {
                 NotificationCompat.MessagingStyle.Message(
-                    it.text,
-                    it.date,
-                    if(it.self) user else sender
+                    conversation.sms?.body,
+                    System.currentTimeMillis(),
+                    Person.Builder()
+                        .setName(getString(R.string.message_failed_send_notification_description_a_message_failed_to_send_to))
+                        .build()
                 )
             }
         )
@@ -105,7 +128,10 @@ class NotificationsDelImpl: BroadcastReceiver() {
     }
 }
 
-fun Context.getNotificationBuilder(conversation: Conversations): NotificationCompat.Builder {
+fun Context.getNotificationBuilder(
+    conversation: Conversations,
+    actions: Boolean,
+): NotificationCompat.Builder {
     val contactName = retrieveContactName(conversation.sms!!.address!!)
     val sender = Person.Builder()
         .setName(contactName ?: conversation.sms?.address!!)
@@ -157,12 +183,14 @@ fun Context.getNotificationBuilder(conversation: Conversations): NotificationCom
             )
         )
         .apply {
-            if(!isShortCode(conversation.sms?.address!!)) {
-                addAction( getNotificationReplyAction(conversation))
+            if(actions) {
+                if(!isShortCode(conversation.sms?.address!!)) {
+                    addAction( getNotificationReplyAction(conversation))
+                }
+                addAction(getNotificationMuteAction(conversation))
+                addAction(getNotificationMarkAsReadAction(conversation))
             }
         }
-        .addAction(getNotificationMuteAction(conversation))
-        .addAction(getNotificationMarkAsReadAction(conversation))
 }
 
 //private fun Context.getPendingIntent(conversation: Conversations): PendingIntent {

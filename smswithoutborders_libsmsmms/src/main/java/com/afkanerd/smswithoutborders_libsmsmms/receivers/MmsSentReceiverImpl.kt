@@ -29,7 +29,8 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
         originalResentMessageId?.let {
             CoroutineScope(Dispatchers.Default).launch {
                 context.getDatabase().conversationsDao()
-                    ?.getConversation(originalResentMessageId)?.let { conversation ->
+                    ?.getConversation(originalResentMessageId.toInt())
+                    ?.let { conversation ->
                         conversation.sms?.status = messageBox
                         conversation.sms?.type = Telephony.Mms.MESSAGE_BOX_SENT
                         conversation.mms_content_uri = uri

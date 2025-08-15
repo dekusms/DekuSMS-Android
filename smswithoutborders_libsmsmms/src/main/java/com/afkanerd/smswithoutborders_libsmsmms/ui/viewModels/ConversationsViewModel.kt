@@ -16,6 +16,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSmsToLocalDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +31,10 @@ class ConversationsViewModel: ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
-//    fun update(context: Context, conversation: Conversations): Int? {
-//        return context.getDatabase().conversationsDao()?.update(conversation)
-//    }
+    fun update(context: Context, conversation: Conversations) {
+        context.updateSmsToLocalDb( conversation )
+        context.getDatabase().conversationsDao()?.update(conversation)
+    }
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
 

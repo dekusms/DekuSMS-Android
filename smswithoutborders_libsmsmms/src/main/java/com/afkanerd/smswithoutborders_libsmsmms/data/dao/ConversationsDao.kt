@@ -9,15 +9,37 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 
 @Dao
 interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE Conversations._id = :messageId")
-    fun getConversation(messageId: String): Conversations
+    fun getConversation(messageId: Int): Conversations?
 
     @Update
-    fun update(conversations: Conversations): Int
+    fun updateConversation(conversations: Conversations)
+
+    @Update
+    fun updateThread(thread: Threads)
+
+    @Transaction
+    fun update(conversation: Conversations) {
+        updateConversation(conversation)
+        conversation.sms?.let {
+            updateThread(
+                Threads(
+                    threadId = it.thread_id,
+                    snippet = it.body,
+                    date = it.date,
+                    unread = unreadCount(it.thread_id) > 0,
+                    address = it.address!!,
+                    isMute = false,
+                    type = it.type
+                )
+            )
+        }
+    }
 
     @Update
     fun update(conversations: MutableList<Conversations>): Int
@@ -93,7 +115,7 @@ interface ConversationsDao {
             "(type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
             "(tc.threadId IS NULL)" +
             "GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingSearch(searchString: String): List<Conversations>
+    fun getAllThreadingSearch(searchString: String): List<Conversations>?
 
     @Query("SELECT c.*, max(date) FROM Conversations c LEFT JOIN ARCHIVE tc " +
             "ON c.thread_id = tc.threadId " +
@@ -101,5 +123,5 @@ interface ConversationsDao {
             "(type IS NOT 3 AND c.body like '%' || :searchString || '%') AND " +
             "(tc.threadId IS NULL )" +
             "GROUP BY thread_id ORDER BY date DESC")
-    fun getAllThreadingSearch(searchString: String, threadId: String): List<Conversations>
+    fun getAllThreadingSearch(searchString: String, threadId: String): List<Conversations>?
 }

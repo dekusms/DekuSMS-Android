@@ -20,11 +20,11 @@ object smsMmsNatives {
         var type: Int,
         val reply_path_present: String? = null,
         val subject: String? = null,
-        val body: String,
+        var body: String,
         val service_center: String? = null,
         val locked: Int? = null,
         val sub_id: Int,
-        val error_code: Int? = null,
+        var error_code: Int? = null,
         val creator: String? = null,
         val seen: Int? = null,
     )

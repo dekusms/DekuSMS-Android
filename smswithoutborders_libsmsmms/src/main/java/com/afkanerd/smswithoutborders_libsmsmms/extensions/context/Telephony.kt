@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import java.io.IOException
@@ -211,6 +212,26 @@ fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
             return subscriptionInfo.createIconBitmap(this)
     }
     return null
+}
+
+fun Context.updateSmsToLocalDb(
+    conversations: Conversations
+) {
+    val contentValues = ContentValues()
+    contentValues.put(Telephony.Sms._ID, conversations.sms?._id)
+    contentValues.put(Telephony.TextBasedSmsColumns.TYPE, conversations.sms?.type)
+    contentValues.put(Telephony.TextBasedSmsColumns.STATUS, conversations.sms?.status)
+
+    try {
+        contentResolver.update(
+            Telephony.Sms.CONTENT_URI,
+            contentValues,
+            "${Telephony.Sms._ID} = ?",
+            arrayOf(conversations.sms?._id.toString())
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }
 
 fun Context.registerSmsToLocalDb(

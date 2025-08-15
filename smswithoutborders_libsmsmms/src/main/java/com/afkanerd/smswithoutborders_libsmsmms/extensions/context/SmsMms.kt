@@ -116,12 +116,14 @@ fun Context.sendSms(
 ): Conversations {
     val address = makeE16PhoneNumber(address)
 
+    val id = (System.currentTimeMillis() / 1000).toInt()
+    val date = (System.currentTimeMillis() / 1000).toInt()
     val conversation = Conversations(sms = smsMmsNatives.Sms(
-        _id = (System.currentTimeMillis() / 1000).toInt(),
+        _id = id,
         thread_id = threadId,
         address = address,
-        date = (System.currentTimeMillis() / 1000).toInt(),
-        date_sent = 0,
+        date = date,
+        date_sent = date,
         read = 1,
         status = Telephony.Sms.STATUS_PENDING,
         type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
@@ -148,6 +150,8 @@ fun Context.sendSms(
     val transaction = Transaction(this, settings)
     transaction.setExplicitBroadcastForSentSms(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
+            this.putExtra("id", id)
             this.putExtra("address", address)
             this.putExtra("thread_id", threadId)
             this.putExtra("sub_id", subscriptionId)
@@ -155,6 +159,8 @@ fun Context.sendSms(
     )
     transaction.setExplicitBroadcastForDeliveredSms(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
+            this.putExtra("id", id)
             this.putExtra("address", address)
             this.putExtra("thread_id", threadId)
             this.putExtra("sub_id", subscriptionId)
