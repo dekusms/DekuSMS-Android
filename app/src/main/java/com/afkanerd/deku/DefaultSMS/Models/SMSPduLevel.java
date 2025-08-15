@@ -2,7 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.util.Log;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver;
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver;
 
 import java.text.ParseException;
 

@@ -25,7 +25,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsMmsActionsImpl
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.MainActivity

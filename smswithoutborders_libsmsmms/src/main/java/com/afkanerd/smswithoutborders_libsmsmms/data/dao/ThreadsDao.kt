@@ -9,6 +9,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 @Dao
 interface ThreadsDao {
 
-    @Query("SELECT * FROM Threads")
+    @Query("SELECT * FROM Threads ORDER BY date DESC")
     fun getThreads(): PagingSource<Int, Threads>
 }

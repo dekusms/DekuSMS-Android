@@ -12,11 +12,11 @@ import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.telecom.TelecomManager
+import android.telephony.PhoneNumberUtils
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.widget.Toast
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.startActivity
@@ -24,6 +24,8 @@ import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
+import java.io.IOException
+import java.util.regex.Pattern
 
 fun Context.getDefaultRegion(): String {
     var countryCode: String? = null
@@ -209,4 +211,40 @@ fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
             return subscriptionInfo.createIconBitmap(this)
     }
     return null
+}
+
+fun Context.registerIncomingText(
+    messageId: String,
+    address: String,
+    body: String,
+    subscriptionId: Int,
+    date: Long,
+    dateSent: Long
+) {
+    val contentValues = ContentValues()
+    contentValues.put(Telephony.Sms._ID, messageId)
+    contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address)
+    contentValues.put(Telephony.TextBasedSmsColumns.BODY, body)
+    contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId)
+    contentValues.put(Telephony.TextBasedSmsColumns.DATE, date)
+    contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT, dateSent)
+    contentValues.put( Telephony.TextBasedSmsColumns.TYPE,
+        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
+    )
+
+    try {
+         contentResolver.insert(
+            Telephony.Sms.CONTENT_URI,
+            contentValues
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+fun Context.isShortCode(address: String): Boolean {
+    if (address.length < 4) return true
+    val pattern = Pattern.compile("[a-zA-Z]")
+    val matcher = pattern.matcher(address)
+    return !PhoneNumberUtils.isWellFormedSmsAddress(address) || matcher.find()
 }

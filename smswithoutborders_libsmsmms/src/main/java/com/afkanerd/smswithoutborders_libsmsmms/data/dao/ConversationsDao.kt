@@ -43,7 +43,7 @@ interface ConversationsDao {
     @Insert
     fun insertConversations(conversation: List<Conversations>)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertThread(thread: Threads)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

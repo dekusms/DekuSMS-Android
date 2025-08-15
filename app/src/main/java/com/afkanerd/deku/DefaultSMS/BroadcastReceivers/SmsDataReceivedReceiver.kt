@@ -9,7 +9,7 @@ import android.util.Base64
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.MagicNumber
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler.extractPublicKeyFromPayload

@@ -111,7 +111,7 @@ fun Context.sendSms(
     address: String,
     threadId: String,
     subscriptionId: Int,
-) {
+): Conversations {
     val address = makeE16PhoneNumber(address)
 
     val conversation = Conversations(sms = smsMmsNatives.Sms(
@@ -147,6 +147,7 @@ fun Context.sendSms(
 //
 //    val transaction = Transaction(context, settings)
 //    transaction.sendNewMessage(message)
+    return conversation
 }
 
 @Throws

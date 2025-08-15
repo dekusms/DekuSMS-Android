@@ -12,7 +12,7 @@ import android.telephony.SubscriptionInfo
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners

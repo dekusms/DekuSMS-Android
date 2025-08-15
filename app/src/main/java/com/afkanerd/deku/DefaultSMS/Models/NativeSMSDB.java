@@ -15,10 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsDataReceivedReceiver;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.SmsTextReceivedReceiver;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations;
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver;
 //import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
@@ -26,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class NativeSMSDB {
@@ -630,18 +626,8 @@ public class NativeSMSDB {
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 address = currentSMS.getDisplayOriginatingAddress();
-//                if(BuildConfig.DEBUG) {
-//                    Log.d(NativeSMSDB.class.getName(), "Incoming Display address: " + address);
-//                    Log.d(NativeSMSDB.class.getName(), "Incoming Originating address: " + currentSMS.getOriginatingAddress());
-//                    Log.d(NativeSMSDB.class.getName(), "Incoming sent date: " + currentSMS.getTimestampMillis());
-//                    Log.d(NativeSMSDB.class.getName(), "Incoming is reply: " + currentSMS.isReplyPathPresent());
-//                    Log.d(NativeSMSDB.class.getName(), "Incoming is status reply: " + currentSMS.isStatusReportMessage());
-//                }
-
                 String text_message = currentSMS.getDisplayMessageBody();
-
                 dateSent = currentSMS.getTimestampMillis();
-
                 bodyBuffer.append(text_message);
             }
             String body = bodyBuffer.toString();
@@ -672,6 +658,7 @@ public class NativeSMSDB {
             }
             return null;
         }
+
 
         public static String[] register_incoming_data(Context context, Intent intent) throws IOException {
             /*

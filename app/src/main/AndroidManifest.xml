@@ -131,8 +131,9 @@
                 <!-- <data android:port="8200" /> -->
             </intent-filter>
         </receiver>
+
         <receiver
-            android:name=".BroadcastReceivers.SmsTextReceivedReceiver"
+            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -156,7 +157,7 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.SmsMmsActionsImpl"
+            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -203,7 +204,7 @@
         <service android:name="com.android.mms.transaction.TransactionService"/>
 
         <receiver
-            android:name=".Extensions.Context.NotificationsDelImpl"
+            android:name="com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationsDelImpl"
             android:exported="false" />
 
         <receiver

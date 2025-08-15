@@ -1,58 +1,45 @@
-package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
+package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
-import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMarkAsReadActionIntentAction
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationMuteActionIntentAction
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionIntentAction
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.NotificationReplyActionKey
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationMarkAsReadActionIntentAction
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationMuteActionIntentAction
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationReplyActionIntentAction
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationReplyActionKey
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import java.lang.Exception
 
-
 class SmsMmsActionsImpl : BroadcastReceiver() {
-    var databaseConnector: Datastore? = null
 
     override fun onReceive(context: Context, intent: Intent) {
-        databaseConnector = Datastore.getDatastore(context)
-
         if (intent.action != null && intent.action == context.NotificationReplyActionIntentAction) {
             val remoteInput = RemoteInput.getResultsFromIntent(intent)
             if (remoteInput != null) {
                 val address = intent.getStringExtra("address")
                 val threadId = intent.getStringExtra("thread_id")
 
-                val def_subscriptionId = SIMHandler.getDefaultSimSubscription(context)
-                val subscriptionId = intent.getIntExtra("sub_id", def_subscriptionId)
+                val subId = context.getDefaultSimSubscription()!!
+                val subscriptionId = intent.getIntExtra("sub_id", subId)
 
                 val reply = remoteInput.getCharSequence(context.NotificationReplyActionKey)
                 if (reply == null || reply.toString().isEmpty()) return
 
-                // TODO("Implement this methods)
-//                val conversation = Conversation()
-//                val messageId = System.currentTimeMillis().toString()
-//                conversation.address = address
-//                conversation.subscription_id = subscriptionId
-//                conversation.thread_id = threadId
-//                conversation.text = reply.toString()
-//                conversation.message_id = messageId
-//                conversation.date = System.currentTimeMillis().toString()
-//                conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
-//                conversation.status = Telephony.TextBasedSmsColumns.STATUS_PENDING
-//
-//                CoroutineScope(Dispatchers.Default).launch {
-//                    try {
-//                        databaseConnector!!.conversationDao()._insert(conversation)
-//                        SMSDatabaseWrapper.send_text(context, conversation, null)
-//                        context.notifyText(conversation, true)
-//
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                    }
-//                }
+                try {
+                    context.sendSms(
+                        text = reply.toString(),
+                        address = address!!,
+                        threadId = threadId!!,
+                        subscriptionId = subscriptionId
+                    ).let { conversation ->
+                        context.notifyText(conversation, true)
+                    }
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
         else if (intent.action != null && intent.action == context.NotificationMarkAsReadActionIntentAction) {
