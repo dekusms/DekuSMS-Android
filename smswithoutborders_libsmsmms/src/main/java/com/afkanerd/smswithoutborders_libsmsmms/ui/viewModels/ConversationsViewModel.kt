@@ -3,6 +3,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 import android.R.attr.data
 import android.content.Context
 import android.content.Intent
+import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,7 @@ import androidx.paging.cachedIn
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSmsToLocalDb
@@ -21,10 +23,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ConversationsViewModel: ViewModel() {
+    private val _selectedItems = MutableStateFlow<List<Conversations>>(emptyList()) // default
+    val selectedItems: StateFlow<List<Conversations>> = _selectedItems.asStateFlow()
+
+    fun setSelectedItems(conversations: List<Conversations>) {
+        _selectedItems.value = conversations
+    }
+
+    fun removeAllSelectedItems() {
+        _selectedItems.value = emptyList()
+    }
+
     var pageSize: Int = 10
     var prefetchDistance: Int = 3 * pageSize
     var enablePlaceholder: Boolean = true
@@ -116,6 +130,25 @@ class ConversationsViewModel: ViewModel() {
         )
         context.getDatabase().conversationsDao()?.insert(conversation)
         return conversation
+    }
+
+    fun contactIsBlocked(
+        context: Context,
+        threadId: Int,
+        callback: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.get(threadId)?.let {
+                    try {
+                        val blocked = BlockedNumberContract.isBlocked(context, it.address)
+                        callback(blocked)
+                    } catch(e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
     }
 
 }

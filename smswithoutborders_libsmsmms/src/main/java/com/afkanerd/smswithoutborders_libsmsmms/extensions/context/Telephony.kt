@@ -177,8 +177,8 @@ fun Context.getSimCardInformation(): MutableList<SubscriptionInfo>? {
     return null
 }
 
-fun Context.isDualSim(context: Context): Boolean {
-    val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+fun Context.isDualSim(): Boolean {
+    val manager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         manager.activeModemCount > 1
     } else manager.getPhoneCount() > 1
