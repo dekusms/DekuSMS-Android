@@ -1,12 +1,9 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 
-import android.R.attr.data
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
-import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -16,7 +13,6 @@ import androidx.paging.cachedIn
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendMms
@@ -154,9 +150,10 @@ class ConversationsViewModel: ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val threadId = context.getThreadId(address).toInt()
-                context.getDatabase().conversationsDao()?.fetchDrafts(threadId)?.let {
-                    callback(it)
-                }
+                context.getDatabase().conversationsDao()
+                    ?.fetchConversationsForType(threadId, Telephony.Sms.MESSAGE_TYPE_DRAFT)?.let {
+                        callback(it)
+                    }
             }
         }
     }

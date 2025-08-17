@@ -1,6 +1,5 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data.dao
 
-import android.provider.Telephony
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
@@ -12,7 +11,6 @@ import androidx.room.Update
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 
 @Dao
 interface ConversationsDao {
@@ -140,8 +138,8 @@ interface ConversationsDao {
     }
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +
-            "type = :${Telephony.Sms.MESSAGE_TYPE_DRAFT} ORDER BY  date DESC LIMIT 1")
-    fun fetchDrafts(threadId: Int): Conversations
+            "type = :type ORDER BY  date DESC LIMIT 1")
+    fun fetchConversationsForType(threadId: Int, type: Int): Conversations
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
     fun getConversationsList(threadId: Int): List<Conversations>
