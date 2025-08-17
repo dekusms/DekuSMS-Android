@@ -7,15 +7,13 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
-import android.preference.PreferenceManager
-import android.preference.PreferenceManager.getDefaultSharedPreferences
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.core.content.edit
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.activities.ShareItem
 import kotlin.jvm.java
 
 object ActivitiesConstant {
@@ -64,14 +62,12 @@ fun Context.shareItem(text: String) {
     }
 
     val shareIntent = Intent.createChooser(sendIntent, null)
-    // Only use for components you have control over
-    TODO("Implement shared items")
-//    val excludedComponentNames = arrayOf(
-//        ComponentName(
-//            BuildConfig.APPLICATION_ID,
-//            MainActivity::class.java.name
-//        )
-//    )
-//    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
-//    startActivity(shareIntent)
+    val excludedComponentNames = arrayOf(
+        ComponentName(
+            BuildConfig.LIBRARY_PACKAGE_NAME,
+            ShareItem::class.java.name
+        )
+    )
+    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
+    startActivity(shareIntent)
 }
