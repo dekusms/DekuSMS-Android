@@ -1,32 +1,21 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Base64
 import android.util.Log
-import android.util.Size
-import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -37,11 +26,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,10 +43,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
@@ -74,11 +58,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -89,32 +70,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
@@ -127,11 +96,7 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.WatchEvent
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -256,7 +221,7 @@ fun ChatCompose(
     simCardChooserCallback: (() -> Unit)? = null,
     sendMmsCallback: ((Uri) -> Unit)? = null,
     mmsCancelCallback: (() -> Unit)? = null,
-    sentCallback: (() -> Unit)? = null
+    smsSendCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
@@ -410,7 +375,7 @@ fun ChatCompose(
                                 if(mmsImage != null) {
                                     sendMmsCallback?.invoke(imageUri!!)
                                 } else {
-                                    sentCallback?.invoke()
+                                    smsSendCallback?.invoke()
                                 }
                             },
                         ) {
@@ -823,7 +788,7 @@ fun ChatComposePreview() {
         value = "Hello there!",
         encryptedValue = "U2FsdGVkX1+...", // Example encrypted
         shouldPulse = true,
-        sentCallback = {}
+        smsSendCallback = {}
     )
 }
 

@@ -175,9 +175,9 @@ fun Context.sendMms(
     contentUri: Uri,
     text: String,
     address: String,
-    threadId: String,
+    threadId: Int,
     subscriptionId: Int,
-) {
+): Conversations {
     val address = makeE16PhoneNumber(address)
     val conversation = Conversations(
         mms = smsMmsNatives.Mms(
@@ -232,6 +232,8 @@ fun Context.sendMms(
     } catch(e: Exception) {
         e.printStackTrace()
     }
+
+    return conversation
 }
 
 fun Context.loadRawSmsMmsDb() : List<Conversations>{

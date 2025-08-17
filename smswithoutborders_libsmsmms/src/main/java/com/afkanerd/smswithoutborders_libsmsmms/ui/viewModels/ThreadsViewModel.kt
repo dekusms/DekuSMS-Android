@@ -109,22 +109,32 @@ class ThreadsViewModel: ViewModel() {
         }
     }
 
-    fun unArchiveThreads(context: Context, threads: List<Threads>) {
+    fun unArchiveThreads(
+        context: Context,
+        threads: List<Threads>,
+        callback: (Boolean) -> Unit = {}
+    ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().threadsDao()?.update(threads.apply {
+                val count = context.getDatabase().threadsDao()?.update(threads.apply {
                     forEach { it.isArchive = false }
                 })
+                callback(count != 0)
             }
         }
     }
 
-    fun archiveThreads(context: Context, threads: List<Threads>) {
+    fun archiveThreads(
+        context: Context,
+        threads: List<Threads>,
+        callback: (Boolean) -> Unit = {}
+) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().threadsDao()?.update(threads.apply {
+                val count = context.getDatabase().threadsDao()?.update(threads.apply {
                     forEach { it.isArchive = true }
                 })
+                callback(count != 0)
             }
         }
     }

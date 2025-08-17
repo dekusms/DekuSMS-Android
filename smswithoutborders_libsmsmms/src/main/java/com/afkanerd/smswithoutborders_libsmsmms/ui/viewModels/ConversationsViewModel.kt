@@ -3,6 +3,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 import android.R.attr.data
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.compose.runtime.DisposableEffect
@@ -18,6 +19,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendMms
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSmsToLocalDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -192,6 +195,74 @@ class ConversationsViewModel: ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 context.getDatabase().conversationsDao()?.delete(conversation)
+            }
+        }
+    }
+
+    fun unArchive(context: Context, threadId: Int, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
+                    ThreadsViewModel().unArchiveThreads(context, listOf(thread)) {
+                        callback(it)
+                    }
+                }
+            }
+        }
+    }
+
+    fun archive(context: Context, threadId: Int, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
+                    ThreadsViewModel().archiveThreads(context, listOf(thread)) {
+                        callback(it)
+                    }
+                }
+            }
+        }
+    }
+
+    fun sendMms(
+        context: Context,
+        uri: Uri,
+        text: String,
+        address: String,
+        subscriptionId: Int,
+        callback: (Conversations?) -> Unit
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.sendMms(
+                    contentUri = uri,
+                    text = text,
+                    address = address,
+                    threadId = context.getThreadId(address),
+                    subscriptionId = subscriptionId,
+                ).let { conversation ->
+                    callback(conversation)
+                }
+            }
+        }
+    }
+
+    fun sendSms(
+        context: Context,
+        text: String,
+        address: String,
+        subscriptionId: Int,
+        callback: (Conversations?) -> Unit
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.sendSms(
+                    text = text,
+                    address = address,
+                    threadId = context.getThreadId(address),
+                    subscriptionId = subscriptionId,
+                ).let { conversation ->
+                    callback(conversation)
+                }
             }
         }
     }

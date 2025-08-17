@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -29,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -599,6 +602,34 @@ fun PreviewConversationsReceived() {
             )
             ConversationSent(
                 text = AnnotatedString("Hello world"),
+            )
+        }
+    }
+}
+
+@Composable
+fun ConversationContactName(
+    contactName: String,
+    isSecured: Boolean = false
+) {
+    Column {
+        Row {
+            Text(
+                text= contactName,
+                maxLines =1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(end=8.dp),
+            )
+            if(isSecured || LocalInspectionMode.current) {
+                Icon(Icons.Default.Security,
+                    stringResource(R.string.conversation_is_secured)
+                )
+            }
+        }
+        if(isSecured || LocalInspectionMode.current) {
+            Text(
+                stringResource(R.string.secured),
+                style = MaterialTheme.typography.titleSmall
             )
         }
     }

@@ -106,15 +106,26 @@ import coil3.request.ImageRequest
 import coil3.toUri
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isShortCode
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.unblockContact
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ChatCompose
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationCrudBottomBar
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationsMainDropDownMenu
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SearchCounterCompose
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SearchTopAppBarText
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SimChooser
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -157,10 +168,18 @@ fun Conversations(
 
     val dualSim = if(inPreviewMode) true else context.isDualSim()
 
-    val scope = rememberCoroutineScope()
-    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
-
     var isDefault by remember{ mutableStateOf( inPreviewMode || context.isDefault()) }
+
+    var isMute by remember { mutableStateOf(false) }
+
+    var isArchived by remember { mutableStateOf(false) }
+
+    var isBlocked by remember {
+        mutableStateOf(viewModel.contactIsBlocked(context, address)) }
+
+    val scope = rememberCoroutineScope()
+
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     // TODO: Check if it's secured
 //    var isSecured by remember {
@@ -190,16 +209,10 @@ fun Conversations(
 
     var rememberMenuExpanded by remember { mutableStateOf( false) }
     var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
-    var searchIndexes = remember { listOf<Int>() }
+    var searchIndexes by remember { mutableStateOf(emptyList<Int>())}
 
     var searchQuery by remember { mutableStateOf<String?>(null) }
     var searchIndex by remember { mutableIntStateOf(0) }
-
-    var isMute by remember { mutableStateOf(false) }
-    var isArchived by remember { mutableStateOf(false) }
-
-    var isBlocked by remember {
-        mutableStateOf(viewModel.contactIsBlocked(context, address)) }
 
     var openAlertDialog by remember { mutableStateOf(false)}
 
@@ -213,6 +226,9 @@ fun Conversations(
     var openInfoAlert by remember { mutableStateOf(false) }
 
     var typingText by remember{ mutableStateOf("") }
+    var typingMmsImage by remember{ mutableStateOf<Uri?>(null) }
+    var subscriptionId by remember{ mutableStateOf( context.getDefaultSimSubscription()) }
+    var highlightedMessage by remember{ mutableStateOf<Conversations?>(null) }
 
     LaunchedEffect(searchIndexes) {
         if(searchIndexes.isNotEmpty() && searchIndex == 0) {
@@ -251,7 +267,7 @@ fun Conversations(
 
     val contactName by remember{ mutableStateOf(
         if(isDefault) {
-            context.retrieveContactName(address)
+            context.retrieveContactName(address) ?: address
         } else address.replace(Regex("[\\s-]"), "")
     )}
 
@@ -297,19 +313,15 @@ fun Conversations(
         isMute = isMute,
         isBlocked = isBlocked,
         isArchived = isArchived,
-        isSecure = isSecured,
         searchCallback = {
-            searchViewModel.threadId = viewModel.threadId
-            navController.navigate(SearchThreadScreen)
+            searchViewModel.threadId = context.getThreadId(address).toString()
+            TODO("Navigate search")
+//            navController.navigate(SearchThreadScreen)
         },
         blockCallback = {
-            if(isBlocked) {
-                viewModel.unblock(context)
-            }
-            else {
-                ConvenientMethods.blockContact(context, viewModel.address)
-            }
-            isBlocked = BlockedNumberContract.isBlocked(context, viewModel.address)
+            if(isBlocked) { context.unblockContact(address) }
+            else { context.blockContact(address) }
+            isBlocked = BlockedNumberContract.isBlocked(context, address)
         },
         deleteCallback = {
             rememberDeleteAlert = true
@@ -318,21 +330,26 @@ fun Conversations(
             showSecureRequestModal = true
         },
         archiveCallback = {
-            coroutineScope.launch{
-                if(isArchived) viewModel.unArchive(context)
-                else viewModel.archive(context)
+            if(isArchived) {
+                viewModel.unArchive(context, context.getThreadId(address)) {
+                    isArchived = it
+                }
             }
-            backHandler(
-                context = context,
-                viewModel = viewModel,
-                navController = navController,
-            )
+            else {
+                viewModel.archive(context, context.getThreadId(address)) {
+                    isArchived = it
+                }
+            }
+            TODO("Navigate back")
         },
         muteCallback = {
             coroutineScope.launch {
-                if(isMute) viewModel.unMute(context)
-                else viewModel.mute(context)
-                isMute = viewModel.isMuted(context)
+                TODO("Implement mute")
+//                if(isMute) {
+//                    viewModel.unMute(context)
+//                }
+//                else viewModel.mute(context)
+//                isMute = viewModel.isMuted(context)
             }
         },
     ) {
@@ -346,85 +363,81 @@ fun Conversations(
         topBar = {
             TopAppBar(
                 title = {
-                    if(searchQuery.isBlank()) {
+                    if(searchQuery.isNullOrEmpty()) {
                         TextButton(onClick = {
-                            navController.navigate(ContactDetailsScreen)
+//                            navController.navigate(ContactDetailsScreen)
+                            TODO("Implement navigation")
                         }) {
-                            Column {
-                                Row {
-                                    Text(
-                                        text= if(LocalInspectionMode.current) "Template"
-                                        else contactName,
-                                        maxLines =1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.padding(end=8.dp),
-                                    )
-                                    if(isSecured || LocalInspectionMode.current) {
-                                        Icon(Icons.Default.Security,
-                                            stringResource(R.string.conversation_is_secured)
-                                        )
-                                    }
-                                }
-                                if(isSecured || LocalInspectionMode.current) {
-                                    Text(
-                                        stringResource(R.string.secured),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                }
-                            }
+                            Text(
+                                if(LocalInspectionMode.current) "Template" else contactName,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
                     else {
                         SearchTopAppBarText(
-                            searchQuery,
+                            searchQuery!!,
                             cancelCallback = { searchQuery = "" }
                         ) {
-                            searchIndexes.clear()
+                            searchIndexes = emptyList()
                             searchQuery = it
                         }
                     }
                 },
                 navigationIcon = {
-                    if(viewModel.newLayoutInfo == null ||
-                        viewModel.newLayoutInfo!!.displayFeatures.isEmpty())
-                        IconButton(onClick = {
-                            if(searchQuery.isNotBlank()) searchQuery = ""
-                            else
+                    // TODO "Implement folded functionality here"
+                    IconButton(onClick = {
+                        if(!searchQuery.isNullOrEmpty()) searchQuery = ""
+                        else
                             backHandler(
                                 context = context,
                                 viewModel = viewModel,
                                 navController = navController,
                             )
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
-                        }
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                            stringResource(R.string.go_back))
+                    }
+
+//                    if(viewModel.newLayoutInfo == null ||
+//                        viewModel.newLayoutInfo!!.displayFeatures.isEmpty())
+//                        IconButton(onClick = {
+//                            if(searchQuery.isNotBlank()) searchQuery = ""
+//                            else
+//                            backHandler(
+//                                context = context,
+//                                viewModel = viewModel,
+//                                navController = navController,
+//                            )
+//                        }) {
+//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
+//                        }
 
                 },
                 actions = {
-                    if(searchQuery.isBlank()) {
+                    if(searchQuery.isNullOrEmpty()) {
                         if(!isShortCode) {
-                            IconButton(onClick = {
-                                call(context, viewModel.address)
-                            }) {
+                            IconButton(onClick = { context.call(address) }) {
                                 Icon(
                                     imageVector = Icons.Filled.Call,
                                     contentDescription = stringResource(R.string.call)
                                 )
                             }
 
-                            if(!isSecured || LocalInspectionMode.current) {
-                                IconButton(onClick = {
-                                    showSecureRequestModal = true
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.EnhancedEncryption,
-                                        contentDescription = stringResource(
-                                            R.string
-                                                .request_secure_communication)
-                                    )
-                                }
-
-                            }
+//                            if(!isSecured || LocalInspectionMode.current) {
+//                                IconButton(onClick = {
+//                                    showSecureRequestModal = true
+//                                }) {
+//                                    Icon(
+//                                        imageVector = Icons.Filled.EnhancedEncryption,
+//                                        contentDescription = stringResource(
+//                                            R.string
+//                                                .request_secure_communication)
+//                                    )
+//                                }
+//
+//                            }
                         }
                         IconButton(onClick = {
                             rememberMenuExpanded = !rememberMenuExpanded
@@ -447,15 +460,15 @@ fun Conversations(
                     inboxMessagesItems.itemSnapshotList.items,
                     onInfoRequested = {
                         openInfoAlert = true
-                        viewModel.selectedMessage = it
-                        selectedItems.clear()
+                        highlightedMessage = it
+                        viewModel.removeAllSelectedItems()
                     },
-                    onCompleted = { selectedItems.clear() }
+                    onCompleted = { viewModel.removeAllSelectedItems() }
                 ) {
-                    selectedItems.clear()
+                    viewModel.removeAllSelectedItems()
                 }
             }
-            else if(searchQuery.isNotBlank()) {
+            else if(!searchQuery.isNullOrEmpty()) {
                 SearchCounterCompose(
                     index = (searchIndex + 1).toString(),
                     total=searchIndexes.size.toString(),
@@ -507,35 +520,49 @@ fun Conversations(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     ChatCompose(
-                        value = viewModel.text,
-                        mmsImage = viewModel.mmsImage,
-                        encryptedValue = viewModel.encryptedText,
-                        subscriptionId = viewModel.subscriptionId,
+                        value = typingText,
+                        mmsImage = typingMmsImage,
+                        subscriptionId = subscriptionId!!,
                         shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
                             { openSimCardChooser = true}
                         } else null,
                         valueChanged = {
-                            viewModel.text = it
+                            typingText = it
                         },
                         mmsValueChanged = {
-                            viewModel.mmsImage = getByteArrayFromUri(context, it)
+                            typingMmsImage = it
                         },
                         mmsCancelCallback = {
-                            viewModel.mmsImage = null
+                            typingMmsImage = null
                         },
                         sendMmsCallback = {
-                            viewModel.sendMms(context, it)
+                            typingMmsImage = null
+                            typingText = ""
+                            viewModel.sendMms(
+                                context,
+                                it,
+                                text = typingText,
+                                address = address,
+                                subscriptionId = subscriptionId!!,
+                            ){}
+                        },
+                        smsSendCallback = {
+                            typingText = ""
+                            viewModel.sendSms(
+                                context,
+                                text = typingText,
+                                address = address,
+                                subscriptionId = subscriptionId!!,
+                            ){}
                         }
-                    ) {
-                        viewModel.sendSms(context)
-                    }
+                    )
 
                     if(openSimCardChooser) {
                         SimChooser(
                             expanded = openSimCardChooser,
                             onClickCallback = {
-                                viewModel.subscriptionId = it
+                                subscriptionId = it
                             }
                         ) {
                             openSimCardChooser = false

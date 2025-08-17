@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -25,7 +26,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
-import java.io.IOException
 import java.util.regex.Pattern
 
 fun Context.getDefaultRegion(): String {
@@ -91,8 +91,7 @@ fun Context.getThreadId(address: String): Int{
 fun Context.blockContact(address: String) {
     val contentValues = ContentValues();
     contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address);
-    val uri = contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
-        contentValues);
+    contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, contentValues);
 
     Toast.makeText(this,
         getString(this, R.string.conversations_menu_block_toast),
@@ -100,6 +99,22 @@ fun Context.blockContact(address: String) {
     val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
     startActivity(this,
         telecomManager.createManageBlockedNumbersIntent(), null);
+}
+
+fun Context.unblockContact(address: String) {
+    BlockedNumberContract.unblock(this, address)
+}
+
+fun Context.getBlocked(): Cursor? {
+    return contentResolver.query(
+        BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+        arrayOf<String>(
+            BlockedNumberContract.BlockedNumbers.COLUMN_ID,
+            BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+            BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER
+        ),
+        null, null, null
+    )
 }
 
 fun Context.retrieveContactName(phoneNumber: String): String? {
