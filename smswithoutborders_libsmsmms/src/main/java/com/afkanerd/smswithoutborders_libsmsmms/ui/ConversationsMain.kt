@@ -87,6 +87,7 @@ import coil3.compose.rememberAsyncImagePainter
 import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -151,11 +152,12 @@ fun backHandler(
 @Composable
 fun Conversations(
     address: String,
-    viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
     navController: NavController,
     _items: List<Conversations>? = null
 ) {
+    val viewModel: ConversationsViewModel = viewModel()
+
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
 
@@ -333,16 +335,19 @@ fun Conversations(
         },
         archiveCallback = {
             if(isArchived) {
-                viewModel.unArchive(context, context.getThreadId(address)) {
-                    isArchived = it
-                }
+                viewModel.unArchive(context, context.getThreadId(address)) {}
             }
             else {
-                viewModel.archive(context, context.getThreadId(address)) {
-                    isArchived = it
-                }
+                viewModel.archive(context, context.getThreadId(address)) {}
             }
-            TODO("Navigate back")
+            backHandler(
+                context,
+                typingText,
+                typingMmsImage,
+                address,
+                subscriptionId!!,
+                navController
+            )
         },
         muteCallback = {
             coroutineScope.launch {
@@ -463,7 +468,6 @@ fun Conversations(
             if(selectedItems.isNotEmpty()) {
                 ConversationCrudBottomBar(
                     viewModel,
-                    inboxMessagesItems.itemSnapshotList.items,
                     onInfoRequested = {
                         openInfoAlert = true
                         highlightedMessage = it

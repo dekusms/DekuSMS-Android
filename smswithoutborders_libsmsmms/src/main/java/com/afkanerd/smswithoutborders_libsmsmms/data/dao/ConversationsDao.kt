@@ -69,10 +69,10 @@ interface ConversationsDao {
     @Query("DELETE FROM Conversations")
     fun deleteEvery(): Int
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
     fun getConversations(threadId: Int): PagingSource<Int, Conversations>
 
-    @Query("SELECT * FROM Conversations WHERE address = :address")
+    @Query("SELECT * FROM Conversations WHERE address = :address ORDER BY date DESC")
     fun getConversations(address: String): PagingSource<Int, Conversations>
 
     @Transaction
@@ -139,7 +139,7 @@ interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +
             "type = :type ORDER BY  date DESC LIMIT 1")
-    fun fetchConversationsForType(threadId: Int, type: Int): Conversations
+    fun fetchConversationsForType(threadId: Int, type: Int): Conversations?
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
     fun getConversationsList(threadId: Int): List<Conversations>

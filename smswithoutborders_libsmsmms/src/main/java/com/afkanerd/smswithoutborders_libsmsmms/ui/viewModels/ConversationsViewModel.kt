@@ -38,6 +38,10 @@ class ConversationsViewModel: ViewModel() {
         _selectedItems.value = emptyList()
     }
 
+    fun getSelectedItemCount(): Int {
+        return _selectedItems.value.size
+    }
+
     var pageSize: Int = 10
     var prefetchDistance: Int = 3 * pageSize
     var enablePlaceholder: Boolean = true
@@ -149,11 +153,10 @@ class ConversationsViewModel: ViewModel() {
         callback: (Conversations?) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val threadId = context.getThreadId(address).toInt()
+                val threadId = context.getThreadId(address)
                 context.getDatabase().conversationsDao()
-                    ?.fetchConversationsForType(threadId, Telephony.Sms.MESSAGE_TYPE_DRAFT)?.let {
-                        callback(it)
-                    }
+                    ?.fetchConversationsForType( threadId, Telephony.Sms.MESSAGE_TYPE_DRAFT)
+                    ?.let { callback(it) }
             }
         }
     }

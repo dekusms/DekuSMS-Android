@@ -84,6 +84,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ModalDrawerSheetLa
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SwipeToDeleteBackground
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsMainDropDown
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.CoroutineScope
@@ -639,7 +640,8 @@ fun ThreadConversationLayout(
                                         modifier = Modifier.combinedClickable(
                                             onClick = {
                                                 if(selectedItems.isEmpty()) {
-                                                    TODO("Implement navigate to cards")
+                                                    navController.navigate(
+                                                        ConversationsScreenNav(address))
 //                                                    threadsViewModel.navigateToConversation(
 //                                                        threadsViewModel,
 //                                                        address = address!!,

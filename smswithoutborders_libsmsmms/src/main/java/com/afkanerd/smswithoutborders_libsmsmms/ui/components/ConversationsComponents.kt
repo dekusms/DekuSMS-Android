@@ -43,7 +43,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
@@ -62,7 +65,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,6 +81,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -87,8 +93,10 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.copyItemToClipboard
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionBitmap
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.shareItem
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -669,12 +677,13 @@ fun SimChooser(
 @Composable
 fun ConversationCrudBottomBar(
     viewModel: ConversationsViewModel = ConversationsViewModel(),
-    items: List<Conversations> = emptyList(),
     onInfoRequested: (Conversations) -> Unit = {},
     onCompleted: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val selectedItems by viewModel.selectedItems.collectAsState()
+
     BottomAppBar (
         actions = {
             Row {
@@ -683,64 +692,58 @@ fun ConversationCrudBottomBar(
                         onCancel?.let { it() }
                     }
                 }) {
-                    Icon(Icons.Default.Close, stringResource(R.string.cancel_selected_messages))
+                    Icon(Icons.Default.Close,
+                        stringResource(R.string.cancel_selected_messages))
                 }
-                TODO("Implement this")
 
-//                Text(
-//                    viewModel.selectedItems.size.toString(),
-//                    fontSize = 24.sp,
-//                    modifier = Modifier.align(Alignment.CenterVertically)
-//                )
-//
-//                Spacer(Modifier.weight(1f))
-//
-//                if(viewModel.selectedItems.size < 2) {
-//                    IconButton(onClick = {
-//                        val conversations = items.first {
-//                            it.message_id in viewModel.selectedItems
-//                        }
-//                        onInfoRequested(conversations)
-//                    }) {
-//                        Icon(Icons.Filled.Info, stringResource(R.string.message_information))
-//                    }
-//
-//                    IconButton(onClick = {
-//                        val conversation = items.firstOrNull {
-//                            it.message_id in viewModel.selectedItems
-//                        }
-//                        copyItem(context, conversation?.text!!)
-//                        onCompleted?.invoke()
-//                    }) {
-//                        Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy_message))
-//                    }
-//
-//                    IconButton(onClick = {
-//                        TODO("Implement forward message")
-//                    }) {
-//                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
-//                            stringResource(R.string.forward_message)
-//                        )
-//                    }
-//
-//                    IconButton(onClick = {
-//                        val conversation = items.firstOrNull {
-//                            it.message_id in viewModel.selectedItems
-//                        }
-//                        shareItem(context, conversation?.text!!)
-//                        onCompleted?.let { it() }
-//                    }) {
-//                        Icon(Icons.Filled.Share, stringResource(R.string.share_message))
-//                    }
-//                }
+                Text(
+                    selectedItems.size.toString(),
+                    fontSize = 24.sp,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                if(selectedItems.size < 2) {
+                    IconButton(onClick = {
+                        val conversations = viewModel.selectedItems.value.first()
+                        onInfoRequested(conversations)
+                    }) {
+                        Icon(Icons.Filled.Info,
+                            stringResource(R.string.message_information))
+                    }
+
+                    IconButton(onClick = {
+                        val conversation = viewModel.selectedItems.value.first()
+                        context.copyItemToClipboard(conversation.sms?.body!!)
+                        onCompleted?.invoke()
+                    }) {
+                        Icon(Icons.Filled.ContentCopy,
+                            stringResource(R.string.copy_message))
+                    }
+
+                    IconButton(onClick = {
+                        TODO("Implement forward message")
+                    }) {
+                        Icon(painter= painterResource(id= R.drawable.rounded_forward_24),
+                            stringResource(R.string.forward_message)
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        val conversation = viewModel.selectedItems.value.first()
+                        context.shareItem(conversation.sms?.body!!)
+                        onCompleted?.invoke()
+                    }) {
+                        Icon(Icons.Filled.Share,
+                            stringResource(R.string.share_message))
+                    }
+                }
 
                 IconButton(onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
-//                        val conversations = items.filter {
-//                            it.message_id in viewModel.selectedItems
-//                        }
-//                        viewModel.delete(context, conversations)
-//                        onCompleted?.let { it() }
+                    val conversation = viewModel.selectedItems.value.first()
+                    viewModel.delete(context, listOf(conversation)) {
+                        onCompleted?.invoke()
                     }
                 }) {
                     Icon(Icons.Filled.Delete, stringResource(R.string.delete_message))

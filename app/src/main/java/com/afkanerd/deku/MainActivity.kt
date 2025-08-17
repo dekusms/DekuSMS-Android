@@ -1,16 +1,13 @@
 package com.afkanerd.deku
 
-import android.app.ComponentCaller
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,15 +31,14 @@ import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
 import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.navigation.toRoute
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.R
@@ -51,10 +47,10 @@ import com.afkanerd.deku.DefaultSMS.ui.LogcatMain
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
-import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -142,8 +138,12 @@ class MainActivity : AppCompatActivity(){
                             composable<HomeScreen>{
                                 HomeScreenComposable()
                             }
-                            composable<ConversationsScreen> {
-                                ConversationScreenComposable()
+//                            composable<ConversationsScreen> {
+//                                ConversationScreenComposable()
+//                            }
+                            composable<ConversationsScreenNav> { backStackEntry ->
+                                val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
+                                ConversationScreenComposable(convScreen)
                             }
                             composable<ComposeNewMessageScreen>{
                                 ComposeNewMessageScreenComposable()
@@ -241,13 +241,22 @@ class MainActivity : AppCompatActivity(){
     }
 
     @Composable
-    fun ConversationScreenComposable() {
+    fun ConversationScreenComposable(conversationsScreenNav: ConversationsScreenNav) {
         Conversations(
-            viewModel=conversationViewModel,
-            searchViewModel=searchViewModel,
-            navController=navController
+            address = conversationsScreenNav.address,
+            searchViewModel = searchViewModel,
+            navController = navController
         )
     }
+
+//    @Composable
+//    fun ConversationScreenComposable() {
+//        Conversations(
+//            viewModel=conversationViewModel,
+//            searchViewModel=searchViewModel,
+//            navController=navController
+//        )
+//    }
 
     @Composable
     fun ComposeNewMessageScreenComposable() {
