@@ -266,4 +266,34 @@ class ConversationsViewModel: ViewModel() {
             }
         }
     }
+
+    fun delete(
+        context: Context,
+        conversations: List<Conversations>,
+        callback: () -> Unit
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().conversationsDao()?.delete(conversations)
+                callback()
+            }
+        }
+    }
+
+    fun deleteThread(
+        context: Context,
+        address: String,
+        callback: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            context.getThreadId(address).let { threadId ->
+                withContext(Dispatchers.IO) {
+                    context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
+                        ThreadsViewModel().deleteThreads(context, listOf(thread))
+                        callback()
+                    }
+                }
+            }
+        }
+    }
 }

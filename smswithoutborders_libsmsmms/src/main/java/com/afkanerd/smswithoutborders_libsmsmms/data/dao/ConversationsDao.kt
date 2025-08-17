@@ -118,13 +118,25 @@ interface ConversationsDao {
     @Delete
     fun deleteConversation(conversations: Conversations)
 
+    @Delete
+    fun deleteConversations(conversations: List<Conversations>)
+
     @Query("DELETE FROM Threads WHERE conversationId = :conversationId")
     fun deleteThreadConversation(conversationId: Int)
+
+    @Query("DELETE FROM Threads WHERE conversationId IN (:threadIds)")
+    fun deleteThreadConversations(threadIds: List<Int?>)
 
     @Transaction
     fun delete(conversation: Conversations) {
         deleteConversation(conversation)
         deleteThreadConversation(conversation.sms?.thread_id!!)
+    }
+
+    @Transaction
+    fun delete(conversations: List<Conversations>) {
+        deleteConversations(conversations)
+        deleteThreadConversations(conversations.map { it.sms?.thread_id })
     }
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +

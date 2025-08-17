@@ -104,7 +104,7 @@ class ThreadsViewModel: ViewModel() {
     fun deleteThreads(context: Context, threads: List<Threads>) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().threadsDao()?.deleteThreads(threads)
+                context.getDatabase().threadsDao()?.delete(threads)
             }
         }
     }

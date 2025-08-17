@@ -3,7 +3,10 @@ package com.afkanerd.smswithoutborders_libsmsmms.data.data.models
 import android.content.Context
 import android.text.format.DateUtils
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import java.sql.Date
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 object DateTimeUtils {
     fun isSameMinute(date1: Long, date2: Long?): Boolean {
@@ -72,6 +75,52 @@ object DateTimeUtils {
             )
         }
         return null
+    }
+
+    fun formatDateExtended(context: Context, epochTime: Long): String {
+        val currentTime = System.currentTimeMillis()
+        val diff = currentTime - epochTime
+
+        val currentDate = Date(currentTime)
+        val targetDate = Date(epochTime)
+
+        val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+        val fullDayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+        val shortDayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+        val shortMonthDayFormat = SimpleDateFormat("MMM d", Locale.getDefault())
+
+        if (isYesterday(currentDate, targetDate)) { // yesterday
+            return context.getString(R.string.single_message_thread_yesterday) +
+                    " • " + timeFormat.format( targetDate )
+        } else if (diff < DateUtils.DAY_IN_MILLIS) { // today
+            return timeFormat.format(targetDate)
+        } else if (isSameWeek(currentDate, targetDate)) { // within the same week
+            return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate)
+        } else { // greater than 1 week
+            return (shortDayFormat.format(targetDate) + ", " + shortMonthDayFormat.format(targetDate)
+                    + " • " + timeFormat.format(targetDate))
+        }
+    }
+
+    private fun isYesterday(date1: Date, date2: Date): Boolean {
+        val dayFormat = SimpleDateFormat("yyyyDDD", Locale.getDefault())
+        val day1 = dayFormat.format(date1)
+        val day2 = dayFormat.format(date2)
+
+        val dayOfYear1 = day1.substring(4).toInt()
+        val dayOfYear2 = day2.substring(4).toInt()
+        val year1 = day1.substring(0, 4).toInt()
+        val year2 = day2.substring(0, 4).toInt()
+
+        return (year1 == year2 && dayOfYear1 - dayOfYear2 == 1)
+                || (year1 - year2 == 1 && dayOfYear1 == 1 && dayOfYear2 == 365)
+    }
+
+    private fun isSameWeek(date1: Date, date2: Date): Boolean {
+        val weekFormat = SimpleDateFormat("yyyyww", Locale.getDefault())
+        val week1 = weekFormat.format(date1)
+        val week2 = weekFormat.format(date2)
+        return week1 == week2
     }
 
 }

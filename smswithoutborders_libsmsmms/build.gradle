@@ -162,4 +162,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-video:3.3.0")
 
     implementation("com.google.code.gson:gson:2.13.1")
+
+    implementation("sh.calvin.autolinktext:autolinktext:2.0.2")
 }

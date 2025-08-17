@@ -38,10 +38,6 @@ interface ThreadsDao {
     @Transaction
     fun delete(threads: List<Threads>) {
         deleteThreads(threads)
-        deleteConversations(threads.run {
-            val ids = mutableListOf<Int>()
-            this.forEach { ids.add(it.threadId) }
-            ids
-        })
+        deleteConversations(threads.map { it.threadId })
     }
 }

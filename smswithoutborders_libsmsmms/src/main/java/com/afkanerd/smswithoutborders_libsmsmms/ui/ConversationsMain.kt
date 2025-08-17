@@ -106,6 +106,7 @@ import coil3.request.ImageRequest
 import coil3.toUri
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
@@ -113,6 +114,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
@@ -121,16 +123,27 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneN
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.unblockContact
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ChatCompose
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationCrudBottomBar
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationStatusTypes
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationsCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ConversationsMainDropDownMenu
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.DeleteConfirmationAlert
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.FailedMessageOptionsModal
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.MessageInfoAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SearchCounterCompose
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SearchTopAppBarText
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SecureRequestAcceptModal
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.ShortCodeAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.SimChooser
+import com.afkanerd.smswithoutborders_libsmsmms.ui.Components.getConversationType
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
+import sh.calvin.autolinktext.rememberAutoLinkText
 import kotlin.collections.get
 import kotlin.compareTo
+import kotlin.let
 
 
 fun backHandler(
@@ -590,26 +603,30 @@ fun Conversations(
                             if(inPreviewMode) _items!![index]
                             else inboxMessagesItems[index]
                     )?.let { conversation ->
-                        val isMms = conversation.mmsContentUri != null
+                        val isMms = conversation.mms != null
+
                         var showDate by remember { mutableStateOf(index == 0) }
 
                         var timestamp by remember { mutableStateOf(
                             if(inPreviewMode) "1234567"
                             else {
-                                Helpers.formatDateExtended(context,
-                                    conversation.date!!.toLong())
+                                DateTimeUtils
+                                    .formatDateExtended(context,
+                                        conversation.sms?.date!!.toLong())
                             })
                         }
 
                         var date by remember { mutableStateOf(
                             if(inPreviewMode) "1234567"
-                            else {
-                                deriveMetaDate(conversation) +
-                                        if(dualSim && !inPreviewMode) {
-                                            " • " + SIMHandler.getSubscriptionName(context,
-                                                conversation.subscription_id)
-                                        } else ""
-                            }) }
+                            else { deriveMetaDate(conversation) +
+                                    if(dualSim && !inPreviewMode) {
+                                        " • " +
+                                                context
+                                                    .getSubscriptionName(
+                                                        subscriptionId!!)
+                                    } else ""
+                            })
+                        }
 
                         val position by remember {
                             mutableStateOf(getConversationType(
@@ -620,19 +637,19 @@ fun Conversations(
                         }
 
                         var text = if(LocalInspectionMode.current)
-                            AnnotatedString(conversation.text ?: "")
+                            AnnotatedString(conversation.sms?.body ?: "")
                         else AnnotatedString.rememberAutoLinkText(
-                            conversation.text ?: "",
+                            conversation.sms?.body ?: "",
                             defaultLinkStyles = TextLinkStyles(
                                 SpanStyle( textDecoration = TextDecoration.Underline )
                             )
                         )
 
-
-                        if(searchQuery.isNotEmpty()) {
+                        if(!searchQuery.isNullOrEmpty()) {
                             text = buildAnnotatedString {
-                                val startIndex = text.indexOf(searchQuery, ignoreCase = true)
-                                val endIndex = startIndex + searchQuery.length
+                                val startIndex = text
+                                    .indexOf(searchQuery!!, ignoreCase = true)
+                                val endIndex = startIndex + searchQuery!!.length
 
                                 append(text)
                                 if (startIndex >= 0) {
@@ -650,31 +667,40 @@ fun Conversations(
                         }
 
                         val contentUri by remember{
-                            mutableStateOf(conversation.mmsContentUri?.toUri())
+                            mutableStateOf(conversation.mms_content_uri?.toUri())
                         }
 
                         Column {
                             ConversationsCard(
                                 text= text,
                                 timestamp = timestamp,
-                                type= conversation.type,
-                                status = ConversationStatusTypes
-                                    .fromInt(conversation.status, isMms)!!,
+                                type= conversation.sms?.type!!,
+                                status = ConversationStatusTypes.fromInt(
+                                    conversation.sms?.status!!, isMms)!!,
                                 position = position,
                                 date = date,
                                 showDate = showDate,
                                 mmsContentUri = contentUri,
-                                mmsMimeType = conversation.mmsMimeType,
-                                mmsFilename = conversation.mmsContentFilename,
+                                mmsMimeType = conversation.mms_mimetype,
+                                mmsFilename = conversation.mms_filename,
                                 onClickCallback = {
                                     if (selectedItems.isNotEmpty()) {
-                                        if (selectedItems.contains(conversation.message_id))
-                                            selectedItems.remove(conversation.message_id)
+                                        if (selectedItems.contains(conversation))
+                                            viewModel.setSelectedItems(
+                                                selectedItems.toMutableList().apply {
+                                                    this.remove(conversation)
+                                                }
+                                            )
                                         else
-                                            selectedItems.add(conversation.message_id!!)
+                                            viewModel.setSelectedItems(
+                                                selectedItems.toMutableList().apply {
+                                                    this.add(conversation)
+                                                }
+                                            )
                                     }
-                                    else if(conversation.type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
-                                        viewModel.retryDeleteItem.add(conversation)
+                                    else if(conversation.sms?.type ==
+                                        Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                        highlightedMessage = conversation
                                         showFailedRetryModal = true
                                     }
                                     else {
@@ -682,30 +708,40 @@ fun Conversations(
                                     }
                                 },
                                 onLongClickCallback = {
-                                    selectedItems.add(conversation.message_id!!)
+                                    if (selectedItems.contains(conversation))
+                                        viewModel.setSelectedItems(
+                                            selectedItems.toMutableList().apply {
+                                                this.remove(conversation)
+                                            }
+                                        )
+                                    else
+                                        viewModel.setSelectedItems(
+                                            selectedItems.toMutableList().apply {
+                                                this.add(conversation)
+                                            }
+                                        )
                                 },
-                                isSelected = selectedItems.contains(conversation.message_id),
-                                isKey = conversation.isIs_key,
+                                isSelected = selectedItems.contains(conversation),
                             )
                         }
 
-                        val checkIsSecured by remember {
-                            derivedStateOf {
-                                conversation.isIs_key &&
-                                        conversation.type == Telephony.TextBasedSmsColumns
-                                    .MESSAGE_TYPE_INBOX
-                            }
-                        }
-
-                        if(checkIsSecured) {
-                            LaunchedEffect(true) {
-                                scope.launch{
-                                    showSecureAgreeModal = E2EEHandler
-                                        .hasPendingApproval(context, viewModel.address)
-                                }
-                            }
-                        }
-
+                            // TODO: security things are in order
+//                        val checkIsSecured by remember {
+//                            derivedStateOf {
+//                                conversation.isIs_key &&
+//                                        conversation.type == Telephony.TextBasedSmsColumns
+//                                    .MESSAGE_TYPE_INBOX
+//                            }
+//                        }
+//
+//                        if(checkIsSecured) {
+//                            LaunchedEffect(true) {
+//                                scope.launch{
+//                                    showSecureAgreeModal = E2EEHandler
+//                                        .hasPendingApproval(context, viewModel.address)
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -719,8 +755,8 @@ fun Conversations(
             if(showScrollBottom) {
                 Button(
                     onClick = {
-                        searchQuery = ""
-                        searchIndexes.clear()
+                        searchQuery = null
+                        searchIndexes = emptyList()
                         searchIndex = 0
 
                         scope.launch { listState.animateScrollToItem(0) }
@@ -750,11 +786,9 @@ fun Conversations(
                 }
             }
 
-            if(openInfoAlert) {
-                MessageInfoAlert(
-                    viewModel.selectedMessage!!
-                ) {
-                    viewModel.selectedMessage = null
+            if(openInfoAlert && highlightedMessage != null) {
+                MessageInfoAlert( highlightedMessage!!) {
+                    highlightedMessage = null
                     openInfoAlert = false
                 }
             }
@@ -763,25 +797,24 @@ fun Conversations(
         if(showFailedRetryModal) {
             FailedMessageOptionsModal(
                 retryCallback = {
-                    coroutineScope.launch {
-                        viewModel.delete(context, viewModel.retryDeleteItem.first())
-                        sendSMS(
-                            context=context,
-                            text=viewModel.retryDeleteItem.first().text!!,
-                            threadId= viewModel.threadId,
-                            messageId = System.currentTimeMillis().toString(),
-                            address= viewModel.address,
-                            conversationsViewModel = viewModel
-                        ) {
-                            viewModel.retryDeleteItem = arrayListOf()
-                            viewModel.clearDraft(context)
+                    highlightedMessage?.let { conversation ->
+                        viewModel.delete(context, listOf(conversation)) {
+                            viewModel.sendSms(
+                                context=context,
+                                text=conversation.sms?.body!!,
+                                address= conversation.sms?.address!!,
+                                subscriptionId = conversation.sms?.sub_id!!
+                            ) {
+                                highlightedMessage = null
+                            }
                         }
                     }
                 },
                 deleteCallback = {
-                    coroutineScope.launch {
-                        viewModel.delete(context, viewModel.retryDeleteItem.first())
-                        viewModel.retryDeleteItem = arrayListOf()
+                    highlightedMessage?.let { conversation ->
+                        viewModel.delete( context, listOf(conversation)) {
+                            highlightedMessage = null
+                        }
                     }
                 },
             ){
@@ -789,39 +822,35 @@ fun Conversations(
             }
         }
 
-        if(showSecureRequestModal || showSecureAgreeModal) {
-            SecureRequestAcceptModal(
-                viewModel=viewModel,
-                isSecureRequest = showSecureRequestModal,
-            ){
-                if(showSecureAgreeModal) {
-                    isSecured = E2EEHandler.isSecured(context, viewModel.address)
-                    showSecureAgreeModal = false
-                }
-
-                if(showSecureRequestModal)
-                    showSecureRequestModal = false
-            }
-        }
+        // TODO: Show secure request modals
+//        if(showSecureRequestModal || showSecureAgreeModal) {
+//            SecureRequestAcceptModal(
+//                viewModel=viewModel,
+//                isSecureRequest = showSecureRequestModal,
+//            ){
+//                if(showSecureAgreeModal) {
+//                    isSecured = E2EEHandler.isSecured(context, viewModel.address)
+//                    showSecureAgreeModal = false
+//                }
+//
+//                if(showSecureRequestModal)
+//                    showSecureRequestModal = false
+//            }
+//        }
 
         if(rememberDeleteAlert) {
             DeleteConfirmationAlert(
                 confirmCallback = {
                     coroutineScope.launch {
-                        viewModel.deleteThread(context)
-                        rememberDeleteAlert = false
-                        (context as Activity).runOnUiThread {
-                            backHandler(
-                                context,
-                                viewModel,
-                                navController
-                            )
+                        viewModel.deleteThread(context, address) {
+                            rememberDeleteAlert = false
+                            TODO("Navigate back to home")
                         }
                     }
                 }
             ) {
                 rememberDeleteAlert = false
-                selectedItems.clear()
+                viewModel.removeAllSelectedItems()
             }
         }
     }
@@ -829,7 +858,6 @@ fun Conversations(
 
 @Composable
 fun MmsContentView(
-//    content: ByteArray?,
     contentUri: Uri,
     mimeType: String,
     filename: String?,
