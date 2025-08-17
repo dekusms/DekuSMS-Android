@@ -1,4 +1,4 @@
-package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
+package com.afkanerd.smswithoutborders_libsmsmms.ui.components
 
 import android.net.Uri
 import android.provider.Telephony

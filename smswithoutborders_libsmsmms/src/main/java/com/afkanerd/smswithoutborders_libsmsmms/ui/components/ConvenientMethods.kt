@@ -1,29 +1,12 @@
-package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
+package com.afkanerd.smswithoutborders_libsmsmms.ui.components
 
-import android.content.ContentValues
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Bitmap.Config
-import android.graphics.PorterDuff.Mode
-import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
-import android.graphics.RectF
-import android.provider.BlockedNumberContract
-import android.telecom.TelecomManager
-import android.widget.Toast
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.content.ContextCompat.getString
-import androidx.core.content.ContextCompat.startActivity
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.core.graphics.createBitmap
-import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 
 object ConvenientMethods {

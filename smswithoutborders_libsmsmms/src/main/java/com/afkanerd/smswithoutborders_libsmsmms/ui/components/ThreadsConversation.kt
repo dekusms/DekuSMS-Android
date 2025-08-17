@@ -1,4 +1,4 @@
-package com.afkanerd.smswithoutborders_libsmsmms.ui.Components
+package com.afkanerd.smswithoutborders_libsmsmms.ui.components
 
 import android.Manifest
 import android.content.Context
@@ -72,7 +72,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
