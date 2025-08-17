@@ -84,8 +84,8 @@ fun Context.makeE16PhoneNumber(address: String): String {
     return address
 }
 
-fun Context.getThreadId(address: String): Long{
-    return Telephony.Threads.getOrCreateThreadId(this, address);
+fun Context.getThreadId(address: String): Int{
+    return Telephony.Threads.getOrCreateThreadId(this, address).toInt();
 }
 
 fun Context.blockContact(address: String) {
@@ -262,7 +262,7 @@ fun Context.registerSmsToLocalDb(
     }
 }
 
-fun Context.isShortCode(address: String): Boolean {
+fun isShortCode(address: String): Boolean {
     if (address.length < 4) return true
     val pattern = Pattern.compile("[a-zA-Z]")
     val matcher = pattern.matcher(address)

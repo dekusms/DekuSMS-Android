@@ -52,7 +52,7 @@ class ConversationsViewModel: ViewModel() {
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
 
-    fun getConversations(context: Context, threadId: Int): Flow<PagingData<Conversations>> {
+    fun getConversations(context: Context, address: String): Flow<PagingData<Conversations>> {
         if(conversationsPager == null) {
             conversationsPager = Pager(
                 config=PagingConfig(
@@ -63,7 +63,7 @@ class ConversationsViewModel: ViewModel() {
                     maxSize
                 ),
                 pagingSourceFactory = {
-                    context.getDatabase().conversationsDao()!!.getConversations(threadId)
+                    context.getDatabase().conversationsDao()!!.getConversations(address)
                 }
             ).flow.cachedIn(viewModelScope)
         }
@@ -134,21 +134,65 @@ class ConversationsViewModel: ViewModel() {
 
     fun contactIsBlocked(
         context: Context,
-        threadId: Int,
-        callback: (Boolean) -> Unit
-    ) {
+        address: String,
+    ): Boolean {
+        try {
+            return BlockedNumberContract.isBlocked(context,address)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    fun fetchDraft(
+        context: Context,
+        address: String,
+        callback: (Conversations?) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().threadsDao()?.get(threadId)?.let {
-                    try {
-                        val blocked = BlockedNumberContract.isBlocked(context, it.address)
-                        callback(blocked)
-                    } catch(e: Exception) {
-                        e.printStackTrace()
-                    }
+                val threadId = context.getThreadId(address).toInt()
+                context.getDatabase().conversationsDao()?.fetchDrafts(threadId)?.let {
+                    callback(it)
                 }
             }
         }
     }
 
+    fun search(
+        context: Context,
+        query: String,
+        address: String,
+        callback: (List<Int>) -> Unit,
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val searchIndexes = mutableListOf<Int>()
+                val threadId = context.getThreadId(address).toInt()
+                context.getDatabase().conversationsDao()
+                    ?.getConversationsList(threadId)?.let { items ->
+                        items.forEachIndexed { index, it ->
+                            it.sms?.body?.let { text ->
+                                if(text.contains(other=query, ignoreCase=true)
+                                    && !searchIndexes.contains(index))
+                                    searchIndexes.add(index)
+                            }
+                        }
+
+                }
+                callback(searchIndexes)
+
+            }
+        }
+    }
+
+    fun clearDraft(
+        context: Context,
+        conversation: Conversations
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().conversationsDao()?.delete(conversation)
+            }
+        }
+    }
 }

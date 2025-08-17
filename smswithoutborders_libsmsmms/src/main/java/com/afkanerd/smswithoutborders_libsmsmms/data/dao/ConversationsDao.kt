@@ -1,7 +1,9 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data.dao
 
+import android.provider.Telephony
 import androidx.paging.PagingSource
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -72,6 +74,9 @@ interface ConversationsDao {
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
     fun getConversations(threadId: Int): PagingSource<Int, Conversations>
 
+    @Query("SELECT * FROM Conversations WHERE address = :address")
+    fun getConversations(address: String): PagingSource<Int, Conversations>
+
     @Transaction
     fun reset(conversationsList: MutableList<Conversations>) {
         deleteEvery()
@@ -109,6 +114,25 @@ interface ConversationsDao {
             it.sms?.let { sms -> insertUpdateThread(sms) }
         }
     }
+
+    @Delete
+    fun deleteConversation(conversations: Conversations)
+
+    @Query("DELETE FROM Threads WHERE conversationId = :conversationId")
+    fun deleteThreadConversation(conversationId: Int)
+
+    @Transaction
+    fun delete(conversation: Conversations) {
+        deleteConversation(conversation)
+        deleteThreadConversation(conversation.sms?.thread_id!!)
+    }
+
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +
+            "type = :${Telephony.Sms.MESSAGE_TYPE_DRAFT} ORDER BY  date DESC LIMIT 1")
+    fun fetchDrafts(threadId: Int): Conversations
+
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
+    fun getConversationsList(threadId: Int): List<Conversations>
 
     @Query("SELECT c.*, max(c.date) FROM Conversations c LEFT JOIN Threads tc " +
             "ON c.thread_id = tc.threadId " +

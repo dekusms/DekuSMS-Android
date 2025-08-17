@@ -142,6 +142,30 @@ class ThreadsViewModel: ViewModel() {
         }
     }
 
+    fun isArchived(context: Context, threadId: Int, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.get(threadId)?.isArchive?.let {
+                    callback(it)
+                    return@withContext
+                }
+                callback(false)
+            }
+        }
+    }
+
+    fun isMuted(context: Context, threadId: Int, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.get(threadId)?.isMute?.let {
+                    callback(it)
+                    return@withContext
+                }
+                callback(false)
+            }
+        }
+    }
+
     data class ProcessedIntents(val address: String?, val threadId: Int?, val text: String?)
     fun processIntents(
         context: Context,

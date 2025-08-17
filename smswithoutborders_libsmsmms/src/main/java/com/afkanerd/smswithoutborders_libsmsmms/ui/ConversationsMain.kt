@@ -107,10 +107,19 @@ import coil3.toUri
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isShortCode
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
+import kotlin.collections.get
+import kotlin.compareTo
 
 
 fun backHandler(
@@ -135,7 +144,7 @@ fun backHandler(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Conversations(
-    threadId: Int,
+    address: String,
     viewModel: ConversationsViewModel = ConversationsViewModel(),
     searchViewModel: SearchViewModel = SearchViewModel(),
     navController: NavController,
@@ -143,6 +152,8 @@ fun Conversations(
 ) {
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
+
+    val address = context.makeE16PhoneNumber(address)
 
     val dualSim = if(inPreviewMode) true else context.isDualSim()
 
@@ -169,7 +180,7 @@ fun Conversations(
     var showSecureRequestModal by rememberSaveable { mutableStateOf(false) }
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
-    val messages = viewModel.getConversations(context, threadId)
+    val messages = viewModel.getConversations(context, address)
     val inboxMessagesItems = messages.collectAsLazyPagingItems()
 
     val selectedItems by viewModel.selectedItems.collectAsState()
@@ -179,7 +190,7 @@ fun Conversations(
 
     var rememberMenuExpanded by remember { mutableStateOf( false) }
     var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
-    val searchIndexes = remember { mutableStateListOf<Int>() }
+    var searchIndexes = remember { listOf<Int>() }
 
     var searchQuery by remember { mutableStateOf<String?>(null) }
     var searchIndex by remember { mutableIntStateOf(0) }
@@ -187,15 +198,13 @@ fun Conversations(
     var isMute by remember { mutableStateOf(false) }
     var isArchived by remember { mutableStateOf(false) }
 
-    var isBlocked by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        viewModel.contactIsBlocked(context, threadId) {isBlocked = it}
-    }
+    var isBlocked by remember {
+        mutableStateOf(viewModel.contactIsBlocked(context, address)) }
 
     var openAlertDialog by remember { mutableStateOf(false)}
 
-    val isShortCode = if(inPreviewMode) false else Helpers.isShortCode(viewModel.address)
-    val defaultRegion = if(inPreviewMode) "cm" else Helpers.getUserCountry( context )
+    val isShortCode = if(inPreviewMode) false else isShortCode(address)
+    val defaultRegion = if(inPreviewMode) "cm" else context.getDefaultRegion()
 
     var shouldPulse by remember { mutableStateOf(false) }
     val pulseRateMs by remember { mutableLongStateOf(3000L) }
@@ -203,101 +212,84 @@ fun Conversations(
     var rememberDeleteAlert by remember { mutableStateOf(false) }
     var openInfoAlert by remember { mutableStateOf(false) }
 
-    LaunchedEffect(inboxMessagesItems.loadState) {
-        println("Checking search...")
-        if(searchQuery.isNotBlank() && inboxMessagesItems.loadState.isIdle) {
-            coroutineScope.launch {
-                viewModel.getThread(context).let { items ->
-                    items.forEachIndexed { index, it ->
-                        it.text?.let { text ->
-                            if(it.text!!.contains(other=searchQuery, ignoreCase=true)
-                                && !searchIndexes.contains(index))
-                                searchIndexes.add(index)
-                        }
-                    }
+    var typingText by remember{ mutableStateOf("") }
 
-                    if(searchIndexes.isNotEmpty() && searchIndex == 0) {
-                        if(inboxMessagesItems.itemCount > searchIndexes.first()) {
-                            inboxMessagesItems[searchIndexes.first()]
-                            scope.launch {
-                                listState.animateScrollToItem(searchIndexes.first())
-                            }
-                        }
-                        else {
-                            println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
-                            inboxMessagesItems.refresh()
-                        }
-                    }
+    LaunchedEffect(searchIndexes) {
+        if(searchIndexes.isNotEmpty() && searchIndex == 0) {
+            if(inboxMessagesItems.itemCount > searchIndexes.first()) {
+                inboxMessagesItems[searchIndexes.first()]
+                scope.launch {
+                    listState.animateScrollToItem(searchIndexes.first())
                 }
+            }
+            else {
+                println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
+                inboxMessagesItems.refresh()
+            }
+        }
+    }
+
+    LaunchedEffect(inboxMessagesItems.loadState) {
+        if(!searchQuery.isNullOrEmpty() && inboxMessagesItems.loadState.isIdle) {
+            viewModel.search(context, searchQuery!!, address) { indexes ->
+                searchIndexes = indexes
             }
         }
 
-        coroutineScope.launch {
-            if(viewModel.fetchDraft(context) == null && searchQuery.isEmpty()) {
+        viewModel.fetchDraft(context, address) {
+            typingText = it?.sms?.body!!
+            viewModel.clearDraft(context, it)
+            if(searchQuery.isNullOrEmpty()) {
                 scope.launch{
                     listState.animateScrollToItem(0)
                 }
             }
         }
 
-        context.cancelNotification(viewModel.threadId)
+        context.cancelNotification(context.getThreadId(address).toInt())
     }
 
     val contactName by remember{ mutableStateOf(
         if(isDefault) {
-            Contacts.retrieveContactName(
-                context,
-                Helpers.getFormatCompleteNumber(viewModel.address, defaultRegion)
-            ) ?: viewModel.address.run {
-                viewModel.address.replace(Regex("[\\s-]"), "")
-            }
-        } else viewModel.address.replace(Regex("[\\s-]"), "")
+            context.retrieveContactName(address)
+        } else address.replace(Regex("[\\s-]"), "")
     )}
 
-    LaunchedEffect(viewModel.address){
-        coroutineScope.launch {
-            if(viewModel.text.isEmpty()) {
-                viewModel.fetchDraft(context)?.let {
-                    viewModel.clearDraft(context)
-                    viewModel.text = it.text!!
-                }
-            }
-            viewModel.updateToRead(context)
-            isMute = viewModel.isMuted(context)
-            isArchived = viewModel.isArchived(context)
+    LaunchedEffect(Unit){
+        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+            isMute = it
+        }
+
+        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+            isArchived = it
         }
     }
 
-    if(isSecured) {
-        LaunchedEffect(viewModel.text) {
-            if(viewModel.text.isBlank()) {
-                viewModel.encryptedText = ""
-                shouldPulse = false
-            } else shouldPulse = true
-        }
-
-        LaunchedEffect(shouldPulse) {
-            if(shouldPulse)
-                coroutineScope.launch {
-                    delay(pulseRateMs)
-                    viewModel.encryptedText = E2EEHandler.encryptMessage(
-                        context = context,
-                        text = viewModel.text,
-                        address = viewModel.address
-                    ).first
-                    shouldPulse = false
-                }
-        }
-    }
+//    if(isSecured) {
+//        LaunchedEffect(viewModel.text) {
+//            if(viewModel.text.isBlank()) {
+//                viewModel.encryptedText = ""
+//                shouldPulse = false
+//            } else shouldPulse = true
+//        }
+//
+//        LaunchedEffect(shouldPulse) {
+//            if(shouldPulse)
+//                coroutineScope.launch {
+//                    delay(pulseRateMs)
+//                    viewModel.encryptedText = E2EEHandler.encryptMessage(
+//                        context = context,
+//                        text = viewModel.text,
+//                        address = viewModel.address
+//                    ).first
+//                    shouldPulse = false
+//                }
+//        }
+//    }
 
     BackHandler {
-        if(searchQuery.isNotBlank()) searchQuery = ""
-        else
-        backHandler(
-            context = context,
-            viewModel = viewModel,
-            navController = navController,
-        )
+        if(!searchQuery.isNullOrEmpty()) searchQuery = ""
+        TODO("Implement")
     }
 
     ConversationsMainDropDownMenu(
