@@ -27,7 +27,6 @@ class NotificationsInitializer : Initializer<NotificationManager> {
     var notificationsChannelIds: ArrayList<String> = ArrayList()
     var notificationsChannelNames: ArrayList<String> = ArrayList()
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(context: Context, notificationManager: NotificationManager) {
         notificationsChannelIds.add(context.getString(R.string.incoming_messages_channel_id))
