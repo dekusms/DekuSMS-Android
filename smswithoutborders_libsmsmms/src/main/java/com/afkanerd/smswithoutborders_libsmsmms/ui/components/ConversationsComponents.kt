@@ -72,6 +72,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.toInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -223,7 +224,7 @@ fun ChatCompose(
     else "",
     valueChanged: ((String) -> Unit)? = null,
     mmsValueChanged: ((Uri) -> Unit)? = null,
-    subscriptionId: Int = -1,
+    subscriptionId: Long = -1,
     shouldPulse: Boolean = LocalInspectionMode.current,
     simCardChooserCallback: (() -> Unit)? = null,
     sendMmsCallback: ((Uri) -> Unit)? = null,
@@ -363,7 +364,8 @@ fun ChatCompose(
                                 )
                             } else {
                                 if(subscriptionId > -1) {
-                                    context.getSubscriptionBitmap(subscriptionId)
+                                    context.getSubscriptionBitmap(
+                                        subscriptionId.toInt())
                                         ?.asImageBitmap()?.let { image ->
                                             Image(
                                                 image,
@@ -627,7 +629,7 @@ fun formatDate(timestamp: Long): String {
 @Composable
 fun SimChooser(
     expanded: Boolean = LocalInspectionMode.current,
-    onClickCallback: ((Int) -> Unit)? = null,
+    onClickCallback: ((Long) -> Unit)? = null,
     dismissCallback: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -664,7 +666,7 @@ fun SimChooser(
                         )
                     },
                     onClick = {
-                        onClickCallback?.invoke(it.subscriptionId)
+                        onClickCallback?.invoke(it.subscriptionId.toLong())
                         dismissCallback?.invoke()
                     }
                 )

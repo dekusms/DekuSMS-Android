@@ -46,9 +46,12 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         createNotificationChannelReconnectGatewayListeners(context, notificationManager)
         createNotificationChannelFailedMessages(context, notificationManager)
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannelIncomingMessage(context: Context,
-                                                         notificationManager: NotificationManager) {
+    private fun createNotificationChannelIncomingMessage(
+        context: Context,
+        notificationManager: NotificationManager
+    ) {
         val importance = NotificationManager.IMPORTANCE_HIGH
 
         val channel = NotificationChannel(

@@ -66,7 +66,8 @@ class ConversationsViewModel: ViewModel() {
                     maxSize
                 ),
                 pagingSourceFactory = {
-                    context.getDatabase().conversationsDao()!!.getConversations(address)
+                    context.getDatabase().conversationsDao()!!
+                        .getConversations(context.getThreadId(address))
                 }
             ).flow.cachedIn(viewModelScope)
         }
@@ -100,7 +101,7 @@ class ConversationsViewModel: ViewModel() {
         messageId: String,
         address: String,
         body: String,
-        subscriptionId: Int,
+        subscriptionId: Long,
         date: Long,
         dateSent: Long,
         type: Int,
@@ -119,11 +120,11 @@ class ConversationsViewModel: ViewModel() {
 
         val conversation = Conversations(
             sms = smsMmsNatives.Sms(
-                _id = (System.currentTimeMillis() / 1000).toInt(),
-                thread_id = threadId.toInt(),
+                _id = System.currentTimeMillis(),
+                thread_id = threadId,
                 address = address,
-                date = (System.currentTimeMillis() / 1000).toInt(),
-                date_sent = (dateSent / 1000).toInt(),
+                date = System.currentTimeMillis(),
+                date_sent = System.currentTimeMillis(),
                 read = 0,
                 status = status,
                 type = type,
@@ -228,7 +229,7 @@ class ConversationsViewModel: ViewModel() {
         uri: Uri,
         text: String,
         address: String,
-        subscriptionId: Int,
+        subscriptionId: Long,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -250,7 +251,7 @@ class ConversationsViewModel: ViewModel() {
         context: Context,
         text: String,
         address: String,
-        subscriptionId: Int,
+        subscriptionId: Long,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -302,7 +303,7 @@ class ConversationsViewModel: ViewModel() {
         body: String,
         mmsUri: Uri?,
         address: String,
-        subId: Int,
+        subId: Long,
         callback: (Conversations) -> Unit
     ) {
         viewModelScope.launch {
@@ -310,11 +311,11 @@ class ConversationsViewModel: ViewModel() {
                 val threadId = context.getThreadId(address)
                 val conversation = Conversations(
                     sms = smsMmsNatives.Sms(
-                        _id = (System.currentTimeMillis() / 1000).toInt(),
+                        _id = System.currentTimeMillis(),
                         thread_id = threadId,
                         address = address,
-                        date = (System.currentTimeMillis() / 1000).toInt(),
-                        date_sent = (System.currentTimeMillis() / 1000).toInt(),
+                        date = System.currentTimeMillis(),
+                        date_sent = System.currentTimeMillis(),
                         read = 1,
                         status = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
                         type = Telephony.Sms.MESSAGE_TYPE_DRAFT,

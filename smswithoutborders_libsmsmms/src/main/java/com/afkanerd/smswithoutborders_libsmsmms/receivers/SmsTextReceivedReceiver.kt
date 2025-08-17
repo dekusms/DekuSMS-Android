@@ -127,7 +127,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         val messageId = System.currentTimeMillis()
 
         val bundle = intent.extras
-        val subscriptionId = bundle!!.getInt("subscription", -1)
+        val subscriptionId = bundle!!.getLong("subscription", -1)
         var address: String? = ""
         val bodyBuffer = StringBuilder()
         var dateSent: Long = 0

@@ -36,7 +36,8 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                     val threadId = intent.getIntExtra("thread_id", -1)
 
                     val subId = context.getDefaultSimSubscription()!!
-                    val subscriptionId = intent.getIntExtra("sub_id", subId)
+                    val subscriptionId = intent.getLongExtra("sub_id",
+                        subId.toLong())
 
                     val reply = remoteInput.getCharSequence(notificationReplyActionKey)
                     if (reply == null || reply.toString().isEmpty()) return

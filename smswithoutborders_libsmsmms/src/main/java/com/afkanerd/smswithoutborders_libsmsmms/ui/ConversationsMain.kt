@@ -120,6 +120,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SearchTopAppBarTex
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ShortCodeAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SimChooser
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.getConversationType
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -131,7 +132,7 @@ fun backHandler(
     text: String,
     mmsUri: Uri?,
     address: String,
-    subId: Int,
+    subId: Long,
     viewModel: ConversationsViewModel,
     navController: NavController
 ) {
@@ -155,8 +156,8 @@ fun backHandler(
 @Composable
 fun Conversations(
     address: String,
-    searchViewModel: SearchViewModel = SearchViewModel(),
     navController: NavController,
+    searchQuery: String? = null,
     _items: List<Conversations>? = null
 ) {
     val viewModel: ConversationsViewModel = viewModel()
@@ -176,6 +177,9 @@ fun Conversations(
 
     var isBlocked by remember {
         mutableStateOf(viewModel.contactIsBlocked(context, address)) }
+
+    var searchQuery by remember { mutableStateOf(searchQuery) }
+    var searchIndex by remember { mutableIntStateOf(0) }
 
     val scope = rememberCoroutineScope()
 
@@ -210,9 +214,6 @@ fun Conversations(
     var rememberMenuExpanded by remember { mutableStateOf( false) }
     var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
     var searchIndexes by remember { mutableStateOf(emptyList<Int>())}
-
-    var searchQuery by remember { mutableStateOf<String?>(null) }
-    var searchIndex by remember { mutableIntStateOf(0) }
 
     var openAlertDialog by remember { mutableStateOf(false)}
 
@@ -322,9 +323,7 @@ fun Conversations(
         isBlocked = isBlocked,
         isArchived = isArchived,
         searchCallback = {
-            searchViewModel.threadId = context.getThreadId(address).toString()
-            TODO("Navigate search")
-//            navController.navigate(SearchThreadScreen)
+            navController.navigate(SearchScreenNav(address = address))
         },
         blockCallback = {
             if(isBlocked) { context.unblockContact(address) }
@@ -596,8 +595,8 @@ fun Conversations(
             ) {
                 items(
                     count = if(inPreviewMode) _items!!.size else inboxMessagesItems.itemCount,
-                    key =  if(inPreviewMode) { index -> _items!![index].id }
-                    else inboxMessagesItems.itemKey{ it.id }
+                    key =  if(inPreviewMode) { index -> _items!![index].sms?._id!! }
+                    else inboxMessagesItems.itemKey{ it.sms?._id!! }
                 ) { index ->
                     (
                             if(inPreviewMode) _items!![index]
@@ -670,44 +669,25 @@ fun Conversations(
                             mutableStateOf(conversation.mms_content_uri?.toUri())
                         }
 
-                        Column {
-                            ConversationsCard(
-                                text= text,
-                                timestamp = timestamp,
-                                type= conversation.sms?.type!!,
-                                status = ConversationStatusTypes.fromInt(
-                                    conversation.sms?.status!!, isMms)!!,
-                                position = position,
-                                date = date,
-                                showDate = showDate,
-                                mmsContentUri = contentUri,
-                                mmsMimeType = conversation.mms_mimetype,
-                                mmsFilename = conversation.mms_filename,
-                                onClickCallback = {
-                                    if (selectedItems.isNotEmpty()) {
-                                        if (selectedItems.contains(conversation))
-                                            viewModel.setSelectedItems(
-                                                selectedItems.toMutableList().apply {
-                                                    this.remove(conversation)
-                                                }
-                                            )
-                                        else
-                                            viewModel.setSelectedItems(
-                                                selectedItems.toMutableList().apply {
-                                                    this.add(conversation)
-                                                }
-                                            )
-                                    }
-                                    else if(conversation.sms?.type ==
-                                        Telephony.Sms.MESSAGE_TYPE_FAILED) {
-                                        highlightedMessage = conversation
-                                        showFailedRetryModal = true
-                                    }
-                                    else {
-                                        showDate = !showDate
-                                    }
-                                },
-                                onLongClickCallback = {
+
+//                        if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX && context.getThreadId(address) == 1) {
+                        if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX) {
+                            println()
+                        }
+                        ConversationsCard(
+                            text= text,
+                            timestamp = timestamp,
+                            type= conversation.sms?.type!!,
+                            status = ConversationStatusTypes.fromInt(
+                                conversation.sms?.status!!, isMms)!!,
+                            position = position,
+                            date = date,
+                            showDate = showDate,
+                            mmsContentUri = contentUri,
+                            mmsMimeType = conversation.mms_mimetype,
+                            mmsFilename = conversation.mms_filename,
+                            onClickCallback = {
+                                if (selectedItems.isNotEmpty()) {
                                     if (selectedItems.contains(conversation))
                                         viewModel.setSelectedItems(
                                             selectedItems.toMutableList().apply {
@@ -720,10 +700,32 @@ fun Conversations(
                                                 this.add(conversation)
                                             }
                                         )
-                                },
-                                isSelected = selectedItems.contains(conversation),
-                            )
-                        }
+                                }
+                                else if(conversation.sms?.type ==
+                                    Telephony.Sms.MESSAGE_TYPE_FAILED) {
+                                    highlightedMessage = conversation
+                                    showFailedRetryModal = true
+                                }
+                                else {
+                                    showDate = !showDate
+                                }
+                            },
+                            onLongClickCallback = {
+                                if (selectedItems.contains(conversation))
+                                    viewModel.setSelectedItems(
+                                        selectedItems.toMutableList().apply {
+                                            this.remove(conversation)
+                                        }
+                                    )
+                                else
+                                    viewModel.setSelectedItems(
+                                        selectedItems.toMutableList().apply {
+                                            this.add(conversation)
+                                        }
+                                    )
+                            },
+                            isSelected = selectedItems.contains(conversation),
+                        )
 
                             // TODO: security things are in order
 //                        val checkIsSecured by remember {

@@ -3,4 +3,10 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.screens
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ConversationsScreenNav(val address: String)
+data class ConversationsScreenNav(
+    val address: String,
+    val query: String? = null
+)
+
+@Serializable
+data class SearchScreenNav(val address: String? = null)

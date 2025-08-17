@@ -1,19 +1,20 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data.data.models
 
 import androidx.room.Entity
+import androidx.room.Index
 import kotlinx.serialization.Serializable
 
 object smsMmsNatives {
 
-    @Entity
+    @Entity(indices = [Index(value = ["_id"], unique = true)])
     @Serializable
     data class Sms(
-        val _id: Int? = null,
-        val thread_id: Int,
+        val _id: Long? = null,
+        var thread_id: Int,
         val address: String?,
         val person: String? = null,
-        val date: Int,
-        val date_sent: Int,
+        val date: Long,
+        val date_sent: Long,
         val protocol: String? = null,
         var read: Int,
         var status: Int,
@@ -23,7 +24,7 @@ object smsMmsNatives {
         var body: String,
         val service_center: String? = null,
         val locked: Int? = null,
-        val sub_id: Int,
+        val sub_id: Long,
         var error_code: Int? = null,
         val creator: String? = null,
         val seen: Int? = null,
@@ -32,10 +33,10 @@ object smsMmsNatives {
     @Entity
     @Serializable
     data class Mms(
-        val _id: Int,
+        val _id: Long,
         val thread_id: Int,
-        val date: Int,
-        val date_sent: Int,
+        val date: Long,
+        val date_sent: Long,
         val msg_box: Int,
         val read: Int? = null,
         val m_id: String? = null,
@@ -63,7 +64,7 @@ object smsMmsNatives {
         val d_tm: String? = null,
         val d_rpt: Int? = null,
         val locked: Int? = null,
-        val sub_id: Int? = null,
+        val sub_id: Long? = null,
         val seen: Int? = null,
         val creator: String? = null,
         val text_only: Int? = null,
@@ -73,7 +74,7 @@ object smsMmsNatives {
     @Serializable
     data class MmsPart(
         val _id: Int,
-        val mid: Int,
+        val mid: Long,
         val seq: Int,
         val ct: String?,
         val name: String?,
@@ -86,7 +87,7 @@ object smsMmsNatives {
         val ctt_t: String? = null,
         val _data: String?,
         val text: String?,
-        val sub_id: Int,
+        val sub_id: Long?,
     )
 
     @Entity
@@ -98,7 +99,7 @@ object smsMmsNatives {
         val address: String?,
         val type: String?,
         val charset: String?,
-        val sub_id: Int? = null,
+        val sub_id: Long? = null,
     )
 
     // For exporting

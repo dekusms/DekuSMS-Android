@@ -45,7 +45,7 @@ fun Context.exportRawWithColumnGuesses(): String {
     val mmsPartsContents = arrayListOf<smsMmsNatives.MmsPart>()
     val smsContents = arrayListOf<smsMmsNatives.Sms>()
 
-    val mmsIds = mutableSetOf<Int>()
+    val mmsIds = mutableSetOf<Long>()
 
     // MMS
     contentResolver.query(
@@ -213,13 +213,13 @@ private fun parseRawMmsContentsParts(cursor: Cursor): smsMmsNatives.MmsPart {
 
 @SuppressLint("Range")
 private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
-    val _id: Int = cursor.getInt(cursor
+    val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms._ID))
     val thread_id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.THREAD_ID))
-    val date: Int = cursor.getInt(cursor
+    val date: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms.DATE))
-    val date_sent: Int = cursor.getInt(cursor
+    val date_sent: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms.DATE_SENT))
     val msg_box: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.MESSAGE_BOX))
@@ -251,7 +251,7 @@ private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
         .getColumnIndex(Telephony.Mms.DELIVERY_REPORT))
     val locked: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.LOCKED))
-    val sub_id: Int = cursor.getInt(cursor
+    val sub_id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms.SUBSCRIPTION_ID))
     val seen: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.SEEN))
@@ -289,15 +289,15 @@ private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
 
 @SuppressLint("Range")
 private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
-    val _id: Int = cursor.getInt(cursor
+    val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms._ID))
     val thread_id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.THREAD_ID))
     val address: String? = cursor.getString(cursor
         .getColumnIndex(Telephony.Sms.ADDRESS))
-    val date: Int = cursor.getInt(cursor
+    val date: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms.DATE))
-    val date_sent: Int = cursor.getInt(cursor
+    val date_sent: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms.DATE_SENT))
     val read: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.READ))
@@ -309,7 +309,7 @@ private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
         .getColumnIndex(Telephony.Sms.BODY))
     val locked: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.LOCKED))
-    val sub_id: Int = cursor.getInt(cursor
+    val sub_id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms.SUBSCRIPTION_ID))
     val error_code: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.ERROR_CODE))

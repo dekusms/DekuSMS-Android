@@ -51,6 +51,7 @@ import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -148,8 +149,9 @@ class MainActivity : AppCompatActivity(){
                             composable<ComposeNewMessageScreen>{
                                 ComposeNewMessageScreenComposable()
                             }
-                            composable<SearchThreadScreen>{
-                                SearchThreadScreenComposable()
+                            composable<SearchScreenNav> { backStackEntry ->
+                                val searchScreen: SearchScreenNav = backStackEntry.toRoute()
+                                SearchThreadScreenComposable(searchScreen)
                             }
                             composable<ContactDetailsScreen>{
                                 ContactDetailsScreenComposable()
@@ -244,19 +246,10 @@ class MainActivity : AppCompatActivity(){
     fun ConversationScreenComposable(conversationsScreenNav: ConversationsScreenNav) {
         Conversations(
             address = conversationsScreenNav.address,
-            searchViewModel = searchViewModel,
+            searchQuery = conversationsScreenNav.query,
             navController = navController
         )
     }
-
-//    @Composable
-//    fun ConversationScreenComposable() {
-//        Conversations(
-//            viewModel=conversationViewModel,
-//            searchViewModel=searchViewModel,
-//            navController=navController
-//        )
-//    }
 
     @Composable
     fun ComposeNewMessageScreenComposable() {
@@ -268,10 +261,10 @@ class MainActivity : AppCompatActivity(){
     }
 
     @Composable
-    fun SearchThreadScreenComposable() {
+    fun SearchThreadScreenComposable(searchScreenNav: SearchScreenNav) {
         SearchThreadsMain(
-            viewModel = searchViewModel,
-            conversationsViewModel = conversationViewModel,
+            address = searchScreenNav.address,
+            searchViewModel = searchViewModel,
             navController = navController
         )
     }

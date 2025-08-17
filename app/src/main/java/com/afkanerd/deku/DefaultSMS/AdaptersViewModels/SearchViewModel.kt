@@ -26,10 +26,10 @@ class SearchViewModel : ViewModel() {
         else {
             CoroutineScope(Dispatchers.Default).launch {
                 val datastore = context.getDatabase().conversationsDao()!!
-                val results = if(!threadId.isNullOrBlank())
-                    datastore.getAllThreadingSearch(input, threadId!!)
-                else datastore.getAllThreadingSearch(input)
-                liveData.postValue(results)
+//                val results = if(!threadId.isNullOrBlank())
+//                    datastore.getAllThreadingSearch(input, threadId!!)
+//                else datastore.getAllThreadingSearch(input)
+//                liveData.postValue(results)
             }
         }
     }

@@ -85,6 +85,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SwipeToDeleteBackg
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsMainDropDown
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.CoroutineScope
@@ -292,8 +293,7 @@ fun ThreadConversationLayout(
                         actions = {
                             if(isDefault || inPreviewMode) {
                                 IconButton(onClick = {
-                                    TODO("Implement search functionalities")
-//                                    navController.navigate(SearchThreadScreen)
+                                    navController.navigate(SearchScreenNav())
                                 }) {
                                     Icon(
                                         imageVector = Icons.Filled.Search,
@@ -601,8 +601,13 @@ fun ThreadConversationLayout(
 
                                 val dismissState = GetSwipeBehaviour(thread, inboxType)
 
-                                val date = if(thread.date > 0) DateTimeUtils
-                                    .formatDate( context, (thread.date * 1000L)) ?: "" else "Tues"
+//                                val date = if(thread.date > 0) DateTimeUtils
+//                                    .formatDate(context, (thread.date * 1000L)) ?: "" else "Tues"
+
+                                val date = if(!inPreviewMode) DateTimeUtils.formatDate(
+                                    context,
+                                    thread.date
+                                ) ?: "" else "Tues"
 
                                 SwipeToDismissBox(
                                     state = dismissState,
@@ -615,7 +620,7 @@ fun ThreadConversationLayout(
                                     }
                                 ) {
                                     ThreadConversationCard(
-                                        id = thread.threadId.toString(),
+                                        id = thread.threadId,
                                         firstName = firstName,
                                         lastName = lastName,
                                         phoneNumber = address,
@@ -717,11 +722,11 @@ fun PreviewMessageCard() {
                 threadId = i.toInt(),
                 address = "$i",
                 snippet = "Hello world: $i",
-                date = (System.currentTimeMillis() / 1000).toInt(),
+                date = System.currentTimeMillis(),
                 unread = true,
                 isMute = true,
                 type = Telephony.Sms.MESSAGE_TYPE_SENT,
-                conversationId = i,
+                conversationId = i.toLong(),
                 isArchive = false
             )
             messages.add(thread)

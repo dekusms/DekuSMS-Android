@@ -200,15 +200,16 @@ fun Context.isDualSim(): Boolean {
 }
 
 
-fun Context.getDefaultSimSubscription(): Int? {
+fun Context.getDefaultSimSubscription(): Long? {
     // TODO: check if there's even a simcard and handle it accordingly
     val subId = SubscriptionManager.getDefaultSmsSubscriptionId()
     if (subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID)  //            return getSimCardInformation(context).get(0).getSubscriptionId();
         return null
-    return subId
+    return subId.toLong()
 }
 
-fun Context.getSubscriptionName(subscriptionId: Int): String {
+fun Context.getSubscriptionName(subscriptionId: Long): String {
+    val subscriptionId = subscriptionId.toInt()
     val subscriptionInfos = getSimCardInformation()
     for (subscriptionInfo in subscriptionInfos!!)
         if (subscriptionInfo.subscriptionId == subscriptionId) {
@@ -253,7 +254,7 @@ fun Context.registerSmsToLocalDb(
     messageId: String,
     address: String,
     body: String,
-    subscriptionId: Int,
+    subscriptionId: Long,
     date: Long,
     dateSent: Long,
     type: Int,

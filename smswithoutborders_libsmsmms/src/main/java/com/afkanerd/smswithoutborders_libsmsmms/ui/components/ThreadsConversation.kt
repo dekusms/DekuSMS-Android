@@ -201,7 +201,7 @@ fun ImportDetails(
 @Composable
 private fun ThreadConversationsAvatar(
     context: Context,
-    id: String,
+    id: Int,
     firstName: String,
     lastName: String,
     phoneNumber: String,
@@ -247,7 +247,7 @@ private fun ThreadConversationsAvatar(
 @Composable
 fun ThreadConversationCard(
     phoneNumber: String,
-    id: String,
+    id: Int,
     firstName: String,
     lastName: String,
     content: String,
@@ -771,7 +771,7 @@ fun MainMenuDropDown_Preview() {
 fun ThreadConversationCard_Preview() {
     ThreadConversationCard(
         phoneNumber = "+237652156811",
-        id = "1",
+        id = 1,
         firstName = "Jane",
         lastName = "Doe",
         content = "Hello world",

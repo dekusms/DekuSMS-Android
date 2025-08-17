@@ -9,15 +9,16 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 
 @Dao
 interface ThreadsDao {
 
-    @Query("SELECT * FROM Threads WHERE isArchive = 0")
+    @Query("SELECT * FROM Threads WHERE isArchive = 0 ORDER BY date DESC")
     fun getThreads(): PagingSource<Int, Threads>
 
-    @Query("SELECT * FROM Threads WHERE isArchive = 1")
+    @Query("SELECT * FROM Threads WHERE isArchive = 1 ORDER BY date DESC")
     fun getArchived(): PagingSource<Int, Threads>
 
     @Query("SELECT * FROM Threads WHERE threadId = :threadId")
@@ -40,4 +41,20 @@ interface ThreadsDao {
         deleteThreads(threads)
         deleteConversations(threads.map { it.threadId })
     }
+
+    @Query("SELECT tc.*, max(c.date) FROM Threads tc LEFT JOIN Conversations c " +
+            "ON c.thread_id = tc.threadId " +
+            "WHERE tc.isArchive = 0 AND " +
+            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') AND " +
+            "(tc.threadId IS NULL)" +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun search(query: String): PagingSource<Int, Threads>
+
+    @Query("SELECT tc.*, max(c.date) FROM Threads tc LEFT JOIN Conversations c " +
+            "ON c.thread_id = tc.threadId " +
+            "WHERE c.thread_id = :threadId AND tc.isArchive = 0 AND" +
+            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') AND " +
+            "(tc.threadId IS NULL )" +
+            "GROUP BY thread_id ORDER BY date DESC")
+    fun search(query: String, threadId: Int): PagingSource<Int, Threads>
 }
