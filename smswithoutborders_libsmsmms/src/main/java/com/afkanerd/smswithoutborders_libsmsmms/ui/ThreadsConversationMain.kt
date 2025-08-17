@@ -418,12 +418,6 @@ fun ThreadConversationLayout(
                         },
                         actions = {
                             when(inboxType) {
-                                ThreadsViewModel.InboxType.INBOX -> {}
-                                ThreadsViewModel.InboxType.ARCHIVED -> {}
-                                ThreadsViewModel.InboxType.ENCRYPTED -> {}
-                                ThreadsViewModel.InboxType.BLOCKED -> {}
-                                ThreadsViewModel.InboxType.DRAFTS -> {}
-                                ThreadsViewModel.InboxType.MUTED -> {}
                                 ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
                                     IconButton(onClick = {
                                         TODO("Implement remote listeners add screen")
@@ -436,8 +430,7 @@ fun ThreadConversationLayout(
                                         )
                                     }
                                 }
-
-                                ThreadsViewModel.InboxType.DEVELOPER_MODE -> { }
+                                else -> { }
                             }
                         },
                         scrollBehavior = scrollBehaviour
@@ -446,6 +439,19 @@ fun ThreadConversationLayout(
             },
             floatingActionButton = {
                 when(inboxType) {
+                    ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                TODO("Implement remote listeners screen")
+//                                navController.navigate(RemoteListenersScreen)
+                            },
+                            icon = { Icon( Icons.Default.Settings,
+                                stringResource(R.string.settings)
+                            ) },
+                            text = { Text(text = "Configure") },
+                            expanded = listState.isScrollingUp()
+                        )
+                    }
                     ThreadsViewModel.InboxType.INBOX -> {
                         if(isDefault || inPreviewMode) {
                             ExtendedFloatingActionButton(
@@ -462,26 +468,7 @@ fun ThreadConversationLayout(
                             )
                         }
                     }
-                    ThreadsViewModel.InboxType.ARCHIVED -> {}
-                    ThreadsViewModel.InboxType.ENCRYPTED -> {}
-                    ThreadsViewModel.InboxType.BLOCKED -> {}
-                    ThreadsViewModel.InboxType.DRAFTS -> {}
-                    ThreadsViewModel.InboxType.MUTED -> {}
-                    ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                TODO("Implement remote listeners screen")
-//                                navController.navigate(RemoteListenersScreen)
-                            },
-                            icon = { Icon( Icons.Default.Settings,
-                                stringResource(R.string.settings)
-                            ) },
-                            text = { Text(text = "Configure") },
-                            expanded = listState.isScrollingUp()
-                        )
-                    }
-
-                    ThreadsViewModel.InboxType.DEVELOPER_MODE -> {}
+                    else -> {}
                 }
             }
         ) { innerPadding ->
@@ -642,14 +629,6 @@ fun ThreadConversationLayout(
                                                 if(selectedItems.isEmpty()) {
                                                     navController.navigate(
                                                         ConversationsScreenNav(address))
-//                                                    threadsViewModel.navigateToConversation(
-//                                                        threadsViewModel,
-//                                                        address = address!!,
-//                                                        threadId = message.thread_id!!,
-//                                                        subscriptionId =
-//                                                        SIMHandler.getDefaultSimSubscription(context),
-//                                                        navController = navController,
-//                                                    )
                                                 } else {
                                                     threadsViewModel.setSelectedItems(
                                                         selectedItems.toMutableList().apply {
