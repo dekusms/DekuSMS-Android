@@ -132,6 +132,7 @@ fun backHandler(
     mmsUri: Uri?,
     address: String,
     subId: Int,
+    viewModel: ConversationsViewModel,
     navController: NavController
 ) {
     if(text.isNotBlank()) {
@@ -144,7 +145,9 @@ fun backHandler(
         ) {}
     }
 
-    navController.popBackStack()
+    if(viewModel.getSelectedItemCount() > 0)
+        viewModel.removeAllSelectedItems()
+    else navController.popBackStack()
 }
 
 
@@ -308,6 +311,7 @@ fun Conversations(
             mmsUri = typingMmsImage,
             address = address,
             subId = subscriptionId!!,
+            viewModel = viewModel,
             navController = navController,
         )
     }
@@ -346,7 +350,8 @@ fun Conversations(
                 typingMmsImage,
                 address,
                 subscriptionId!!,
-                navController
+                viewModel = viewModel,
+                navController=navController
             )
         },
         muteCallback = {
@@ -395,17 +400,17 @@ fun Conversations(
                 navigationIcon = {
                     // TODO "Implement folded functionality here"
                     IconButton(onClick = {
-                        viewModel.removeAllSelectedItems()
                         if(!searchQuery.isNullOrEmpty()) searchQuery = ""
-                        else
-                            backHandler(
-                                context = context,
-                                text = typingText,
-                                mmsUri = typingMmsImage,
-                                address = address,
-                                subId = subscriptionId!!,
-                                navController = navController,
-                            )
+                        else backHandler(
+                            context = context,
+                            text = typingText,
+                            mmsUri = typingMmsImage,
+                            address = address,
+                            subId = subscriptionId!!,
+                            viewModel = viewModel,
+                            navController = navController,
+                        )
+                        viewModel.removeAllSelectedItems()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack,
                             stringResource(R.string.go_back))
