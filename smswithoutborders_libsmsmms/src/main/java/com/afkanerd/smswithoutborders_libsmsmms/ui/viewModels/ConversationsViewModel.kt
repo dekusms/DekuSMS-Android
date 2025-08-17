@@ -286,13 +286,45 @@ class ConversationsViewModel: ViewModel() {
         callback: () -> Unit,
     ) {
         viewModelScope.launch {
-            context.getThreadId(address).let { threadId ->
-                withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
+                context.getThreadId(address).let { threadId ->
                     context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
                         ThreadsViewModel().deleteThreads(context, listOf(thread))
                         callback()
                     }
                 }
+            }
+        }
+    }
+
+    fun addDraft(
+        context: Context,
+        body: String,
+        mmsUri: Uri?,
+        address: String,
+        subId: Int,
+        callback: (Conversations) -> Unit
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val threadId = context.getThreadId(address)
+                val conversation = Conversations(
+                    sms = smsMmsNatives.Sms(
+                        _id = (System.currentTimeMillis() / 1000).toInt(),
+                        thread_id = threadId,
+                        address = address,
+                        date = (System.currentTimeMillis() / 1000).toInt(),
+                        date_sent = (System.currentTimeMillis() / 1000).toInt(),
+                        read = 1,
+                        status = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+                        type = Telephony.Sms.MESSAGE_TYPE_DRAFT,
+                        body = body,
+                        sub_id = subId
+                    ),
+                    mms_content_uri = mmsUri?.toString()
+                )
+                context.getDatabase().conversationsDao()?.insert(conversation)
+                callback(conversation)
             }
         }
     }

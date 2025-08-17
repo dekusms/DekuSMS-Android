@@ -209,7 +209,6 @@ fun SearchTopAppBarText(
 @Composable
 fun ChatCompose(
     value: String,
-    mmsImage: ByteArray? = null,
     encryptedValue: String = if(LocalInspectionMode.current)
         Base64.encodeToString(LoremIpsum().values.first()
             .encodeToByteArray(), Base64.DEFAULT)
@@ -286,7 +285,7 @@ fun ChatCompose(
                     Divider()
                 }
                 
-                if((imageUri != null && mmsImage != null) || LocalInspectionMode.current) {
+                if((imageUri != null) || LocalInspectionMode.current) {
                     ComposeMmsImage(imageUri) {
                         mmsCancelCallback?.invoke()
                     }
@@ -369,10 +368,10 @@ fun ChatCompose(
 
                     }
 
-                    if(value.isNotBlank() || mmsImage != null || LocalInspectionMode.current) {
+                    if(value.isNotBlank() || imageUri != null || LocalInspectionMode.current) {
                         IconButton(
                             onClick = {
-                                if(mmsImage != null) {
+                                if(imageUri != null) {
                                     sendMmsCallback?.invoke(imageUri!!)
                                 } else {
                                     smsSendCallback?.invoke()

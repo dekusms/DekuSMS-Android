@@ -145,23 +145,25 @@ import kotlin.collections.get
 import kotlin.compareTo
 import kotlin.let
 
-
 fun backHandler(
     context: Context,
-    viewModel: ConversationsViewModel,
+    text: String,
+    mmsUri: Uri?,
+    address: String,
+    subId: Int,
     navController: NavController
 ) {
-    if(viewModel.text.isNotBlank()) {
-        CoroutineScope(Dispatchers.Default).launch {
-            viewModel.insertDraft(context)
-            viewModel.text = ""
-        }
+    if(text.isNotBlank()) {
+        ConversationsViewModel().addDraft(
+            context,
+            body = text,
+            mmsUri = mmsUri,
+            address = address,
+            subId = subId
+        ) {}
     }
 
-    if(!viewModel.selectedItems.isEmpty()) {
-        viewModel.selectedItems.clear()
-    }
-    else navController.popBackStack()
+    navController.popBackStack()
 }
 
 
@@ -318,7 +320,14 @@ fun Conversations(
 
     BackHandler {
         if(!searchQuery.isNullOrEmpty()) searchQuery = ""
-        TODO("Implement")
+        else backHandler(
+            context = context,
+            text = typingText,
+            mmsUri = typingMmsImage,
+            address = address,
+            subId = subscriptionId!!,
+            navController = navController,
+        )
     }
 
     ConversationsMainDropDownMenu(
@@ -401,11 +410,15 @@ fun Conversations(
                 navigationIcon = {
                     // TODO "Implement folded functionality here"
                     IconButton(onClick = {
+                        viewModel.removeAllSelectedItems()
                         if(!searchQuery.isNullOrEmpty()) searchQuery = ""
                         else
                             backHandler(
                                 context = context,
-                                viewModel = viewModel,
+                                text = typingText,
+                                mmsUri = typingMmsImage,
+                                address = address,
+                                subId = subscriptionId!!,
                                 navController = navController,
                             )
                     }) {
@@ -474,7 +487,6 @@ fun Conversations(
                     onInfoRequested = {
                         openInfoAlert = true
                         highlightedMessage = it
-                        viewModel.removeAllSelectedItems()
                     },
                     onCompleted = { viewModel.removeAllSelectedItems() }
                 ) {
@@ -534,7 +546,6 @@ fun Conversations(
                 ) {
                     ChatCompose(
                         value = typingText,
-                        mmsImage = typingMmsImage,
                         subscriptionId = subscriptionId!!,
                         shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
