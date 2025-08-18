@@ -60,11 +60,20 @@ interface ThreadsDao {
     fun search(query: String): PagingSource<Int, Threads>
 
 
-    @Query("SELECT tc.*, max(c.date) FROM Threads tc LEFT JOIN Conversations c " +
+    @Query("SELECT " +
+            "tc.threadId, " +
+            "tc.isArchive, " +
+            "tc.address, " +
+            "tc.conversationId, " +
+            "c.date AS date, " +
+            "tc.isMute, " +
+            "tc.type, " +
+            "tc.unread, " +
+            "c.body AS snippet " +
+            "FROM Threads tc LEFT JOIN Conversations c " +
             "ON c.thread_id = tc.threadId " +
-            "WHERE c.thread_id = :threadId AND tc.isArchive = 0 AND" +
-            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') AND " +
-            "(tc.threadId IS NULL )" +
+            "WHERE c.thread_id = :threadId AND tc.isArchive = 0 AND " +
+            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') " +
             "GROUP BY thread_id ORDER BY date DESC")
     fun search(query: String, threadId: Int): PagingSource<Int, Threads>
 }
