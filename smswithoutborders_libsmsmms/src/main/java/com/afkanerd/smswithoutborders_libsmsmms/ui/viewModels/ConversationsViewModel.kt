@@ -176,15 +176,14 @@ class ConversationsViewModel: ViewModel() {
                     ?.getConversationsList(threadId)?.let { items ->
                         items.forEachIndexed { index, it ->
                             it.sms?.body?.let { text ->
-                                if(text.contains(other=query, ignoreCase=true)
-                                    && !searchIndexes.contains(index))
+                                if(!searchIndexes.contains(index) &&
+                                    text.contains(other=query, ignoreCase=true))
                                     searchIndexes.add(index)
                             }
                         }
 
                 }
                 callback(searchIndexes)
-
             }
         }
     }

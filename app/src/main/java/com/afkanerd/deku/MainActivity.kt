@@ -15,16 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -33,25 +29,24 @@ import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.ui.DeveloperModeMain
-import com.afkanerd.deku.DefaultSMS.ui.LogcatMain
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
+import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -120,84 +115,104 @@ class MainActivity : AppCompatActivity(){
     }
 
     private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
-        // TODO("Fix this")
-//        conversationViewModel.newLayoutInfo = newLayoutInfo
         setContent {
             AppTheme {
                 navController = rememberNavController()
                 Surface(Modifier
                     .fillMaxSize()
                 ) {
-                    val isFolded by remember {
-                        mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
-                    }
-                    NavHost(
-                        modifier = Modifier,
+                    NavHostControllerInstance(
+                        newLayoutInfo = newLayoutInfo,
                         navController = navController,
-                        startDestination = HomeScreen,
+                        threadsViewModel = threadsViewModel,
+                        searchViewModel = searchViewModel,
                     ) {
-                        if(!isFolded) {
-                            composable<HomeScreen>{
-                                HomeScreenComposable()
-                            }
-//                            composable<ConversationsScreen> {
-//                                ConversationScreenComposable()
-//                            }
-                            composable<ConversationsScreenNav> { backStackEntry ->
-                                val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
-                                ConversationScreenComposable(convScreen)
-                            }
-                            composable<ComposeNewMessageScreen>{
-                                ComposeNewMessageScreenComposable()
-                            }
-                            composable<SearchScreenNav> { backStackEntry ->
-                                val searchScreen: SearchScreenNav = backStackEntry.toRoute()
-                                SearchThreadScreenComposable(searchScreen)
-                            }
-                            composable<ContactDetailsScreen>{
-                                ContactDetailsScreenComposable()
-                            }
-                            composable<RemoteListenersScreen>{
-                                TODO("Implement RMQ")
-//                                RMQMainComposable(
-//                                    remoteListenerViewModel = remoteListenersViewModel,
-//                                    remoteListenerQueuesViewModel =
-//                                        remoteListenersProjectsViewModel,
-//                                    conversationsViewModel = conversationViewModel,
-//                                    navController = navController
-//                                )
-                            }
-                            composable<RemoteListenersAddScreen>{
-                                RMQAddComposable(
-                                    navController = navController,
-                                    remoteListenerViewModel = remoteListenersViewModel
-                                )
-                            }
-                            composable<RemoteListenersQueuesScreen>{
-                                RMQQueuesComposable(
-                                    remoteListenersViewModel = remoteListenersViewModel,
-                                    navController = navController
-                                )
-                            }
-                            composable<LogcatScreen>{
-                                LogcatMain()
-                            }
-                            composable<DeveloperModeScreen>{
-                                DeveloperModeMain(navController = navController)
-                            }
-                        }
-                        else {
-                            composable<HomeScreen>{
-                                Folded()
-                            }
-                        }
                     }
-
-                    handleIntent(intent)
                 }
             }
         }
     }
+
+//    private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
+//        // TODO("Fix this")
+////        conversationViewModel.newLayoutInfo = newLayoutInfo
+//        setContent {
+//            AppTheme {
+//                navController = rememberNavController()
+//                Surface(Modifier
+//                    .fillMaxSize()
+//                ) {
+//                    val isFolded by remember {
+//                        mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
+//                    }
+//                    NavHost(
+//                        modifier = Modifier,
+//                        navController = navController,
+//                        startDestination = HomeScreen,
+//                    ) {
+//                        if(!isFolded) {
+//                            composable<HomeScreen>{
+//                                HomeScreenComposable()
+//                            }
+////                            composable<ConversationsScreen> {
+////                                ConversationScreenComposable()
+////                            }
+//                            composable<ConversationsScreenNav> { backStackEntry ->
+//                                val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
+//                                ConversationScreenComposable(convScreen)
+//                            }
+//                            composable<ComposeNewMessageScreen>{
+//                                ComposeNewMessageScreenComposable()
+//                            }
+//                            composable<SearchScreenNav> { backStackEntry ->
+//                                val searchScreen: SearchScreenNav = backStackEntry.toRoute()
+//                                SearchThreadScreenComposable(searchScreen)
+//                            }
+//                            composable<ContactDetailsScreen>{
+//                                ContactDetailsScreenComposable()
+//                            }
+//                            composable<RemoteListenersScreen>{
+//                                TODO("Implement RMQ")
+////                                RMQMainComposable(
+////                                    remoteListenerViewModel = remoteListenersViewModel,
+////                                    remoteListenerQueuesViewModel =
+////                                        remoteListenersProjectsViewModel,
+////                                    conversationsViewModel = conversationViewModel,
+////                                    navController = navController
+////                                )
+//                            }
+//                            composable<RemoteListenersAddScreen>{
+//                                RMQAddComposable(
+//                                    navController = navController,
+//                                    remoteListenerViewModel = remoteListenersViewModel
+//                                )
+//                            }
+//                            composable<RemoteListenersQueuesScreen>{
+//                                RMQQueuesComposable(
+//                                    remoteListenersViewModel = remoteListenersViewModel,
+//                                    navController = navController
+//                                )
+//                            }
+//                            composable<LogcatScreen>{
+//                                LogcatMain()
+//                            }
+//                            composable<DeveloperModeScreen>{
+//                                DeveloperModeMain(navController = navController)
+//                            }
+//                        }
+//                        else {
+//                            composable<HomeScreen>{
+//                                Folded()
+//                            }
+//                        }
+//                    }
+//
+//                    handleIntent(intent)
+//                }
+//            }
+//        }
+//    }
+//
 
     @Composable
     fun Folded() {
@@ -206,7 +221,6 @@ class MainActivity : AppCompatActivity(){
                 HomeScreenComposable()
             }
 
-            TODO("Remove this line")
 //            if(conversationViewModel.address.isNotEmpty() &&
 //                conversationViewModel.threadId.isNotEmpty()
 //            )

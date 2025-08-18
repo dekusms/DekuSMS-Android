@@ -88,6 +88,7 @@ import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -231,25 +232,35 @@ fun Conversations(
     var subscriptionId by remember{ mutableStateOf( context.getDefaultSimSubscription()) }
     var highlightedMessage by remember{ mutableStateOf<Conversations?>(null) }
 
-    LaunchedEffect(searchIndexes) {
-        if(searchIndexes.isNotEmpty() && searchIndex == 0) {
-            if(inboxMessagesItems.itemCount > searchIndexes.first()) {
-                inboxMessagesItems[searchIndexes.first()]
-                scope.launch {
-                    listState.animateScrollToItem(searchIndexes.first())
-                }
+    LaunchedEffect(Unit){
+        if(!searchQuery.isNullOrEmpty()) {
+            viewModel.search(context, searchQuery!!, address) { indexes ->
+                searchIndexes = indexes
             }
-            else {
-                println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
-                inboxMessagesItems.refresh()
-            }
+        }
+
+        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+            isMute = it
+        }
+
+        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+            isArchived = it
         }
     }
 
-    LaunchedEffect(inboxMessagesItems.loadState) {
-        if(!searchQuery.isNullOrEmpty() && inboxMessagesItems.loadState.isIdle) {
-            viewModel.search(context, searchQuery!!, address) { indexes ->
-                searchIndexes = indexes
+    LaunchedEffect(inboxMessagesItems.loadState, searchIndexes) {
+        if(inboxMessagesItems.loadState.isIdle) {
+            if(searchIndexes.isNotEmpty() && searchIndex == 0) {
+                if(inboxMessagesItems.itemCount > searchIndexes.first()) {
+                    inboxMessagesItems[searchIndexes.first()]
+                    scope.launch {
+                        listState.animateScrollToItem(searchIndexes.first(), )
+                    }
+                }
+                else {
+                    println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
+                    inboxMessagesItems.refresh()
+                }
             }
         }
 
@@ -272,15 +283,6 @@ fun Conversations(
         } else address.replace(Regex("[\\s-]"), "")
     )}
 
-    LaunchedEffect(Unit){
-        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
-            isMute = it
-        }
-
-        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
-            isArchived = it
-        }
-    }
 
 //    if(isSecured) {
 //        LaunchedEffect(viewModel.text) {
@@ -491,7 +493,7 @@ fun Conversations(
                         else searchIndex += 1
                         scope.launch {
                             if(searchIndexes.size >= searchIndex)
-                                listState.animateScrollToItem(searchIndexes[searchIndex])
+                                listState.animateScrollToItem(searchIndexes[searchIndex], 0)
                         }
                     },
                     backwardClick = {
@@ -499,7 +501,7 @@ fun Conversations(
                             searchIndex = searchIndexes.size - 1
                         else searchIndex -= 1
                         scope.launch {
-                            listState.animateScrollToItem(searchIndexes[searchIndex])
+                            listState.animateScrollToItem(searchIndexes[searchIndex], 0)
                         }
                     }
                 )
@@ -670,10 +672,6 @@ fun Conversations(
                         }
 
 
-//                        if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX && context.getThreadId(address) == 1) {
-                        if(conversation.sms?.type == Telephony.Sms.MESSAGE_TYPE_INBOX) {
-                            println()
-                        }
                         ConversationsCard(
                             text= text,
                             timestamp = timestamp,

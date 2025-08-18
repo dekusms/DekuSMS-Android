@@ -138,7 +138,7 @@ interface ConversationsDao {
             "type = :type ORDER BY  date DESC LIMIT 1")
     fun fetchConversationsForType(threadId: Int, type: Int): Conversations?
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId")
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
     fun getConversationsList(threadId: Int): List<Conversations>
 
 

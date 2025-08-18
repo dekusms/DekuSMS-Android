@@ -64,12 +64,15 @@ fun SearchThreadsMain(
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || context.isDefault()) }
 
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf(searchViewModel.searchQuery.value) }
 
     BackHandler {
         if(!searchViewModel.searchQuery.value.isEmpty())
             searchViewModel.setSearchQuery("")
-        else navController.popBackStack()
+        else {
+            searchViewModel.setSearchQuery("")
+            navController.popBackStack()
+        }
     }
 
     Scaffold(
@@ -101,20 +104,23 @@ fun SearchThreadsMain(
                                     searchQuery = ""
                                     searchViewModel.setSearchQuery(searchQuery)
                                 }
-                                else navController.popBackStack()
+                                else {
+                                    searchViewModel.setSearchQuery("")
+                                    navController.popBackStack()
+                                }
                             }) {
                                 Icon(Icons.AutoMirrored.Default.ArrowBack,
                                     contentDescription = null)
                             }
                         },
                         trailingIcon = {
-                            IconButton(onClick = {
-                                if(searchQuery.isNotEmpty()) {
+                            if(searchQuery.isNotEmpty()) {
+                                IconButton(onClick = {
                                     searchQuery = ""
                                     searchViewModel.setSearchQuery(searchQuery)
+                                }) {
+                                    Icon(Icons.Default.Cancel, contentDescription = null)
                                 }
-                            }) {
-                                Icon(Icons.Default.Cancel, contentDescription = null)
                             }
                         },
                     )
