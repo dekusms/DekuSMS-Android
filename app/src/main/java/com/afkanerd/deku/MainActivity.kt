@@ -30,7 +30,7 @@ import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
 import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
-import com.afkanerd.deku.DefaultSMS.ui.SearchThreadsMain
+import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
@@ -48,6 +48,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQue
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
@@ -69,10 +70,9 @@ class MainActivity : AppCompatActivity(){
 
     private val conversationViewModel: ConversationsViewModel by viewModels()
     private val threadsViewModel: ThreadsViewModel by viewModels()
-    private val searchViewModel: SearchViewModel by viewModels()
     private val contactsViewModel: ContactsViewModel by viewModels()
 
-//    private val remoteListenersViewModel: RemoteListenersViewModel by viewModels()
+    private lateinit var searchViewModel: SearchViewModel
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
     private val remoteListenersProjectsViewModel:
             RemoteListenerQueuesViewModel by viewModels()
@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity(){
             window.isNavigationBarContrastEnforced = false
         }
 
+        searchViewModel = SearchViewModel(getDatabase().threadsDao()!!)
         remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
 
         lifecycleScope.launch(Dispatchers.Main) {

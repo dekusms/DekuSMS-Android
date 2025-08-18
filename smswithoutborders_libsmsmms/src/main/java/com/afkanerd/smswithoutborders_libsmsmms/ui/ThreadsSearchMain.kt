@@ -1,8 +1,10 @@
-package com.afkanerd.deku.DefaultSMS.ui
+package com.afkanerd.smswithoutborders_libsmsmms.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,30 +25,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import androidx.room.util.TableInfo
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
-import kotlinx.coroutines.flow.first
-import kotlin.collections.isNotEmpty
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -59,18 +57,19 @@ fun SearchThreadsMain(
     val context = LocalContext.current
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var searchInput by remember { mutableStateOf("") }
 
     val listState = rememberLazyListState()
 
-    val items = searchViewModel.search(context)
-
-    val inboxMessagesItems = items.collectAsLazyPagingItems()
+    val inboxMessagesItems = searchViewModel.threads.collectAsLazyPagingItems()
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || context.isDefault()) }
 
+    var searchQuery by remember { mutableStateOf("") }
+
     BackHandler {
-        navController.popBackStack()
+        if(!searchViewModel.searchQuery.value.isEmpty())
+            searchViewModel.setSearchQuery("")
+        else navController.popBackStack()
     }
 
     Scaffold(
@@ -79,15 +78,17 @@ fun SearchThreadsMain(
             SearchBar(
                 inputField = {
                     SearchBarDefaults.InputField(
-                        query= searchInput,
+                        query= searchQuery,
                         onQueryChange = {
-                            searchInput = it
-                            if(it.length > 1)
-                                searchViewModel.searchQuery.value = it
+                            searchQuery = it
+                            searchViewModel.setSearchQuery(it)
+                            if(it.length > 1) {
+                                searchViewModel.setSearchQuery(it)
+                            }
+                            else searchViewModel.setSearchQuery("")
                         },
                         onSearch = {
                             expanded = false
-                            inboxMessagesItems.refresh()
                         },
                         expanded = expanded,
                         onExpandedChange = { /* expanded = it */ },
@@ -96,12 +97,11 @@ fun SearchThreadsMain(
                         },
                         leadingIcon = {
                             IconButton(onClick = {
-                                if(searchInput.isNotBlank()) {
-                                    searchViewModel.searchQuery.value = ""
-                                    inboxMessagesItems.refresh()
-                                } else {
-                                    navController.popBackStack()
+                                if(searchQuery.isNotEmpty()) {
+                                    searchQuery = ""
+                                    searchViewModel.setSearchQuery(searchQuery)
                                 }
+                                else navController.popBackStack()
                             }) {
                                 Icon(Icons.AutoMirrored.Default.ArrowBack,
                                     contentDescription = null)
@@ -109,8 +109,10 @@ fun SearchThreadsMain(
                         },
                         trailingIcon = {
                             IconButton(onClick = {
-                                searchViewModel.searchQuery.value = ""
-                                inboxMessagesItems.refresh()
+                                if(searchQuery.isNotEmpty()) {
+                                    searchQuery = ""
+                                    searchViewModel.setSearchQuery(searchQuery)
+                                }
                             }) {
                                 Icon(Icons.Default.Cancel, contentDescription = null)
                             }
@@ -120,18 +122,18 @@ fun SearchThreadsMain(
                 expanded = expanded,
                 onExpandedChange = { expanded = it},
                 modifier = Modifier.fillMaxWidth()
-            ) {
-
-            }
+            ) { }
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             state = listState
         )  {
             items(
                 count = inboxMessagesItems.itemCount,
-                key = { inboxMessagesItems.itemKey { it.threadId }}
+                key = inboxMessagesItems.itemKey { it.threadId }
             ) { index ->
                 val message = inboxMessagesItems[index]
 
@@ -165,11 +167,11 @@ fun SearchThreadsMain(
                         isRead = !message.unread,
                         isContact = !contactName.isNullOrBlank(),
                         modifier = Modifier.combinedClickable(
-                            onClick = { navController
-                                .navigate( ConversationsScreenNav(
-                                    message.address,
-                                    query = searchInput,
-                                ))
+                            onClick = {
+//                                navController.navigate( ConversationsScreenNav(
+//                                    message.address,
+//                                    query = searchViewModel.searchQuery.value,
+//                                ))
                             },
                         ),
                         type = message.type,
