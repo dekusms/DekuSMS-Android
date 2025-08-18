@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import kotlinx.serialization.Serializable
 
-object smsMmsNatives {
+object SmsMmsNatives {
 
     @Entity(indices = [Index(value = ["_id"], unique = true)])
     @Serializable

@@ -117,59 +117,6 @@ fun Context.getBlocked(): Cursor? {
     )
 }
 
-fun Context.retrieveContactName(phoneNumber: String): String? {
-    val uri = Uri.withAppendedPath(
-        ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
-        Uri.encode(phoneNumber)
-    )
-    val cursor = contentResolver.query(
-        uri,
-        arrayOf<String>(ContactsContract.PhoneLookup.DISPLAY_NAME),
-        null,
-        null, null
-    )
-
-    if (cursor == null) return null
-
-    try {
-        if (cursor.moveToFirst()) {
-            val displayNameIndex =
-                cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME)
-            return cursor.getString(displayNameIndex)
-        }
-    } finally {
-        cursor.close()
-    }
-
-    return null
-}
-
-fun Context.retrieveContactPhoto(phoneNumber: String?): String? {
-    val uri = Uri.withAppendedPath(
-        ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
-        Uri.encode(phoneNumber)
-    )
-    val cursor = contentResolver.query(
-        uri,
-        arrayOf<String>(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI),
-        null,
-        null, null
-    )
-
-    var contactPhotoThumbUri: String? = ""
-    if (cursor == null) return null
-
-    try {
-        if (cursor.moveToFirst()) {
-            val displayContactPhoto =
-                cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
-            contactPhotoThumbUri = cursor.getString(displayContactPhoto).toString()
-        }
-    } finally {
-        cursor.close()
-    }
-    return contactPhotoThumbUri
-}
 
 fun Context.call(address: String) {
     val callIntent = Intent(Intent.ACTION_DIAL).apply {

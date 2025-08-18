@@ -27,7 +27,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
-    threadsDao: ThreadsDao
+    threadsDao: ThreadsDao,
+    threadId: Int? = null,
 ) : ViewModel() {
 //    var pageSize: Int = 10
 //    var prefetchDistance: Int = 3 * pageSize
@@ -54,10 +55,10 @@ class SearchViewModel(
                     enablePlaceholders = false
                 ),
                 pagingSourceFactory = {
-                    threadsDao.search(query)
+                    if(threadId == null) threadsDao.search(query)
+                    else threadsDao.search(query, threadId)
                 }
             ).flow
         }
-    }
-    .cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
 }

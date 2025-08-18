@@ -128,6 +128,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SearchTopAppBarTex
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ShortCodeAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SimChooser
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.getConversationType
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -156,7 +158,13 @@ fun backHandler(
 
     if(viewModel.getSelectedItemCount() > 0)
         viewModel.removeAllSelectedItems()
-    else navController.popBackStack()
+    else if(!navController.popBackStack()) {
+        navController.navigate(HomeScreenNav()) {
+            popUpTo(navController.graph.startDestinationId) {
+                inclusive = true
+            }
+        }
+    }
 }
 
 
@@ -408,8 +416,7 @@ fun Conversations(
                 title = {
                     if(searchQuery.isNullOrEmpty()) {
                         TextButton(onClick = {
-//                            navController.navigate(ContactDetailsScreen)
-                            TODO("Implement navigation")
+                            navController.navigate(ContactDetailsNav(address))
                         }) {
                             Text(
                                 if(LocalInspectionMode.current) "Template" else contactName,

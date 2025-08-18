@@ -1,6 +1,5 @@
 package com.afkanerd.deku
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -8,13 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -23,40 +17,17 @@ import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
-import androidx.window.layout.WindowLayoutInfo
-import com.afkanerd.deku.DefaultSMS.ui.ComposeNewMessage
-import com.afkanerd.deku.DefaultSMS.ui.ContactDetails
-import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
-import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
-import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
-import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
-import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
 
 class MainActivity : AppCompatActivity(){

@@ -84,6 +84,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ModalDrawerSheetLa
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SwipeToDeleteBackground
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsMainDropDown
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -456,8 +457,7 @@ fun ThreadConversationLayout(
                         if(isDefault || inPreviewMode) {
                             ExtendedFloatingActionButton(
                                 onClick = {
-                                    TODO("Implement compose new message")
-//                                    navController.navigate(ComposeNewMessageScreen)
+                                    navController.navigate(ComposeNewMessageNav)
                                 },
                                 icon = { Icon( Icons.AutoMirrored.Default.Message,
                                     stringResource(R.string.compose_new_message)) },

@@ -4,18 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
-import android.telephony.SmsManager
 import android.text.TextUtils
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
 import com.android.mms.transaction.DownloadManager
 import com.android.mms.transaction.PushReceiver
 import com.google.android.mms.MmsException
 import com.google.android.mms.pdu_alt.PduParser
 import com.google.android.mms.pdu_alt.PduPersister
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
@@ -42,7 +37,7 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
 
         var location: String? = "";
         try {
-            location = mmsParser.getMmsContentLocation(context!!,uri)
+            location = MmsParser.getMmsContentLocation(context!!,uri)
         } catch(e: Exception ) {
             location = pduPersister.getContentLocationFromPduHeader(pdu)
             e.printStackTrace()

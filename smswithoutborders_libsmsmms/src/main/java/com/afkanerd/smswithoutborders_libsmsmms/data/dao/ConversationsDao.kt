@@ -8,7 +8,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 
@@ -24,7 +24,7 @@ interface ConversationsDao {
     @Update
     fun updateThread(thread: Threads)
 
-    fun insertUpdateThread(sms: smsMmsNatives.Sms) {
+    fun insertUpdateThread(sms: SmsMmsNatives.Sms) {
         val thread = getThread(sms.thread_id)
         if(thread == null) {
             insertThread(

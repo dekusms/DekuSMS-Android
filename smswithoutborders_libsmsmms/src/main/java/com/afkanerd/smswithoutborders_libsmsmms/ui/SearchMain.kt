@@ -3,7 +3,6 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,21 +24,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import androidx.room.util.TableInfo
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
@@ -55,6 +53,16 @@ fun SearchThreadsMain(
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
+
+    val searchViewModel = if(address == null) searchViewModel
+    else {
+        remember {
+            SearchViewModel(
+                context.getDatabase().threadsDao()!!,
+                threadId = context.getThreadId(address)
+            )
+        }
+    }
 
     var expanded by rememberSaveable { mutableStateOf(false) }
 

@@ -8,7 +8,7 @@ import android.util.Xml
 import com.klinker.android.send_message.Settings
 import org.xmlpull.v1.XmlPullParser
 
-object mmsParser {
+object MmsParser {
     const val COLUMN_CONTENT_LOCATION = 0
 
     private const val ELEMENT_TAG_IMAGE: String = "img"

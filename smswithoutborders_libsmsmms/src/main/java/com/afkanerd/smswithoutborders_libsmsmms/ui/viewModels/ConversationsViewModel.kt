@@ -10,7 +10,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
@@ -119,7 +119,7 @@ class ConversationsViewModel: ViewModel() {
         )
 
         val conversation = Conversations(
-            sms = smsMmsNatives.Sms(
+            sms = SmsMmsNatives.Sms(
                 _id = System.currentTimeMillis(),
                 thread_id = threadId,
                 address = address,
@@ -309,7 +309,7 @@ class ConversationsViewModel: ViewModel() {
             withContext(Dispatchers.IO) {
                 val threadId = context.getThreadId(address)
                 val conversation = Conversations(
-                    sms = smsMmsNatives.Sms(
+                    sms = SmsMmsNatives.Sms(
                         _id = System.currentTimeMillis(),
                         thread_id = threadId,
                         address = address,

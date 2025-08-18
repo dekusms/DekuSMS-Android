@@ -1,5 +1,6 @@
-package com.afkanerd.deku.DefaultSMS.ui
+package com.afkanerd.smswithoutborders_libsmsmms.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,13 +35,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel
-import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.runtime.setValue
-import com.afkanerd.deku.DefaultSMS.Models.Contacts
 
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -51,9 +48,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.Contacts
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 
 @Preview
@@ -68,7 +70,7 @@ fun ContactAvatar(
             Color("$id / $name".toHslColor())
         }
         val initials = name.take(1).uppercase()
-        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(SolidColor(color))
         }
         Text(text = initials, style = MaterialTheme.typography.titleSmall, color = Color.White)
@@ -79,14 +81,12 @@ fun ContactAvatar(
 @Composable
 fun ComposeNewMessage(
     navController: NavController,
-    viewModel: ContactsViewModel,
-    conversationsViewModel: ConversationsViewModel = ConversationsViewModel(),
     _items: List<Contacts>? = null
 ) {
     val context = LocalContext.current
 
-    val items: List<Contacts> by viewModel
-        .getContacts(context).observeAsState(emptyList())
+    val viewModel: ContactsViewModel = viewModel()
+    val items: List<Contacts> by viewModel.getContacts(context).observeAsState(emptyList())
 
     val listState = rememberLazyListState()
     var userInput by remember { mutableStateOf("") }
@@ -146,19 +146,13 @@ fun ComposeNewMessage(
             items(_items ?: items) { contact ->
                 Card(
                     onClick = {
-                        TODO("Support this")
-//                        conversationsViewModel.address = contact.number
-//                        conversationsViewModel.threadId = ThreadedConversationsHandler.get(context,
-//                            conversationsViewModel.address).thread_id
-//
-//                        conversationsViewModel.navigateToConversation(
-//                            conversationsViewModel = conversationsViewModel,
-//                            address = conversationsViewModel.address,
-//                            threadId = conversationsViewModel.threadId,
-//                            subscriptionId =
-//                            SIMHandler.getDefaultSimSubscription(context),
-//                            navController = navController,
-//                        )
+                        navController.navigate(ConversationsScreenNav(
+                            address = contact.address
+                        )) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
                     },
                     Modifier
                         .fillMaxWidth()
@@ -167,16 +161,16 @@ fun ComposeNewMessage(
                 ) {
                     Row(modifier = Modifier.padding(8.dp)) {
                         ContactAvatar(
-                            id=contact.id.toString(),
-                            name=contact.contactName,
-                            phoneNumber = contact.number,
+                            id= contact.id.toString(),
+                            name= contact.displayName,
+                            phoneNumber = contact.address,
                         )
                         Spacer(Modifier.padding(start = 16.dp))
 
                         Row {
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = contact.contactName,
+                                    text = contact.displayName,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 16.sp
@@ -184,7 +178,7 @@ fun ComposeNewMessage(
 
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = contact.number,
+                                    text = contact.address,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
@@ -204,15 +198,15 @@ fun PreviewComposeMessage() {
     var contacts: MutableList<Contacts> =
         remember { mutableListOf( ) }
     for(i in 0..10) {
-        val contact = Contacts()
-        contact.number = "$i$i$i$i$i$i$i$i$i$i"
-        contact.contactName = "Jane Doe ($i)"
-        contact.id = i.toLong()
+        val contact = Contacts(
+            i.toLong(),
+            "$i$i$i$i$i$i$i$i$i$i",
+            "Jane Doe ($i)"
+        )
         contacts.add(contact)
     }
-//    ComposeNewMessage(
-//        navController = rememberNavController(),
-//        viewModel = ContactsViewModel(),
-//        _items = contacts
-//    )
+    ComposeNewMessage(
+        navController = rememberNavController(),
+        _items = contacts
+    )
 }

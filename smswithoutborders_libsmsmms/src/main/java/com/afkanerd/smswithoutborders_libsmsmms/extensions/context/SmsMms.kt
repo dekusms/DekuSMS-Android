@@ -9,15 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
-import androidx.compose.runtime.snapshots.toInt
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import androidx.room.util.getColumnIndex
-import androidx.room.util.getColumnIndexOrThrow
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.mmsParser
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
@@ -43,7 +40,7 @@ fun Context.sendData(
     subscriptionId: Long,
 ) {
     val conversation = Conversations(
-        sms = smsMmsNatives.Sms(
+        sms = SmsMmsNatives.Sms(
             _id = System.currentTimeMillis(),
             thread_id = threadId.toInt(),
             address = address,
@@ -120,7 +117,7 @@ fun Context.sendSms(
 
     val id = System.currentTimeMillis()
     val date = System.currentTimeMillis()
-    val conversation = Conversations(sms = smsMmsNatives.Sms(
+    val conversation = Conversations(sms = SmsMmsNatives.Sms(
         _id = id,
         thread_id = threadId,
         address = address,
@@ -182,7 +179,7 @@ fun Context.sendMms(
 ): Conversations {
     val address = makeE16PhoneNumber(address)
     val conversation = Conversations(
-        mms = smsMmsNatives.Mms(
+        mms = SmsMmsNatives.Mms(
             _id = System.currentTimeMillis(),
             thread_id = threadId.toInt(),
             date = System.currentTimeMillis(),
@@ -195,7 +192,7 @@ fun Context.sendMms(
         mms_text = text,
         mms_content_uri = contentUri.toString(),
         mms_mimetype = contentResolver.getType(contentUri),
-        mms_filename = mmsParser.getFileName(this, contentUri),
+        mms_filename = MmsParser.getFileName(this, contentUri),
     )
 
     try {
@@ -205,7 +202,7 @@ fun Context.sendMms(
         throw e
     }
 
-    val sendSettings = mmsParser.getSendMessageSettings()
+    val sendSettings = MmsParser.getSendMessageSettings()
     sendSettings.subscriptionId = subscriptionId.toInt()
 
     val intent = Intent(this, MmsSentReceiverImpl::class.java)
@@ -221,10 +218,10 @@ fun Context.sendMms(
 
     val mMessage = Message("", address)
     val mimeType = contentResolver.getType(contentUri)
-    val filename = mmsParser.getFileName(this, contentUri)
+    val filename = MmsParser.getFileName(this, contentUri)
 
     mMessage.addMedia(
-        mmsParser.getBytesFromUri(this, contentUri),
+        MmsParser.getBytesFromUri(this, contentUri),
         mimeType,
         filename
     )
@@ -274,7 +271,7 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
                     val conversation = Conversations(mms = mms).apply {
                         parseMms(cursor)?.let { parsedMms ->
                             if(parsedMms.address.isNullOrEmpty()) return@let
-                            this.sms = smsMmsNatives.Sms(
+                            this.sms = SmsMmsNatives.Sms(
                                 thread_id = getThreadId(parsedMms.address!!).toInt(),
                                 address = parsedMms.address,
                                 sub_id = mms.sub_id ?: -1,
@@ -298,10 +295,10 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
 }
 
 fun Context.exportRawWithColumnGuesses(): String {
-    val mmsContents = arrayListOf<smsMmsNatives.Mms>()
-    val mmsAddrContents = arrayListOf<smsMmsNatives.MmsAddr>()
-    val mmsPartsContents = arrayListOf<smsMmsNatives.MmsPart>()
-    val smsContents = arrayListOf<smsMmsNatives.Sms>()
+    val mmsContents = arrayListOf<SmsMmsNatives.Mms>()
+    val mmsAddrContents = arrayListOf<SmsMmsNatives.MmsAddr>()
+    val mmsPartsContents = arrayListOf<SmsMmsNatives.MmsPart>()
+    val smsContents = arrayListOf<SmsMmsNatives.Sms>()
 
     val mmsIds = mutableSetOf<Long>()
 
@@ -373,7 +370,7 @@ fun Context.exportRawWithColumnGuesses(): String {
         cursor.close()
     }
 
-    val smsMmsContents = smsMmsNatives.SmsMmsContents(
+    val smsMmsContents = SmsMmsNatives.SmsMmsContents(
         mapOf(
             Pair(
                 Telephony.Mms.CONTENT_URI.toString(),
@@ -400,7 +397,7 @@ fun Context.exportRawWithColumnGuesses(): String {
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsAddrContentsParts(cursor: Cursor): smsMmsNatives.MmsAddr {
+private fun parseRawMmsAddrContentsParts(cursor: Cursor): SmsMmsNatives.MmsAddr {
     val _id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.Addr._ID))
     val msg_id : String? = cursor.getStringOrNull(cursor
@@ -416,7 +413,7 @@ private fun parseRawMmsAddrContentsParts(cursor: Cursor): smsMmsNatives.MmsAddr 
     val sub_id: Long? = cursor.getLongOrNull(cursor
         .getColumnIndex("sub_id"))
 
-    return smsMmsNatives.MmsAddr(
+    return SmsMmsNatives.MmsAddr(
         _id = _id,
         msg_id = msg_id,
         contact_id = contact_id,
@@ -428,7 +425,7 @@ private fun parseRawMmsAddrContentsParts(cursor: Cursor): smsMmsNatives.MmsAddr 
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsContentsParts(cursor: Cursor): smsMmsNatives.MmsPart {
+private fun parseRawMmsContentsParts(cursor: Cursor): SmsMmsNatives.MmsPart {
     val _id: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.Part._ID))
     val mid: Long = cursor.getLong(cursor
@@ -452,7 +449,7 @@ private fun parseRawMmsContentsParts(cursor: Cursor): smsMmsNatives.MmsPart {
     val chset: Int? = cursor.getIntOrNull(cursor
         .getColumnIndex(Telephony.Mms.Part.CHARSET))
 
-    return smsMmsNatives.MmsPart(
+    return SmsMmsNatives.MmsPart(
         _id = _id,
         mid = mid,
         seq = seq,
@@ -468,7 +465,7 @@ private fun parseRawMmsContentsParts(cursor: Cursor): smsMmsNatives.MmsPart {
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
+private fun parseRawMmsContents(cursor: Cursor): SmsMmsNatives.Mms {
     val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -516,7 +513,7 @@ private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
     val text_only: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Mms.TEXT_ONLY))
 
-    return smsMmsNatives.Mms(
+    return SmsMmsNatives.Mms(
         _id = _id,
         thread_id = thread_id,
         date = date,
@@ -544,7 +541,7 @@ private fun parseRawMmsContents(cursor: Cursor): smsMmsNatives.Mms {
 }
 
 @SuppressLint("Range")
-private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
+private fun parseRawSmsContents(cursor: Cursor): SmsMmsNatives.Sms {
     val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -574,7 +571,7 @@ private fun parseRawSmsContents(cursor: Cursor): smsMmsNatives.Sms {
     val seen: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.SEEN))
 
-    return smsMmsNatives.Sms(
+    return SmsMmsNatives.Sms(
         _id = _id,
         thread_id = thread_id,
         address = address,

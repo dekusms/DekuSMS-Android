@@ -1,13 +1,11 @@
 package com.afkanerd.smswithoutborders_libsmsmms.data
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ConversationsDao
 import com.afkanerd.smswithoutborders_libsmsmms.data.dao.ThreadsDao
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.smsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import kotlin.concurrent.Volatile

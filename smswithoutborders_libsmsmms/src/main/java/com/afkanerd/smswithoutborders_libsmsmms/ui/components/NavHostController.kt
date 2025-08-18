@@ -24,6 +24,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.ui.ComposeNewMessage
+import com.afkanerd.smswithoutborders_libsmsmms.ui.ContactDetails
 import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
@@ -77,12 +79,16 @@ fun NavHostControllerInstance(
                     navController = navController
                 )
             }
-            composable<ContactDetailsNav>{
-                TODO("Contacts details navigation")
+            composable<ContactDetailsNav>{  backStackEntry ->
+                val contactsDetailsScreen: ContactDetailsNav = backStackEntry.toRoute()
+                ContactDetails(
+                    address = contactsDetailsScreen.address,
+                    navController = navController
+                )
             }
 
             composable<ComposeNewMessageNav>{
-                TODO("Compose new navigation")
+                ComposeNewMessage(navController = navController)
             }
         }
         else {

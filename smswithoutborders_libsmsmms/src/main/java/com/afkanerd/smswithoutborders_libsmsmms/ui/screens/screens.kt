@@ -19,7 +19,7 @@ data class ConversationsScreenNav(
 data class SearchScreenNav(val address: String? = null)
 
 @Serializable
-object ContactDetailsNav
+data class ContactDetailsNav(val address: String)
 
 @Serializable
 object ComposeNewMessageNav
