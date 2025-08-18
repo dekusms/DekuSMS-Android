@@ -67,7 +67,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Extensions.toHslColor
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.R

@@ -6,10 +6,12 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
+import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Build
 import android.provider.Telephony
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.core.content.edit
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -19,6 +21,12 @@ import kotlin.jvm.java
 object ActivitiesConstant {
     const val ACTIVITIES_FILENAMES = "com.afkanerd.deku.activities"
     const val NATIVES_LOADED = "nativesLoaded"
+}
+
+fun Context.getActivity(): ComponentActivity? = when (this) {
+    is ComponentActivity -> this
+    is ContextWrapper -> baseContext.getActivity()
+    else -> null
 }
 
 fun Context.getNativesLoaded(): Boolean {

@@ -44,6 +44,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -87,6 +88,11 @@ import coil3.compose.rememberAsyncImagePainter
 import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import coil3.compose.AsyncImage
@@ -97,6 +103,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getActivity
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
@@ -165,6 +172,7 @@ fun Conversations(
 
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
     val address = context.makeE16PhoneNumber(address)
 
@@ -231,6 +239,28 @@ fun Conversations(
     var typingMmsImage by remember{ mutableStateOf<Uri?>(null) }
     var subscriptionId by remember{ mutableStateOf( context.getDefaultSimSubscription()) }
     var highlightedMessage by remember{ mutableStateOf<Conversations?>(null) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                if(typingText.isNotBlank()) {
+                    ConversationsViewModel().addDraft(
+                        context,
+                        body = typingText,
+                        mmsUri = typingMmsImage,
+                        address = address,
+                        subId = subscriptionId!!
+                    ) {}
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(Unit){
         if(!searchQuery.isNullOrEmpty()) {

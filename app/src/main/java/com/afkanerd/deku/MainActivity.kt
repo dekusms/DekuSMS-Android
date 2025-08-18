@@ -89,7 +89,22 @@ class MainActivity : AppCompatActivity(){
                 WindowInfoTracker.getOrCreate(this@MainActivity)
                     .windowLayoutInfo(this@MainActivity)
                     .collect { newLayoutInfo ->
-                        onLayoutInfoChanged(newLayoutInfo)
+                        setContent {
+                            AppTheme {
+                                navController = rememberNavController()
+                                Surface(Modifier
+                                    .fillMaxSize()
+                                ) {
+                                    NavHostControllerInstance(
+                                        newLayoutInfo = newLayoutInfo,
+                                        navController = navController,
+                                        threadsViewModel = threadsViewModel,
+                                        searchViewModel = searchViewModel,
+                                    ) {
+                                    }
+                                }
+                            }
+                        }
                     }
             }
         }
@@ -113,223 +128,4 @@ class MainActivity : AppCompatActivity(){
             }
         }
     }
-
-    private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
-        setContent {
-            AppTheme {
-                navController = rememberNavController()
-                Surface(Modifier
-                    .fillMaxSize()
-                ) {
-                    NavHostControllerInstance(
-                        newLayoutInfo = newLayoutInfo,
-                        navController = navController,
-                        threadsViewModel = threadsViewModel,
-                        searchViewModel = searchViewModel,
-                    ) {
-                    }
-                }
-            }
-        }
-    }
-
-//    private fun onLayoutInfoChanged(newLayoutInfo: WindowLayoutInfo) {
-//        // TODO("Fix this")
-////        conversationViewModel.newLayoutInfo = newLayoutInfo
-//        setContent {
-//            AppTheme {
-//                navController = rememberNavController()
-//                Surface(Modifier
-//                    .fillMaxSize()
-//                ) {
-//                    val isFolded by remember {
-//                        mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
-//                    }
-//                    NavHost(
-//                        modifier = Modifier,
-//                        navController = navController,
-//                        startDestination = HomeScreen,
-//                    ) {
-//                        if(!isFolded) {
-//                            composable<HomeScreen>{
-//                                HomeScreenComposable()
-//                            }
-////                            composable<ConversationsScreen> {
-////                                ConversationScreenComposable()
-////                            }
-//                            composable<ConversationsScreenNav> { backStackEntry ->
-//                                val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
-//                                ConversationScreenComposable(convScreen)
-//                            }
-//                            composable<ComposeNewMessageScreen>{
-//                                ComposeNewMessageScreenComposable()
-//                            }
-//                            composable<SearchScreenNav> { backStackEntry ->
-//                                val searchScreen: SearchScreenNav = backStackEntry.toRoute()
-//                                SearchThreadScreenComposable(searchScreen)
-//                            }
-//                            composable<ContactDetailsScreen>{
-//                                ContactDetailsScreenComposable()
-//                            }
-//                            composable<RemoteListenersScreen>{
-//                                TODO("Implement RMQ")
-////                                RMQMainComposable(
-////                                    remoteListenerViewModel = remoteListenersViewModel,
-////                                    remoteListenerQueuesViewModel =
-////                                        remoteListenersProjectsViewModel,
-////                                    conversationsViewModel = conversationViewModel,
-////                                    navController = navController
-////                                )
-//                            }
-//                            composable<RemoteListenersAddScreen>{
-//                                RMQAddComposable(
-//                                    navController = navController,
-//                                    remoteListenerViewModel = remoteListenersViewModel
-//                                )
-//                            }
-//                            composable<RemoteListenersQueuesScreen>{
-//                                RMQQueuesComposable(
-//                                    remoteListenersViewModel = remoteListenersViewModel,
-//                                    navController = navController
-//                                )
-//                            }
-//                            composable<LogcatScreen>{
-//                                LogcatMain()
-//                            }
-//                            composable<DeveloperModeScreen>{
-//                                DeveloperModeMain(navController = navController)
-//                            }
-//                        }
-//                        else {
-//                            composable<HomeScreen>{
-//                                Folded()
-//                            }
-//                        }
-//                    }
-//
-//                    handleIntent(intent)
-//                }
-//            }
-//        }
-//    }
-//
-
-    @Composable
-    fun Folded() {
-        Row {
-            Column(modifier = Modifier.fillMaxWidth(0.5f)){
-                HomeScreenComposable()
-            }
-
-//            if(conversationViewModel.address.isNotEmpty() &&
-//                conversationViewModel.threadId.isNotEmpty()
-//            )
-//                Column { ConversationScreenComposable() }
-//            else
-//                Column(
-//                    modifier = Modifier.fillMaxSize(),
-//                    verticalArrangement = Arrangement.Center,
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    NoMessageSelected()
-//                }
-        }
-    }
-
-
-    @Preview(showBackground = true)
-    @Composable
-    fun NoMessageSelected() {
-        Text(
-            stringResource(
-                R.string
-                .select_a_conversation_from_the_list_on_the_left),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-
-    @Composable
-    fun HomeScreenComposable() {
-        ThreadConversationLayout(
-            threadsViewModel = threadsViewModel,
-            navController = navController,
-        )
-    }
-
-    @Composable
-    fun ConversationScreenComposable(conversationsScreenNav: ConversationsScreenNav) {
-        Conversations(
-            address = conversationsScreenNav.address,
-            searchQuery = conversationsScreenNav.query,
-            navController = navController
-        )
-    }
-
-    @Composable
-    fun ComposeNewMessageScreenComposable() {
-        ComposeNewMessage(
-            conversationsViewModel = conversationViewModel,
-            viewModel = contactsViewModel,
-            navController=navController
-        )
-    }
-
-    @Composable
-    fun SearchThreadScreenComposable(searchScreenNav: SearchScreenNav) {
-        SearchThreadsMain(
-            address = searchScreenNav.address,
-            searchViewModel = searchViewModel,
-            navController = navController
-        )
-    }
-
-    @Composable
-    fun ContactDetailsScreenComposable() {
-        ContactDetails(
-            conversationsViewModel = conversationViewModel,
-            searchViewModel = searchViewModel,
-            navController = navController
-        )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        TODO("")
-//        CoroutineScope(Dispatchers.Default).launch {
-//            if(conversationViewModel.text.isNotEmpty())
-//                conversationViewModel.insertDraft(applicationContext)
-//        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        readLogcat(applicationContext)
-    }
 }
-
-fun readLogcat(context: Context): Flow<String> = flow {
-    val logBuilder = StringBuilder()
-    try {
-        // Execute logcat command with filter for app's logs
-        val process = Runtime.getRuntime().exec("logcat -d *:V")
-        val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
-
-        // Get app's package name to filter logs
-        val packageName = context.packageName
-
-        var line: String?
-        while (bufferedReader.readLine().also { line = it } != null) {
-            // Filter logs containing app's package name
-            if (line?.contains(packageName) == true) {
-                emit(line)
-            }
-        }
-        bufferedReader.close()
-        process.destroy()
-    } catch (e: IOException) {
-        e.printStackTrace()
-        emit(e.message.toString())
-    }
-}.flowOn(Dispatchers.IO)
