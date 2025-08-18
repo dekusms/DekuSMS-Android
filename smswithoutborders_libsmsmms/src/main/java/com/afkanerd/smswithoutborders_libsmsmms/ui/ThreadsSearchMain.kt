@@ -168,10 +168,10 @@ fun SearchThreadsMain(
                         isContact = !contactName.isNullOrBlank(),
                         modifier = Modifier.combinedClickable(
                             onClick = {
-//                                navController.navigate( ConversationsScreenNav(
-//                                    message.address,
-//                                    query = searchViewModel.searchQuery.value,
-//                                ))
+                                navController.navigate( ConversationsScreenNav(
+                                    message.address,
+                                    query = searchQuery,
+                                ))
                             },
                         ),
                         type = message.type,
