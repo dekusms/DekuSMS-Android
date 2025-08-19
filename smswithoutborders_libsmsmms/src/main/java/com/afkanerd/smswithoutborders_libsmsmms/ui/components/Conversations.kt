@@ -189,7 +189,7 @@ private fun ConversationSent(
         ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
             Modifier.padding(start=32.dp, top=16.dp)
         ConversationPositionTypes.MIDDLE -> Modifier.padding(start=32.dp, top=1.dp)
-        ConversationPositionTypes.END -> Modifier.padding(start=32.dp, top=1.dp, bottom=16.dp)
+        ConversationPositionTypes.END -> Modifier.padding(start=32.dp, top=1.dp, bottom=8.dp)
     }
 
     Row(
@@ -349,7 +349,7 @@ fun ConversationsCard(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if(status == ConversationStatusTypes.STATUS_FAILED)
                                         MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onPrimary,
+                                    else MaterialTheme.colorScheme.outlineVariant,
 
                                     modifier = Modifier
                                         .align(Alignment.End)

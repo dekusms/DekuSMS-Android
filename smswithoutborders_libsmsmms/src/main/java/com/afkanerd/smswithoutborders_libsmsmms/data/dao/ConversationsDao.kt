@@ -26,18 +26,21 @@ interface ConversationsDao {
 
     fun insertUpdateThread(sms: SmsMmsNatives.Sms) {
         val thread = getThread(sms.thread_id)
+        val count = unreadCount(sms.thread_id)
+
         if(thread == null) {
             insertThread(
                 Threads(
                     threadId = sms.thread_id,
                     snippet = sms.body,
                     date = sms.date,
-                    unread = unreadCount(sms.thread_id) > 0,
+                    unread = count > 0,
                     address = sms.address!!,
                     isMute = false,
                     type = sms.type,
                     conversationId = sms._id ?: -1,
-                    isArchive = false
+                    isArchive = false,
+                    unreadCount = count,
                 )
             )
         } else {
@@ -46,12 +49,13 @@ interface ConversationsDao {
                     threadId = thread.threadId,
                     snippet = sms.body,
                     date = sms.date,
-                    unread = unreadCount(sms.thread_id) > 0,
+                    unread = count > 0,
                     address = sms.address!!,
                     type = sms.type,
                     conversationId = sms._id ?: -1,
                     isMute = thread.isMute,
-                    isArchive = thread.isArchive
+                    isArchive = thread.isArchive,
+                    unreadCount = count,
                 )
             )
         }
@@ -140,21 +144,4 @@ interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
     fun getConversationsList(threadId: Int): List<Conversations>
-
-
-//    @Query("SELECT c.*, max(c.date) FROM Conversations c LEFT JOIN Threads tc " +
-//            "ON c.thread_id = tc.threadId " +
-//            "WHERE tc.isArchive = 0 AND " +
-//            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') AND " +
-//            "(tc.threadId IS NULL)" +
-//            "GROUP BY thread_id ORDER BY date DESC")
-//    fun getAllThreadingSearch(query: String): PagingSource<Int, Conversations>
-//
-//    @Query("SELECT c.*, max(c.date) FROM Conversations c LEFT JOIN Threads tc " +
-//            "ON c.thread_id = tc.threadId " +
-//            "WHERE c.thread_id = :threadId AND tc.isArchive = 0 AND" +
-//            "(c.type IS NOT 3 AND c.body like '%' || :query || '%') AND " +
-//            "(tc.threadId IS NULL )" +
-//            "GROUP BY thread_id ORDER BY date DESC")
-//    fun getAllThreadingSearch(query: String, threadId: String): List<Conversations>?
 }

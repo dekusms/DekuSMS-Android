@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -78,8 +79,8 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
 
             Spacer(Modifier.size(32.dp))
 
-            Text(
-                stringResource(R.string.to_use_deku_sms_make_it_your_default_sms_app),
+            Text(stringResource(R.string.to_use_deku_sms_make_it_your_default_sms_app),
+                fontSize = 13.sp
             )
             Spacer(Modifier.size(16.dp))
 
@@ -100,7 +101,8 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
         }
         TextButton(
             onClick = {
-                val url = context.getString(R.string.privacy_policy_url) // Your existing URL string resource
+                // Your existing URL string resource
+                val url = context.getString(R.string.privacy_policy_url)
                 val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 context.startActivity(intent)
             }
@@ -134,8 +136,7 @@ fun makeDefault(context: Context): Intent {
     }
 }
 
-@Preview(showBackground = true, name = "DefaultCheckMain Light")
-@Preview(showBackground = true, name = "DefaultCheckMain Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
 @Composable
 fun DefaultCheckMainPreview() {
     DefaultCheckMain()

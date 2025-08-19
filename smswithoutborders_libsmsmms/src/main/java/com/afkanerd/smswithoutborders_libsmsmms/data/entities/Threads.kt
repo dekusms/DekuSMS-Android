@@ -17,4 +17,5 @@ data class Threads(
     var isMute: Boolean = false,
     var unread: Boolean = true,
     var isArchive: Boolean = false,
+    var unreadCount: Int = 0,
 )

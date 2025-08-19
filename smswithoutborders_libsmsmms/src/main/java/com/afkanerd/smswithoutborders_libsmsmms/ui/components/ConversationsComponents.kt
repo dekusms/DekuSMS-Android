@@ -423,26 +423,6 @@ fun ChatCompose(
     }
 }
 
-fun getByteArrayFromUri(context: Context, uri: Uri): ByteArray? {
-    return try {
-        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        inputStream?.use { stream ->
-            val byteBuffer = ByteArrayOutputStream()
-            val bufferSize = 1024
-            val buffer = ByteArray(bufferSize)
-            var len: Int
-            while (stream.read(buffer).also { len = it } != -1) {
-                byteBuffer.write(buffer, 0, len)
-            }
-            byteBuffer.toByteArray()
-        }
-    } catch (e: IOException) {
-        // Handle potential exceptions, e.g., if the URI is invalid or the file doesn't exist.
-        e.printStackTrace()
-        null
-    }
-}
-
 fun getSMSCount(context: Context, text: String): String {
     val smsManager = context.getSystemService(SmsManager::class.java)
     val messages: List<String> = smsManager.divideMessage(text)

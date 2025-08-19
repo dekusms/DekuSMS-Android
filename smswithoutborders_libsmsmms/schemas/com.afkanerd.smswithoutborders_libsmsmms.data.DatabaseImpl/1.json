@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b9ae4f126be6de4807f9987172de6c77",
+    "identityHash": "4489481048f23cff6c7b3961f7bf58d2",
     "entities": [
       {
         "tableName": "Conversations",
@@ -410,7 +410,7 @@
       },
       {
         "tableName": "Threads",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
         "fields": [
           {
             "fieldPath": "threadId",
@@ -465,6 +465,12 @@
             "columnName": "isArchive",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "unreadCount",
+            "columnName": "unreadCount",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -477,7 +483,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b9ae4f126be6de4807f9987172de6c77')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4489481048f23cff6c7b3961f7bf58d2')"
     ]
   }
 }

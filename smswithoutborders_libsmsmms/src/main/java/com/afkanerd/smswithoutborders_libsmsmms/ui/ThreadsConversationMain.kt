@@ -482,7 +482,11 @@ fun ThreadConversationLayout(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         LinearProgressIndicator()
-                        Text(stringResource(R.string.give_it_a_minute), modifier = Modifier.padding(top=8.dp))
+                        Text(
+                            stringResource(R.string.give_it_a_minute),
+                            modifier = Modifier.padding(top=8.dp),
+                            fontSize = 12.sp
+                        )
                     }
                 }
                 else {
@@ -662,7 +666,8 @@ fun ThreadConversationLayout(
                                                 ),
                                                 isSelected = selectedItems.contains(thread),
                                                 isMuted = thread.isMute,
-                                                type = thread.type
+                                                type = thread.type,
+                                                unreadCount = thread.unreadCount
                                             )
                                         }
                                     }
