@@ -412,6 +412,18 @@
     <string name="dev_mode">Tryb programisty</string>
     <string name="read_our_text_part">Przeczytaj naszą</string>
     <string name="privacy_policy_text_part">politykę prywatności</string>
+    <string name="send_mms_photo">Wyślij zdjęcie MMS</string>
+    <string name="mms_selected_image">Wybrany obraz MMS</string>
+    <string name="unknown_error_sending_mms">Nieznany błąd podczas wysyłania wiadomości MMS:</string>
+    <string name="mms_image">Obraz MMS...</string>
+    <string name="mms_video">Wideo MMS...</string>
+    <string name="export_sms_mms_database">Eksport bazy danych SMS/MMS</string>
+    <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">Eksportuje wszystkie bazy danych SMS i MMS. Może się to przydać, jeśli chcesz przechwycić wszystkie pola zapisane przez domyślne aplikacje SMS.</string>
+    <string name="developer_options">Opcje programistyczne</string>
+    <string name="android_developer">Programista Androida</string>
+    <string name="sms_mms_import_export">Import/eksport SMS/MMS</string>
+    <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
+    <string name="export_native_sms_database">Eksportuj natywną bazę danych SMS</string>
 
 
 </resources>

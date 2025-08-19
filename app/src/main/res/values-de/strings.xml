@@ -350,7 +350,18 @@
     <string name="dev_mode">Entwicklermodus</string>
     <string name="read_our_text_part">Lesen Sie unsere</string>
     <string name="privacy_policy_text_part">Datenschutzrichtlinie</string>
-    <string name="unknown_error_sending_mms">Erreur inconnue lors de l\'envoi du MMS :</string>
+    <string name="mms_selected_image">Ausgewähltes Bild per MMS versenden</string>
+    <string name="send_mms_photo">MMS-Foto senden</string>
+    <string name="unknown_error_sending_mms">Unbekannter Fehler beim Senden der MMS:</string>
+    <string name="mms_image">MMS-Bild...</string>
+    <string name="mms_video">MMS-Video...</string>
+    <string name="export_sms_mms_database">SMS/MMS-Datenbank exportieren</string>
+    <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">Dadurch werden alle SMS- und MMS-Datenbanken exportiert. Dies kann nützlich sein, wenn Sie alle Felder erfassen müssen, die in den Standard-SMS-Apps gespeichert sind.</string>
+    <string name="developer_options">Entwickleroptionen</string>
+    <string name="android_developer">Android-Entwickler</string>
+    <string name="sms_mms_import_export">SMS/MMS Import/Export</string>
+    <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
+    <string name="export_native_sms_database">Native SMS-Datenbank exportieren</string>
 
 
 </resources>
