@@ -350,6 +350,7 @@
     <string name="dev_mode">Entwicklermodus</string>
     <string name="read_our_text_part">Lesen Sie unsere</string>
     <string name="privacy_policy_text_part">Datenschutzrichtlinie</string>
+    <string name="unknown_error_sending_mms">Erreur inconnue lors de l\'envoi du MMS :</string>
 
 
 </resources>

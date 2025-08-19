@@ -325,5 +325,7 @@
     <string name="dev_mode">Mode développeur</string>
     <string name="read_our_text_part">Lisez notre</string>
     <string name="privacy_policy_text_part">politique de confidentialité</string>
+    <string name="send_mms_photo">Envoyer une photo par MMS</string>
+    <string name="mms_selected_image">Image sélectionnée par MMS</string>
 
 </resources>
