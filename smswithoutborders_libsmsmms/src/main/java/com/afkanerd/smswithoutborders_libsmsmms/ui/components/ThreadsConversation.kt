@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.res.Configuration
 import android.provider.Telephony
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -642,7 +643,7 @@ fun ThreadsMainDropDown(
                     )
                 },
                 onClick = {
-                    dismissCallback?.let { it(false) }
+                    dismissCallback?.invoke(false)
 //                    context.startActivity(
 //                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
 //                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
@@ -660,7 +661,7 @@ fun ThreadsMainDropDown(
                     )
                 },
                 onClick = {
-                    dismissCallback?.let { it(false) }
+                    dismissCallback?.invoke(false)
                     TODO("Implement about settings")
                 }
             )
@@ -673,9 +674,10 @@ fun ThreadsMainDropDown(
                     )
                 },
                 onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        dismissCallback?.let { it(false) }
-//                        conversationViewModel.reset(context)
+                    dismissCallback?.invoke(false)
+                    threadsViewModel.loadNatives(context){
+                        Toast.makeText(context,
+                            context.getString(R.string.reset_complete), Toast.LENGTH_LONG).show()
                     }
                 }
             )

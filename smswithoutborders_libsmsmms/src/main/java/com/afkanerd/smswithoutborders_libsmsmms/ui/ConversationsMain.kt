@@ -50,7 +50,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -91,10 +90,8 @@ import androidx.core.graphics.createBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.paging.LoadState
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -103,8 +100,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getActivity
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
@@ -132,7 +127,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import sh.calvin.autolinktext.rememberAutoLinkText
 import kotlin.let
@@ -170,10 +164,11 @@ fun backHandler(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun Conversations(
+fun ConversationsMainLayout(
     address: String,
     navController: NavController,
     searchQuery: String? = null,
+    foldOpen: Boolean = false,
     _items: List<Conversations>? = null
 ) {
     val viewModel: ConversationsViewModel = viewModel()
@@ -202,22 +197,6 @@ fun Conversations(
 
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
-    // TODO: Check if it's secured
-//    var isSecured by remember {
-//        mutableStateOf(
-//            if(viewModel.address.isBlank()) false
-//            else E2EEHandler.isSecured(context, viewModel.address)
-//        )
-//    }
-
-//    var showSecureAgreeModal by rememberSaveable {
-//        mutableStateOf(
-//            if(viewModel.address.isBlank()) false
-//            else E2EEHandler.hasPendingApproval(context, viewModel.address)
-//        )
-//    }
-
-    var showSecureRequestModal by rememberSaveable { mutableStateOf(false) }
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
 
     val messages = viewModel.getConversations(context, address)
@@ -235,10 +214,8 @@ fun Conversations(
     var openAlertDialog by remember { mutableStateOf(false)}
 
     val isShortCode = if(inPreviewMode) false else isShortCode(address)
-    val defaultRegion = if(inPreviewMode) "cm" else context.getDefaultRegion()
 
     var shouldPulse by remember { mutableStateOf(false) }
-    val pulseRateMs by remember { mutableLongStateOf(3000L) }
 
     var rememberDeleteAlert by remember { mutableStateOf(false) }
     var openInfoAlert by remember { mutableStateOf(false) }
@@ -321,28 +298,6 @@ fun Conversations(
     )}
 
 
-//    if(isSecured) {
-//        LaunchedEffect(viewModel.text) {
-//            if(viewModel.text.isBlank()) {
-//                viewModel.encryptedText = ""
-//                shouldPulse = false
-//            } else shouldPulse = true
-//        }
-//
-//        LaunchedEffect(shouldPulse) {
-//            if(shouldPulse)
-//                coroutineScope.launch {
-//                    delay(pulseRateMs)
-//                    viewModel.encryptedText = E2EEHandler.encryptMessage(
-//                        context = context,
-//                        text = viewModel.text,
-//                        address = viewModel.address
-//                    ).first
-//                    shouldPulse = false
-//                }
-//        }
-//    }
-
     BackHandler {
         if(!searchQuery.isNullOrEmpty()) searchQuery = ""
         else backHandler(
@@ -371,9 +326,6 @@ fun Conversations(
         },
         deleteCallback = {
             rememberDeleteAlert = true
-        },
-        secureCallback = {
-            showSecureRequestModal = true
         },
         archiveCallback = {
             if(isArchived) {
@@ -435,38 +387,24 @@ fun Conversations(
                     }
                 },
                 navigationIcon = {
-                    // TODO "Implement folded functionality here"
-                    IconButton(onClick = {
-                        if(!searchQuery.isNullOrEmpty()) searchQuery = ""
-                        else backHandler(
-                            context = context,
-                            text = typingText,
-                            mmsUri = typingMmsImage,
-                            address = address,
-                            subId = subscriptionId!!,
-                            viewModel = viewModel,
-                            navController = navController,
-                        )
-                        viewModel.removeAllSelectedItems()
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack,
-                            stringResource(R.string.go_back))
+                    if(!foldOpen) {
+                        IconButton(onClick = {
+                            if(!searchQuery.isNullOrEmpty()) searchQuery = ""
+                            else backHandler(
+                                context = context,
+                                text = typingText,
+                                mmsUri = typingMmsImage,
+                                address = address,
+                                subId = subscriptionId!!,
+                                viewModel = viewModel,
+                                navController = navController,
+                            )
+                            viewModel.removeAllSelectedItems()
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                                stringResource(R.string.go_back))
+                        }
                     }
-
-//                    if(viewModel.newLayoutInfo == null ||
-//                        viewModel.newLayoutInfo!!.displayFeatures.isEmpty())
-//                        IconButton(onClick = {
-//                            if(searchQuery.isNotBlank()) searchQuery = ""
-//                            else
-//                            backHandler(
-//                                context = context,
-//                                viewModel = viewModel,
-//                                navController = navController,
-//                            )
-//                        }) {
-//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.go_back))
-//                        }
-
                 },
                 actions = {
                     if(searchQuery.isNullOrEmpty()) {

@@ -2,12 +2,14 @@ package com.afkanerd.smswithoutborders_libsmsmms.data.entities
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Entity
+//@Entity
+@Entity(indices = [Index(value = ["_id"], unique = true)])
 data class Conversations(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @Embedded var sms: SmsMmsNatives.Sms? = null,

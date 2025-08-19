@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8c6493984addf418b8a39238cce87687",
+    "identityHash": "b9ae4f126be6de4807f9987172de6c77",
     "entities": [
       {
         "tableName": "Conversations",
@@ -395,7 +395,18 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_Conversations__id",
+            "unique": true,
+            "columnNames": [
+              "_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Conversations__id` ON `${TABLE_NAME}` (`_id`)"
+          }
+        ]
       },
       {
         "tableName": "Threads",
@@ -466,7 +477,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8c6493984addf418b8a39238cce87687')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b9ae4f126be6de4807f9987172de6c77')"
     ]
   }
 }

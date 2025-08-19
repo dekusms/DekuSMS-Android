@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
@@ -26,7 +26,7 @@ import androidx.window.layout.WindowLayoutInfo
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ComposeNewMessage
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ContactDetails
-import com.afkanerd.smswithoutborders_libsmsmms.ui.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.ui.ConversationsMainLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageNav
@@ -36,7 +36,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
-import kotlin.reflect.KType
 
 @Composable
 fun NavHostControllerInstance(
@@ -65,7 +64,7 @@ fun NavHostControllerInstance(
             }
             composable<ConversationsScreenNav> { backStackEntry ->
                 val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
-                Conversations(
+                ConversationsMainLayout(
                     address = convScreen.address,
                     searchQuery = convScreen.query,
                     navController = navController
@@ -94,7 +93,7 @@ fun NavHostControllerInstance(
         else {
             composable<HomeScreenNav>{ backStackEntry ->
                 val homeScreenNav: HomeScreenNav = backStackEntry.toRoute()
-                Folded(
+                FoldOpen(
                     threadsViewModel = threadsViewModel,
                     homeScreenNav = homeScreenNav,
                     navController = navController,
@@ -106,7 +105,7 @@ fun NavHostControllerInstance(
 }
 
 @Composable
-private fun Folded(
+private fun FoldOpen(
     threadsViewModel: ThreadsViewModel,
     homeScreenNav: HomeScreenNav,
     navController: NavHostController,
@@ -116,15 +115,17 @@ private fun Folded(
             ThreadConversationLayout(
                 threadsViewModel = threadsViewModel,
                 navController = navController,
+                foldOpen = true
             )
         }
 
-        if(homeScreenNav.address?.isBlank() == false) {
+        if(!homeScreenNav.address.isNullOrEmpty()) {
             Column {
-                Conversations(
+                ConversationsMainLayout(
                     address = homeScreenNav.address,
                     searchQuery = homeScreenNav.query,
-                    navController = navController
+                    navController = navController,
+                    foldOpen = true
                 )
             }
         }

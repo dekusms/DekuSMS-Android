@@ -426,5 +426,7 @@
     <string name="something_went_wrong_with_sending">Something went wrong with sending!</string>
     <string name="set_default_sms_app">Set default SMS app</string>
     <string name="to_use_deku_sms_make_it_your_default_sms_app">To use Deku SMS, make it your default SMS app</string>
+    <string name="reset_complete">Reset complete!</string>
+    <string name="give_it_a_minute">Give it a minute...</string>
 
 </resources>

@@ -374,11 +374,9 @@ fun ConversationsMainDropDownMenu(
     deleteCallback: (() -> Unit)? = null,
     archiveCallback: (() -> Unit)? = null,
     muteCallback: (() -> Unit)? = null,
-    secureCallback: (() -> Unit)? = null,
     isMute: Boolean = false,
     isBlocked: Boolean = false,
     isArchived: Boolean = false,
-    isSecure: Boolean = false,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val expanded = expanded
@@ -404,22 +402,6 @@ fun ConversationsMainDropDownMenu(
                     }
                 }
             )
-
-            if(isSecure)
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text=stringResource(R.string.conversations_menu_secure_title),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    onClick = {
-                        secureCallback?.let{
-                            dismissCallback?.let { it(false) }
-                            it()
-                        }
-                    }
-                )
 
             DropdownMenuItem(
                 text = {

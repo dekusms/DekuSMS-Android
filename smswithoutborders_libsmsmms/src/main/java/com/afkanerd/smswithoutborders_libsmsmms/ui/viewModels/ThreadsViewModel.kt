@@ -2,9 +2,13 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 
 import android.content.Context
 import android.content.Intent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -24,6 +28,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ThreadsViewModel: ViewModel() {
+    var messagesLoading by mutableStateOf(false)
+    var foldOpenConversation by mutableStateOf("")
+
     private val _newIntent = MutableStateFlow<Intent?>(null)
     var newIntent: StateFlow<Intent?> = _newIntent
 
@@ -145,9 +152,15 @@ class ThreadsViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                messagesLoading = true
+
                 val conversations = context.loadRawSmsMmsDb()
                 context.getDatabase().conversationsDao()?.insertAll(conversations)
-                completeCallback()
+
+                withContext(Dispatchers.Main) {
+                    messagesLoading = false
+                    completeCallback()
+                }
             }
         }
     }

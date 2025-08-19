@@ -84,7 +84,7 @@ interface ConversationsDao {
     @Insert
     fun insertConversation(conversation: Conversations)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertConversations(conversation: List<Conversations>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
