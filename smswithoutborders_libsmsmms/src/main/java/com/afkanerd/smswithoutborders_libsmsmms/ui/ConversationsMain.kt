@@ -312,7 +312,7 @@ fun Conversations(
             }
         }
 
-        context.cancelNotification(context.getThreadId(address).toInt())
+//        context.cancelNotification(context.getThreadId(address).toInt())
     }
 
     val contactName by remember{ mutableStateOf(

@@ -129,9 +129,10 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                 " ${conversation.sms?.address}"
 
         context.notifyText(
-            conversation = conversation.apply {
-                sms?.body = content },
-            actions = false)
+            conversation = conversation,
+            actions = false,
+            text = content
+        )
     }
 
     fun registerIncomingText(context: Context, intent: Intent): Conversations {

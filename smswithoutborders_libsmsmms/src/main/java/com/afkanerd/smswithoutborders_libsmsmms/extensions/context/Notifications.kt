@@ -25,6 +25,8 @@ fun Context.notifyText(
     conversation: Conversations,
     self: Boolean = false,
     actions: Boolean = true,
+    text: String? = null,
+    title: String? = null
 ) {
     if(actions) insertNotificationSessions(conversation, self)
     val builder = getNotificationBuilder(conversation, actions)
@@ -37,7 +39,7 @@ fun Context.notifyText(
         .build()
 
     val sender = Person.Builder()
-        .setName(contactName ?: conversation.sms?.address!!)
+        .setName(title ?: (contactName ?: conversation.sms?.address!!))
         .setKey(conversation.sms?.thread_id.toString())
         .setImportant(true)
         .build()
@@ -49,41 +51,39 @@ fun Context.notifyText(
             style.addMessage(
                 if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     NotificationCompat.MessagingStyle.Message(
-                        it.text,
+                        text ?: it.text,
                         it.date,
                         if(it.self) user.name else contactName
                     )
                 } else {
                     NotificationCompat.MessagingStyle.Message(
-                        it.text,
+                        text ?: it.text,
                         it.date,
                         if(it.self) user else sender
                     )
                 }
             )
                 .setGroupConversation(false)
-                .setConversationTitle(contactName ?: conversation.sms?.address!!)
+                .setConversationTitle(title ?: (contactName ?: conversation.sms?.address!!))
         }
     } else {
         style.addMessage(
             if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 NotificationCompat.MessagingStyle.Message(
-                    conversation.sms?.body,
+                    text ?: conversation.sms?.body,
                     System.currentTimeMillis(),
-                    getString(R.string.message_failed_send_notification_description_a_message_failed_to_send_to)
+                    sender.name
                 )
             } else {
                 NotificationCompat.MessagingStyle.Message(
-                    conversation.sms?.body,
+                    text ?: conversation.sms?.body,
                     System.currentTimeMillis(),
-                    Person.Builder()
-                        .setName(getString(R.string.message_failed_send_notification_description_a_message_failed_to_send_to))
-                        .build()
+                    sender
                 )
             }
         )
             .setGroupConversation(false)
-            .setConversationTitle(contactName ?: conversation.sms?.address!!)
+            .setConversationTitle(title ?: (contactName ?: conversation.sms?.address!!))
     }
     builder.setStyle(style)
 
