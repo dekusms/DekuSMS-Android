@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -232,7 +233,8 @@ private fun ConversationSent(
                     Icon(
                         Icons.Default.Info,
                         "Message failed icon",
-//                        tint=colorResource(R.color.md_theme_error)
+//                        tint= colorResource(R.color.design_default_color_error)
+                        tint= MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -263,7 +265,6 @@ fun ConversationsCard(
             Text(
                 text=timestamp,
                 style= MaterialTheme.typography.labelSmall,
-//                color = colorResource(R.color.md_theme_outlineVariant),
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
@@ -331,17 +332,25 @@ fun ConversationsCard(
 
                             if(showDate) {
                                 Text(
-                                    text= if(status == ConversationStatusTypes.STATUS_PENDING)
-                                        stringResource(R.string.sms_status_sending)
-                                    else if(status == ConversationStatusTypes.STATUS_COMPLETE)
-                                        "$date " + stringResource(R.string.sms_status_delivered)
-                                    else if(status == ConversationStatusTypes.STATUS_FAILED)
-                                        stringResource(R.string.sms_status_failed)
-                                    else "$date " + stringResource(R.string.sms_status_sent),
+                                    text= when (status) {
+                                        ConversationStatusTypes.STATUS_PENDING ->
+                                            stringResource(R.string.sms_status_sending)
+
+                                        ConversationStatusTypes.STATUS_COMPLETE ->
+                                            "$date ${stringResource(
+                                                R.string.sms_status_delivered)}"
+
+                                        ConversationStatusTypes.STATUS_FAILED ->
+                                            stringResource(R.string.sms_status_failed)
+
+                                        else ->
+                                            "$date " + stringResource(R.string.sms_status_sent)
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
-//                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
-//                                        colorResource(R.color.md_theme_error)
-//                                    else colorResource(R.color.md_theme_outlineVariant),
+                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
+                                        MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onPrimary,
+
                                     modifier = Modifier
                                         .align(Alignment.End)
                                         .padding(bottom=4.dp)

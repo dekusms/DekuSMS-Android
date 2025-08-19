@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.activities.NotificationsInitializer
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 
 @Composable
@@ -50,6 +51,7 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
             ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 context.setNativesLoaded(false)
+                NotificationsInitializer.create(context)
                 permissionGrantedCallback?.invoke()
             }
         }
@@ -73,7 +75,13 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.size(350.dp)
             )
+
             Spacer(Modifier.size(32.dp))
+
+            Text(
+                stringResource(R.string.to_use_deku_sms_make_it_your_default_sms_app),
+            )
+            Spacer(Modifier.size(16.dp))
 
             Button(
                 colors = ButtonDefaults.buttonColors(
@@ -84,7 +92,7 @@ fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
                 }
             ) {
                 Text(
-                    "Make default",
+                    stringResource(R.string.set_default_sms_app),
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }

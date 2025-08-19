@@ -296,7 +296,6 @@ fun Conversations(
                     }
                 }
                 else {
-                    println("Refreshing search... ${inboxMessagesItems.itemCount} - ${searchIndexes.first()}")
                     inboxMessagesItems.refresh()
                 }
             }

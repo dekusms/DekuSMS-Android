@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.startup.Initializer
 import androidx.work.WorkManagerInitializer
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.NotificationsInitializer
+import com.afkanerd.smswithoutborders_libsmsmms.activities.NotificationsInitializer
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -44,8 +44,6 @@ class RemoteListenerConnectionServiceInitializer : Initializer<Intent> {
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> {
-        return listOf(
-            WorkManagerInitializer::class.java,
-                NotificationsInitializer::class.java)
+        return listOf(WorkManagerInitializer::class.java)
     }
 }
