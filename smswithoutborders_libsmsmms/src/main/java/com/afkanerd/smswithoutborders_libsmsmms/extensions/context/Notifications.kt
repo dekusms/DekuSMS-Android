@@ -2,15 +2,12 @@ package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
 import android.Manifest
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.compose.runtime.snapshots.toLong
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -23,7 +20,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.google.gson.Gson
-import kotlin.concurrent.thread
 
 fun Context.notifyText(
     conversation: Conversations,
@@ -216,7 +212,7 @@ private fun Context.getNotificationMarkAsReadAction(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = SmsMmsActionsImpl.notificationMarkAsReadActionIntentAction
+            action = SmsMmsActionsImpl.NOTIFICATION_MARK_AS_READ_ACTION_INTENT_ACTION
             putExtra("id", conversation.sms?._id)
             putExtra("thread_id", conversation.sms?.thread_id)
         },
@@ -241,7 +237,7 @@ private fun Context.getNotificationMuteAction(conversation: Conversations): Noti
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = SmsMmsActionsImpl.notificationMuteActionIntentAction
+            action = SmsMmsActionsImpl.NOTIFICATION_MUTE_ACTION_INTENT_ACTION
             putExtra("address", conversation.sms?.address)
             putExtra( "thread_id", conversation.sms?.thread_id )
         },
@@ -261,7 +257,7 @@ private fun Context.getNotificationReplyAction(
 ): NotificationCompat.Action {
     val replyLabel = resources.getString(R.string.notifications_reply_label) // Label for the input field
     val remoteInput: RemoteInput = RemoteInput
-        .Builder(SmsMmsActionsImpl.notificationReplyActionKey)
+        .Builder(SmsMmsActionsImpl.NOTIFICATION_REPLY_ACTION_KEY)
         .setLabel(replyLabel)
         .build()
 
@@ -272,7 +268,7 @@ private fun Context.getNotificationReplyAction(
             this,
             SmsMmsActionsImpl::class.java
         ).apply {
-            action = SmsMmsActionsImpl.notificationReplyActionIntentAction
+            action = SmsMmsActionsImpl.NOTIFICATION_REPLY_ACTION_INTENT_ACTION
             putExtra("address", conversation.sms?.address)
             putExtra( "thread_id", conversation.sms?.thread_id )
             putExtra("sub_id", conversation.sms?.sub_id)

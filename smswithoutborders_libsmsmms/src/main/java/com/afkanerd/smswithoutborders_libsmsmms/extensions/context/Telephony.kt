@@ -177,23 +177,23 @@ fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
     return null
 }
 
+@Throws
 fun Context.updateSmsToLocalDb(
+    uri: Uri,
     conversations: Conversations
 ) {
     val contentValues = ContentValues()
-    contentValues.put(Telephony.Sms._ID, conversations.sms?._id)
     contentValues.put(Telephony.TextBasedSmsColumns.TYPE, conversations.sms?.type)
     contentValues.put(Telephony.TextBasedSmsColumns.STATUS, conversations.sms?.status)
 
     try {
-        contentResolver.update(
-            Telephony.Sms.CONTENT_URI,
-            contentValues,
-            "${Telephony.Sms._ID} = ?",
-            arrayOf(conversations.sms?._id.toString())
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            contentResolver.update(uri, contentValues, null)
+        } else {
+            contentResolver.update(uri, contentValues, null, null)
+        }
     } catch (e: Exception) {
-        e.printStackTrace()
+        throw e
     }
 }
 

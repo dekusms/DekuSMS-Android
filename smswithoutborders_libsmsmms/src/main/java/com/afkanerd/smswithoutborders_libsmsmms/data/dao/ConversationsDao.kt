@@ -16,7 +16,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE Conversations._id = :messageId")
-    fun getConversation(messageId: Int): Conversations?
+    fun getConversation(messageId: Long): Conversations?
 
     @Update
     fun updateConversation(conversations: Conversations)

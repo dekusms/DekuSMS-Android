@@ -29,7 +29,7 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
         originalResentMessageId?.let {
             CoroutineScope(Dispatchers.Default).launch {
                 context.getDatabase().conversationsDao()
-                    ?.getConversation(originalResentMessageId.toInt())
+                    ?.getConversation(originalResentMessageId.toLong())
                     ?.let { conversation ->
                         conversation.sms?.status = messageBox
                         conversation.sms?.type = Telephony.Mms.MESSAGE_BOX_SENT

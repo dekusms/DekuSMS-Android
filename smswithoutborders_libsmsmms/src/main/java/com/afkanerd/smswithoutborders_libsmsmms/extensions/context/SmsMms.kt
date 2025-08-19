@@ -2,6 +2,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.extensions.context
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
@@ -18,92 +19,71 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.google.gson.GsonBuilder
 import com.klinker.android.send_message.Message
-import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.text.MessageFormat
 
-object SmsMmsDataBroadcastActions {
-    const val SMS_DATA_SENT_BROADCAST_INTENT = "SMS_DATA_SENT_BROADCAST_INTENT"
-    const val SMS_DATA_DELIVERED_BROADCAST_INTENT = "SMS_DATA_DELIVERED_BROADCAST_INTENT"
+@Throws
+fun Context.updateSms(uri: Uri, conversation: Conversations) {
+    try {
+        updateSmsToLocalDb(uri,conversation)
+        getDatabase().conversationsDao()?.update(conversation)
+    } catch(e: Exception) {
+        e.printStackTrace()
+        throw e
+    }
 }
 
 @Throws
-fun Context.sendData(
-    data: ByteArray,
-    threadId: String,
+private fun Context.saveLocalDb(
+    sub_id: Long,
     address: String,
-    subscriptionId: Long,
-) {
-    val conversation = Conversations(
-        sms = SmsMmsNatives.Sms(
-            _id = System.currentTimeMillis(),
-            thread_id = threadId.toInt(),
-            address = address,
-            date = System.currentTimeMillis(),
-            date_sent = 0,
-            read = 1,
-            status = Telephony.Sms.STATUS_PENDING,
-            type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
-            body = "",
-            sub_id = subscriptionId,
-        ), sms_data_ = data
-    )
+    date: Long
+): Uri? {
+    val contentValues = ContentValues()
+    contentValues.put( Telephony.TextBasedSmsColumns.TYPE,
+        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX)
+
+    contentValues.put(
+        Telephony.TextBasedSmsColumns.STATUS,
+        Telephony.TextBasedSmsColumns.STATUS_PENDING )
+
+    contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, sub_id)
+
+    contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address)
+
+    contentValues.put(Telephony.TextBasedSmsColumns.DATE, date)
 
     try {
-        ConversationsViewModel().addConversation(this, conversation)
+        return contentResolver.insert( Telephony.Sms.CONTENT_URI, contentValues)
     } catch (e: Exception) {
         throw e
     }
+}
 
-    val address = makeE16PhoneNumber(address)
-    val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        getSystemService(SmsManager::class.java)
-            .createForSubscriptionId(subscriptionId.toInt())
-    } else {
-        SmsManager.getSmsManagerForSubscriptionId( subscriptionId.toInt())
-    }
-
-    val sentIntent = Intent(SmsMmsDataBroadcastActions.SMS_DATA_SENT_BROADCAST_INTENT)
-    sentIntent.setPackage(packageName)
-    sentIntent.putExtra("id", conversation.sms!!._id)
-
-    val deliveredIntent = Intent(SmsMmsDataBroadcastActions
-        .SMS_DATA_DELIVERED_BROADCAST_INTENT)
-    deliveredIntent.setPackage(packageName)
-    deliveredIntent.putExtra("id", conversation.sms!!._id)
-
-    val sentPendingIntent = PendingIntent.getBroadcast(
-        this,
-        conversation.sms!!._id!!.toInt(),
-        sentIntent,
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val deliveredPendingIntent = PendingIntent.getBroadcast(
-        this,
-        conversation.sms!!._id!!.toInt(),
-        deliveredIntent,
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val dataTransmissionPort: Short = 8200
+@Throws
+fun Context.insertSms(conversation: Conversations): Uri? {
+    var uri: Uri?
     try {
-        smsManager.sendDataMessage(
-            address,
-            null,
-            dataTransmissionPort,
-            data,
-            sentPendingIntent,
-            deliveredPendingIntent
+        uri = saveLocalDb(
+            conversation.sms?.sub_id!!,
+            conversation.sms?.address!!,
+            conversation.sms?.date!!
         )
+    } catch(e: Exception) {
+        throw e
+    }
+
+    try{
+        conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
+        getDatabase().conversationsDao()?.insert(conversation)
     } catch (e: Exception) {
         throw e
     }
+    return uri
 }
 
 @Throws
@@ -112,61 +92,178 @@ fun Context.sendSms(
     address: String,
     threadId: Int,
     subscriptionId: Long,
-): Conversations {
+    data: ByteArray? = null,
+): Conversations? {
+    if(text.isEmpty()) return null
+
+    val dataTransmissionPort: Short = 8200
+
     val address = makeE16PhoneNumber(address)
 
-    val id = System.currentTimeMillis()
     val date = System.currentTimeMillis()
-    val conversation = Conversations(sms = SmsMmsNatives.Sms(
-        _id = id,
-        thread_id = threadId,
-        address = address,
-        date = date,
-        date_sent = date,
-        read = 1,
-        status = Telephony.Sms.STATUS_PENDING,
-        type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
-        body = text,
-        sub_id = subscriptionId,
-    ))
+
+    var conversation: Conversations?
+    var uri: Uri?
 
     try {
-        ConversationsViewModel().addConversation(this, conversation)
+        conversation = Conversations(sms = SmsMmsNatives.Sms(
+            thread_id = threadId,
+            address = address,
+            date = date,
+            date_sent = date,
+            read = 1,
+            status = Telephony.Sms.STATUS_PENDING,
+            type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+            body = text,
+            sub_id = subscriptionId,
+        ), sms_data = data)
+        uri = insertSms(conversation)
+
+        val pendingIntents = if(data == null) getSmsPendingIntents(uri, conversation)
+        else getDataPendingIntent(uri, conversation)
+
+        val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            getSystemService(SmsManager::class.java)
+                .createForSubscriptionId(subscriptionId.toInt())
+        else SmsManager.getSmsManagerForSubscriptionId(subscriptionId.toInt())
+
+        if(data != null) {
+            smsManager.sendDataMessage(
+                address,
+                null,
+                dataTransmissionPort,
+                data,
+                pendingIntents.first,
+                pendingIntents.second
+            )
+        } else {
+            val dividedMessage = smsManager.divideMessage(text)
+            if (dividedMessage.size < 2) smsManager.sendTextMessage(
+                address,
+                null,
+                text,
+                pendingIntents.first,
+                pendingIntents.second
+            )
+            else {
+                val sentPendingIntents = ArrayList<PendingIntent?>()
+                val deliveredPendingIntents = ArrayList<PendingIntent?>()
+
+                for (i in 0 until dividedMessage.size - 1) {
+                    sentPendingIntents.add(null)
+                    deliveredPendingIntents.add(null)
+                }
+
+                sentPendingIntents.add(pendingIntents.first)
+                deliveredPendingIntents.add(pendingIntents.second)
+
+                smsManager.sendMultipartTextMessage(
+                    address,
+                    null,
+                    dividedMessage,
+                    sentPendingIntents,
+                    deliveredPendingIntents
+                )
+            }
+        }
     } catch (e: Exception) {
+        e.printStackTrace()
         throw e
     }
 
-    val settings = Settings()
-    settings.subscriptionId = subscriptionId.toInt()
-    settings.group = false
-    settings.deliveryReports = true
-    settings.useSystemSending = true
-
-    val message = Message()
-    message.text = text
-    message.addresses = arrayOf(address)
-
-    val transaction = Transaction(this, settings)
-    transaction.setExplicitBroadcastForSentSms(
-        Intent(this, SmsTextReceivedReceiver::class.java).apply {
-            action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
-            this.putExtra("id", id)
-            this.putExtra("address", address)
-            this.putExtra("thread_id", threadId)
-            this.putExtra("sub_id", subscriptionId)
-        }
-    )
-    transaction.setExplicitBroadcastForDeliveredSms(
-        Intent(this, SmsTextReceivedReceiver::class.java).apply {
-            action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
-            this.putExtra("id", id)
-            this.putExtra("address", address)
-            this.putExtra("thread_id", threadId)
-            this.putExtra("sub_id", subscriptionId)
-        }
-    )
-    transaction.sendNewMessage(message)
     return conversation
+}
+
+private fun Context.getDataPendingIntent(
+    uri: Uri?,
+    conversation: Conversations
+): Pair<PendingIntent, PendingIntent> {
+    val sentPendingIntent = PendingIntent.getBroadcast(
+        this,
+        conversation.sms?._id?.toInt() ?: -1,
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            setPackage(packageName)
+            action = SmsTextReceivedReceiver.DATA_SENT_BROADCAST_INTENT
+            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("address", conversation.sms?.address)
+            this.putExtra("thread_id", conversation.sms?.thread_id)
+            this.putExtra("sub_id", conversation.sms?.sub_id)
+            this.putExtra("uri", uri)
+        },
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val deliveredPendingIntent = PendingIntent.getBroadcast(
+        this,
+        conversation.sms?._id?.toInt() ?: -1,
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            setPackage(packageName)
+            action = SmsTextReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT
+            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("address", conversation.sms?.address)
+            this.putExtra("thread_id", conversation.sms?.thread_id)
+            this.putExtra("sub_id", conversation.sms?.sub_id)
+            this.putExtra("uri", uri)
+        },
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
+    return Pair(sentPendingIntent, deliveredPendingIntent)
+}
+
+private fun Context.getSmsPendingIntents(
+    uri: Uri?,
+    conversation: Conversations
+): Pair<PendingIntent, PendingIntent> {
+    val sentPendingIntent = PendingIntent.getBroadcast(
+        this,
+        conversation.sms?._id?.toInt() ?: -1,
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            setPackage(packageName)
+            action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
+            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("address", conversation.sms?.address)
+            this.putExtra("thread_id", conversation.sms?.thread_id)
+            this.putExtra("sub_id", conversation.sms?.sub_id)
+            this.putExtra("uri", uri?.toString())
+        },
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val deliveredPendingIntent = PendingIntent.getBroadcast(
+        this,
+        conversation.sms?._id?.toInt() ?: -1,
+        Intent(this, SmsTextReceivedReceiver::class.java).apply {
+            setPackage(packageName)
+            action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
+            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("address", conversation.sms?.address)
+            this.putExtra("thread_id", conversation.sms?.thread_id)
+            this.putExtra("sub_id", conversation.sms?.sub_id)
+            this.putExtra("uri", uri?.toString())
+        },
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
+    return Pair(sentPendingIntent, deliveredPendingIntent)
+}
+
+@SuppressLint("Range")
+fun Context.getIdFromLocal(uri: Uri): Long? {
+    contentResolver.query(
+        uri,
+        arrayOf(Telephony.Sms._ID),
+        null,
+        null,
+        null
+    )?.let { cursor ->
+        if(cursor.moveToFirst()) {
+            return cursor.getLong(cursor
+                .getColumnIndex(Telephony.Sms._ID))
+        }
+        cursor.close()
+    }
+    return null
 }
 
 @Throws
@@ -177,62 +274,63 @@ fun Context.sendMms(
     threadId: Int,
     subscriptionId: Long,
 ): Conversations {
-    val address = makeE16PhoneNumber(address)
-    val conversation = Conversations(
-        mms = SmsMmsNatives.Mms(
-            _id = System.currentTimeMillis(),
-            thread_id = threadId.toInt(),
-            date = System.currentTimeMillis(),
-            date_sent = 0,
-            msg_box = Telephony.Mms.MESSAGE_BOX_OUTBOX,
-            read = 1,
-            sub_id = subscriptionId,
-            seen = 1,
-        ),
-        mms_text = text,
-        mms_content_uri = contentUri.toString(),
-        mms_mimetype = contentResolver.getType(contentUri),
-        mms_filename = MmsParser.getFileName(this, contentUri),
-    )
-
     try {
-        ConversationsViewModel().addConversation(this, conversation)
+        val address = makeE16PhoneNumber(address)
+
+        val conversation = Conversations(
+            mms = SmsMmsNatives.Mms(
+                _id = System.currentTimeMillis(),
+                thread_id = threadId.toInt(),
+                date = System.currentTimeMillis(),
+                date_sent = 0,
+                msg_box = Telephony.Mms.MESSAGE_BOX_OUTBOX,
+                read = 1,
+                sub_id = subscriptionId,
+                seen = 1,
+            ),
+            mms_text = text,
+            mms_content_uri = contentUri.toString(),
+            mms_mimetype = contentResolver.getType(contentUri),
+            mms_filename = MmsParser.getFileName(this, contentUri),
+        )
+
+        getDatabase().conversationsDao()?.insert(conversation)
+
+        val sendSettings = MmsParser.getSendMessageSettings()
+        sendSettings.subscriptionId = subscriptionId.toInt()
+
+        val intent = Intent(this, MmsSentReceiverImpl::class.java)
+            .apply {
+                this.putExtra(
+                    MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
+                    conversation.mms!!._id,
+                )
+            }
+
+        val sendTransaction = Transaction(this, sendSettings)
+        sendTransaction .setExplicitBroadcastForSentMms(intent)
+
+        val mMessage = Message("", address)
+        val mimeType = contentResolver.getType(contentUri)
+        val filename = MmsParser.getFileName(this, contentUri)
+
+        mMessage.addMedia(
+            MmsParser.getBytesFromUri(this, contentUri),
+            mimeType,
+            filename
+        )
+
+        try {
+            sendTransaction.sendNewMessage(mMessage)
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
+
+        return conversation
     } catch (e: Exception) {
         e.printStackTrace()
         throw e
     }
-
-    val sendSettings = MmsParser.getSendMessageSettings()
-    sendSettings.subscriptionId = subscriptionId.toInt()
-
-    val intent = Intent(this, MmsSentReceiverImpl::class.java)
-        .apply {
-            this.putExtra(
-                MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
-                conversation.mms!!._id,
-            )
-        }
-
-    val sendTransaction = Transaction(this, sendSettings)
-    sendTransaction .setExplicitBroadcastForSentMms(intent)
-
-    val mMessage = Message("", address)
-    val mimeType = contentResolver.getType(contentUri)
-    val filename = MmsParser.getFileName(this, contentUri)
-
-    mMessage.addMedia(
-        MmsParser.getBytesFromUri(this, contentUri),
-        mimeType,
-        filename
-    )
-
-    try {
-        sendTransaction.sendNewMessage(mMessage)
-    } catch(e: Exception) {
-        e.printStackTrace()
-    }
-
-    return conversation
 }
 
 fun Context.loadRawSmsMmsDb() : List<Conversations>{
@@ -248,7 +346,7 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
     )?.let { cursor ->
         if(cursor.moveToFirst()) {
             do {
-                parseRawSmsContents(cursor).let { it ->
+                parseRawSmsContents(cursor)?.let { it ->
                     conversationsList.add(Conversations(sms = it.apply {
                         this.thread_id = getThreadId(this.address!!)
                     }))
@@ -364,7 +462,7 @@ fun Context.exportRawWithColumnGuesses(): String {
     )?.let { cursor ->
         if(cursor.moveToFirst()) {
             do {
-                smsContents.add(parseRawSmsContents(cursor))
+                parseRawSmsContents(cursor)?.let { smsContents.add(it) }
             } while(cursor.moveToNext())
         }
         cursor.close()
@@ -541,7 +639,10 @@ private fun parseRawMmsContents(cursor: Cursor): SmsMmsNatives.Mms {
 }
 
 @SuppressLint("Range")
-private fun parseRawSmsContents(cursor: Cursor): SmsMmsNatives.Sms {
+private fun parseRawSmsContents(cursor: Cursor): SmsMmsNatives.Sms? {
+    val body: String = cursor.getStringOrNull(cursor
+        .getColumnIndex(Telephony.Sms.BODY)) ?: return null
+
     val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Sms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -558,8 +659,6 @@ private fun parseRawSmsContents(cursor: Cursor): SmsMmsNatives.Sms {
         .getColumnIndex(Telephony.Sms.STATUS))
     val type: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.TYPE))
-    val body: String = cursor.getString(cursor
-        .getColumnIndex(Telephony.Sms.BODY))
     val locked: Int = cursor.getInt(cursor
         .getColumnIndex(Telephony.Sms.LOCKED))
     val sub_id: Long = cursor.getLong(cursor

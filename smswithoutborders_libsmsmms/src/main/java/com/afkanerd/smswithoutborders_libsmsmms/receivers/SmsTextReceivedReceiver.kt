@@ -10,11 +10,16 @@ import android.util.Base64
 import android.util.Log
 import android.util.Pair
 import android.widget.Toast
+import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSms
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,30 +49,36 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
             SMS_SENT_BROADCAST_INTENT, SMS_DELIVERED_BROADCAST_INTENT,
             DATA_SENT_BROADCAST_INTENT, DATA_DELIVERED_BROADCAST_INTENT -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val id = intent.getIntExtra("id", -1)
+                    val id = intent.getLongExtra("id", -1)
+                    val uri = intent.getStringExtra("uri")?.toUri()
 
-                    val conversation = context.getDatabase().conversationsDao()
+                    context.getDatabase().conversationsDao()
                         ?.getConversation(id)
+                        ?.let { conversation ->
+                            if (resultCode == Activity.RESULT_OK) {
+                                conversation.sms?.status =
+                                    if(intent.action == SMS_DELIVERED_BROADCAST_INTENT)
+                                        Telephony.TextBasedSmsColumns.STATUS_COMPLETE
+                                else Telephony.TextBasedSmsColumns.STATUS_NONE
 
-                    if (resultCode == Activity.RESULT_OK) {
-                        // TODO: manually update the local db
-                        conversation?.sms?.status = if(intent.action == SMS_DELIVERED_BROADCAST_INTENT)
-                            Telephony.TextBasedSmsColumns.STATUS_COMPLETE
-                        else Telephony.TextBasedSmsColumns.STATUS_NONE
-                        conversation?.sms?.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-                    } else {
-                        conversation?.sms?.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                        conversation?.sms?.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                        conversation?.sms?.error_code = resultCode
+                                conversation.sms?.type =
+                                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                            } else {
+                                conversation.sms?.status =
+                                    Telephony.TextBasedSmsColumns.STATUS_FAILED
+                                conversation.sms?.type =
+                                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
 
-                        conversation?.let {
-                            notifyMessageFailedToSend(context, conversation)
+                                conversation.sms?.error_code = resultCode
+
+                                notifyMessageFailedToSend(context, conversation)
+                            }
+                            try {
+                                context.updateSms(uri!!, conversation)
+                            } catch(e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
-                    }
-
-                    conversation?.let {
-                        ConversationsViewModel().update(context, conversation)
-                    }
                 }
             }
         }
@@ -124,10 +135,8 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
     }
 
     fun registerIncomingText(context: Context, intent: Intent): Conversations {
-        val messageId = System.currentTimeMillis()
-
         val bundle = intent.extras
-        val subscriptionId = bundle!!.getLong("subscription", -1)
+        val subscriptionId = bundle!!.getInt("subscription", -1)
         var address: String? = ""
         val bodyBuffer = StringBuilder()
         var dateSent: Long = 0
@@ -143,17 +152,21 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         val body = bodyBuffer.toString()
 
         // TODO: process encrypted message
-        return ConversationsViewModel().addConversation(
-            context = context,
-            messageId = messageId.toString(),
-            body = body,
-            subscriptionId = subscriptionId,
-            date = date,
-            dateSent = dateSent,
-            address = address!!,
-            type = Telephony.Sms.MESSAGE_TYPE_INBOX,
-            status = status
+        val conversation = Conversations(
+            sms = SmsMmsNatives.Sms(
+                body = body,
+                sub_id = subscriptionId.toLong(),
+                date = date,
+                date_sent = dateSent,
+                address = address!!,
+                type = Telephony.Sms.MESSAGE_TYPE_INBOX,
+                status = status,
+                thread_id = context.getThreadId(address),
+                read = 0,
+            )
         )
+        context.insertSms(conversation)
+        return conversation
     }
 
 }

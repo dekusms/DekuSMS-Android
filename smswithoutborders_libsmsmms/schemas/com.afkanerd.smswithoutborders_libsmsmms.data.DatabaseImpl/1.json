@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0bf49c44410bcbfa59c66bb64ed80530",
+    "identityHash": "8c6493984addf418b8a39238cce87687",
     "entities": [
       {
         "tableName": "Conversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sms_data_` BLOB, `mms_text` TEXT, `mms_content_uri` TEXT, `mms_mimetype` TEXT, `mms_filename` TEXT, `mms_filepath` TEXT, `_id` INTEGER, `thread_id` INTEGER, `address` TEXT, `person` TEXT, `date` INTEGER, `date_sent` INTEGER, `protocol` TEXT, `read` INTEGER, `status` INTEGER, `type` INTEGER, `reply_path_present` TEXT, `subject` TEXT, `body` TEXT, `service_center` TEXT, `locked` INTEGER, `sub_id` INTEGER, `error_code` INTEGER, `creator` TEXT, `seen` INTEGER, `mms__id` INTEGER, `mms_thread_id` INTEGER, `mms_date` INTEGER, `mms_date_sent` INTEGER, `mms_msg_box` INTEGER, `mms_read` INTEGER, `mms_m_id` TEXT, `mms_sub` TEXT, `mms_sub_cs` INTEGER, `mms_ct_t` TEXT, `mms_ct_l` TEXT, `mms_exp` TEXT, `mms_m_cls` TEXT, `mms_m_type` INTEGER, `mms_v` INTEGER, `mms_m_size` INTEGER, `mms_pri` INTEGER, `mms_rr` INTEGER, `mms_rpt_a` TEXT, `mms_resp_st` TEXT, `mms_st` TEXT, `mms_tr_id` TEXT, `mms_retr_st` TEXT, `mms_retr_txt` TEXT, `mms_retr_txt_cs` TEXT, `mms_read_status` TEXT, `mms_ct_cls` TEXT, `mms_resp_txt` TEXT, `mms_d_tm` TEXT, `mms_d_rpt` INTEGER, `mms_locked` INTEGER, `mms_sub_id` INTEGER, `mms_seen` INTEGER, `mms_creator` TEXT, `mms_text_only` INTEGER, `mms_part__id` INTEGER, `mms_part_mid` INTEGER, `mms_part_seq` INTEGER, `mms_part_ct` TEXT, `mms_part_name` TEXT, `mms_part_chset` INTEGER, `mms_part_cd` TEXT, `mms_part_fn` TEXT, `mms_part_cid` TEXT, `mms_part_cl` TEXT, `mms_part_ctt_s` TEXT, `mms_part_ctt_t` TEXT, `mms_part__data` TEXT, `mms_part_text` TEXT, `mms_part_sub_id` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sms_data` BLOB, `mms_text` TEXT, `mms_content_uri` TEXT, `mms_mimetype` TEXT, `mms_filename` TEXT, `mms_filepath` TEXT, `_id` INTEGER, `thread_id` INTEGER, `address` TEXT, `person` TEXT, `date` INTEGER, `date_sent` INTEGER, `protocol` TEXT, `read` INTEGER, `status` INTEGER, `type` INTEGER, `reply_path_present` TEXT, `subject` TEXT, `body` TEXT, `service_center` TEXT, `locked` INTEGER, `sub_id` INTEGER, `error_code` INTEGER, `creator` TEXT, `seen` INTEGER, `mms__id` INTEGER, `mms_thread_id` INTEGER, `mms_date` INTEGER, `mms_date_sent` INTEGER, `mms_msg_box` INTEGER, `mms_read` INTEGER, `mms_m_id` TEXT, `mms_sub` TEXT, `mms_sub_cs` INTEGER, `mms_ct_t` TEXT, `mms_ct_l` TEXT, `mms_exp` TEXT, `mms_m_cls` TEXT, `mms_m_type` INTEGER, `mms_v` INTEGER, `mms_m_size` INTEGER, `mms_pri` INTEGER, `mms_rr` INTEGER, `mms_rpt_a` TEXT, `mms_resp_st` TEXT, `mms_st` TEXT, `mms_tr_id` TEXT, `mms_retr_st` TEXT, `mms_retr_txt` TEXT, `mms_retr_txt_cs` TEXT, `mms_read_status` TEXT, `mms_ct_cls` TEXT, `mms_resp_txt` TEXT, `mms_d_tm` TEXT, `mms_d_rpt` INTEGER, `mms_locked` INTEGER, `mms_sub_id` INTEGER, `mms_seen` INTEGER, `mms_creator` TEXT, `mms_text_only` INTEGER, `mms_part__id` INTEGER, `mms_part_mid` INTEGER, `mms_part_seq` INTEGER, `mms_part_ct` TEXT, `mms_part_name` TEXT, `mms_part_chset` INTEGER, `mms_part_cd` TEXT, `mms_part_fn` TEXT, `mms_part_cid` TEXT, `mms_part_cl` TEXT, `mms_part_ctt_s` TEXT, `mms_part_ctt_t` TEXT, `mms_part__data` TEXT, `mms_part_text` TEXT, `mms_part_sub_id` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,8 +15,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "sms_data_",
-            "columnName": "sms_data_",
+            "fieldPath": "sms_data",
+            "columnName": "sms_data",
             "affinity": "BLOB"
           },
           {
@@ -466,7 +466,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0bf49c44410bcbfa59c66bb64ed80530')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8c6493984addf418b8a39238cce87687')"
     ]
   }
 }

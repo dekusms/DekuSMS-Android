@@ -588,8 +588,6 @@ fun Conversations(
                             typingMmsImage = null
                         },
                         sendMmsCallback = {
-                            typingMmsImage = null
-                            typingText = ""
                             viewModel.sendMms(
                                 context,
                                 it,
@@ -597,15 +595,17 @@ fun Conversations(
                                 address = address,
                                 subscriptionId = subscriptionId!!,
                             ){}
+                            typingMmsImage = null
+                            typingText = ""
                         },
                         smsSendCallback = {
-                            typingText = ""
                             viewModel.sendSms(
                                 context,
                                 text = typingText,
                                 address = address,
                                 subscriptionId = subscriptionId!!,
                             ){}
+                            typingText = ""
                         }
                     )
 

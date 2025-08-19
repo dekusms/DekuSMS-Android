@@ -9,11 +9,11 @@ object SmsMmsNatives {
     @Entity(indices = [Index(value = ["_id"], unique = true)])
     @Serializable
     data class Sms(
-        val _id: Long? = null,
+        var _id: Long? = null,
         var thread_id: Int,
         val address: String?,
         val person: String? = null,
-        val date: Long,
+        var date: Long,
         val date_sent: Long,
         val protocol: String? = null,
         var read: Int,

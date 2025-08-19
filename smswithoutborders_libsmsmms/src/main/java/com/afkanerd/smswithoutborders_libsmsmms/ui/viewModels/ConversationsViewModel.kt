@@ -4,12 +4,14 @@ import android.content.Context
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
@@ -48,10 +50,6 @@ class ConversationsViewModel: ViewModel() {
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
-    fun update(context: Context, conversation: Conversations) {
-        context.updateSmsToLocalDb( conversation )
-        context.getDatabase().conversationsDao()?.update(conversation)
-    }
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
 
@@ -72,68 +70,6 @@ class ConversationsViewModel: ViewModel() {
             ).flow.cachedIn(viewModelScope)
         }
         return conversationsPager!!
-    }
-
-    fun addConversation(
-        context: Context,
-        conversation: Conversations,
-    ): Conversations {
-        context.registerSmsToLocalDb(
-            messageId = conversation.sms!!._id.toString(),
-            address = conversation.sms!!.address!!,
-            body = conversation.sms!!.body,
-            subscriptionId = conversation.sms!!.sub_id,
-            date = conversation.sms!!.date.toLong(),
-            dateSent = conversation.sms!!.date_sent.toLong(),
-            type = conversation.sms!!.type,
-        )
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                context.getDatabase().conversationsDao()?.insert(conversation)
-            }
-        }
-        return conversation
-    }
-
-    fun addConversation(
-        context: Context,
-        messageId: String,
-        address: String,
-        body: String,
-        subscriptionId: Long,
-        date: Long,
-        dateSent: Long,
-        type: Int,
-        status: Int,
-    ): Conversations {
-        val threadId = context.getThreadId(address)
-        context.registerSmsToLocalDb(
-            messageId = messageId,
-            address = address,
-            body = body,
-            subscriptionId = subscriptionId,
-            date = date,
-            dateSent = dateSent,
-            type = type,
-        )
-
-        val conversation = Conversations(
-            sms = SmsMmsNatives.Sms(
-                _id = System.currentTimeMillis(),
-                thread_id = threadId,
-                address = address,
-                date = System.currentTimeMillis(),
-                date_sent = System.currentTimeMillis(),
-                read = 0,
-                status = status,
-                type = type,
-                body = body,
-                sub_id = subscriptionId,
-            )
-        )
-        context.getDatabase().conversationsDao()?.insert(conversation)
-        return conversation
     }
 
     fun contactIsBlocked(
@@ -233,14 +169,21 @@ class ConversationsViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.sendMms(
-                    contentUri = uri,
-                    text = text,
-                    address = address,
-                    threadId = context.getThreadId(address),
-                    subscriptionId = subscriptionId,
-                ).let { conversation ->
-                    callback(conversation)
+                try {
+                    context.sendMms(
+                        contentUri = uri,
+                        text = text,
+                        address = address,
+                        threadId = context.getThreadId(address),
+                        subscriptionId = subscriptionId,
+                    ).let { conversation ->
+                        callback(conversation)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context,
+                        context.getString(R.string.something_went_wrong_with_sending),
+                        Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -255,13 +198,20 @@ class ConversationsViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.sendSms(
-                    text = text,
-                    address = address,
-                    threadId = context.getThreadId(address),
-                    subscriptionId = subscriptionId,
-                ).let { conversation ->
-                    callback(conversation)
+                try {
+                    context.sendSms(
+                        text = text,
+                        address = address,
+                        threadId = context.getThreadId(address),
+                        subscriptionId = subscriptionId,
+                    )?.let { conversation ->
+                        callback(conversation)
+                    }
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context,
+                        context.getString(R.string.something_went_wrong_with_sending),
+                        Toast.LENGTH_LONG).show()
                 }
             }
         }
