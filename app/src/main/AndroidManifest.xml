@@ -225,6 +225,15 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <receiver
+            android:name=".BroadcastReceivers.SmsMmsNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT_LIB" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 

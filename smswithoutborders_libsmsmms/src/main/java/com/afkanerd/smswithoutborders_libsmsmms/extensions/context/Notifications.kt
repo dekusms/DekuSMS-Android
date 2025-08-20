@@ -19,17 +19,20 @@ import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver.Companion.SMS_SENT_BROADCAST_INTENT_LIB
 import com.google.gson.Gson
+import kotlin.jvm.java
 
 fun Context.notifyText(
     conversation: Conversations,
+    cls: Class<*>,
     self: Boolean = false,
     actions: Boolean = true,
     text: String? = null,
-    title: String? = null
+    title: String? = null,
 ) {
     if(actions) insertNotificationSessions(conversation, self)
-    val builder = getNotificationBuilder(conversation, actions)
+    val builder = getNotificationBuilder(conversation, actions, cls)
 
     val address = conversation.sms!!.address!!
     val contactName = retrieveContactName(address)
@@ -124,6 +127,7 @@ class NotificationsDelImpl: BroadcastReceiver() {
 fun Context.getNotificationBuilder(
     conversation: Conversations,
     actions: Boolean,
+    cls: Class<*>
 ): NotificationCompat.Builder {
     val contactName = retrieveContactName(conversation.sms!!.address!!)
     val sender = Person.Builder()
@@ -162,7 +166,7 @@ fun Context.getNotificationBuilder(
         .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
         .setShortcutId(shortcutInfoId)
         .setBubbleMetadata(bubbleMetadata)
-//        .setContentIntent(getPendingIntent(conversation))
+        .setContentIntent(getPendingIntent(conversation, cls))
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
         .setDeleteIntent(
             PendingIntent.getBroadcast(
@@ -186,19 +190,22 @@ fun Context.getNotificationBuilder(
         }
 }
 
-//private fun Context.getPendingIntent(conversation: Conversations): PendingIntent {
-//    val receivedSmsIntent = Intent(this, MainActivity::class.java)
-//    receivedSmsIntent.putExtra("address", conversation.sms?.address)
-//    receivedSmsIntent.putExtra("thread_id", conversation.sms?.thread_id)
-//    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-//
-//    return PendingIntent.getActivity(
-//        this,
-//        conversation.sms?.thread_id!!,
-//        receivedSmsIntent,
-//        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-//    )
-//}
+private fun Context.getPendingIntent(
+    conversation: Conversations,
+    cls: Class<*>
+): PendingIntent {
+    val receivedSmsIntent = Intent(this, cls)
+    receivedSmsIntent.putExtra("address", conversation.sms?.address)
+    receivedSmsIntent.putExtra("thread_id", conversation.sms?.thread_id)
+    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+    return PendingIntent.getActivity(
+        this,
+        conversation.sms?.thread_id!!,
+        receivedSmsIntent,
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+}
 
 private fun Context.getNotificationMarkAsReadAction(
     conversation: Conversations
@@ -370,4 +377,11 @@ fun Context.cancelNotification(threadId: Int) {
     }
 
     NotificationManagerCompat.from(this).cancel(threadId)
+}
+
+fun Context.sendNotificationBroadcast(conversation: Conversations) {
+    sendBroadcast(Intent(SMS_SENT_BROADCAST_INTENT_LIB).apply{
+        putExtra("id", conversation.id)
+        setPackage(packageName)
+    })
 }

@@ -19,6 +19,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSms
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,8 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         var SMS_DELIVERED_BROADCAST_INTENT = "com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT"
         var DATA_SENT_BROADCAST_INTENT = "com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT"
         var DATA_DELIVERED_BROADCAST_INTENT = "com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT"
+
+        var SMS_SENT_BROADCAST_INTENT_LIB = "com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT_LIB"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -41,7 +44,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                     CoroutineScope(Dispatchers.IO).launch {
                         val conversation = registerIncomingText(context, intent)
                         context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
-                            if(!it.isMute) context.notifyText(conversation)
+                            if(!it.isMute) context.sendNotificationBroadcast(conversation)
                         }
                     }
                 }
@@ -58,23 +61,21 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                             if (resultCode == Activity.RESULT_OK) {
                                 conversation.sms?.status =
                                     if(intent.action == SMS_DELIVERED_BROADCAST_INTENT)
-                                        Telephony.TextBasedSmsColumns.STATUS_COMPLETE
-                                else Telephony.TextBasedSmsColumns.STATUS_NONE
+                                        Telephony.Sms.STATUS_COMPLETE
+                                else Telephony.Sms.STATUS_NONE
 
-                                conversation.sms?.type =
-                                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
+                                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_SENT
                             } else {
-                                conversation.sms?.status =
-                                    Telephony.TextBasedSmsColumns.STATUS_FAILED
-                                conversation.sms?.type =
-                                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+                                conversation.sms?.status = Telephony.Sms.STATUS_FAILED
+                                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
 
                                 conversation.sms?.error_code = resultCode
-
-                                notifyMessageFailedToSend(context, conversation)
                             }
                             try {
                                 context.updateSms(uri!!, conversation)
+
+                                if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
+                                    context.sendNotificationBroadcast(conversation)
                             } catch(e: Exception) {
                                 e.printStackTrace()
                             }
@@ -82,7 +83,9 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                 }
             }
         }
+
     }
+
 
 
 //    private fun processEncryptedIncoming(context: Context, address: String, text: String):
@@ -121,19 +124,6 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
 //    }
 
 
-    private fun notifyMessageFailedToSend(context: Context, conversation: Conversations) {
-        val content = context
-                .getString(
-                    R.string
-                        .message_failed_send_notification_description_a_message_failed_to_send_to) +
-                " ${conversation.sms?.address}"
-
-        context.notifyText(
-            conversation = conversation,
-            actions = false,
-            text = content
-        )
-    }
 
     fun registerIncomingText(context: Context, intent: Intent): Conversations {
         val bundle = intent.extras

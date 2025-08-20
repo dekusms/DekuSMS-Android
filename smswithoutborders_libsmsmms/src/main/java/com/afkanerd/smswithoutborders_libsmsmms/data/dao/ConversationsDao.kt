@@ -15,8 +15,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 @Dao
 interface ConversationsDao {
 
-    @Query("SELECT * FROM Conversations WHERE Conversations._id = :messageId")
-    fun getConversation(messageId: Long): Conversations?
+    @Query("SELECT * FROM Conversations WHERE Conversations.id = :id")
+    fun getConversation(id: Long): Conversations?
 
     @Update
     fun updateConversation(conversations: Conversations)
@@ -86,7 +86,7 @@ interface ConversationsDao {
     fun unreadCount(threadId: Int): Int
 
     @Insert
-    fun insertConversation(conversation: Conversations)
+    fun insertConversation(conversation: Conversations): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertConversations(conversation: List<Conversations>)
@@ -101,9 +101,9 @@ interface ConversationsDao {
     fun getThread(threadId: Int): Threads?
 
     @Transaction
-    fun insert(conversation: Conversations){
-        insertConversation(conversation)
+    fun insert(conversation: Conversations): Long {
         conversation.sms?.let { insertUpdateThread(it) }
+        return insertConversation(conversation)
     }
 
     @Transaction

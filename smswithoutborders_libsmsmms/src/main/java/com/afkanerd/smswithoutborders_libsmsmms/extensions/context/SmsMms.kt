@@ -79,7 +79,9 @@ fun Context.insertSms(conversation: Conversations): Uri? {
 
     try{
         conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
-        getDatabase().conversationsDao()?.insert(conversation)
+        getDatabase().conversationsDao()?.insert(conversation)?.let { id ->
+            conversation.id = id
+        }
     } catch (e: Exception) {
         throw e
     }
@@ -184,7 +186,7 @@ private fun Context.getDataPendingIntent(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.DATA_SENT_BROADCAST_INTENT
-            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
             this.putExtra("sub_id", conversation.sms?.sub_id)
@@ -199,7 +201,7 @@ private fun Context.getDataPendingIntent(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT
-            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
             this.putExtra("sub_id", conversation.sms?.sub_id)
@@ -221,7 +223,7 @@ private fun Context.getSmsPendingIntents(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
-            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
             this.putExtra("sub_id", conversation.sms?.sub_id)
@@ -236,7 +238,7 @@ private fun Context.getSmsPendingIntents(
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
-            this.putExtra("id", conversation.sms?._id)
+            this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
             this.putExtra("sub_id", conversation.sms?.sub_id)

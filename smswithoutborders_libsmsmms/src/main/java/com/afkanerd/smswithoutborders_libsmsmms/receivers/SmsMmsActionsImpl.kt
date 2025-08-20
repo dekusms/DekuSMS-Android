@@ -8,6 +8,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotific
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,10 +52,7 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                                 threadId = threadId,
                                 subscriptionId = subscriptionId
                             )?.let { conversation ->
-                                context.notifyText(
-                                    conversation,
-                                    self =true,
-                                )
+                                context.sendNotificationBroadcast(conversation)
                             }
                         } catch(e: Exception) {
                             e.printStackTrace()

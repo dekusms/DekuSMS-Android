@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 //@Entity
 @Entity(indices = [Index(value = ["_id"], unique = true)])
 data class Conversations(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     @Embedded var sms: SmsMmsNatives.Sms? = null,
     @Embedded("mms_") var mms: SmsMmsNatives.Mms? = null,
     @Embedded("mms_part_") var mmsPart: SmsMmsNatives.MmsPart? = null,
