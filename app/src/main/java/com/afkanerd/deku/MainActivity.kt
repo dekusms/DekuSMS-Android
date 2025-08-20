@@ -1,5 +1,6 @@
 package com.afkanerd.deku
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -23,8 +25,10 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -61,8 +65,8 @@ class MainActivity : AppCompatActivity(){
                     .windowLayoutInfo(this@MainActivity)
                     .collect { newLayoutInfo ->
                         setContent {
+                            navController = rememberNavController()
                             AppTheme {
-                                navController = rememberNavController()
                                 Surface(Modifier
                                     .fillMaxSize()
                                 ) {
@@ -73,6 +77,8 @@ class MainActivity : AppCompatActivity(){
                                         searchViewModel = searchViewModel,
                                     ) {
                                     }
+
+                                    processIntent(navController)
                                 }
                             }
                         }
@@ -81,22 +87,34 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        println("New intent instance called....")
-        handleIntent(intent)
-    }
-
-    private fun handleIntent(intent: Intent) {
-        if(intent.action == Intent.ACTION_VIEW &&
-            intent.getStringExtra("view") == DevMode.viewLogCat) {
-            navController.navigate(LogcatScreen)
-        }
-        else {
-            intent.let {
-                // TODO("Implement this)
-//                conversationViewModel.setNewIntent(it)
+//    override fun onNewIntent(intent: Intent) {
+//        super.onNewIntent(intent)
+//        println("New intent instance called....")
+//        handleIntent(intent)
+//    }
+//
+//    private fun handleIntent(intent: Intent) {
+//        if(intent.action == Intent.ACTION_VIEW &&
+//            intent.getStringExtra("view") == DevMode.viewLogCat) {
+//            navController.navigate(LogcatScreen)
+//        }
+//        else {
+//            intent.let {
+//                // TODO("Implement this)
+////                conversationViewModel.setNewIntent(it)
+//            }
+//        }
+//    }
+//
+    private fun processIntent(navController: NavController) {
+        when(intent.action) {
+            applicationContext.NEW_NOTIFICATION_ACTION -> {
+                val address = intent.getStringExtra("address")
+                address?.let {
+                    navController.navigate(ConversationsScreenNav(address))
+                }
             }
         }
     }
+
 }

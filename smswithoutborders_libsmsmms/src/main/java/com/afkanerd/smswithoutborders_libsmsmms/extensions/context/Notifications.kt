@@ -190,14 +190,20 @@ fun Context.getNotificationBuilder(
         }
 }
 
+val Context.NEW_NOTIFICATION_ACTION
+    get() = "NEW_NOTIFICATION_ACTION"
+
 private fun Context.getPendingIntent(
     conversation: Conversations,
     cls: Class<*>
 ): PendingIntent {
-    val receivedSmsIntent = Intent(this, cls)
-    receivedSmsIntent.putExtra("address", conversation.sms?.address)
-    receivedSmsIntent.putExtra("thread_id", conversation.sms?.thread_id)
-    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    val receivedSmsIntent = Intent(this, cls).apply {
+        setPackage(packageName)
+        action = NEW_NOTIFICATION_ACTION
+        putExtra("address", conversation.sms?.address)
+        putExtra("thread_id", conversation.sms?.thread_id)
+        setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    }
 
     return PendingIntent.getActivity(
         this,
