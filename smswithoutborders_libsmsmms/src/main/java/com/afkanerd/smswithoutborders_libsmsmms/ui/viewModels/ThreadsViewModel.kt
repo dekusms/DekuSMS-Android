@@ -188,45 +188,4 @@ class ThreadsViewModel: ViewModel() {
             }
         }
     }
-
-    data class ProcessedIntents(val address: String?, val threadId: Int?, val text: String?)
-    fun processIntents(
-        context: Context,
-        intent: Intent,
-        defaultRegion: String,
-    ): ProcessedIntents? {
-        if(intent.action != null &&
-            ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
-            val text = if(intent.hasExtra("sms_body")) intent.getStringExtra("sms_body")
-            else if(intent.hasExtra("android.intent.extra.TEXT")) {
-                intent.getStringExtra("android.intent.extra.TEXT")
-            } else ""
-
-            val sendToString = intent.dataString
-
-            if ((sendToString != null &&
-                        (sendToString.contains("smsto:") ||
-                                sendToString.contains("sms:"))) ||
-                intent.hasExtra("address")
-            ) {
-                val address = context.makeE16PhoneNumber(
-                    if(intent.hasExtra("address"))
-                        intent.getStringExtra("address")!!
-                    else sendToString!!
-                )
-
-                val threadId = context.getThreadId(address)
-                return ProcessedIntents(address, threadId.toInt(), text)
-            }
-        }
-        else if(intent.hasExtra("address")) {
-            val text = if(intent.hasExtra("android.intent.extra.TEXT"))
-                intent.getStringExtra("android.intent.extra.TEXT") else ""
-
-            val address = intent.getStringExtra("address")
-            val threadId = intent.getStringExtra("thread_id")
-            return ProcessedIntents(address, threadId?.toInt(), text)
-        }
-        return null
-    }
 }
