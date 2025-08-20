@@ -88,10 +88,12 @@ import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -276,6 +278,9 @@ fun ConversationsMainLayout(
                     inboxMessagesItems.refresh()
                 }
             }
+        }
+        else if(inboxMessagesItems.loadState.append == LoadState.Loading) {
+            listState.animateScrollToItem(0)
         }
 
         viewModel.fetchDraft(context, address) {
