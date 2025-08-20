@@ -296,6 +296,8 @@ fun ConversationsMainLayout(
                     inboxMessagesItems.refresh()
                 }
             }
+
+            context.cancelNotification(threadId)
         }
         else if(inboxMessagesItems.loadState.append == LoadState.Loading) {
             listState.animateScrollToItem(0)
@@ -311,10 +313,6 @@ fun ConversationsMainLayout(
                     }
                 }
             }
-        }
-
-        threadId?.let{
-            context.cancelNotification(it)
         }
     }
 
