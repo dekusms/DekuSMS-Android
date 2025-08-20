@@ -27,6 +27,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQue
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
@@ -87,11 +88,11 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-//    override fun onNewIntent(intent: Intent) {
-//        super.onNewIntent(intent)
-//        println("New intent instance called....")
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        println("New intent instance called....")
 //        handleIntent(intent)
-//    }
+    }
 //
 //    private fun handleIntent(intent: Intent) {
 //        if(intent.action == Intent.ACTION_VIEW &&
@@ -111,6 +112,15 @@ class MainActivity : AppCompatActivity(){
             applicationContext.NEW_NOTIFICATION_ACTION -> {
                 val address = intent.getStringExtra("address")
                 address?.let {
+                    navController.navigate(ConversationsScreenNav(address))
+                }
+            }
+            Intent.ACTION_SEND -> {
+
+            }
+            Intent.ACTION_SENDTO -> {
+                intent.data?.let { uri ->
+                    val address = makeE16PhoneNumber(uri.toString())
                     navController.navigate(ConversationsScreenNav(address))
                 }
             }
