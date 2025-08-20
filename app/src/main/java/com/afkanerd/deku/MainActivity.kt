@@ -113,6 +113,7 @@ class MainActivity : AppCompatActivity(){
             applicationContext.NEW_NOTIFICATION_ACTION -> {
                 val address = intent.getStringExtra("address")
                 address?.let {
+                    intent.removeExtra("address")
                     navController.navigate(ConversationsScreenNav(address))
                 }
             }
