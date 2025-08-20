@@ -66,6 +66,7 @@ fun NavHostControllerInstance(
                 val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
                 ConversationsMainLayout(
                     address = convScreen.address,
+                    text = convScreen.text ?: "",
                     searchQuery = convScreen.query,
                     navController = navController
                 )

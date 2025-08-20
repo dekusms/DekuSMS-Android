@@ -1,5 +1,6 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui
 
+import android.Manifest
 import androidx.compose.foundation.Image
 import android.content.Context
 import android.graphics.Bitmap
@@ -130,6 +131,9 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import sh.calvin.autolinktext.rememberAutoLinkText
 import kotlin.let
 
@@ -163,18 +167,31 @@ fun backHandler(
     }
 }
 
+const val requiredSendSMSPermission = Manifest.permission.SEND_SMS
+const val requiredReceiveSMSPermission = Manifest.permission.READ_SMS
+const val requiredReadPhoneStatePermissions = Manifest.permission.READ_PHONE_STATE
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun ConversationsMainLayout(
     address: String,
     navController: NavController,
     searchQuery: String? = null,
+    text: String = "",
     foldOpen: Boolean = false,
     _items: List<Conversations>? = null
 ) {
-    val viewModel: ConversationsViewModel = viewModel()
+//    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
+//    val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
+    val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
+    if(!readPhoneStatePermission.status.isGranted) {
+        navController.navigate(HomeScreenNav())
+        return
+    }
 
+    val viewModel: ConversationsViewModel = viewModel()
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -185,51 +202,24 @@ fun ConversationsMainLayout(
 
     var isDefault by remember{ mutableStateOf( inPreviewMode || context.isDefault()) }
 
-    var isMute by remember { mutableStateOf(false) }
-
-    var isArchived by remember { mutableStateOf(false) }
-
-    var isBlocked by remember {
-        mutableStateOf(viewModel.contactIsBlocked(context, address)) }
-
-    var searchQuery by remember { mutableStateOf(searchQuery) }
-    var searchIndex by remember { mutableIntStateOf(0) }
-
-    val scope = rememberCoroutineScope()
-
-    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
-
-    var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
-
-    val messages = viewModel.getConversations(context, address)
-    val inboxMessagesItems = messages.collectAsLazyPagingItems()
-
-    val selectedItems by viewModel.selectedItems.collectAsState()
-
-    val listState = rememberLazyListState()
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-
-    var rememberMenuExpanded by remember { mutableStateOf( false) }
-    var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
-    var searchIndexes by remember { mutableStateOf(emptyList<Int>())}
-
-    var openAlertDialog by remember { mutableStateOf(false)}
-
-    val isShortCode = if(inPreviewMode) false else isShortCode(address)
-
-    var shouldPulse by remember { mutableStateOf(false) }
-
-    var rememberDeleteAlert by remember { mutableStateOf(false) }
-    var openInfoAlert by remember { mutableStateOf(false) }
-
-    var typingText by remember{ mutableStateOf("") }
+    var typingText by remember{ mutableStateOf(text) }
     var typingMmsImage by remember{ mutableStateOf<Uri?>(null) }
     var subscriptionId by remember{ mutableStateOf( context.getDefaultSimSubscription()) }
     var highlightedMessage by remember{ mutableStateOf<Conversations?>(null) }
 
+    var isBlocked by remember { mutableStateOf(viewModel.contactIsBlocked(context, address))}
+    var contactName by remember{ mutableStateOf( context.retrieveContactName(address)
+        ?: address )}
+    var isMute by remember { mutableStateOf(false) }
+    var isArchived by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(searchQuery) }
+    var searchIndex by remember { mutableIntStateOf(0) }
+
+    var threadId by remember { mutableIntStateOf(context.getThreadId(address)) }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_DESTROY) {
+            if(event == Lifecycle.Event.ON_DESTROY) {
                 if(typingText.isNotBlank()) {
                     ConversationsViewModel().addDraft(
                         context,
@@ -249,6 +239,34 @@ fun ConversationsMainLayout(
         }
     }
 
+    val messages = viewModel.getConversations(context, address)
+    val scope = rememberCoroutineScope()
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
+
+    var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
+    var rememberMenuExpanded by remember { mutableStateOf( false) }
+    var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
+    var searchIndexes by remember { mutableStateOf(emptyList<Int>())}
+
+
+    val inboxMessagesItems = messages.collectAsLazyPagingItems()
+
+    val selectedItems by viewModel.selectedItems.collectAsState()
+
+    val listState = rememberLazyListState()
+
+    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    var openAlertDialog by remember { mutableStateOf(false)}
+
+    val isShortCode = if(inPreviewMode) false else isShortCode(address)
+
+    var shouldPulse by remember { mutableStateOf(false) }
+
+    var rememberDeleteAlert by remember { mutableStateOf(false) }
+
+    var openInfoAlert by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit){
         if(!searchQuery.isNullOrEmpty()) {
             viewModel.search(context, searchQuery!!, address) { indexes ->
@@ -256,11 +274,11 @@ fun ConversationsMainLayout(
             }
         }
 
-        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+        ThreadsViewModel().isMuted(context, threadId) {
             isMute = it
         }
 
-        ThreadsViewModel().isMuted(context, context.getThreadId(address)) {
+        ThreadsViewModel().isMuted(context, threadId) {
             isArchived = it
         }
     }
@@ -283,24 +301,22 @@ fun ConversationsMainLayout(
             listState.animateScrollToItem(0)
         }
 
-        viewModel.fetchDraft(context, address) {
-            typingText = it?.sms?.body!!
-            viewModel.clearDraft(context, it)
-            if(searchQuery.isNullOrEmpty()) {
-                scope.launch{
-                    listState.animateScrollToItem(0)
+        if(text.isBlank()) {
+            viewModel.fetchDraft(context, address) {
+                typingText = it?.sms?.body!!
+                viewModel.clearDraft(context, it)
+                if(searchQuery.isNullOrEmpty()) {
+                    scope.launch{
+                        listState.animateScrollToItem(0)
+                    }
                 }
             }
         }
 
-//        context.cancelNotification(context.getThreadId(address).toInt())
+        threadId?.let{
+            context.cancelNotification(it)
+        }
     }
-
-    val contactName by remember{ mutableStateOf(
-        if(isDefault) {
-            context.retrieveContactName(address) ?: address
-        } else address.replace(Regex("[\\s-]"), "")
-    )}
 
 
     BackHandler {
@@ -333,11 +349,13 @@ fun ConversationsMainLayout(
             rememberDeleteAlert = true
         },
         archiveCallback = {
-            if(isArchived) {
-                viewModel.unArchive(context, context.getThreadId(address)) {}
+            if(isArchived && threadId != null) {
+                viewModel.unArchive(context, threadId!!) {}
             }
             else {
-                viewModel.archive(context, context.getThreadId(address)) {}
+                threadId?.let {
+                    viewModel.archive(context, it) {}
+                }
             }
             backHandler(
                 context,
@@ -649,7 +667,6 @@ fun ConversationsMainLayout(
                         val contentUri by remember{
                             mutableStateOf(conversation.mms_content_uri?.toUri())
                         }
-
 
                         ConversationsCard(
                             text= text,

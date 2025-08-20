@@ -359,8 +359,7 @@ fun ConversationsCard(
                         }
                     }
                 }
-                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, -> TODO()
-                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED, -> TODO()
+                else -> {}
             }
         }
     }

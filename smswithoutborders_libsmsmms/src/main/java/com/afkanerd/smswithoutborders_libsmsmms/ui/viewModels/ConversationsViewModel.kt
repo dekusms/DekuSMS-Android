@@ -266,7 +266,7 @@ class ConversationsViewModel: ViewModel() {
                         date = System.currentTimeMillis(),
                         date_sent = System.currentTimeMillis(),
                         read = 1,
-                        status = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+                        status = Telephony.Sms.STATUS_PENDING,
                         type = Telephony.Sms.MESSAGE_TYPE_DRAFT,
                         body = body,
                         sub_id = subId

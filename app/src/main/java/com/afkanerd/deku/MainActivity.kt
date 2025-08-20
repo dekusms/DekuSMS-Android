@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Telephony
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -90,8 +91,7 @@ class MainActivity : AppCompatActivity(){
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        println("New intent instance called....")
-//        handleIntent(intent)
+        processIntent(navController, intent)
     }
 //
 //    private fun handleIntent(intent: Intent) {
@@ -107,7 +107,8 @@ class MainActivity : AppCompatActivity(){
 //        }
 //    }
 //
-    private fun processIntent(navController: NavController) {
+    private fun processIntent(navController: NavController, newIntent: Intent? = null) {
+        val intent = newIntent ?: intent
         when(intent.action) {
             applicationContext.NEW_NOTIFICATION_ACTION -> {
                 val address = intent.getStringExtra("address")
@@ -121,7 +122,17 @@ class MainActivity : AppCompatActivity(){
             Intent.ACTION_SENDTO -> {
                 intent.data?.let { uri ->
                     val address = makeE16PhoneNumber(uri.toString())
-                    navController.navigate(ConversationsScreenNav(address))
+
+                    val text = intent.getStringExtra("sms_body")
+                        ?: intent.getStringExtra(Intent.EXTRA_TEXT)
+
+                    intent.removeExtra("sms_body")
+                    intent.data = null
+
+                    navController.navigate(ConversationsScreenNav(
+                        address = address,
+                        text = text,
+                    ))
                 }
             }
         }

@@ -82,7 +82,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 const val requiredSendSMSPermission = Manifest.permission.SEND_SMS
-//const val requiredReceiveSMSPermission = Manifest.permission.RECEIVE_SMS
 const val requiredReceiveSMSPermission = Manifest.permission.READ_SMS
 
 const val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS

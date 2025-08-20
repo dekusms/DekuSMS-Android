@@ -12,7 +12,8 @@ data class HomeScreenNav(
 @Serializable
 data class ConversationsScreenNav(
     val address: String,
-    val query: String? = null
+    val query: String? = null,
+    val text: String? = null
 )
 
 @Serializable
