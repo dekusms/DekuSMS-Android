@@ -49,7 +49,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                     }
                 }
             }
-            SMS_SENT_BROADCAST_INTENT, SMS_DELIVERED_BROADCAST_INTENT -> {
+            SMS_SENT_BROADCAST_INTENT, DATA_SENT_BROADCAST_INTENT -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val id = intent.getLongExtra("id", -1)
                     val uri = intent.getStringExtra("uri")?.toUri()
@@ -75,7 +75,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                         }
                 }
             }
-            DATA_SENT_BROADCAST_INTENT, DATA_DELIVERED_BROADCAST_INTENT -> {
+            SMS_DELIVERED_BROADCAST_INTENT, DATA_DELIVERED_BROADCAST_INTENT -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val id = intent.getLongExtra("id", -1)
                     val uri = intent.getStringExtra("uri")?.toUri()

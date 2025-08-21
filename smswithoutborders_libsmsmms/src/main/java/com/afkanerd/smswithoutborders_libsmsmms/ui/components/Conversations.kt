@@ -334,7 +334,7 @@ fun ConversationsCard(
                                 Text(
                                     text= when (status) {
                                         ConversationStatusTypes.STATUS_PENDING ->
-                                            stringResource(R.string.sms_status_sending)
+                                            "$date " + stringResource(R.string.sms_status_sent)
 
                                         ConversationStatusTypes.STATUS_COMPLETE ->
                                             "$date ${stringResource(
@@ -344,7 +344,7 @@ fun ConversationsCard(
                                             stringResource(R.string.sms_status_failed)
 
                                         else ->
-                                            "$date " + stringResource(R.string.sms_status_sent)
+                                            stringResource(R.string.sms_status_sending)
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if(status == ConversationStatusTypes.STATUS_FAILED)

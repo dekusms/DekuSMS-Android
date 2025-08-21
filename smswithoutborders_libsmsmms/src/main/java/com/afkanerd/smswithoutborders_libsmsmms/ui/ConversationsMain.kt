@@ -282,6 +282,12 @@ fun ConversationsMainLayout(
         }
     }
 
+    LaunchedEffect(inboxMessagesItems.itemCount) {
+        if (inboxMessagesItems.itemCount > 0) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     LaunchedEffect(inboxMessagesItems.loadState, searchIndexes) {
         if(inboxMessagesItems.loadState.isIdle) {
             if(searchIndexes.isNotEmpty() && searchIndex == 0) {
@@ -297,9 +303,6 @@ fun ConversationsMainLayout(
             }
 
             context.cancelNotification(threadId)
-        }
-        else if(inboxMessagesItems.loadState.append == LoadState.Loading) {
-            listState.animateScrollToItem(0)
         }
 
         if(text.isBlank()) {

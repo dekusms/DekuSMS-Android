@@ -44,7 +44,7 @@ class ConversationsViewModel: ViewModel() {
 
     var pageSize: Int = 50
     var prefetchDistance: Int = 3 * pageSize
-    var enablePlaceholder: Boolean = false
+    var enablePlaceholder: Boolean = true
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
