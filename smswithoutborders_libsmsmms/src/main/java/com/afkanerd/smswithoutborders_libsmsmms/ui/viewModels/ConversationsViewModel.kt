@@ -44,9 +44,9 @@ class ConversationsViewModel: ViewModel() {
         return _selectedItems.value.size
     }
 
-    var pageSize: Int = 10
+    var pageSize: Int = 50
     var prefetchDistance: Int = 3 * pageSize
-    var enablePlaceholder: Boolean = true
+    var enablePlaceholder: Boolean = false
     var initialLoadSize: Int = 2 * pageSize
     var maxSize: Int = PagingConfig.Companion.MAX_SIZE_UNBOUNDED
 
