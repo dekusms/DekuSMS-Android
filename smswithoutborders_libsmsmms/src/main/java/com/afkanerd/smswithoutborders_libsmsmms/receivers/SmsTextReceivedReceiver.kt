@@ -49,7 +49,32 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                     }
                 }
             }
-            SMS_SENT_BROADCAST_INTENT, SMS_DELIVERED_BROADCAST_INTENT,
+            SMS_SENT_BROADCAST_INTENT, SMS_DELIVERED_BROADCAST_INTENT -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val id = intent.getLongExtra("id", -1)
+                    val uri = intent.getStringExtra("uri")?.toUri()
+
+                    context.getDatabase().conversationsDao()
+                        ?.getConversation(id)
+                        ?.let { conversation ->
+                            if (resultCode == Activity.RESULT_OK) {
+                                conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+                                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_SENT
+                            } else {
+                                conversation.sms?.status = Telephony.Sms.STATUS_FAILED
+                                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
+                                conversation.sms?.error_code = resultCode
+                            }
+                            try {
+                                context.updateSms(uri!!, conversation)
+                                if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
+                                    context.sendNotificationBroadcast(conversation)
+                            } catch(e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                }
+            }
             DATA_SENT_BROADCAST_INTENT, DATA_DELIVERED_BROADCAST_INTENT -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val id = intent.getLongExtra("id", -1)
@@ -59,21 +84,14 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                         ?.getConversation(id)
                         ?.let { conversation ->
                             if (resultCode == Activity.RESULT_OK) {
-                                conversation.sms?.status =
-                                    if(intent.action == SMS_DELIVERED_BROADCAST_INTENT)
-                                        Telephony.Sms.STATUS_COMPLETE
-                                else Telephony.Sms.STATUS_NONE
-
-                                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_SENT
+                                conversation.sms?.status = Telephony.Sms.STATUS_COMPLETE
                             } else {
                                 conversation.sms?.status = Telephony.Sms.STATUS_FAILED
                                 conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
-
                                 conversation.sms?.error_code = resultCode
                             }
                             try {
                                 context.updateSms(uri!!, conversation)
-
                                 if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
                                     context.sendNotificationBroadcast(conversation)
                             } catch(e: Exception) {
@@ -85,45 +103,6 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
         }
 
     }
-
-
-
-//    private fun processEncryptedIncoming(context: Context, address: String, text: String):
-//            Pair<String?, Boolean> {
-//        var text = text
-//        var encrypted = false
-//        if (E2EEHandler.isValidMessage(Base64.decode(text, Base64.DEFAULT))) {
-//            val payload = E2EEHandler.extractMessageFromPayload(Base64.decode(text, Base64.DEFAULT))
-//
-//            val isSelf = E2EEHandler.isSelf(context, address)
-//            val keypair = E2EEHandler.fetchKeypair(context, address, isSelf)
-//            val peerPublicKey = if(isSelf) keypair.second else
-//                Base64.decode(E2EEHandler.secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
-//            var states = E2EEHandler.fetchStates(context, address, isSelf)
-//            if(states.isBlank()) {
-//                val bobState = States()
-//                val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
-//                Ratchets.ratchetInitBob(bobState, SK, keypair)
-//                states = bobState.serializedStates
-//            }
-//            val receivingState = States(states)
-//            if(BuildConfig.DEBUG)
-//                println(states)
-//            val decryptedText = Ratchets.ratchetDecrypt(receivingState, payload.first,
-//                payload.second, keypair.second)
-//            text = String(decryptedText, Charsets.UTF_8)
-//            encrypted = true
-//
-//            if(BuildConfig.DEBUG)
-//                Toast.makeText(context, "Decryption happened!", Toast.LENGTH_LONG).show()
-//
-//            E2EEHandler.storeState(context, receivingState.serializedStates, address, isSelf)
-//        }
-//
-//        return Pair(text, encrypted)
-//    }
-
-
 
     fun registerIncomingText(context: Context, intent: Intent): Conversations {
         val bundle = intent.extras

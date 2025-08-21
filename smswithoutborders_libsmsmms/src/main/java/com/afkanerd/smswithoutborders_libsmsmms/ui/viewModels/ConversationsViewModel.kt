@@ -16,10 +16,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerSmsToLocalDb
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendMms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSmsToLocalDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

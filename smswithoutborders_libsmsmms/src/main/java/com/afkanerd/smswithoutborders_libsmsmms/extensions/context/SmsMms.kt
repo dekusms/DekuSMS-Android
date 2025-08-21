@@ -38,24 +38,44 @@ fun Context.updateSms(uri: Uri, conversation: Conversations) {
 }
 
 @Throws
-private fun Context.saveLocalDb(
+private fun Context.updateSmsToLocalDb(
+    uri: Uri,
+    conversations: Conversations
+) {
+    val contentValues = ContentValues().apply {
+        put(Telephony.TextBasedSmsColumns.TYPE, conversations.sms?.type)
+        put(Telephony.TextBasedSmsColumns.STATUS, conversations.sms?.status)
+    }
+
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            contentResolver.update(uri, contentValues, null)
+        } else {
+            contentResolver.update(uri, contentValues, null, null)
+        }
+    } catch (e: Exception) {
+        throw e
+    }
+}
+
+@Throws
+private fun Context.insertSmsTelephony(
+    text: String,
     sub_id: Long,
     address: String,
-    date: Long
+    date: Long,
+    type: Int,
+    read: Int,
 ): Uri? {
-    val contentValues = ContentValues()
-    contentValues.put( Telephony.TextBasedSmsColumns.TYPE,
-        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX)
-
-    contentValues.put(
-        Telephony.TextBasedSmsColumns.STATUS,
-        Telephony.TextBasedSmsColumns.STATUS_PENDING )
-
-    contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, sub_id)
-
-    contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address)
-
-    contentValues.put(Telephony.TextBasedSmsColumns.DATE, date)
+    val contentValues = ContentValues().apply {
+        put(Telephony.TextBasedSmsColumns.BODY, text)
+        put(Telephony.TextBasedSmsColumns.DATE, date)
+        put(Telephony.TextBasedSmsColumns.TYPE, type)
+        put(Telephony.TextBasedSmsColumns.ADDRESS, address)
+        put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, sub_id)
+        put(Telephony.TextBasedSmsColumns.READ, read)
+        put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE)
+    }
 
     try {
         return contentResolver.insert( Telephony.Sms.CONTENT_URI, contentValues)
@@ -68,10 +88,13 @@ private fun Context.saveLocalDb(
 fun Context.insertSms(conversation: Conversations): Uri? {
     var uri: Uri?
     try {
-        uri = saveLocalDb(
+        uri = insertSmsTelephony(
+            conversation.sms?.body!!,
             conversation.sms?.sub_id!!,
             conversation.sms?.address!!,
-            conversation.sms?.date!!
+            conversation.sms?.date!!,
+            conversation.sms?.type!!,
+            conversation.sms?.read!!
         )
     } catch(e: Exception) {
         throw e
@@ -98,14 +121,11 @@ fun Context.sendSms(
 ): Conversations? {
     if(text.isEmpty()) return null
 
-    val dataTransmissionPort: Short = 8200
-
     val address = makeE16PhoneNumber(address)
 
     val date = System.currentTimeMillis()
 
     var conversation: Conversations?
-    var uri: Uri?
 
     try {
         conversation = Conversations(sms = SmsMmsNatives.Sms(
@@ -114,38 +134,65 @@ fun Context.sendSms(
             date = date,
             date_sent = date,
             read = 1,
-            status = Telephony.Sms.STATUS_PENDING,
+            status = Telephony.Sms.STATUS_NONE,
             type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
             body = text,
             sub_id = subscriptionId,
         ), sms_data = data)
-        uri = insertSms(conversation)
 
-        val pendingIntents = if(data == null) getSmsPendingIntents(uri, conversation)
-        else getDataPendingIntent(uri, conversation)
+        insertSms(conversation)?.let { uri ->
+            val pendingIntents = if(data == null) getSmsPendingIntents(uri, conversation)
+            else getDataPendingIntent(uri, conversation)
 
-        val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            getSystemService(SmsManager::class.java)
-                .createForSubscriptionId(subscriptionId.toInt())
-        else SmsManager.getSmsManagerForSubscriptionId(subscriptionId.toInt())
+            sendSms(
+                address = address,
+                conversation = conversation,
+                uri = uri,
+                sentPendingIntent = pendingIntents.first,
+                deliveredPendingIntent = pendingIntents.second,
+            )
+        }
 
-        if(data != null) {
+    } catch (e: Exception) {
+        e.printStackTrace()
+        throw e
+    }
+
+    return conversation
+}
+
+@Throws
+private fun Context.sendSms(
+    address: String,
+    conversation: Conversations,
+    uri: Uri,
+    sentPendingIntent: PendingIntent?,
+    deliveredPendingIntent: PendingIntent?,
+) {
+    val dataTransmissionPort: Short = 8200
+    val smsManager = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        getSystemService(SmsManager::class.java)
+            .createForSubscriptionId(conversation.sms?.sub_id!!.toInt())
+    else SmsManager.getSmsManagerForSubscriptionId(conversation.sms?.sub_id!!.toInt())
+
+    try {
+        if(conversation.sms_data != null) {
             smsManager.sendDataMessage(
                 address,
                 null,
                 dataTransmissionPort,
-                data,
-                pendingIntents.first,
-                pendingIntents.second
+                conversation.sms_data,
+                sentPendingIntent,
+                deliveredPendingIntent
             )
         } else {
-            val dividedMessage = smsManager.divideMessage(text)
+            val dividedMessage = smsManager.divideMessage(conversation.sms?.body)
             if (dividedMessage.size < 2) smsManager.sendTextMessage(
                 address,
                 null,
-                text,
-                pendingIntents.first,
-                pendingIntents.second
+                conversation.sms?.body,
+                sentPendingIntent,
+                deliveredPendingIntent
             )
             else {
                 val sentPendingIntents = ArrayList<PendingIntent?>()
@@ -156,8 +203,8 @@ fun Context.sendSms(
                     deliveredPendingIntents.add(null)
                 }
 
-                sentPendingIntents.add(pendingIntents.first)
-                deliveredPendingIntents.add(pendingIntents.second)
+                sentPendingIntents.add(sentPendingIntent)
+                deliveredPendingIntents.add(deliveredPendingIntent)
 
                 smsManager.sendMultipartTextMessage(
                     address,
@@ -168,12 +215,15 @@ fun Context.sendSms(
                 )
             }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
+
+    } catch(e: Exception) {
+        conversation.sms?.status = Telephony.Sms.STATUS_FAILED
+        conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
+        updateSms(uri, conversation)
         throw e
     }
-
-    return conversation
+    conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+    updateSms(uri, conversation)
 }
 
 private fun Context.getDataPendingIntent(

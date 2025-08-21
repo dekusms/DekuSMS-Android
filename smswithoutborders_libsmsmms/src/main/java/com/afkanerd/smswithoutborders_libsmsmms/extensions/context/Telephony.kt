@@ -177,53 +177,6 @@ fun Context.getSubscriptionBitmap(subscriptionId: Int): Bitmap? {
     return null
 }
 
-@Throws
-fun Context.updateSmsToLocalDb(
-    uri: Uri,
-    conversations: Conversations
-) {
-    val contentValues = ContentValues()
-    contentValues.put(Telephony.TextBasedSmsColumns.TYPE, conversations.sms?.type)
-    contentValues.put(Telephony.TextBasedSmsColumns.STATUS, conversations.sms?.status)
-
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            contentResolver.update(uri, contentValues, null)
-        } else {
-            contentResolver.update(uri, contentValues, null, null)
-        }
-    } catch (e: Exception) {
-        throw e
-    }
-}
-
-fun Context.registerSmsToLocalDb(
-    messageId: String,
-    address: String,
-    body: String,
-    subscriptionId: Long,
-    date: Long,
-    dateSent: Long,
-    type: Int,
-) {
-    val contentValues = ContentValues()
-    contentValues.put(Telephony.Sms._ID, messageId)
-    contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address)
-    contentValues.put(Telephony.TextBasedSmsColumns.BODY, body)
-    contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId)
-    contentValues.put(Telephony.TextBasedSmsColumns.DATE, date)
-    contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT, dateSent)
-    contentValues.put( Telephony.TextBasedSmsColumns.TYPE, type)
-
-    try {
-         contentResolver.insert(
-            Telephony.Sms.CONTENT_URI,
-            contentValues
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
 
 fun isShortCode(address: String): Boolean {
     if (address.length < 4) return true
