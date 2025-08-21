@@ -91,6 +91,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -133,6 +135,9 @@ fun ThreadConversationLayout(
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
     val lifeCycleOwner = LocalLifecycleOwner.current
+
+    val readPhoneStatePermission =
+        rememberPermissionState(requiredReadPhoneStatePermissions)
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || context.isDefault()) }
 
@@ -386,9 +391,6 @@ fun ThreadConversationLayout(
                                     ThreadsViewModel.InboxType.ARCHIVED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_archived)
-                                    ThreadsViewModel.InboxType.ENCRYPTED ->
-                                        stringResource(R.string
-                                            .conversations_navigation_view_encryption)
                                     ThreadsViewModel.InboxType.BLOCKED ->
                                         stringResource(R.string
                                             .conversations_navigation_view_blocked)
@@ -398,8 +400,6 @@ fun ThreadConversationLayout(
                                     ThreadsViewModel.InboxType.DRAFTS ->
                                         stringResource(R.string
                                             .conversations_navigation_view_drafts)
-                                    ThreadsViewModel.InboxType.REMOTE_LISTENER ->
-                                        stringResource(R.string.remote_listeners)
                                     else -> ""
                                 },
                                 maxLines =1,
@@ -419,42 +419,13 @@ fun ThreadConversationLayout(
                                 )
                             }
                         },
-                        actions = {
-                            when(inboxType) {
-                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
-                                    IconButton(onClick = {
-                                        TODO("Implement remote listeners add screen")
-//                                        navController.navigate(RemoteListenersAddScreen)
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.AddCircle,
-                                            contentDescription =
-                                                stringResource(R.string.new_remote_listener)
-                                        )
-                                    }
-                                }
-                                else -> { }
-                            }
-                        },
+                        actions = {},
                         scrollBehavior = scrollBehaviour
                     )
                 }
             },
             floatingActionButton = {
                 when(inboxType) {
-                    ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                TODO("Implement remote listeners screen")
-//                                navController.navigate(RemoteListenersScreen)
-                            },
-                            icon = { Icon( Icons.Default.Settings,
-                                stringResource(R.string.settings)
-                            ) },
-                            text = { Text(text = "Configure") },
-                            expanded = listState.isScrollingUp()
-                        )
-                    }
                     ThreadsViewModel.InboxType.INBOX -> {
                         if((isDefault && !messagesAreLoading) || inPreviewMode) {
                             ExtendedFloatingActionButton(
@@ -475,6 +446,9 @@ fun ThreadConversationLayout(
             }
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
+                if(!isDefault || !readPhoneStatePermission.status.isGranted) {
+                    DefaultCheckMain { isDefault = context.isDefault() }
+                }
                 if(inPreviewMode || messagesAreLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -493,168 +467,133 @@ fun ThreadConversationLayout(
                     Box(
                         modifier = Modifier .fillMaxSize()
                     ) {
-                        if(!isDefault && inboxType != ThreadsViewModel.InboxType.REMOTE_LISTENER) {
-                            DefaultCheckMain {
-                                isDefault = true
+                        when(inboxType) {
+                            ThreadsViewModel.InboxType.ARCHIVED -> {
+                                if(archivedMessagesItems.loadState.refresh != Loading &&
+                                    archivedMessagesItems.itemCount < 1)
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.homepage_archive_no_message),
+                                            fontSize = 24.sp
+                                        )
+                                    }
+                            }
+                            ThreadsViewModel.InboxType.DEVELOPER_MODE -> {
+                                TODO("Implement navigate to thread view")
+                            }
+                            else -> {
+                                if(inboxMessagesItems.loadState.refresh != Loading &&
+                                    inboxMessagesItems.itemCount < 1)
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.homepage_no_message),
+                                            fontSize = 24.sp
+                                        )
+                                    }
                             }
                         }
-                        else {
-                            when(inboxType) {
-                                ThreadsViewModel.InboxType.ARCHIVED -> {
-                                    if(archivedMessagesItems.loadState.refresh != Loading &&
-                                        archivedMessagesItems.itemCount < 1)
-                                        Column(
-                                            modifier = Modifier.fillMaxSize(),
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                stringResource(R.string.homepage_archive_no_message),
-                                                fontSize = 24.sp
-                                            )
-                                        }
-                                }
-                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> {
-//                            if(remoteMessagesItems.loadState.refresh != Loading &&
-//                                remoteMessagesItems.itemCount < 1)
-//                                Column(
-//                                    modifier = Modifier.fillMaxSize(),
-//                                    verticalArrangement = Arrangement.Center,
-//                                    horizontalAlignment = Alignment.CenterHorizontally
-//                                ) {
-//                                    Text(
-//                                        stringResource(R.string
-//                                            .no_messages_sent_from_remote_listeners),
-//                                        fontSize = 16.sp,
-//                                        color = MaterialTheme.colorScheme.secondary,
-//                                        textAlign = TextAlign.Center
-//                                    )
-//                                }
-                                    TODO("Implement remote listener")
-                                }
-                                ThreadsViewModel.InboxType.DEVELOPER_MODE -> {
-                                    TODO("Implement navigate to thread view")
-//                            navController.navigate(DeveloperModeScreen)
-                                }
-                                else -> {
-                                    if(inboxMessagesItems.loadState.refresh != Loading &&
-                                        inboxMessagesItems.itemCount < 1)
-                                        Column(
-                                            modifier = Modifier.fillMaxSize(),
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                stringResource(R.string.homepage_no_message),
-                                                fontSize = 24.sp
-                                            )
-                                        }
-                                }
-                            }
-//
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                state = listState
-                            )  {
-                                items(
-                                    count = when(inboxType) {
-                                        ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            state = listState
+                        )  {
+                            items(
+                                count = when(inboxType) {
+                                    ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.BLOCKED -> blockedItems.size
 //                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemCount
 //                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
-                                        else -> inboxMessagesItems.itemCount
-                                    },
-                                    key = when(inboxType) {
-                                        ThreadsViewModel.InboxType.ARCHIVED ->
-                                            archivedMessagesItems.itemKey{ it.threadId }
+                                    else -> inboxMessagesItems.itemCount
+                                },
+                                key = when(inboxType) {
+                                    ThreadsViewModel.InboxType.ARCHIVED ->
+                                        archivedMessagesItems.itemKey{ it.threadId }
 //                                ThreadsViewModel.InboxType.BLOCKED -> {{ blockedItems[it].id }}
 //                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
 //                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
-                                        else -> inboxMessagesItems.itemKey{ it.threadId }
-                                    }
-                                ) { index ->
-                                    val thread = when(inboxType) {
-                                        ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems[index]
-                                        else -> inboxMessagesItems[index]
+                                    else -> inboxMessagesItems.itemKey{ it.threadId }
+                                }
+                            ) { index ->
+                                val thread = when(inboxType) {
+                                    ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems[index]
+                                    else -> inboxMessagesItems[index]
 //                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
 //                                InboxType.BLOCKED -> blockedItems[index]
 //                                InboxType.DRAFTS -> draftMessagesItems[index]
 //                                InboxType.MUTED -> mutedMessagesItems[index]
 //                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
+                                }
+
+                                thread?.address?.let { address ->
+                                    val isBlocked = if(isDefault)
+                                        BlockedNumberContract.isBlocked(context, address)
+                                    else false
+
+                                    val contactName = if(isDefault)
+                                        context.retrieveContactName(address)
+                                    else address
+
+                                    var firstName = address
+                                    var lastName = ""
+
+                                    if (!contactName.isNullOrEmpty()) {
+                                        contactName.split(" ").let {
+                                            firstName = it[0]
+                                            if (it.size > 1)
+                                                lastName = it[1]
+                                        }
                                     }
 
-                                    thread?.address?.let { address ->
-                                        val isBlocked = if(isDefault)
-                                            BlockedNumberContract.isBlocked(context, address)
-                                        else false
-
-                                        val contactName = if(isDefault)
-                                            context.retrieveContactName(address)
-                                        else address
-
-                                        var firstName = address
-                                        var lastName = ""
-
-                                        if (!contactName.isNullOrEmpty()) {
-                                            contactName.split(" ").let {
-                                                firstName = it[0]
-                                                if (it.size > 1)
-                                                    lastName = it[1]
-                                            }
-                                        }
-
-                                        val dismissState = GetSwipeBehaviour(thread, inboxType)
+                                    val dismissState = GetSwipeBehaviour(thread, inboxType)
 
 //                                val date = if(thread.date > 0) DateTimeUtils
 //                                    .formatDate(context, (thread.date * 1000L)) ?: "" else "Tues"
 
-                                        val date = if(!inPreviewMode) DateTimeUtils.formatDate(
-                                            context,
-                                            thread.date
-                                        ) ?: "" else "Tues"
+                                    val date = if(!inPreviewMode) DateTimeUtils.formatDate(
+                                        context,
+                                        thread.date
+                                    ) ?: "" else "Tues"
 
-                                        SwipeToDismissBox(
-                                            state = dismissState,
-                                            gesturesEnabled = context.settingsCanSwipe(),
-                                            backgroundContent = {
-                                                SwipeToDeleteBackground(
-                                                    dismissState,
-                                                    inboxType == ThreadsViewModel.InboxType.ARCHIVED
-                                                )
-                                            }
-                                        ) {
-                                            ThreadConversationCard(
-                                                id = thread.threadId,
-                                                firstName = firstName,
-                                                lastName = lastName,
-                                                phoneNumber = address,
-                                                content = thread.snippet,
-                                                date = date,
-                                                isRead = !thread.unread,
-                                                isContact = isDefault && !contactName.isNullOrBlank(),
-                                                isBlocked = isBlocked,
-                                                modifier = Modifier.combinedClickable(
-                                                    onClick = {
-                                                        if(selectedItems.isEmpty()) {
-                                                            if(!foldOpen) navController.navigate(
-                                                                ConversationsScreenNav(address))
-                                                            else navController
-                                                                .navigate(HomeScreenNav(address))
-                                                        } else {
-                                                            threadsViewModel.setSelectedItems(
-                                                                selectedItems.toMutableList().apply {
-                                                                    if(selectedItems.contains(thread))
-                                                                        remove(thread)
-                                                                    else add(thread)
-                                                                }
-                                                            )
-                                                        }
-                                                    },
-                                                    onLongClick = {
+                                    SwipeToDismissBox(
+                                        state = dismissState,
+                                        gesturesEnabled = context.settingsCanSwipe(),
+                                        backgroundContent = {
+                                            SwipeToDeleteBackground(
+                                                dismissState,
+                                                inboxType == ThreadsViewModel.InboxType.ARCHIVED
+                                            )
+                                        }
+                                    ) {
+                                        ThreadConversationCard(
+                                            id = thread.threadId,
+                                            firstName = firstName,
+                                            lastName = lastName,
+                                            phoneNumber = address,
+                                            content = thread.snippet,
+                                            date = date,
+                                            isRead = !thread.unread,
+                                            isContact = isDefault && !contactName.isNullOrBlank(),
+                                            isBlocked = isBlocked,
+                                            modifier = Modifier.combinedClickable(
+                                                onClick = {
+                                                    if(selectedItems.isEmpty()) {
+                                                        if(!foldOpen) navController.navigate(
+                                                            ConversationsScreenNav(address))
+                                                        else navController
+                                                            .navigate(HomeScreenNav(address))
+                                                    } else {
                                                         threadsViewModel.setSelectedItems(
                                                             selectedItems.toMutableList().apply {
                                                                 if(selectedItems.contains(thread))
@@ -663,32 +602,42 @@ fun ThreadConversationLayout(
                                                             }
                                                         )
                                                     }
-                                                ),
-                                                isSelected = selectedItems.contains(thread),
-                                                isMuted = thread.isMute,
-                                                type = thread.type,
-                                                unreadCount = thread.unreadCount
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            if(rememberDeleteMenu) {
-                                DeleteConfirmationAlert(
-                                    confirmCallback = {
-                                        threadsViewModel.deleteThreads(
-                                            context,
-                                            selectedItems
+                                                },
+                                                onLongClick = {
+                                                    threadsViewModel.setSelectedItems(
+                                                        selectedItems.toMutableList().apply {
+                                                            if(selectedItems.contains(thread))
+                                                                remove(thread)
+                                                            else add(thread)
+                                                        }
+                                                    )
+                                                }
+                                            ),
+                                            isSelected = selectedItems.contains(thread),
+                                            isMuted = thread.isMute,
+                                            type = thread.type,
+                                            unreadCount = thread.unreadCount
                                         )
-                                        threadsViewModel.removeAllSelectedItems()
-                                        rememberDeleteMenu = false
                                     }
-                                ) {
-                                    rememberDeleteMenu = false
-                                    threadsViewModel.removeAllSelectedItems()
                                 }
                             }
+                        }
+
+                        if(rememberDeleteMenu) {
+                            DeleteConfirmationAlert(
+                                confirmCallback = {
+                                    threadsViewModel.deleteThreads(
+                                        context,
+                                        selectedItems
+                                    )
+                                    threadsViewModel.removeAllSelectedItems()
+                                    rememberDeleteMenu = false
+                                }
+                            ) {
+                                rememberDeleteMenu = false
+                                threadsViewModel.removeAllSelectedItems()
+                            }
+                        }
 
 //                    if(rememberImportMenuExpanded) {
 //                        val importConversations by remember { mutableStateOf(threadsViewModel
@@ -715,8 +664,6 @@ fun ThreadConversationLayout(
 //                            threadsViewModel.importDetails = ""
 //                        }
 //                    }
-
-                        }
                     }
                 }
 

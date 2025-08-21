@@ -37,11 +37,9 @@ class ThreadsViewModel: ViewModel() {
     enum class InboxType {
         INBOX,
         ARCHIVED,
-        ENCRYPTED,
         BLOCKED,
         DRAFTS,
         MUTED,
-        REMOTE_LISTENER,
         DEVELOPER_MODE;
     }
 

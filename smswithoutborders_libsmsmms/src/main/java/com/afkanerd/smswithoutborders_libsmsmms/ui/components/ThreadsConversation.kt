@@ -421,25 +421,6 @@ fun ModalDrawerSheetLayout(
             NavigationDrawerItem(
                 icon = {
                     Icon(
-                        Icons.Filled.Security,
-                        contentDescription = stringResource(R.string.encrypted_folder)
-                    )
-                },
-                label = {
-                    Text(
-                        stringResource(R.string.conversations_navigation_view_encryption),
-                        fontSize = 14.sp
-                    )
-                },
-                badge = {
-                },
-                selected = selectedItemIndex == ThreadsViewModel.InboxType.ENCRYPTED,
-                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.ENCRYPTED) } }
-            )
-
-            NavigationDrawerItem(
-                icon = {
-                    Icon(
                         Icons.AutoMirrored.Default.VolumeOff,
                         contentDescription = stringResource(R.string.conversation_menu_muted_label)
                     )
@@ -476,25 +457,6 @@ fun ModalDrawerSheetLayout(
             )
 
             HorizontalDivider(Modifier.padding(8.dp))
-
-            NavigationDrawerItem(
-                icon = {
-                    Icon(
-                        Icons.Filled.CloudSync,
-                        contentDescription = stringResource(R.string.remote_listeners)
-                    )
-                },
-                label = {
-                    Text(
-                        stringResource(R.string.remote_listeners),
-                        fontSize = 14.sp
-                    )
-                },
-                badge = {
-                },
-                selected = selectedItemIndex == ThreadsViewModel.InboxType.REMOTE_LISTENER,
-                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.REMOTE_LISTENER) } }
-            )
 
             NavigationDrawerItem(
                 icon = {
