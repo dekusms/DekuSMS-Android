@@ -89,7 +89,6 @@ import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -126,7 +125,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SearchTopAppBarTex
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ShortCodeAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SimChooser
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.getConversationType
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
@@ -388,7 +387,7 @@ fun ConversationsMainLayout(
                 title = {
                     if(searchQuery.isNullOrEmpty()) {
                         TextButton(onClick = {
-                            navController.navigate(ContactDetailsNav(address))
+                            navController.navigate(ContactDetailsScreenNav(address))
                         }) {
                             Text(
                                 if(LocalInspectionMode.current) "Template" else contactName,

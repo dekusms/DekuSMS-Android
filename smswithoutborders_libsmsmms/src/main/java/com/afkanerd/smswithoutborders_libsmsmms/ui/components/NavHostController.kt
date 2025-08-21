@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,12 +27,14 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.ComposeNewMessage
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ContactDetails
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ConversationsMainLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
+import com.afkanerd.smswithoutborders_libsmsmms.ui.SettingsMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageNav
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 
@@ -79,16 +80,20 @@ fun NavHostControllerInstance(
                     navController = navController
                 )
             }
-            composable<ContactDetailsNav>{  backStackEntry ->
-                val contactsDetailsScreen: ContactDetailsNav = backStackEntry.toRoute()
+            composable<ContactDetailsScreenNav>{ backStackEntry ->
+                val contactsDetailsScreen: ContactDetailsScreenNav = backStackEntry.toRoute()
                 ContactDetails(
                     address = contactsDetailsScreen.address,
                     navController = navController
                 )
             }
 
-            composable<ComposeNewMessageNav>{
+            composable<ComposeNewMessageScreenNav>{
                 ComposeNewMessage(navController = navController)
+            }
+
+            composable<SettingsScreenNav>{
+                SettingsMain(navController = navController)
             }
         }
         else {

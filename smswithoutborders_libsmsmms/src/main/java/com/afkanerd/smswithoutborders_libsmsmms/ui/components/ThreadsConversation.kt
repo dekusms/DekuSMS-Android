@@ -61,12 +61,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactPhoto
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -483,6 +486,7 @@ fun ModalDrawerSheetLayout(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ThreadsMainDropDown(
+    navController: NavController,
     expanded: Boolean = false,
     threadsViewModel: ThreadsViewModel,
     dismissCallback: ((Boolean) -> Unit)? = null,
@@ -557,13 +561,7 @@ fun ThreadsMainDropDown(
                 },
                 onClick = {
                     dismissCallback?.let { it(false) }
-//                    context.startActivity(
-//                        Intent(context, SettingsActivity::class.java).apply {
-//                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-//                        }
-//                    )
-//                    context.getActivity()?.finish()
-                    TODO("Implement settings")
+                    navController.navigate(SettingsScreenNav)
                 }
             )
 
@@ -725,6 +723,7 @@ fun ModalDrawerSheetLayoutPreview() {
 @Composable
 fun MainMenuDropDown_Preview() {
     ThreadsMainDropDown(
+        navController = rememberNavController(),
         expanded = true,
         threadsViewModel = remember { ThreadsViewModel() }
     )

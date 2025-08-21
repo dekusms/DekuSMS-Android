@@ -29,7 +29,8 @@ import java.text.MessageFormat
 @Throws
 fun Context.updateSms(uri: Uri, conversation: Conversations) {
     try {
-        updateSmsToLocalDb(uri,conversation)
+        if(settingsGetStoreTelephonyDb)
+            updateSmsToLocalDb(uri,conversation)
         getDatabase().conversationsDao()?.update(conversation)
     } catch(e: Exception) {
         e.printStackTrace()
@@ -86,25 +87,27 @@ private fun Context.insertSmsTelephony(
 
 @Throws
 fun Context.insertSms(conversation: Conversations): Uri? {
-    var uri: Uri?
-    try {
-        uri = insertSmsTelephony(
-            conversation.sms?.body!!,
-            conversation.sms?.sub_id!!,
-            conversation.sms?.address!!,
-            conversation.sms?.date!!,
-            conversation.sms?.type!!,
-            conversation.sms?.read!!
-        )
-    } catch(e: Exception) {
-        throw e
+    var uri: Uri? = null
+    if(settingsGetStoreTelephonyDb) {
+        try {
+            uri = insertSmsTelephony(
+                conversation.sms?.body!!,
+                conversation.sms?.sub_id!!,
+                conversation.sms?.address!!,
+                conversation.sms?.date!!,
+                conversation.sms?.type!!,
+                conversation.sms?.read!!
+            )
+        } catch(e: Exception) {
+            throw e
+        }
     }
 
     try{
         conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
-        getDatabase().conversationsDao()?.insert(conversation)?.let { id ->
-            conversation.id = id
-        }
+        getDatabase().conversationsDao()
+            ?.insert(conversation, settingsGetKeepMessagesArchived)
+            ?.let { id -> conversation.id = id }
     } catch (e: Exception) {
         throw e
     }
@@ -149,7 +152,8 @@ fun Context.sendSms(
                 conversation = conversation,
                 uri = uri,
                 sentPendingIntent = pendingIntents.first,
-                deliveredPendingIntent = pendingIntents.second,
+                deliveredPendingIntent = if(settingsGetGetDeliveryReports)
+                    pendingIntents.second else null,
             )
         }
 

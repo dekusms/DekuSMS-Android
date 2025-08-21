@@ -24,7 +24,7 @@ interface ConversationsDao {
     @Update
     fun updateThread(thread: Threads)
 
-    fun insertUpdateThread(sms: SmsMmsNatives.Sms) {
+    fun insertUpdateThread(sms: SmsMmsNatives.Sms, keepArchived: Boolean) {
         val thread = getThread(sms.thread_id)
         val count = unreadCount(sms.thread_id)
 
@@ -54,7 +54,7 @@ interface ConversationsDao {
                     type = sms.type,
                     conversationId = sms._id ?: -1,
                     isMute = thread.isMute,
-                    isArchive = thread.isArchive,
+                    isArchive = if(thread.isArchive) keepArchived else false,
                     unreadCount = count,
                 )
             )
@@ -64,7 +64,7 @@ interface ConversationsDao {
     @Transaction
     fun update(conversation: Conversations) {
         updateConversation(conversation)
-        conversation.sms?.let { insertUpdateThread(it) }
+        conversation.sms?.let { insertUpdateThread(it, true) }
     }
 
     @Update
@@ -101,8 +101,8 @@ interface ConversationsDao {
     fun getThread(threadId: Int): Threads?
 
     @Transaction
-    fun insert(conversation: Conversations): Long {
-        conversation.sms?.let { insertUpdateThread(it) }
+    fun insert(conversation: Conversations, removeArchive: Boolean = false): Long {
+        conversation.sms?.let { insertUpdateThread(it, removeArchive) }
         return insertConversation(conversation)
     }
 
@@ -110,7 +110,7 @@ interface ConversationsDao {
     fun insertAll(conversationsList: List<Conversations>) {
         insertConversations(conversationsList)
         conversationsList.forEach {
-            it.sms?.let { sms -> insertUpdateThread(sms) }
+            it.sms?.let { sms -> insertUpdateThread(sms, true) }
         }
     }
 

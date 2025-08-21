@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,9 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Unarchive
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -77,7 +74,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getNativesLoa
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsCanSwipe
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.DeleteConfirmationAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.GetSwipeBehaviour
@@ -85,7 +82,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ModalDrawerSheetLa
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SwipeToDeleteBackground
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsMainDropDown
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
@@ -249,6 +246,7 @@ fun ThreadConversationLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 
     ThreadsMainDropDown(
+        navController = navController,
         expanded=rememberMenuExpanded,
         threadsViewModel = threadsViewModel,
     ) {
@@ -430,7 +428,7 @@ fun ThreadConversationLayout(
                         if((isDefault && !messagesAreLoading) || inPreviewMode) {
                             ExtendedFloatingActionButton(
                                 onClick = {
-                                    navController.navigate(ComposeNewMessageNav)
+                                    navController.navigate(ComposeNewMessageScreenNav)
                                 },
                                 icon = { Icon( Icons.AutoMirrored.Default.Message,
                                     stringResource(R.string.compose_new_message)) },
@@ -568,7 +566,7 @@ fun ThreadConversationLayout(
 
                                     SwipeToDismissBox(
                                         state = dismissState,
-                                        gesturesEnabled = context.settingsCanSwipe(),
+                                        gesturesEnabled = context.settingsGetEnableSwipeBehaviour,
                                         backgroundContent = {
                                             SwipeToDeleteBackground(
                                                 dismissState,

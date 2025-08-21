@@ -162,7 +162,7 @@ fun Context.getNotificationBuilder(
         .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
         .setAutoCancel(true)
         .setOnlyAlertOnce(true)
-        .setAllowSystemGeneratedContextualActions(true)
+        .setAllowSystemGeneratedContextualActions(settingsGetEnableContextReplies)
         .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
         .setShortcutId(shortcutInfoId)
         .setBubbleMetadata(bubbleMetadata)
