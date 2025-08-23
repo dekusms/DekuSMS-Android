@@ -343,11 +343,15 @@ fun ThreadConversationLayout(
                         actions = {
                             IconButton(onClick = {
                                 if(inboxType == ThreadsViewModel.InboxType.ARCHIVED) {
-                                    threadsViewModel.unArchiveThreads(
-                                        context, selectedItems)
+                                    threadsViewModel.update(
+                                        context, selectedItems.apply {
+                                            forEach { it.isArchive = false }
+                                        })
                                     threadsViewModel.removeAllSelectedItems()
                                 } else {
-                                    threadsViewModel.archiveThreads(context, selectedItems)
+                                    threadsViewModel.update(context, selectedItems.apply {
+                                        forEach { it.isArchive = true }
+                                    })
                                     threadsViewModel.removeAllSelectedItems()
                                 }
                             }) {

@@ -49,7 +49,7 @@ interface ConversationsDao {
                     threadId = thread.threadId,
                     snippet = sms.body,
                     date = sms.date,
-                    unread = count > 0,
+                    unread = sms.read == 0,
                     address = sms.address!!,
                     type = sms.type,
                     conversationId = sms._id ?: -1,

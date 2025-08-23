@@ -137,7 +137,9 @@ class ConversationsViewModel: ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
-                    ThreadsViewModel().unArchiveThreads(context, listOf(thread)) {
+                    ThreadsViewModel().update(context, listOf(thread.apply {
+                        isArchive = false
+                    })) {
                         callback(it)
                     }
                 }
@@ -149,7 +151,9 @@ class ConversationsViewModel: ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
-                    ThreadsViewModel().archiveThreads(context, listOf(thread)) {
+                    ThreadsViewModel().update(context, listOf(thread.apply {
+                        isArchive = true
+                    })) {
                         callback(it)
                     }
                 }

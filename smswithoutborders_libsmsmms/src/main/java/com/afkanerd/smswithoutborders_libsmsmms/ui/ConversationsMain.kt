@@ -229,6 +229,16 @@ fun ConversationsMainLayout(
                     ) {}
                 }
             }
+            if(event == Lifecycle.Event.ON_RESUME) {
+                val threadsViewModel = ThreadsViewModel()
+                threadsViewModel.get(context, threadId) {
+                    it?.let { thread ->
+                        threadsViewModel.update(context, listOf(thread.apply {
+                            this.unread = false
+                        }))
+                    }
+                }
+            }
         }
 
         lifecycleOwner.lifecycle.addObserver(observer)

@@ -114,31 +114,14 @@ class ThreadsViewModel: ViewModel() {
         }
     }
 
-    fun unArchiveThreads(
+    fun update(
         context: Context,
         threads: List<Threads>,
         callback: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val count = context.getDatabase().threadsDao()?.update(threads.apply {
-                    forEach { it.isArchive = false }
-                })
-                callback(count != 0)
-            }
-        }
-    }
-
-    fun archiveThreads(
-        context: Context,
-        threads: List<Threads>,
-        callback: (Boolean) -> Unit = {}
-) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val count = context.getDatabase().threadsDao()?.update(threads.apply {
-                    forEach { it.isArchive = true }
-                })
+                val count = context.getDatabase().threadsDao()?.update(threads)
                 callback(count != 0)
             }
         }
@@ -183,6 +166,19 @@ class ThreadsViewModel: ViewModel() {
                     return@withContext
                 }
                 callback(false)
+            }
+        }
+    }
+
+    fun get(
+        context: Context,
+        threadId: Int,
+        callback: (Threads?) -> Unit,
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val thread = context.getDatabase().threadsDao()?.get(threadId)
+                callback(thread)
             }
         }
     }
