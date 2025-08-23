@@ -2,11 +2,13 @@ package com.afkanerd.deku.Router.GatewayServers
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Pair
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -30,6 +32,14 @@ class GatewayServerRoutedActivity : AppCompatActivity() {
     private lateinit var toolbar: Toolbar
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Fix for three-button nav not properly going edge-to-edge.
+            // TODO: https://issuetracker.google.com/issues/298296168
+            window.isNavigationBarContrastEnforced = false
+        }
+
         setContentView(R.layout.activity_router)
 
         toolbar = findViewById(R.id.router_activity_toolbar)
