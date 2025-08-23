@@ -553,23 +553,6 @@ fun ThreadsNavMenuItems(
             expanded = expanded,
             onDismissRequest = { dismissCallback?.let{ it(false) } },
         ) {
-            threadMenuItems?.let { dropMenuItem ->
-                dropMenuItem.forEach { entry ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text= entry.key,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        },
-                        onClick = {
-                            entry.value()
-                            dismissCallback?.let { it(false) }
-                        }
-                    )
-                }
-            }
-
             DropdownMenuItem(
                 text = {
                     Text(
@@ -628,6 +611,26 @@ fun ThreadsNavMenuItems(
                     }
                 }
             )
+
+            HorizontalDivider()
+
+            threadMenuItems?.let { dropMenuItem ->
+                dropMenuItem.forEach { entry ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text= entry.key,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        onClick = {
+                            entry.value()
+                            dismissCallback?.let { it(false) }
+                        }
+                    )
+                }
+            }
+
         }
     }
 }

@@ -33,6 +33,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
@@ -87,6 +89,19 @@ class MainActivity : AppCompatActivity(){
                                         searchViewModel = searchViewModel,
                                         threadsMainMenuItems = getThreadMenuItems(),
                                     ) {
+                                        composable<RemoteListenersScreen> {
+                                            RMQMainComposable(
+                                                remoteListenerViewModel = remoteListenersViewModel,
+                                                remoteListenerQueuesViewModel = remoteListenersProjectsViewModel,
+                                                navController = navController
+                                            )
+                                        }
+                                        composable<RemoteForwardingScreen> {
+                                            startActivity(
+                                                Intent(applicationContext,
+                                                    GatewayServerRoutedActivity::class.java))
+                                            finish()
+                                        }
                                         composable<AboutScreen> {
                                             startActivity(
                                                 Intent(applicationContext,
@@ -145,7 +160,11 @@ class MainActivity : AppCompatActivity(){
     private fun getThreadMenuItems(): Map<String, () -> Unit> {
         return mapOf(
             Pair(stringResource(R.string.homepage_menu_routed)) {
-                TODO("Implement message forwarding")
+                navController.navigate(RemoteForwardingScreen)
+            },
+
+            Pair(stringResource(R.string.remote_listeners)) {
+                navController.navigate(RemoteListenersScreen)
             },
 
             Pair(stringResource(R.string.about_deku)) {

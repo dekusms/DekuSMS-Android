@@ -9,7 +9,9 @@ import android.content.res.Configuration
 import android.os.Build
 import android.preference.PreferenceManager
 import android.provider.Telephony
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -44,18 +46,27 @@ import com.afkanerd.smswithoutborders_libsmsmms.activities.NotificationsInitiali
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 
 @Composable
+fun getSetDefaultBehaviour(
+    context: Context,
+    callback: () -> Unit,
+): ManagedActivityResultLauncher<Intent, ActivityResult> {
+    return rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            context.setNativesLoaded(false)
+            NotificationsInitializer.create(context)
+            callback.invoke()
+        }
+    }
+}
+
+@Composable
 fun DefaultCheckMain(permissionGrantedCallback: (()->Unit)? = null) {
     val context = LocalContext.current
 
-    val getDefaultPermission =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                context.setNativesLoaded(false)
-                NotificationsInitializer.create(context)
-                permissionGrantedCallback?.invoke()
-            }
-        }
+    val getDefaultPermission = getSetDefaultBehaviour(context) {
+        permissionGrantedCallback?.invoke()
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
