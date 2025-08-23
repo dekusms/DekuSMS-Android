@@ -295,6 +295,15 @@ fun ConversationsMainLayout(
     LaunchedEffect(inboxMessagesItems.itemCount) {
         if (inboxMessagesItems.itemCount > 0) {
             listState.animateScrollToItem(0)
+
+            val threadsViewModel = ThreadsViewModel()
+            threadsViewModel.get(context, threadId) {
+                it?.let { thread ->
+                    threadsViewModel.update(context, listOf(thread.apply {
+                        this.unread = false
+                    }))
+                }
+            }
         }
     }
 
