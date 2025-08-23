@@ -88,7 +88,10 @@ class MainActivity : AppCompatActivity(){
                                         threadsMainMenuItems = getThreadMenuItems(),
                                     ) {
                                         composable<AboutScreen> {
-                                            TODO("Implement about screen")
+                                            startActivity(
+                                                Intent(applicationContext,
+                                                    AboutActivity::class.java))
+                                            finish()
                                         }
                                     }
 
