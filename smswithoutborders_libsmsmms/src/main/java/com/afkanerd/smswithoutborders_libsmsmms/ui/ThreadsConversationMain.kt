@@ -1,6 +1,5 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui
 
-import android.content.Intent
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
@@ -82,7 +81,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.GetSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ModalDrawerSheetLayout
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SwipeToDeleteBackground
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadConversationCard
-import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsMainDropDown
+import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ThreadsNavMenuItems
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
@@ -94,7 +93,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.intellij.lang.annotations.JdkConstants
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class
@@ -104,6 +102,7 @@ fun ThreadConversationLayout(
     threadsViewModel: ThreadsViewModel,
     navController: NavController,
     foldOpen: Boolean = false,
+    threadsMainMenuItems: Map<String, () -> Unit>? = null
 ) {
     val inPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
@@ -206,10 +205,11 @@ fun ThreadConversationLayout(
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 
-    ThreadsMainDropDown(
+    ThreadsNavMenuItems(
         navController = navController,
         expanded=rememberMenuExpanded,
         threadsViewModel = threadsViewModel,
+        threadMenuItems = threadsMainMenuItems,
     ) {
         rememberMenuExpanded = it
     }

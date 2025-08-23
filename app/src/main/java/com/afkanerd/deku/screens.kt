@@ -14,4 +14,4 @@ object RemoteListenersQueuesScreen
 object RemoteListenersAddScreen
 
 @Serializable
-object LogcatScreen
+object AboutScreen

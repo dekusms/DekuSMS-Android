@@ -10,22 +10,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
+import com.afkanerd.deku.DefaultSMS.AboutActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
@@ -77,7 +85,11 @@ class MainActivity : AppCompatActivity(){
                                         navController = navController,
                                         threadsViewModel = threadsViewModel,
                                         searchViewModel = searchViewModel,
+                                        threadsMainMenuItems = getThreadMenuItems(),
                                     ) {
+                                        composable<AboutScreen> {
+                                            TODO("Implement about screen")
+                                        }
                                     }
 
                                     processIntent(navController)
@@ -93,20 +105,7 @@ class MainActivity : AppCompatActivity(){
         super.onNewIntent(intent)
         processIntent(navController, intent)
     }
-//
-//    private fun handleIntent(intent: Intent) {
-//        if(intent.action == Intent.ACTION_VIEW &&
-//            intent.getStringExtra("view") == DevMode.viewLogCat) {
-//            navController.navigate(LogcatScreen)
-//        }
-//        else {
-//            intent.let {
-//                // TODO("Implement this)
-////                conversationViewModel.setNewIntent(it)
-//            }
-//        }
-//    }
-//
+
     private fun processIntent(navController: NavController, newIntent: Intent? = null) {
         val intent = newIntent ?: intent
         when(intent.action) {
@@ -137,6 +136,19 @@ class MainActivity : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    @Composable
+    private fun getThreadMenuItems(): Map<String, () -> Unit> {
+        return mapOf(
+            Pair(stringResource(R.string.homepage_menu_routed)) {
+                TODO("Implement message forwarding")
+            },
+
+            Pair(stringResource(R.string.about_deku)) {
+                navController.navigate(AboutScreen)
+            }
+        )
     }
 
 }

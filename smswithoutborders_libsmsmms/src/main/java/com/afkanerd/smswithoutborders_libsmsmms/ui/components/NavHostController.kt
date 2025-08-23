@@ -44,6 +44,7 @@ fun NavHostControllerInstance(
     navController: NavHostController,
     threadsViewModel: ThreadsViewModel,
     searchViewModel: SearchViewModel,
+    threadsMainMenuItems: Map<String, () -> Unit>? = null,
     builder: NavGraphBuilder.() -> Unit
 ) {
     val isFolded by remember {
@@ -61,6 +62,7 @@ fun NavHostControllerInstance(
                 ThreadConversationLayout(
                     threadsViewModel = threadsViewModel,
                     navController = navController,
+                    threadsMainMenuItems = threadsMainMenuItems,
                 )
             }
             composable<ConversationsScreenNav> { backStackEntry ->

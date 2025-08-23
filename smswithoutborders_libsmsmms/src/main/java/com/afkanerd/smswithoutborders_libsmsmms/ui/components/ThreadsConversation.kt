@@ -26,12 +26,10 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -48,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -485,10 +484,11 @@ fun ModalDrawerSheetLayout(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ThreadsMainDropDown(
+fun ThreadsNavMenuItems(
     navController: NavController,
     expanded: Boolean = false,
     threadsViewModel: ThreadsViewModel,
+    threadMenuItems: Map<String, () -> Unit>? = null,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -544,6 +544,7 @@ fun ThreadsMainDropDown(
         }
     }
 
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)
@@ -552,6 +553,23 @@ fun ThreadsMainDropDown(
             expanded = expanded,
             onDismissRequest = { dismissCallback?.let{ it(false) } },
         ) {
+            threadMenuItems?.let { dropMenuItem ->
+                dropMenuItem.forEach { entry ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text= entry.key,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        onClick = {
+                            entry.value()
+                            dismissCallback?.let { it(false) }
+                        }
+                    )
+                }
+            }
+
             DropdownMenuItem(
                 text = {
                     Text(
@@ -594,37 +612,6 @@ fun ThreadsMainDropDown(
                         }
                     )
             }
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.homepage_menu_routed),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.invoke(false)
-//                    context.startActivity(
-//                        Intent(context, GatewayServerRoutedActivity::class.java).apply {
-//                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-//                        }
-//                    )
-                    TODO("Implement routed settings")
-                }
-            )
-
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text=stringResource(R.string.about_deku),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.invoke(false)
-                    TODO("Implement about settings")
-                }
-            )
 
             DropdownMenuItem(
                 text = {
@@ -722,7 +709,7 @@ fun ModalDrawerSheetLayoutPreview() {
 @Preview(name = "MainMenu Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MainMenuDropDown_Preview() {
-    ThreadsMainDropDown(
+    ThreadsNavMenuItems(
         navController = rememberNavController(),
         expanded = true,
         threadsViewModel = remember { ThreadsViewModel() }
