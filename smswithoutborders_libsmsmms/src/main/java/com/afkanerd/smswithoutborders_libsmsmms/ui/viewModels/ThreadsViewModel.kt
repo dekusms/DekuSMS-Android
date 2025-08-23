@@ -31,9 +31,6 @@ class ThreadsViewModel: ViewModel() {
     var messagesLoading by mutableStateOf(false)
     var foldOpenConversation by mutableStateOf("")
 
-    private val _newIntent = MutableStateFlow<Intent?>(null)
-    var newIntent: StateFlow<Intent?> = _newIntent
-
     enum class InboxType {
         INBOX,
         ARCHIVED,

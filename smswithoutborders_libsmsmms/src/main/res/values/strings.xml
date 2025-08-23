@@ -438,5 +438,6 @@
     <string name="messages_remain_in_archive_even_when_new_ones_are_sent_or_received">Messages remain in archive even when new ones are sent or received</string>
     <string name="enable_notification_context_replies">Enable notification context replies</string>
     <string name="your_phone_would_suggest_smart_replies_in_notifications_if_enabled">Your phone would suggest smart replies in notifications if enabled</string>
+    <string name="reset">Reset</string>
 
 </resources>

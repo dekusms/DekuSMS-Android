@@ -629,7 +629,7 @@ fun ThreadsMainDropDown(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text= "Reset",
+                        text= stringResource(R.string.reset),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },

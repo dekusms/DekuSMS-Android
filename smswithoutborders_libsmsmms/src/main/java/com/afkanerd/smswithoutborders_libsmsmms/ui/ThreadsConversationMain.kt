@@ -3,6 +3,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui
 import android.content.Intent
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -95,32 +96,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
 
-@Composable
-fun ProcessIntents(intent: Intent?) {
-    LaunchedEffect(intent) {
-        intent?.let { intent ->
-            TODO("Implement intent handling")
-//            threadsViewModel.processIntents(
-//                context,
-//                intent,
-//                context.getDefaultRegion()
-//            )?.let { processedIntents ->
-//                threadsViewModel.setNewIntent(null)
-//                if( processedIntents.address != null && processedIntents.threadId != null) {
-//                    threadsViewModel.navigateToConversation(
-//                        threadsViewModel = conversationsViewModel,
-//                        address = address,
-//                        threadId = threadId,
-//                        subscriptionId = SIMHandler.getDefaultSimSubscription(context),
-//                        navController = navController,
-//                    )
-//                }
-//            }
-        }
-    }
-
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class
 )
@@ -138,9 +113,6 @@ fun ThreadConversationLayout(
         rememberPermissionState(requiredReadPhoneStatePermissions)
 
     var isDefault by remember{ mutableStateOf(inPreviewMode || context.isDefault()) }
-
-    val newIntent by threadsViewModel.newIntent.collectAsState()
-    ProcessIntents(newIntent)
 
     val messagesAreLoading = threadsViewModel.messagesLoading
 
@@ -211,30 +183,18 @@ fun ThreadConversationLayout(
 //        }
 //    }
 
-//    LaunchedEffect(remoteMessagesItems) {
-//        if(!isDefault && remoteMessagesItems.itemCount > 0)
-//            inboxType = InboxType.REMOTE_LISTENER
-//    }
 
-//    LaunchedEffect(threadsViewModel.importDetails) {
-//        rememberImportMenuExpanded = threadsViewModel.importDetails.isNotBlank()
-//    }
-
-//    BackHandler {
-//        if(threadsViewModel.inboxType != InboxType.INBOX) {
-//            threadsViewModel.inboxType = InboxType.INBOX
-//            selectedItemIndex = InboxType.INBOX
-//            inboxType = InboxType.INBOX
-//        }
-//        else if(!selectedItems.isEmpty()) {
-//            selectedItems.clear()
-//        }
-//        else {
-//            if(context is AppCompatActivity) {
-//                context.finish()
-//            }
-//        }
-//    }
+    BackHandler(
+        inboxType != ThreadsViewModel.InboxType.INBOX ||
+                !selectedItems.isEmpty()
+    ) {
+        if(inboxType != ThreadsViewModel.InboxType.INBOX) {
+            threadsViewModel.setInboxType(ThreadsViewModel.InboxType.INBOX)
+        }
+        else if(!selectedItems.isEmpty()) {
+            threadsViewModel.removeAllSelectedItems()
+        }
+    }
 
     LaunchedEffect(isDefault) {
         if(!context.getNativesLoaded() && isDefault) {
