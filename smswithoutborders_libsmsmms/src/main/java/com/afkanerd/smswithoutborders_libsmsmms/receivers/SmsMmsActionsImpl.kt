@@ -52,7 +52,7 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                                 threadId = threadId,
                                 subscriptionId = subscriptionId
                             )?.let { conversation ->
-                                context.sendNotificationBroadcast(conversation)
+                                context.sendNotificationBroadcast(conversation, true)
                             }
                         } catch(e: Exception) {
                             e.printStackTrace()

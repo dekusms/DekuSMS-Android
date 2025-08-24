@@ -385,9 +385,13 @@ fun Context.cancelNotification(threadId: Int) {
     NotificationManagerCompat.from(this).cancel(threadId)
 }
 
-fun Context.sendNotificationBroadcast(conversation: Conversations) {
+fun Context.sendNotificationBroadcast(
+    conversation: Conversations,
+    self: Boolean = false,
+) {
     sendBroadcast(Intent(SMS_SENT_BROADCAST_INTENT_LIB).apply{
         putExtra("id", conversation.id)
+        putExtra("self", self)
         setPackage(packageName)
     })
 }

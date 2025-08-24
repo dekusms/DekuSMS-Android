@@ -20,6 +20,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
         when(intent?.action) {
             SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT_LIB -> {
                 val id = intent.getLongExtra("id", -1)
+                val self = intent.getBooleanExtra("self", false)
                 CoroutineScope(Dispatchers.IO).launch {
                     context?.getDatabase()?.conversationsDao()
                         ?.getConversation(id)?.let { conversation ->
@@ -28,7 +29,11 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                     notifyMessageFailedToSend(context, conversation)
                                 }
                                 else -> {
-                                    context.notifyText(conversation, cls)
+                                    context.notifyText(
+                                        conversation = conversation,
+                                        cls = cls,
+                                        self = self,
+                                    )
                                 }
                             }
                         }
