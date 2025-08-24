@@ -1,13 +1,9 @@
-package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
+package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.klinker.android.send_message.MmsReceivedReceiver
 
 class MmsReceivedReceiverImpl: MmsReceivedReceiver() {

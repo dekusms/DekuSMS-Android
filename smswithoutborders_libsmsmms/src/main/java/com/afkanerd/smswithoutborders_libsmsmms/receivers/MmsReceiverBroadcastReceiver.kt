@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
+package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,7 +12,6 @@ import com.google.android.mms.MmsException
 import com.google.android.mms.pdu_alt.PduParser
 import com.google.android.mms.pdu_alt.PduPersister
 
-
 class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         val id = intent!!.getLongExtra("messageId", -1)
@@ -24,8 +23,9 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
 
         val subId = intent.getIntExtra("subscription", -1)
 
-        val createThread = Telephony.Threads
-            .getOrCreateThreadId(context, pdu.from.string)
+//        val createThread = Telephony.Threads
+//            .getOrCreateThreadId(context, pdu.from.string)
+
         val uri = pduPersister.persist(
             pdu,
             Telephony.Mms.Inbox.CONTENT_URI,
@@ -65,5 +65,3 @@ class MmsReceiverBroadcastReceiver : BroadcastReceiver() {
         )
     }
 }
-
-

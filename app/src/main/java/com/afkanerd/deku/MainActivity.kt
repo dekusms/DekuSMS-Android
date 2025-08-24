@@ -121,7 +121,8 @@ class MainActivity : AppCompatActivity(){
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        processIntent(navController, intent)
+        if(::navController.isInitialized)
+            processIntent(navController, intent)
     }
 
     private fun processIntent(navController: NavController, newIntent: Intent? = null) {

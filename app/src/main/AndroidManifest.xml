@@ -103,9 +103,7 @@
         <activity
             android:name=".AboutActivity"
             android:exported="false"/>
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="false"/>
+
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"/>
@@ -117,53 +115,6 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
             android:exported="false"/>
-
-        <receiver
-            android:name=".BroadcastReceivers.SmsDataReceivedReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-
-                <data android:scheme="sms" />
-                <data android:host="localhost" />
-                <!-- <data android:port="8200" /> -->
-            </intent-filter>
-        </receiver>
-
-        <receiver
-            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.MmsReceiverBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_WAP_PUSH">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
-
-                <data android:mimeType="application/vnd.wap.mms-message" />
-                <data android:mimeType="application/vnd.wap.sic" />
-            </intent-filter>
-        </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
-        <receiver
-            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name="com.afkanerd.deku.MainActivity"
@@ -200,21 +151,6 @@
                 android:value="androidx.startup" />
         </provider>
 
-        <service android:name="com.android.mms.transaction.TransactionService"/>
-
-        <receiver
-            android:name="com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationsDelImpl"
-            android:exported="false" />
-
-        <receiver
-            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsSentReceiverImpl"
-            android:taskAffinity="com.klinker.android.messaging.MMS_SENT" />
-
-        <receiver
-            android:name=".BroadcastReceivers.MmsReceivedReceiverImpl"
-            android:exported="true"
-            android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -225,6 +161,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Custom receiver for notifications from lib -->
         <receiver
             android:name=".BroadcastReceivers.SmsMmsNotificationReceiver"
             android:exported="false">
