@@ -4,6 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.klinker.android.send_message.MmsReceivedReceiver
 
 class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
@@ -17,14 +22,16 @@ class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
                 null,
             )?.let { cursor ->
                 if(cursor.moveToFirst()) {
-                    TODO("Store the MMS into database")
-//                    val mmsConversation = Conversations.build(cursor, true)
-//                    val parsedMms = NativeSMSDB.ParseMMS(context, cursor)
-//                    parsedMms.buildConversation(context, mmsConversation)
-//
-////                    if(mmsConversation.mmsImage != null || !mmsConversation.text.isNullOrEmpty())
-//                    if(!mmsConversation.mmsContentUri.isNullOrEmpty() || !mmsConversation.text.isNullOrEmpty())
-//                        Datastore.getDatastore(context).conversationDao()._insert(mmsConversation)
+                    MmsParser.parse(context, cursor)
+                        .getConversation(context, cursor)?.let { conversation ->
+                            context.insertSms(conversation)
+
+                            context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)
+                                ?.let {
+                                    if(!it.isMute)
+                                        context.sendNotificationBroadcast(conversation)
+                                }
+                        }
                 }
             }
         }

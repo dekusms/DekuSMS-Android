@@ -355,18 +355,18 @@ fun Context.sendMms(
         val sendSettings = MmsParser.getSendMessageSettings()
         sendSettings.subscriptionId = subscriptionId.toInt()
 
-        val intent = Intent(this, MmsSentReceiverImpl::class.java)
-            .apply {
-                this.putExtra(
-                    MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
-                    conversation.mms!!._id,
-                )
-            }
+//        val intent = Intent(this, MmsSentReceiverImpl::class.java)
+//            .apply {
+//                this.putExtra(
+//                    MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
+//                    conversation.mms!!._id,
+//                )
+//            }
 
         val sendTransaction = Transaction(this, sendSettings)
-        sendTransaction .setExplicitBroadcastForSentMms(intent)
+//        sendTransaction.setExplicitBroadcastForSentMms(intent)
 
-        val mMessage = Message("", address)
+        val mMessage = Message(text, address)
         val mimeType = contentResolver.getType(contentUri)
         val filename = MmsParser.getFileName(this, contentUri)
 
@@ -421,25 +421,9 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
     )?.let { cursor ->
         if(cursor.moveToFirst()) {
             do {
-                parseRawMmsContents(cursor).let { mms ->
-                    val conversation = Conversations(mms = mms).apply {
-                        parseMms(cursor)?.let { parsedMms ->
-                            if(parsedMms.address.isNullOrEmpty()) return@let
-                            this.sms = SmsMmsNatives.Sms(
-                                thread_id = getThreadId(parsedMms.address!!).toInt(),
-                                address = parsedMms.address,
-                                sub_id = mms.sub_id ?: -1,
-                                date = mms.date,
-                                date_sent = mms.date_sent,
-                                type = mms.m_type!!,
-                                status = mms.msg_box,
-                                body = parsedMms.text ?: "",
-                                read = mms.read ?: -1
-                            )
-                        }
-                    }
-                    if(conversation.sms != null) conversationsList.add(conversation)
-                }
+                val conversation = MmsParser.parse(this, cursor)
+                    .getConversation(this, cursor)
+                conversation?.sms?.let { conversationsList.add(conversation) }
             } while(cursor.moveToNext())
             cursor.close()
         }
@@ -619,7 +603,7 @@ private fun parseRawMmsContentsParts(cursor: Cursor): SmsMmsNatives.MmsPart {
 }
 
 @SuppressLint("Range")
-private fun parseRawMmsContents(cursor: Cursor): SmsMmsNatives.Mms {
+fun parseRawMmsContents(cursor: Cursor): SmsMmsNatives.Mms {
     val _id: Long = cursor.getLong(cursor
         .getColumnIndex(Telephony.Mms._ID))
     val thread_id: Int = cursor.getInt(cursor
@@ -743,100 +727,3 @@ private fun parseRawSmsContents(cursor: Cursor): SmsMmsNatives.Sms? {
         seen = seen
     )
 }
-class ParsedMms{
-    var mid: Int? = null
-    var address: String? = null
-    var content: ByteArray? = null
-    var text: String? = null
-    var mimeType: String? = null
-    var filename: String? = null
-    var contentUri: Uri? = null
-}
-
-@SuppressLint("Range")
-fun Context.parseMms(cursor: Cursor): ParsedMms? {
-    val uri = "content://mms/part".toUri()
-    val idIndex = cursor.getColumnIndex("_id")
-    if(idIndex == -1) return null
-
-    val id = cursor.getString(idIndex)
-
-    val mmsId = "mid = $id"
-    val c = contentResolver
-        .query(uri, null, mmsId, null, null)
-
-    val parsedMms = ParsedMms().apply {
-        this.mid = id.toInt()
-    }
-
-    if (c != null && c.moveToFirst()) {
-        do {
-            val _idIndex = c.getColumnIndex("_id")
-            val pid = c.getString(_idIndex)
-
-            val typeIndex = c.getColumnIndex("ct")
-
-            val type = c.getString(typeIndex)
-
-            if (parsedMms.address == null || parsedMms.address.isNullOrEmpty())
-                parsedMms.address = getMmsAddr(id)
-
-            if ("text/plain" == type) {
-                if (parsedMms.text == null || parsedMms.text.isNullOrEmpty()) parsedMms.text =
-                    c.getString(c.getColumnIndex("text"))
-            } else if (parsedMms.content == null && (type != null && !type.isEmpty())) {
-                if (type != "application/smil") {
-                    parsedMms.content = getMmsContent(pid)
-                    parsedMms.mimeType = type
-                    parsedMms.contentUri = ("content://mms/part/$pid").toUri()
-                } else {
-//                    val text = c.getString(
-//                        c.getColumnIndex(Telephony.Mms.Part.TEXT))
-                }
-            }
-        } while (c.moveToNext())
-        c.close()
-    }
-
-    return parsedMms
-}
-
-private fun Context.getMmsContent(id: String?): ByteArray {
-    val uri = ("content://mms/part/$id").toUri()
-    val outputStream = ByteArrayOutputStream()
-
-    try {
-        contentResolver.openInputStream(uri).use { inputStream ->
-            if (inputStream != null) {
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
-                while ((inputStream.read(buffer).also { bytesRead = it }) != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
-                }
-            }
-        }
-    } catch (e: IOException) {
-        e.printStackTrace()
-    }
-
-    return outputStream.toByteArray()
-}
-
-private fun Context.getMmsAddr(id: String): String {
-    val sel = "msg_id=$id"
-    val uriString = MessageFormat.format("content://mms/{0}/addr", id)
-    val uri = uriString.toUri()
-    val c = contentResolver.query(
-        uri, null, sel, null, null)
-    val name = StringBuilder()
-    if (c != null && c.moveToFirst()) {
-        while (c.moveToNext()) {
-            val addressIndex = c.getColumnIndex("address")
-            val t = c.getString(addressIndex)
-            if (!(t.contains("insert"))) name.append(t).append(" ")
-        }
-        c.close()
-    }
-    return name.toString()
-}
-
