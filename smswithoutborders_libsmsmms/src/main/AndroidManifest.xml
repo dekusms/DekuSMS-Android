@@ -54,6 +54,7 @@
             android:exported="true"
             android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />
 
+
         <!-- Notification actions -->
         <receiver
             android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl"
@@ -69,7 +70,9 @@
             android:name="com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationsDelImpl"
             android:exported="false" />
 
-
+        <receiver
+            android:name="com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsReceivedReceiverImplTest"
+            android:exported="true"/>
 
     </application>
 

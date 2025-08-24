@@ -184,7 +184,7 @@ object MmsParser {
                 thread_id = context.getThreadId(address!!).toInt(),
                 address = address,
                 sub_id = mms.sub_id ?: -1,
-                date = mms.date,
+                date = mms.date * 1000L,
                 date_sent = mms.date_sent,
                 type = mms.m_type!!,
                 status = mms.msg_box,
@@ -207,7 +207,7 @@ object MmsParser {
     fun parse(
         context: Context,
         cursor: Cursor
-    ): ParsedMms {
+    ): Conversations? {
         val uri = "content://mms/part".toUri()
         val idIndex = cursor.getColumnIndexOrThrow("_id")
         val id = cursor.getString(idIndex)
@@ -245,7 +245,7 @@ object MmsParser {
             partCursor.close()
         }
 
-        return parsedMms
+        return parsedMms.getConversation(context, cursor)
     }
 
     fun getMmsContent(context: Context, uri: Uri): ByteArray {

@@ -1,5 +1,6 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui
 
+import android.content.Intent
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
@@ -8,7 +9,9 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.SendToMobile
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
@@ -67,6 +71,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState.Loading
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
@@ -76,6 +81,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveConta
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsReceivedReceiverImpl
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsReceivedReceiverImplTest
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.DeleteConfirmationAlert
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.GetSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ModalDrawerSheetLayout
@@ -391,17 +398,40 @@ fun ThreadConversationLayout(
                 when(inboxType) {
                     ThreadsViewModel.InboxType.INBOX -> {
                         if((isDefault && !messagesAreLoading) || inPreviewMode) {
-                            ExtendedFloatingActionButton(
-                                onClick = {
-                                    navController.navigate(ComposeNewMessageScreenNav)
-                                },
-                                icon = { Icon( Icons.AutoMirrored.Default.Message,
-                                    stringResource(R.string.compose_new_message)) },
-                                text = { Text(text = stringResource(R.string.compose)) },
-                                expanded = listState.isScrollingUp(),
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            Column {
+                                if(BuildConfig.DEBUG || inPreviewMode) {
+                                    ExtendedFloatingActionButton(
+                                        onClick = {
+                                            context.sendBroadcast(
+                                                Intent(context,
+                                                    MmsReceivedReceiverImplTest::class.java
+                                                ).apply {
+                                                    putExtra("uri", "content://mms/5")
+                                                }
+                                            )
+                                        },
+                                        icon = { Icon(
+                                            Icons.AutoMirrored.Default.SendToMobile, "")},
+                                        text = { Text("Send MMS") },
+                                        expanded = true,
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+
+                                ExtendedFloatingActionButton(
+                                    onClick = {
+                                        navController.navigate(ComposeNewMessageScreenNav)
+                                    },
+                                    icon = { Icon( Icons.AutoMirrored.Default.Message,
+                                        stringResource(R.string.compose_new_message)) },
+                                    text = { Text(text = stringResource(R.string.compose)) },
+                                    expanded = listState.isScrollingUp(),
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
                     else -> {}

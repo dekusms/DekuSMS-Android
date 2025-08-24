@@ -422,7 +422,6 @@ fun Context.loadRawSmsMmsDb() : List<Conversations>{
         if(cursor.moveToFirst()) {
             do {
                 val conversation = MmsParser.parse(this, cursor)
-                    .getConversation(this, cursor)
                 conversation?.sms?.let { conversationsList.add(conversation) }
             } while(cursor.moveToNext())
             cursor.close()
