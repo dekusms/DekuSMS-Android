@@ -53,25 +53,6 @@ enum class ConversationPositionTypes(val value: Int) {
     NORMAL_TIMESTAMP(5),
 }
 
-enum class ConversationStatusTypes(val value: Int) {
-    STATUS_NONE(-1),
-    STATUS_COMPLETE(0),
-    STATUS_PENDING(32),
-    STATUS_FAILED(64);
-
-    companion object {
-        fun fromInt(value: Int, mms: Boolean = false): ConversationStatusTypes? {
-            return if(!mms) ConversationStatusTypes.entries.find { it.value == value } else {
-                when(value) {
-                    Telephony.Mms.MESSAGE_BOX_SENT -> STATUS_NONE
-                    Telephony.Mms.MESSAGE_BOX_FAILED -> STATUS_FAILED
-                    else -> STATUS_PENDING
-                }
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun ConversationIsKey(isReceived: Boolean = false) {
@@ -166,7 +147,7 @@ private fun ConversationReceived(
 private fun ConversationSent(
     text: AnnotatedString,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
-    status: ConversationStatusTypes = ConversationStatusTypes.STATUS_FAILED,
+    status: Int,
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
@@ -186,7 +167,7 @@ private fun ConversationSent(
 
     val modifier = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP ->
-            Modifier.padding(start=32.dp, top=16.dp, bottom=16.dp)
+            Modifier.padding(start=32.dp, top=16.dp, bottom=8.dp)
         ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
             Modifier.padding(start=32.dp, top=16.dp)
         ConversationPositionTypes.MIDDLE -> Modifier.padding(start=32.dp, top=1.dp)
@@ -227,7 +208,7 @@ private fun ConversationSent(
 
         }
 
-        if(status == ConversationStatusTypes.STATUS_FAILED) {
+        if(status == Telephony.Sms.STATUS_FAILED || status == Telephony.Mms.MESSAGE_BOX_FAILED) {
             Column(modifier = Modifier
                 .align(Alignment.CenterVertically)) {
                 IconButton(onClick = {}) {
@@ -251,18 +232,20 @@ fun ConversationsCard(
     type: Int,
     showDate: Boolean = true,
     position: ConversationPositionTypes,
-    status: ConversationStatusTypes,
+    status: Int,
     isSelected: Boolean = false,
-    isKey: Boolean = false,
     mmsContentUri: Uri? = null,
     mmsMimeType: String? = null,
     mmsFilename: String? = null,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
 ) {
-    Column {
+    val inPreview = LocalInspectionMode.current
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         if(position == ConversationPositionTypes.START_TIMESTAMP ||
-            position == ConversationPositionTypes.NORMAL_TIMESTAMP) {
+            position == ConversationPositionTypes.NORMAL_TIMESTAMP || inPreview) {
             Text(
                 text=timestamp,
                 style= MaterialTheme.typography.labelSmall,
@@ -273,97 +256,101 @@ fun ConversationsCard(
             )
         }
 
-        Box(modifier = Modifier.padding(start=8.dp, end=8.dp)) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(start=8.dp, end=8.dp)
+        ) {
             when(type) {
                 SmsMmsNatives.MMS_MESSAGE_TYPES_M_RETRIEVE_CONF,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX -> {
-                    if(isKey) {
-                        ConversationIsKey(isReceived = true)
-                    } else {
-                        Column {
-                            if(mmsContentUri != null && mmsMimeType != null) {
-                                MmsContentView(
-                                    mmsContentUri,
-                                    mmsMimeType,
-                                    mmsFilename,
-                                    onClickCallback = onClickCallback
-                                )
-                            }
-                            if(text.isNotEmpty()) {
-                                ConversationReceived(
-                                    text =text,
-                                    position =position,
-                                    date =date,
-                                    isSelected = isSelected,
-                                    onClickCallback = onClickCallback,
-                                    onLongClickCallback = onLongClickCallback,
-                                )
-                            }
+                    Column {
+                        if(mmsContentUri != null && mmsMimeType != null) {
+                            MmsContentView(
+                                mmsContentUri,
+                                mmsMimeType,
+                                mmsFilename,
+                                isSelected = isSelected,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
+                        if(text.isNotEmpty()) {
+                            ConversationReceived(
+                                text =text,
+                                position =position,
+                                date =date,
+                                isSelected = isSelected,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
 
-                            if(showDate) {
-                                Text(
-                                    text= date,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
-                            }
+                        if(showDate) {
+                            Text(
+                                text= date,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                         }
                     }
                 }
+
                 SmsMmsNatives.MMS_MESSAGE_TYPES_M_SEND_REQ,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX -> {
-                    if(isKey) {
-                        ConversationIsKey(isReceived = false)
-                    } else {
-                        Column {
-                            if(mmsContentUri != null && mmsMimeType != null) {
-                                MmsContentView(
-                                    mmsContentUri,
-                                    mmsMimeType,
-                                    mmsFilename,
-                                    isSending = true,
-                                    onClickCallback = onClickCallback
-                                )
-                            }
-                            if(text.isNotEmpty()) {
-                                ConversationSent(
-                                    text =text,
-                                    position =position,
-                                    status =status,
-                                    isSelected = isSelected,
-                                    onClickCallback = onClickCallback,
-                                    onLongClickCallback = onLongClickCallback,
-                                )
-                            }
+                    Column(modifier = Modifier
+                        .fillMaxWidth(),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if(mmsContentUri != null && mmsMimeType != null) {
+                            MmsContentView(
+                                mmsContentUri,
+                                mmsMimeType,
+                                mmsFilename,
+                                isSelected = isSelected,
+                                isSending = true,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
+                        if(text.isNotEmpty()) {
+                            ConversationSent(
+                                text =text,
+                                position =position,
+                                status =status,
+                                isSelected = isSelected,
+                                onClickCallback = onClickCallback,
+                                onLongClickCallback = onLongClickCallback,
+                            )
+                        }
 
-                            if(showDate) {
-                                Text(
-                                    text= when (status) {
-                                        ConversationStatusTypes.STATUS_PENDING ->
-                                            "$date " + stringResource(R.string.sms_status_sent)
+                        if(showDate || inPreview) {
+                            Text(
+                                text= when(status) {
+                                    Telephony.Sms.STATUS_PENDING ->
+                                        "$date " + stringResource(R.string.sms_status_sent)
 
-                                        ConversationStatusTypes.STATUS_COMPLETE ->
-                                            "$date ${stringResource(
-                                                R.string.sms_status_delivered)}"
+                                    Telephony.Sms.STATUS_COMPLETE ->
+                                        "$date ${stringResource(
+                                            R.string.sms_status_delivered)}"
 
-                                        ConversationStatusTypes.STATUS_FAILED ->
-                                            stringResource(R.string.sms_status_failed)
+                                    Telephony.Sms.STATUS_FAILED,
+                                    Telephony.Mms.MESSAGE_BOX_FAILED ->
+                                        stringResource(R.string.sms_status_failed)
 
-                                        else ->
-                                            stringResource(R.string.sms_status_sending)
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if(status == ConversationStatusTypes.STATUS_FAILED)
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.outlineVariant,
+                                    else ->
+                                        stringResource(R.string.sms_status_sending)
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if(status == Telephony.Sms.STATUS_FAILED ||
+                                    status == Telephony.Mms.MESSAGE_BOX_FAILED)
+                                    MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.outlineVariant,
 
-                                    modifier = Modifier
-                                        .align(Alignment.End)
-                                        .padding(bottom=4.dp)
-                                )
-                            }
+                                modifier = Modifier
+                                    .padding(bottom=4.dp)
+                            )
                         }
                     }
                 }
@@ -589,22 +576,6 @@ enum class ConversationsPredefinedTypes {
     INCOMING
 }
 
-@Preview
-@Composable
-fun PreviewConversationsReceived() {
-    Surface(Modifier.safeDrawingPadding()) {
-        Column {
-            ConversationReceived(
-                text = AnnotatedString("Hello world"),
-                date = "yesterday",
-            )
-            ConversationSent(
-                text = AnnotatedString("Hello world"),
-            )
-        }
-    }
-}
-
 @Composable
 fun ConversationContactName(
     contactName: String,
@@ -632,3 +603,39 @@ fun ConversationContactName(
         }
     }
 }
+
+@Preview
+@Composable
+fun PreviewConversations_Card() {
+    Surface(Modifier.safeDrawingPadding()) {
+        Column {
+            ConversationsCard(
+                text = AnnotatedString("Hello world"),
+                timestamp = "Yesterday",
+                date = "Yesterday",
+                type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+                position = ConversationPositionTypes.NORMAL,
+                status = Telephony.Sms.STATUS_PENDING,
+                isSelected = false,
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewConversationsReceived() {
+    Surface(Modifier.safeDrawingPadding()) {
+        Column {
+            ConversationReceived(
+                text = AnnotatedString("Hello world"),
+                date = "yesterday",
+            )
+            ConversationSent(
+                text = AnnotatedString("Hello world"),
+                status = Telephony.Mms.MESSAGE_BOX_FAILED
+            )
+        }
+    }
+}
+

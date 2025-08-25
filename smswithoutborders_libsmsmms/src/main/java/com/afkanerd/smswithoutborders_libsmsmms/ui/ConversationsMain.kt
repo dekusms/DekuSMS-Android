@@ -11,7 +11,9 @@ import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -61,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -117,7 +122,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ChatCompose
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationCrudBottomBar
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationPositionTypes
-import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationStatusTypes
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationsCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationsMainDropDownMenu
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.DeleteConfirmationAlert
@@ -633,8 +637,6 @@ fun ConversationsMainLayout(
                             if(inPreviewMode) _items!![index]
                             else inboxMessagesItems[index]
                     )?.let { conversation ->
-                        val isMms = conversation.mms != null
-
                         var showDate by remember { mutableStateOf(index == 0) }
 
                         var timestamp by remember { mutableStateOf(
@@ -707,8 +709,7 @@ fun ConversationsMainLayout(
                             text= text,
                             timestamp = timestamp,
                             type= conversation.sms?.type!!,
-                            status = ConversationStatusTypes.fromInt(
-                                conversation.sms?.status!!, isMms)!!,
+                            status = conversation.sms?.status!!,
                             position = position,
                             date = date,
                             showDate = showDate,
@@ -883,69 +884,96 @@ fun MmsContentView(
     contentUri: Uri,
     mimeType: String,
     filename: String?,
+    isSelected: Boolean,
     isSending: Boolean = false,
     onClickCallback: (() -> Unit)?,
+    onLongClickCallback: (() -> Unit)?,
 ) {
     Column(
         modifier = Modifier
-            .clickable { onClickCallback?.invoke() }
             .fillMaxWidth()
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp),
+            .padding(8.dp),
         horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
     ) {
-        when {
-            mimeType.contains("image") -> {
-                AsyncImage(
-                    model = contentUri,
-                    contentDescription = stringResource(R.string.mms_image),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .aspectRatio(1f)  // This ensures a square aspect ratio
-                        .clip(RoundedCornerShape(10.dp))
-                )
-            }
-            mimeType.contains("video") -> {
-                val imageLoader = ImageLoader.Builder(LocalContext.current)
-                    .components {
-                        add(VideoFrameDecoder.Factory())
-                    }
-                    .build()
-
-                val painter = rememberAsyncImagePainter(
-                    model = contentUri,
-                    imageLoader = imageLoader,
-                )
-
-                Image(
-                    painter = painter,
-                    contentDescription = stringResource(R.string.mms_video),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .aspectRatio(1f)  // This ensures a square aspect ratio
-                        .clip(RoundedCornerShape(10.dp)),
-                )
-            }
-            else -> {
-                val inPreview = LocalInspectionMode.current
-                val filename by remember{
-                    mutableStateOf(if(inPreview) "filename.txt" else filename)
-                }
-                Card {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(painterResource(R.drawable.ic_alert), "")
-                        filename?.let {
-                            Text(
-                                it,
-                                modifier = Modifier.padding(start=16.dp)
+        Box(
+            modifier = Modifier
+                .wrapContentSize(if(isSending)
+                    Alignment.CenterEnd else Alignment.CenterStart),
+        ) {
+            when {
+                mimeType.contains("image") -> {
+                    AsyncImage(
+                        model = contentUri,
+                        contentDescription = stringResource(R.string.mms_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .combinedClickable(
+                                onClick = {
+                                    onClickCallback?.let { it() }
+                                },
+                                onLongClick ={
+                                    onLongClickCallback?.let { it() }
+                                }
                             )
+                            .size(200.dp)
+                            .aspectRatio(1f)  // This ensures a square aspect ratio
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                }
+                mimeType.contains("video") -> {
+                    val imageLoader = ImageLoader.Builder(LocalContext.current)
+                        .components {
+                            add(VideoFrameDecoder.Factory())
+                        }
+                        .build()
+
+                    val painter = rememberAsyncImagePainter(
+                        model = contentUri,
+                        imageLoader = imageLoader,
+                    )
+
+                    Image(
+                        painter = painter,
+                        contentDescription = stringResource(R.string.mms_video),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .aspectRatio(1f)  // This ensures a square aspect ratio
+                            .clip(RoundedCornerShape(10.dp)),
+                    )
+                }
+                else -> {
+                    val inPreview = LocalInspectionMode.current
+                    val filename by remember{
+                        mutableStateOf(if(inPreview) "filename.txt" else filename)
+                    }
+                    Card {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(painterResource(R.drawable.ic_alert), "")
+                            filename?.let {
+                                Text(
+                                    it,
+                                    modifier = Modifier.padding(start=16.dp)
+                                )
+                            }
                         }
                     }
+                }
+            }
+
+            if(isSelected) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(10.dp))
+                ) {
+                    // Optional: Add content on top of the overlay if needed
+                    // Text("Overlay Text", color = Color.White)
                 }
             }
         }
@@ -959,19 +987,18 @@ fun PreviewMmsImage_Image() {
     Column {
         MmsContentView(context.getUriForDrawable(R.drawable.github_mark)!!,
             "image/jpeg",
-            "demo.txt") {}
+            "demo.txt", true, isSending = true, onClickCallback = {}) {
+        }
     }
 }
 
 @Preview
 @Composable
 fun PreviewMmsImage_filepath() {
-    val context = LocalContext.current
     Column {
         MmsContentView("content://file/path".toUri(),
             "text/v-card",
-            "demo.txt") {
-
+            "demo.txt", false, onClickCallback = {}) {
         }
     }
 }
