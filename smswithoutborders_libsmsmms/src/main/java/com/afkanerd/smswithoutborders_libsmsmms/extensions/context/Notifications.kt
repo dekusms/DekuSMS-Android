@@ -66,7 +66,8 @@ fun Context.notify(
                     )
                 }) .apply {
                     if(!it.contentUri.isNullOrEmpty()) {
-                        setData("image/*", it.contentUri.toUri()) }
+                        setData("image/*", it.contentUri.toUri())
+                    }
                 })
                 .setGroupConversation(false)
                 .setConversationTitle(title ?: (contactName ?: conversation.sms?.address!!))
