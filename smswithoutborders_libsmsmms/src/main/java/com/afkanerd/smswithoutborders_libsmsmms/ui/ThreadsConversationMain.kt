@@ -530,88 +530,78 @@ fun ThreadConversationLayout(
 //                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
                                 }
 
-                                thread?.address?.let { address ->
-                                    val isBlocked = if(isDefault)
-                                        BlockedNumberContract.isBlocked(context, address)
-                                    else false
+                                val address = thread!!.address
+                                val isBlocked = if(isDefault)
+                                    BlockedNumberContract.isBlocked(context, address)
+                                else false
 
-                                    val contactName = if(isDefault)
-                                        context.retrieveContactName(address)
-                                    else address
+                                val contactName = if(isDefault)
+                                    context.retrieveContactName(address)
+                                else address
 
-                                    var firstName = address
-                                    var lastName = ""
+                                var firstName by remember { mutableStateOf(address) }
+                                var lastName by remember { mutableStateOf("") }
 
-                                    if (!contactName.isNullOrEmpty()) {
-                                        contactName.split(" ").let {
-                                            firstName = it[0]
-                                            if (it.size > 1)
-                                                lastName = it[1]
-                                        }
+                                if (!contactName.isNullOrEmpty()) {
+                                    contactName.split(" ").let {
+                                        firstName = it[0]
+                                        if (it.size > 1)
+                                            lastName = it[1]
                                     }
+                                }
 
-                                    val dismissState = GetSwipeBehaviour(thread, inboxType)
+                                val dismissState = GetSwipeBehaviour(thread, inboxType)
 
 //                                val date = if(thread.date > 0) DateTimeUtils
 //                                    .formatDate(context, (thread.date * 1000L)) ?: "" else "Tues"
 
-                                    val date = if(!inPreviewMode) DateTimeUtils.formatDate(
-                                        context,
-                                        thread.date
-                                    ) ?: "" else "Tues"
+                                val date = if(!inPreviewMode) DateTimeUtils.formatDate(
+                                    context,
+                                    thread.date
+                                ) ?: "" else "Tues"
 
-                                    SwipeToDismissBox(
-                                        state = dismissState,
-                                        gesturesEnabled = context.settingsGetEnableSwipeBehaviour,
-                                        backgroundContent = {
-                                            SwipeToDeleteBackground(
-                                                dismissState,
-                                                inboxType == ThreadsViewModel.InboxType.ARCHIVED
-                                            )
-                                        }
-                                    ) {
-                                        ThreadConversationCard(
-                                            id = thread.threadId,
-                                            firstName = firstName,
-                                            lastName = lastName,
-                                            phoneNumber = address,
-                                            content = thread.snippet,
-                                            date = date,
-                                            isRead = !thread.unread,
-                                            isContact = isDefault && !contactName.isNullOrBlank(),
-                                            isBlocked = isBlocked,
-                                            modifier = Modifier.combinedClickable(
-                                                onClick = {
-                                                    if(selectedItems.isEmpty()) {
-                                                        if(!foldOpen) {
-                                                            if(BuildConfig.DEBUG)
+                                SwipeToDismissBox(
+                                    state = dismissState,
+                                    gesturesEnabled = context.settingsGetEnableSwipeBehaviour,
+                                    backgroundContent = {
+                                        SwipeToDeleteBackground(
+                                            dismissState,
+                                            inboxType == ThreadsViewModel.InboxType.ARCHIVED
+                                        )
+                                    }
+                                ) {
+                                    ThreadConversationCard(
+                                        id = thread.threadId,
+                                        firstName = firstName,
+                                        lastName = lastName,
+                                        phoneNumber = address,
+                                        content = thread.snippet,
+                                        date = date,
+                                        isRead = !thread.unread,
+                                        isContact = isDefault && !contactName.isNullOrBlank(),
+                                        isBlocked = isBlocked,
+                                        modifier = Modifier.combinedClickable(
+                                            onClick = {
+                                                if(selectedItems.isEmpty()) {
+                                                    if(!foldOpen) {
+                                                        if(BuildConfig.DEBUG)
                                                             Toast.makeText(
                                                                 context,
                                                                 "Thread id: ${thread.threadId}",
                                                                 Toast.LENGTH_LONG
                                                             ).show()
-                                                            navController.navigate(
-                                                                ConversationsScreenNav(
-                                                                    address,
-                                                                    threadId = thread.threadId
-                                                                ))
-                                                        }
-                                                        else {
-                                                            navController
-                                                                .navigate(
-                                                                    HomeScreenNav( address))
-                                                        }
-                                                    } else {
-                                                        threadsViewModel.setSelectedItems(
-                                                            selectedItems.toMutableList().apply {
-                                                                if(selectedItems.contains(thread))
-                                                                    remove(thread)
-                                                                else add(thread)
-                                                            }
-                                                        )
+                                                        navController.navigate(
+                                                            ConversationsScreenNav(
+                                                                address,
+                                                                threadId = thread.threadId
+                                                            ))
                                                     }
-                                                },
-                                                onLongClick = {
+                                                    else {
+                                                        navController
+                                                            .navigate(
+                                                                HomeScreenNav( address))
+                                                    }
+                                                } else {
                                                     threadsViewModel.setSelectedItems(
                                                         selectedItems.toMutableList().apply {
                                                             if(selectedItems.contains(thread))
@@ -620,14 +610,23 @@ fun ThreadConversationLayout(
                                                         }
                                                     )
                                                 }
-                                            ),
-                                            isSelected = selectedItems.contains(thread),
-                                            isMuted = thread.isMute,
-                                            type = thread.type,
-                                            unreadCount = thread.unreadCount,
-                                            mms = thread.isMms
-                                        )
-                                    }
+                                            },
+                                            onLongClick = {
+                                                threadsViewModel.setSelectedItems(
+                                                    selectedItems.toMutableList().apply {
+                                                        if(selectedItems.contains(thread))
+                                                            remove(thread)
+                                                        else add(thread)
+                                                    }
+                                                )
+                                            }
+                                        ),
+                                        isSelected = selectedItems.contains(thread),
+                                        isMuted = thread.isMute,
+                                        type = thread.type,
+                                        unreadCount = thread.unreadCount,
+                                        mms = thread.isMms
+                                    )
                                 }
                             }
                         }

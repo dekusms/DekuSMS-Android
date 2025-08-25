@@ -314,7 +314,7 @@ fun ThreadConversationCard(
                     Telephony.Sms.MESSAGE_TYPE_FAILED ->
                         stringResource(R.string.sms_status_failed_only)+ ": $content"
                     Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
-                        stringResource(R.string.messages_thread_you)+ ": $content"
+                        stringResource(R.string.messages_thread_you)+ " $content"
                     else -> if(!mms) content else stringResource(R.string.image)
                 },
                 color = colorContent,
