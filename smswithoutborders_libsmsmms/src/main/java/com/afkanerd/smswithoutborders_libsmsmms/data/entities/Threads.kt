@@ -6,7 +6,8 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(indices = [Index(value = ["address"], unique = true)])
+//@Entity(indices = [Index(value = ["address"], unique = true)])
+@Entity
 data class Threads(
     @PrimaryKey var threadId: Int,
     var address: String,

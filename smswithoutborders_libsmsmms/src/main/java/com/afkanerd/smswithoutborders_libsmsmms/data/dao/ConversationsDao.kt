@@ -24,24 +24,32 @@ interface ConversationsDao {
     @Update
     fun updateThread(thread: Threads)
 
-    fun insertUpdateThread(sms: SmsMmsNatives.Sms, keepArchived: Boolean, isMms: Boolean) {
-        val thread = getThread(sms.thread_id)
-        val count = unreadCount(sms.thread_id)
+    fun insertUpdateThread(
+        sms: SmsMmsNatives.Sms,
+        keepArchived: Boolean,
+        isMms: Boolean,
+        mms: SmsMmsNatives.Mms?,
+        conversationId: Long,
+    ) {
+//        val threadId = mms?.thread_id ?: sms.thread_id
+        val threadId = sms.thread_id
+        val thread = getThread(threadId)
+        val count = unreadCount(threadId)
 
         if(thread == null) {
             insertThread(
                 Threads(
-                    threadId = sms.thread_id,
+                    threadId = threadId,
                     snippet = sms.body,
                     date = sms.date,
                     unread = count > 0,
                     address = sms.address!!,
                     isMute = false,
                     type = sms.type,
-                    conversationId = sms._id ?: -1,
+                    conversationId = conversationId,
                     isArchive = false,
                     unreadCount = count,
-                    isMms = isMms
+                    isMms = isMms,
                 )
             )
         } else {
@@ -53,7 +61,7 @@ interface ConversationsDao {
                     unread = sms.read == 0,
                     address = sms.address!!,
                     type = sms.type,
-                    conversationId = sms._id ?: -1,
+                    conversationId = conversationId,
                     isMute = thread.isMute,
                     isArchive = if(thread.isArchive) keepArchived else false,
                     unreadCount = count,
@@ -70,7 +78,9 @@ interface ConversationsDao {
             insertUpdateThread(
                 it,
                 true,
-                !conversation.mms_content_uri.isNullOrEmpty()
+                !conversation.mms_content_uri.isNullOrEmpty(),
+                conversation.mms,
+                conversation.id
             )
         }
     }
@@ -78,17 +88,8 @@ interface ConversationsDao {
     @Update
     fun update(conversations: MutableList<Conversations>): Int
 
-    @Query("DELETE FROM Conversations")
-    fun deleteEvery(): Int
-
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
     fun getConversations(threadId: Int): PagingSource<Int, Conversations>
-
-    @Transaction
-    fun reset(conversationsList: MutableList<Conversations>) {
-        deleteEvery()
-        insertAll(conversationsList)
-    }
 
     @Query("SELECT COUNT('_id') FROM Conversations WHERE thread_id = :threadId AND read = 0")
     fun unreadCount(threadId: Int): Int
@@ -96,7 +97,8 @@ interface ConversationsDao {
     @Insert
     fun insertConversation(conversation: Conversations): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     fun insertConversations(conversation: List<Conversations>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -110,14 +112,17 @@ interface ConversationsDao {
 
     @Transaction
     fun insert(conversation: Conversations, removeArchive: Boolean = false): Long {
+        val id = insertConversation(conversation)
         conversation.sms?.let {
             insertUpdateThread(
                 it,
                 removeArchive,
-                !conversation.mms_content_uri.isNullOrEmpty()
+                !conversation.mms_content_uri.isNullOrEmpty(),
+                conversation.mms,
+                id
             )
         }
-        return insertConversation(conversation)
+        return id
     }
 
     @Transaction
@@ -127,13 +132,9 @@ interface ConversationsDao {
             deleteAllThreads()
         }
 
-        insertConversations(conversationsList)
+//        insertConversations(conversationsList)
         conversationsList.forEach {
-            it.sms?.let { sms -> insertUpdateThread(
-                sms,
-                true,
-                !it.mms_content_uri.isNullOrEmpty()
-            )}
+            insert(it)
         }
     }
 
@@ -150,21 +151,41 @@ interface ConversationsDao {
     fun deleteConversations(conversations: List<Conversations>)
 
     @Query("DELETE FROM Threads WHERE conversationId = :conversationId")
-    fun deleteThreadConversation(conversationId: Int)
+    fun deleteThreadConversation(conversationId: Long)
 
-    @Query("DELETE FROM Threads WHERE conversationId IN (:threadIds)")
-    fun deleteThreadConversations(threadIds: List<Int?>)
+    @Query("DELETE FROM Threads WHERE conversationId IN (:ids)")
+    fun deleteThreadConversations(ids: List<Long>)
 
     @Transaction
-    fun delete(conversation: Conversations) {
+    fun delete(conversation: Conversations, removeArchive: Boolean) {
         deleteConversation(conversation)
-        deleteThreadConversation(conversation.sms?.thread_id!!)
+        deleteThreadConversation(conversation.id )
+        getLatestConversation(conversation.sms!!.thread_id)?.let { latest ->
+            insertUpdateThread(
+                latest.sms!!,
+                removeArchive,
+                !latest.mms_content_uri.isNullOrEmpty(),
+                latest.mms,
+                latest.id
+            )
+        }
     }
 
     @Transaction
-    fun delete(conversations: List<Conversations>) {
+    fun delete(conversations: List<Conversations>, removeArchive: Boolean) {
         deleteConversations(conversations)
-        deleteThreadConversations(conversations.map { it.sms?.thread_id })
+        deleteThreadConversations(conversations.map { it.id })
+        conversations.forEach {
+            getLatestConversation(it.sms!!.thread_id)?.let { latest ->
+                insertUpdateThread(
+                    latest.sms!!,
+                    removeArchive,
+                    !latest.mms_content_uri.isNullOrEmpty(),
+                    latest.mms,
+                    latest.id
+                )
+            }
+        }
     }
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +
@@ -173,4 +194,7 @@ interface ConversationsDao {
 
     @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
     fun getConversationsList(threadId: Int): List<Conversations>
+
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC LIMIT 1")
+    fun getLatestConversation(threadId: Int): Conversations?
 }

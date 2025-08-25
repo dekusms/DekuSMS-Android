@@ -8,8 +8,8 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import kotlinx.serialization.Serializable
 
 @Serializable
-//@Entity
-@Entity(indices = [Index(value = ["_id"], unique = true)])
+@Entity
+//@Entity(indices = [Index(value = ["_id"], unique = true)])
 data class Conversations(
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
     @Embedded var sms: SmsMmsNatives.Sms? = null,

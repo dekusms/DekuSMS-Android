@@ -104,7 +104,7 @@ fun Context.insertSms(conversation: Conversations): Uri? {
     }
 
     try{
-        conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
+//        conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
         getDatabase().conversationsDao()
             ?.insert(conversation, settingsGetKeepMessagesArchived)
             ?.let { id -> conversation.id = id }
@@ -138,7 +138,7 @@ fun Context.sendSms(
             date_sent = date,
             read = 1,
             status = Telephony.Sms.STATUS_NONE,
-            type = Telephony.Sms.MESSAGE_TYPE_OUTBOX,
+            type = Telephony.Sms.MESSAGE_TYPE_QUEUED,
             body = text,
             sub_id = subscriptionId,
         ), sms_data = data)
@@ -227,6 +227,7 @@ private fun Context.sendSms(
         throw e
     }
     conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+    conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
     updateSms(uri, conversation)
 }
 

@@ -2,11 +2,18 @@ package com.afkanerd.smswithoutborders_libsmsmms.data.data.models
 
 import androidx.room.Entity
 import androidx.room.Index
+import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
+/**
+ * https://www.openmobilealliance.org/release/MMS/V1_2-20050301-A/OMA-MMS-ENC-V1_2-20050301-A.pdf
+ */
 object SmsMmsNatives {
+    const val MMS_MESSAGE_TYPES_M_SEND_REQ = 128 // sending
+    const val MMS_MESSAGE_TYPES_M_RETRIEVE_CONF = 132 // receiving
 
-    @Entity(indices = [Index(value = ["_id"], unique = true)])
+//    @Entity(indices = [Index(value = ["_id"], unique = true)])
+    @Entity
     @Serializable
     data class Sms(
         var _id: Long? = null,

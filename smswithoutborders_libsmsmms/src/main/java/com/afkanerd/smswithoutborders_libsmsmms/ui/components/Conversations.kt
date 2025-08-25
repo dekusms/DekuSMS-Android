@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.MmsContentView
 
@@ -273,8 +274,8 @@ fun ConversationsCard(
         }
 
         Box(modifier = Modifier.padding(start=8.dp, end=8.dp)) {
-            when(type)  {
-                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL -> TODO()
+            when(type) {
+                SmsMmsNatives.MMS_MESSAGE_TYPES_M_RETRIEVE_CONF,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX -> {
                     if(isKey) {
                         ConversationIsKey(isReceived = true)
@@ -304,6 +305,7 @@ fun ConversationsCard(
                         }
                     }
                 }
+                SmsMmsNatives.MMS_MESSAGE_TYPES_M_SEND_REQ,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX -> {

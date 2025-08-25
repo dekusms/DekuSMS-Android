@@ -3,6 +3,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui
 import android.content.Intent
 import android.provider.BlockedNumberContract
 import android.provider.Telephony
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -582,10 +583,24 @@ fun ThreadConversationLayout(
                                             modifier = Modifier.combinedClickable(
                                                 onClick = {
                                                     if(selectedItems.isEmpty()) {
-                                                        if(!foldOpen) navController.navigate(
-                                                            ConversationsScreenNav(address))
-                                                        else navController
-                                                            .navigate(HomeScreenNav(address))
+                                                        if(!foldOpen) {
+                                                            if(BuildConfig.DEBUG)
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Thread id: ${thread.threadId}",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
+                                                            navController.navigate(
+                                                                ConversationsScreenNav(
+                                                                    address,
+                                                                    threadId = thread.threadId
+                                                                ))
+                                                        }
+                                                        else {
+                                                            navController
+                                                                .navigate(
+                                                                    HomeScreenNav( address))
+                                                        }
                                                     } else {
                                                         threadsViewModel.setSelectedItems(
                                                             selectedItems.toMutableList().apply {

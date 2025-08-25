@@ -143,7 +143,8 @@ fun backHandler(
     address: String,
     subId: Long,
     viewModel: ConversationsViewModel,
-    navController: NavController
+    navController: NavController,
+    threadId: Int,
 ) {
     if(text.isNotBlank()) {
         ConversationsViewModel().addDraft(
@@ -151,7 +152,8 @@ fun backHandler(
             body = text,
             mmsUri = mmsUri,
             address = address,
-            subId = subId
+            subId = subId,
+            threadId = threadId,
         ) {}
     }
 
@@ -180,6 +182,7 @@ fun ConversationsMainLayout(
     searchQuery: String? = null,
     text: String = "",
     foldOpen: Boolean = false,
+    threadId: Int? = null,
     _items: List<Conversations>? = null
 ) {
 //    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
@@ -214,7 +217,7 @@ fun ConversationsMainLayout(
     var searchQuery by remember { mutableStateOf(searchQuery) }
     var searchIndex by remember { mutableIntStateOf(0) }
 
-    var threadId by remember { mutableIntStateOf(context.getThreadId(address)) }
+    var threadId by remember { mutableIntStateOf(threadId ?: context.getThreadId(address)) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -225,7 +228,8 @@ fun ConversationsMainLayout(
                         body = typingText,
                         mmsUri = typingMmsImage,
                         address = address,
-                        subId = subscriptionId!!
+                        subId = subscriptionId!!,
+                        threadId = threadId,
                     ) {}
                 }
             }
@@ -248,7 +252,7 @@ fun ConversationsMainLayout(
         }
     }
 
-    val messages = viewModel.getConversations(context, address)
+    val messages = viewModel.getConversations(context, threadId)
     val scope = rememberCoroutineScope()
     val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
@@ -278,7 +282,7 @@ fun ConversationsMainLayout(
 
     LaunchedEffect(Unit){
         if(!searchQuery.isNullOrEmpty()) {
-            viewModel.search(context, searchQuery!!, address) { indexes ->
+            viewModel.search(context, searchQuery!!, threadId=threadId) { indexes ->
                 searchIndexes = indexes
             }
         }
@@ -325,7 +329,7 @@ fun ConversationsMainLayout(
         }
 
         if(text.isBlank()) {
-            viewModel.fetchDraft(context, address) {
+            viewModel.fetchDraft(context, threadId) {
                 typingText = it?.sms?.body!!
                 viewModel.clearDraft(context, it)
                 if(searchQuery.isNullOrEmpty()) {
@@ -348,6 +352,7 @@ fun ConversationsMainLayout(
             subId = subscriptionId!!,
             viewModel = viewModel,
             navController = navController,
+            threadId = threadId,
         )
     }
 
@@ -383,7 +388,8 @@ fun ConversationsMainLayout(
                 address,
                 subscriptionId!!,
                 viewModel = viewModel,
-                navController=navController
+                navController=navController,
+                threadId = threadId,
             )
         },
         muteCallback = {
@@ -440,6 +446,7 @@ fun ConversationsMainLayout(
                                 subId = subscriptionId!!,
                                 viewModel = viewModel,
                                 navController = navController,
+                                threadId = threadId,
                             )
                             viewModel.removeAllSelectedItems()
                         }) {
@@ -573,6 +580,7 @@ fun ConversationsMainLayout(
                                 text = typingText,
                                 address = address,
                                 subscriptionId = subscriptionId!!,
+                                threadId = threadId,
                             ){}
                             typingMmsImage = null
                             typingText = ""
@@ -583,6 +591,7 @@ fun ConversationsMainLayout(
                                 text = typingText,
                                 address = address,
                                 subscriptionId = subscriptionId!!,
+                                threadId = threadId,
                             ){}
                             typingText = ""
                         }
@@ -613,8 +622,8 @@ fun ConversationsMainLayout(
             ) {
                 items(
                     count = if(inPreviewMode) _items!!.size else inboxMessagesItems.itemCount,
-                    key =  if(inPreviewMode) { index -> _items!![index].sms?._id!! }
-                    else inboxMessagesItems.itemKey{ it.sms?._id!! }
+                    key =  if(inPreviewMode) { index -> _items!![index].id }
+                    else inboxMessagesItems.itemKey{ it.id }
                 ) { index ->
                     (
                             if(inPreviewMode) _items!![index]
@@ -818,7 +827,8 @@ fun ConversationsMainLayout(
                                 context=context,
                                 text=conversation.sms?.body!!,
                                 address= conversation.sms?.address!!,
-                                subscriptionId = conversation.sms?.sub_id!!
+                                subscriptionId = conversation.sms?.sub_id!!,
+                                threadId = threadId,
                             ) {
                                 highlightedMessage = null
                             }
@@ -857,7 +867,7 @@ fun ConversationsMainLayout(
             DeleteConfirmationAlert(
                 confirmCallback = {
                     coroutineScope.launch {
-                        viewModel.deleteThread(context, address) {
+                        viewModel.deleteThread(context, threadId) {
                             rememberDeleteAlert = false
                             TODO("Navigate back to home")
                         }

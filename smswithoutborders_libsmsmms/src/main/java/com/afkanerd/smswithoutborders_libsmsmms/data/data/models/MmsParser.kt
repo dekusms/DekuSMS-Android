@@ -181,6 +181,7 @@ object MmsParser {
 
             val mms = parseRawMmsContents(cursor)
             val sms = SmsMmsNatives.Sms(
+                _id = (System.currentTimeMillis()/1000L),
                 thread_id = context.getThreadId(address!!).toInt(),
                 address = address,
                 sub_id = mms.sub_id ?: -1,

@@ -71,7 +71,8 @@ fun NavHostControllerInstance(
                     address = convScreen.address,
                     text = convScreen.text ?: "",
                     searchQuery = convScreen.query,
-                    navController = navController
+                    navController = navController,
+                    threadId = convScreen.threadId
                 )
             }
             composable<SearchScreenNav> { backStackEntry ->

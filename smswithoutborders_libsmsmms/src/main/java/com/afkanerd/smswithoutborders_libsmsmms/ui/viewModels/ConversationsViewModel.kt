@@ -15,9 +15,9 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendMms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetKeepMessagesArchived
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +51,7 @@ class ConversationsViewModel: ViewModel() {
 
     private var conversationsPager: Flow<PagingData<Conversations>>? = null
 
-    fun getConversations(context: Context, address: String): Flow<PagingData<Conversations>> {
+    fun getConversations(context: Context, threadId: Int): Flow<PagingData<Conversations>> {
         if(conversationsPager == null) {
             conversationsPager = Pager(
                 config=PagingConfig(
@@ -63,7 +63,7 @@ class ConversationsViewModel: ViewModel() {
                 ),
                 pagingSourceFactory = {
                     context.getDatabase().conversationsDao()!!
-                        .getConversations(context.getThreadId(address))
+                        .getConversations(threadId)
                 }
             ).flow.cachedIn(viewModelScope)
         }
@@ -84,11 +84,10 @@ class ConversationsViewModel: ViewModel() {
 
     fun fetchDraft(
         context: Context,
-        address: String,
+        threadId: Int,
         callback: (Conversations?) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val threadId = context.getThreadId(address)
                 context.getDatabase().conversationsDao()
                     ?.fetchConversationsForType( threadId, Telephony.Sms.MESSAGE_TYPE_DRAFT)
                     ?.let { callback(it) }
@@ -99,13 +98,12 @@ class ConversationsViewModel: ViewModel() {
     fun search(
         context: Context,
         query: String,
-        address: String,
+        threadId: Int,
         callback: (List<Int>) -> Unit,
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val searchIndexes = mutableListOf<Int>()
-                val threadId = context.getThreadId(address).toInt()
                 context.getDatabase().conversationsDao()
                     ?.getConversationsList(threadId)?.let { items ->
                         items.forEachIndexed { index, it ->
@@ -128,7 +126,8 @@ class ConversationsViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().conversationsDao()?.delete(conversation)
+                context.getDatabase().conversationsDao()
+                    ?.delete(conversation, !context.settingsGetKeepMessagesArchived)
             }
         }
     }
@@ -167,6 +166,7 @@ class ConversationsViewModel: ViewModel() {
         text: String,
         address: String,
         subscriptionId: Long,
+        threadId: Int,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -176,7 +176,7 @@ class ConversationsViewModel: ViewModel() {
                         contentUri = uri,
                         text = text,
                         address = address,
-                        threadId = context.getThreadId(address),
+                        threadId = threadId,
                         subscriptionId = subscriptionId,
                     ).let { conversation ->
                         callback(conversation)
@@ -196,6 +196,7 @@ class ConversationsViewModel: ViewModel() {
         text: String,
         address: String,
         subscriptionId: Long,
+        threadId: Int,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -204,7 +205,7 @@ class ConversationsViewModel: ViewModel() {
                     context.sendSms(
                         text = text,
                         address = address,
-                        threadId = context.getThreadId(address),
+                        threadId = threadId,
                         subscriptionId = subscriptionId,
                     )?.let { conversation ->
                         callback(conversation)
@@ -226,7 +227,8 @@ class ConversationsViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getDatabase().conversationsDao()?.delete(conversations)
+                context.getDatabase().conversationsDao()
+                    ?.delete(conversations, !context.settingsGetKeepMessagesArchived)
                 callback()
             }
         }
@@ -234,16 +236,14 @@ class ConversationsViewModel: ViewModel() {
 
     fun deleteThread(
         context: Context,
-        address: String,
+        threadId: Int,
         callback: () -> Unit,
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                context.getThreadId(address).let { threadId ->
-                    context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
-                        ThreadsViewModel().deleteThreads(context, listOf(thread))
-                        callback()
-                    }
+                context.getDatabase().threadsDao()?.get(threadId)?.let { thread ->
+                    ThreadsViewModel().deleteThreads(context, listOf(thread))
+                    callback()
                 }
             }
         }
@@ -255,11 +255,11 @@ class ConversationsViewModel: ViewModel() {
         mmsUri: Uri?,
         address: String,
         subId: Long,
+        threadId: Int,
         callback: (Conversations) -> Unit
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val threadId = context.getThreadId(address)
                 val conversation = Conversations(
                     sms = SmsMmsNatives.Sms(
                         _id = System.currentTimeMillis(),
