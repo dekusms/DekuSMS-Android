@@ -31,8 +31,8 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
                 context.getDatabase().conversationsDao()
                     ?.getConversation(originalResentMessageId.toLong())
                     ?.let { conversation ->
-                        conversation.sms?.status = messageBox
-                        conversation.sms?.type = Telephony.Mms.MESSAGE_BOX_SENT
+                        conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+                        conversation.sms?.type = messageBox
                         conversation.mms_content_uri = uri
                         conversation.mms_filepath = filepath
                         context.getDatabase().conversationsDao()?.update(conversation)

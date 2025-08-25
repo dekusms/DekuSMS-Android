@@ -40,7 +40,7 @@ interface ConversationsDao {
             insertThread(
                 Threads(
                     threadId = threadId,
-                    snippet = sms.body,
+                    snippet = sms.body ?: "",
                     date = sms.date,
                     unread = count > 0,
                     address = sms.address!!,
@@ -56,7 +56,7 @@ interface ConversationsDao {
             updateThread(
                 Threads(
                     threadId = thread.threadId,
-                    snippet = sms.body,
+                    snippet = sms.body ?: "",
                     date = sms.date,
                     unread = sms.read == 0,
                     address = sms.address!!,

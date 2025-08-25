@@ -226,10 +226,10 @@ fun ChatCompose(
     mmsValueChanged: ((Uri) -> Unit)? = null,
     subscriptionId: Long = -1,
     shouldPulse: Boolean = LocalInspectionMode.current,
-    simCardChooserCallback: (() -> Unit)? = null,
-    sendMmsCallback: ((Uri) -> Unit)? = null,
+    sendMmsCallback: (Uri) -> Unit,
     mmsCancelCallback: (() -> Unit)? = null,
-    smsSendCallback: (() -> Unit)? = null
+    simCardChooserCallback: (() -> Unit)? = null,
+    smsSendCallback: () -> Unit
 ) {
     val context = LocalContext.current
     val inPreviewMode = LocalInspectionMode.current
@@ -297,6 +297,7 @@ fun ChatCompose(
                 if((imageUri != null) || LocalInspectionMode.current) {
                     ComposeMmsImage(imageUri) {
                         mmsCancelCallback?.invoke()
+                        imageUri = null
                     }
                 }
 
@@ -382,10 +383,11 @@ fun ChatCompose(
                         IconButton(
                             onClick = {
                                 if(imageUri != null) {
-                                    sendMmsCallback?.invoke(imageUri!!)
+                                    sendMmsCallback(imageUri!!)
                                 } else {
-                                    smsSendCallback?.invoke()
+                                    smsSendCallback.invoke()
                                 }
+                                imageUri = null
                             },
                         ) {
                             Icon(
@@ -772,8 +774,10 @@ fun ChatComposePreview() {
         value = "Hello there!",
         encryptedValue = "U2FsdGVkX1+...", // Example encrypted
         shouldPulse = true,
-        smsSendCallback = {}
-    )
+        sendMmsCallback = {}
+    ) {
+
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

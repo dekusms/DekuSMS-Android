@@ -167,6 +167,8 @@ class ConversationsViewModel: ViewModel() {
         address: String,
         subscriptionId: Long,
         threadId: Int,
+        filename: String,
+        mimeType: String,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -178,14 +180,18 @@ class ConversationsViewModel: ViewModel() {
                         address = address,
                         threadId = threadId,
                         subscriptionId = subscriptionId,
+                        filename = filename,
+                        mimeType = mimeType
                     ).let { conversation ->
                         callback(conversation)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Toast.makeText(context,
-                        context.getString(R.string.something_went_wrong_with_sending),
-                        Toast.LENGTH_LONG).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context,
+                            context.getString(R.string.something_went_wrong_with_sending),
+                            Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }

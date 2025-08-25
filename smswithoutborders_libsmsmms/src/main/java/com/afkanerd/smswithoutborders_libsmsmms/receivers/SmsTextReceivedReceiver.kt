@@ -48,7 +48,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                         ?.getConversation(id)
                         ?.let { conversation ->
                             if (resultCode == Activity.RESULT_OK) {
-                                conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+                                conversation.sms?.status = Telephony.Sms.STATUS_NONE
                                 conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_SENT
                             } else {
                                 conversation.sms?.status = Telephony.Sms.STATUS_FAILED

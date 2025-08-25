@@ -28,7 +28,7 @@ object SmsMmsNatives {
         var type: Int,
         val reply_path_present: String? = null,
         val subject: String? = null,
-        var body: String,
+        var body: String?,
         val service_center: String? = null,
         val locked: Int? = null,
         val sub_id: Long,

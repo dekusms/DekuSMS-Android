@@ -104,11 +104,14 @@ import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getFileNameFromUri
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getMimeTypeFromUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getUriForDrawable
@@ -589,6 +592,9 @@ fun ConversationsMainLayout(
                                 address = address,
                                 subscriptionId = subscriptionId!!,
                                 threadId = threadId,
+                                filename = context.getFileNameFromUri(it)
+                                    ?: System.currentTimeMillis().toString(),
+                                mimeType = context.getMimeTypeFromUri(it) ?: "image/jpeg"
                             ){}
                             typingMmsImage = null
                             typingText = ""
@@ -637,7 +643,7 @@ fun ConversationsMainLayout(
                             if(inPreviewMode) _items!![index]
                             else inboxMessagesItems[index]
                     )?.let { conversation ->
-                        var showDate by remember { mutableStateOf(index == 0) }
+                        var showDate = index == 0
 
                         var timestamp by remember { mutableStateOf(
                             if(inPreviewMode) "1234567"

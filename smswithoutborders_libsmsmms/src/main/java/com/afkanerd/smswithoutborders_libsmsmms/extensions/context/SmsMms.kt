@@ -61,7 +61,7 @@ private fun Context.updateSmsToLocalDb(
 
 @Throws
 private fun Context.insertSmsTelephony(
-    text: String,
+    text: String?,
     sub_id: Long,
     address: String,
     date: Long,
@@ -91,7 +91,7 @@ fun Context.insertSms(conversation: Conversations): Uri? {
     if(settingsGetStoreTelephonyDb) {
         try {
             uri = insertSmsTelephony(
-                conversation.sms?.body!!,
+                conversation.sms?.body,
                 conversation.sms?.sub_id!!,
                 conversation.sms?.address!!,
                 conversation.sms?.date!!,
@@ -137,7 +137,7 @@ fun Context.sendSms(
             date = date,
             date_sent = date,
             read = 1,
-            status = Telephony.Sms.STATUS_NONE,
+            status = Telephony.Sms.STATUS_PENDING,
             type = Telephony.Sms.MESSAGE_TYPE_QUEUED,
             body = text,
             sub_id = subscriptionId,
@@ -226,7 +226,6 @@ private fun Context.sendSms(
         updateSms(uri, conversation)
         throw e
     }
-    conversation.sms?.status = Telephony.Sms.STATUS_PENDING
     conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
     updateSms(uri, conversation)
 }
@@ -305,24 +304,6 @@ private fun Context.getSmsPendingIntents(
     return Pair(sentPendingIntent, deliveredPendingIntent)
 }
 
-@SuppressLint("Range")
-fun Context.getIdFromLocal(uri: Uri): Long? {
-    contentResolver.query(
-        uri,
-        arrayOf(Telephony.Sms._ID),
-        null,
-        null,
-        null
-    )?.let { cursor ->
-        if(cursor.moveToFirst()) {
-            return cursor.getLong(cursor
-                .getColumnIndex(Telephony.Sms._ID))
-        }
-        cursor.close()
-    }
-    return null
-}
-
 @Throws
 fun Context.sendMms(
     contentUri: Uri,
@@ -330,31 +311,37 @@ fun Context.sendMms(
     address: String,
     threadId: Int,
     subscriptionId: Long,
-): Conversations {
+    filename: String,
+    mimeType: String
+): Conversations? {
+
+    val address = makeE16PhoneNumber(address)
+
+    val conversation = Conversations(
+        sms = SmsMmsNatives.Sms(
+            _id = System.currentTimeMillis(),
+            thread_id = threadId.toInt(),
+            date = System.currentTimeMillis(),
+            date_sent = 0,
+            type = Telephony.Sms.MESSAGE_TYPE_QUEUED,
+            status = Telephony.Sms.STATUS_NONE,
+            read = 1,
+            sub_id = subscriptionId,
+            address = address,
+            body = null
+        ),
+        mms_text = text,
+        mms_content_uri = contentUri.toString(),
+        mms_mimetype = mimeType,
+        mms_filename = filename,
+    )
+
     try {
-        val address = makeE16PhoneNumber(address)
+        insertSms(conversation)?.let { uri ->
+            val sendSettings = MmsParser.getSendMessageSettings()
+            sendSettings.subscriptionId = subscriptionId.toInt()
 
-        val conversation = Conversations(
-            mms = SmsMmsNatives.Mms(
-                _id = System.currentTimeMillis(),
-                thread_id = threadId.toInt(),
-                date = System.currentTimeMillis(),
-                date_sent = 0,
-                msg_box = Telephony.Mms.MESSAGE_BOX_OUTBOX,
-                read = 1,
-                sub_id = subscriptionId,
-                seen = 1,
-            ),
-            mms_text = text,
-            mms_content_uri = contentUri.toString(),
-            mms_mimetype = contentResolver.getType(contentUri),
-            mms_filename = MmsParser.getFileName(this, contentUri),
-        )
-
-        getDatabase().conversationsDao()?.insert(conversation)
-
-        val sendSettings = MmsParser.getSendMessageSettings()
-        sendSettings.subscriptionId = subscriptionId.toInt()
+            val sendTransaction = Transaction(this, sendSettings)
 
 //        val intent = Intent(this, MmsSentReceiverImpl::class.java)
 //            .apply {
@@ -364,30 +351,33 @@ fun Context.sendMms(
 //                )
 //            }
 
-        val sendTransaction = Transaction(this, sendSettings)
 //        sendTransaction.setExplicitBroadcastForSentMms(intent)
 
-        val mMessage = Message(text, address)
-        val mimeType = contentResolver.getType(contentUri)
-        val filename = MmsParser.getFileName(this, contentUri)
+            val mMessage = Message(text, address)
+            mMessage.addMedia(
+                getBytesFromUri(contentUri),
+                mimeType,
+                filename
+            )
 
-        mMessage.addMedia(
-            getBytesFromUri(contentUri),
-            mimeType,
-            filename
-        )
-
-        try {
-            sendTransaction.sendNewMessage(mMessage)
-        } catch(e: Exception) {
-            e.printStackTrace()
+            try {
+                sendTransaction.sendNewMessage(mMessage)
+            } catch(e: Exception) {
+                conversation.sms?.status = Telephony.Sms.STATUS_FAILED
+                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
+                updateSms(uri, conversation)
+                throw e
+            }
+//            conversation.sms?.status = Telephony.Sms.STATUS_PENDING
+            conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+            updateSms(uri, conversation)
         }
 
-        return conversation
     } catch (e: Exception) {
         e.printStackTrace()
         throw e
     }
+    return conversation
 }
 
 fun Context.loadRawSmsMmsDb() : List<Conversations>{

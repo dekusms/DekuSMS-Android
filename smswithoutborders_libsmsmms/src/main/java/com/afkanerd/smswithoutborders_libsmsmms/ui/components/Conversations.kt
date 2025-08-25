@@ -297,6 +297,7 @@ fun ConversationsCard(
 
                 SmsMmsNatives.MMS_MESSAGE_TYPES_M_SEND_REQ,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED,
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX -> {
                     Column(modifier = Modifier
@@ -328,7 +329,7 @@ fun ConversationsCard(
                         if(showDate || inPreview) {
                             Text(
                                 text= when(status) {
-                                    Telephony.Sms.STATUS_PENDING ->
+                                    Telephony.Sms.STATUS_NONE ->
                                         "$date " + stringResource(R.string.sms_status_sent)
 
                                     Telephony.Sms.STATUS_COMPLETE ->

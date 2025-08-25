@@ -81,7 +81,7 @@ fun ImageViewMain(
                 with(context.contentResolver.openFileDescriptor(uri, "w")) {
                     this?.fileDescriptor.let { fd ->
                         val fileOutputStream = FileOutputStream(fd);
-                        fileOutputStream.write(context.getBytesFromUri(uri))
+                        fileOutputStream.write(context.getBytesFromUri(contentUri))
                         fileOutputStream.close();
                     }
                     this?.close();
