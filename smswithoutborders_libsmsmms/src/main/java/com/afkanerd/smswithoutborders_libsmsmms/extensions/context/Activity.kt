@@ -63,6 +63,24 @@ fun Context.copyItemToClipboard(text: String) {
     ).show()
 }
 
+fun Context.shareItem(uri: Uri, mimeType: String) {
+    val sendIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_STREAM, uri)
+        type = mimeType
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    val excludedComponentNames = arrayOf(
+        ComponentName(
+            BuildConfig.LIBRARY_PACKAGE_NAME,
+            ShareItem::class.java.name
+        )
+    )
+    shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
+    startActivity(shareIntent)
+}
+
 fun Context.shareItem(text: String) {
     val sendIntent = Intent().apply {
         setAction(Intent.ACTION_SEND)
@@ -84,4 +102,16 @@ fun Context.shareItem(text: String) {
 fun Context.getUriForDrawable(drawableId: Int): Uri? {
     return Uri.parse("android.resource://${packageName}/$drawableId")
 }
+
+
+fun Context.saveImageToInternalStorage(uri: Uri, filename: String) {
+    val inputStream = contentResolver.openInputStream(uri)
+    val outputStream = openFileOutput(filename, Context.MODE_PRIVATE)
+    inputStream?.use { input ->
+        outputStream.use { output ->
+            input.copyTo(output)
+        }
+    }
+}
+
 

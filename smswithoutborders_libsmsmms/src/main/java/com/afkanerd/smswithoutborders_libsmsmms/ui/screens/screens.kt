@@ -34,4 +34,6 @@ data class ImageViewScreenNav(
     var contentUri: String,
     var address: String,
     var date: String,
+    var filename: String,
+    var mimeType: String,
 )

@@ -2,7 +2,10 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -39,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import coil3.compose.AsyncImage
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import androidx.core.net.toUri
@@ -46,6 +50,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getUriForDrawable
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.saveImageToInternalStorage
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.shareItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +60,13 @@ fun ImageViewMain(
     address: String,
     date: String,
     navController: NavController,
+    filename: String,
+    mimeType: String,
 ) {
     val navBarVisible = rememberSaveable { mutableStateOf(true) }
+
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             AnimatedVisibility(visible = navBarVisible.value) {
@@ -90,7 +101,7 @@ fun ImageViewMain(
                     actions = {
                         Row {
                             IconButton(onClick = {
-                                TODO("Implement Download offline")
+                                context.saveImageToInternalStorage(contentUri, filename)
                             }) {
                                 Icon(
                                     Icons.Outlined.DownloadForOffline,
@@ -102,11 +113,11 @@ fun ImageViewMain(
                             }
 
                             IconButton(onClick = {
-                                TODO("Implement share")
+                                context.shareItem(contentUri, mimeType)
                             }) {
                                 Icon(
                                     Icons.Outlined.Share,
-                                    "Share mms content",
+                                    stringResource(R.string.share_mms_content),
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .size(40.dp)
@@ -134,7 +145,6 @@ fun ImageViewMain(
     }
 }
 
-
 @Preview
 @Composable
 fun ImageViewMain_Preview() {
@@ -144,7 +154,9 @@ fun ImageViewMain_Preview() {
             uri,
             "Elliot",
             "10:51 AM",
-            rememberNavController()
+            rememberNavController(),
+            "filename.jpg",
+            "image/jpeg"
         )
     }
 }

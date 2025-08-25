@@ -109,7 +109,9 @@ fun NavHostControllerInstance(
                     contentUri = imageViewScreen.contentUri.toUri(),
                     address = imageViewScreen.address,
                     date = imageViewScreen.date,
-                    navController = navController
+                    navController = navController,
+                    filename = imageViewScreen.filename,
+                    mimeType = imageViewScreen.mimeType
                 )
             }
         }

@@ -441,5 +441,6 @@
     <string name="reset">Reset</string>
     <string name="image">Image</string>
     <string name="download_for_offline">Download for offline</string>
+    <string name="share_mms_content">Share MMS content</string>
 
 </resources>
