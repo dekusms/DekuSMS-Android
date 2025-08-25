@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.ContextWrapper
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.widget.Toast
@@ -79,3 +80,8 @@ fun Context.shareItem(text: String) {
     shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
     startActivity(shareIntent)
 }
+
+fun Context.getUriForDrawable(drawableId: Int): Uri? {
+    return Uri.parse("android.resource://${packageName}/$drawableId")
+}
+

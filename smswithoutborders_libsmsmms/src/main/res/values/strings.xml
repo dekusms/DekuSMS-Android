@@ -440,5 +440,6 @@
     <string name="your_phone_would_suggest_smart_replies_in_notifications_if_enabled">Your phone would suggest smart replies in notifications if enabled</string>
     <string name="reset">Reset</string>
     <string name="image">Image</string>
+    <string name="download_for_offline">Download for offline</string>
 
 </resources>

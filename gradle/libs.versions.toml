@@ -81,6 +81,7 @@ uiToolingPreviewVersion = "1.8.3"
 uiToolingVersion = "1.8.3"
 navigationRuntimeKtxVersion = "2.9.3"
 navigationComposeVersion = "2.9.3"
+animationVersion = "1.9.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -201,6 +202,7 @@ androidx-compose-ui-ui-tooling-preview = { group = "androidx.compose.ui", name =
 androidx-compose-ui-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiToolingVersion" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtxVersion" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeVersion" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

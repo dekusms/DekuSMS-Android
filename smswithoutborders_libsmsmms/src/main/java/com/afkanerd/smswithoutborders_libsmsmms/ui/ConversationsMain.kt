@@ -11,6 +11,7 @@ import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -105,6 +106,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotific
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getUriForDrawable
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isShortCode
@@ -114,6 +116,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.unblockContac
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ChatCompose
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConvenientMethods.deriveMetaDate
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationCrudBottomBar
+import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationPositionTypes
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationStatusTypes
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationsCard
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.ConversationsMainDropDownMenu
@@ -127,6 +130,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SimChooser
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.getConversationType
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ImageViewScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -655,11 +659,14 @@ fun ConversationsMainLayout(
                         }
 
                         val position by remember {
-                            mutableStateOf(getConversationType(
-                                index,
-                                conversation,
-                                inboxMessagesItems.itemSnapshotList.items)
-                            )
+                            mutableStateOf(
+                                if(conversation.mms_content_uri.isNullOrEmpty()) {
+                                    ConversationPositionTypes.END
+                                } else getConversationType(
+                                    index,
+                                    conversation,
+                                    inboxMessagesItems.itemSnapshotList.items)
+                                )
                         }
 
                         var text = if(LocalInspectionMode.current)
@@ -729,7 +736,15 @@ fun ConversationsMainLayout(
                                     showFailedRetryModal = true
                                 }
                                 else {
-                                    showDate = !showDate
+                                    if(contentUri != null) {
+                                        navController.navigate(ImageViewScreenNav(
+                                            contentUri = contentUri.toString(),
+                                            address = contactName,
+                                            date = date,
+                                        ))
+                                    } else {
+                                        showDate = !showDate
+                                    }
                                 }
                             },
                             onLongClickCallback = {
@@ -748,24 +763,6 @@ fun ConversationsMainLayout(
                             },
                             isSelected = selectedItems.contains(conversation),
                         )
-
-                            // TODO: security things are in order
-//                        val checkIsSecured by remember {
-//                            derivedStateOf {
-//                                conversation.isIs_key &&
-//                                        conversation.type == Telephony.TextBasedSmsColumns
-//                                    .MESSAGE_TYPE_INBOX
-//                            }
-//                        }
-//
-//                        if(checkIsSecured) {
-//                            LaunchedEffect(true) {
-//                                scope.launch{
-//                                    showSecureAgreeModal = E2EEHandler
-//                                        .hasPendingApproval(context, viewModel.address)
-//                                }
-//                            }
-//                        }
                     }
                 }
             }
@@ -886,24 +883,27 @@ fun MmsContentView(
     contentUri: Uri,
     mimeType: String,
     filename: String?,
-    isSending: Boolean = false) {
+    isSending: Boolean = false,
+    onClickCallback: (() -> Unit)?,
+) {
     Column(
         modifier = Modifier
+            .clickable { onClickCallback?.invoke() }
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = 8.dp),
         horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
     ) {
         when {
             mimeType.contains("image") -> {
-                    AsyncImage(
-                        model = contentUri,
-                        contentDescription = stringResource(R.string.mms_image),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .aspectRatio(1f)  // This ensures a square aspect ratio
-                            .clip(RoundedCornerShape(10.dp))
-                    )
+                AsyncImage(
+                    model = contentUri,
+                    contentDescription = stringResource(R.string.mms_image),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .aspectRatio(1f)  // This ensures a square aspect ratio
+                        .clip(RoundedCornerShape(10.dp))
+                )
             }
             mimeType.contains("video") -> {
                 val imageLoader = ImageLoader.Builder(LocalContext.current)
@@ -952,68 +952,26 @@ fun MmsContentView(
     }
 }
 
-//@Preview
-//@Composable
-//fun PreviewConversations() {
-//    AppTheme(darkTheme = true) {
-//        Surface(Modifier.safeDrawingPadding()) {
-//            val conversations: MutableList<Conversation> =
-//                remember { mutableListOf( ) }
-//            var isSend = false
-//
-//            val byteArray = remember {
-//                val bmp = createBitmap(100, 100)
-//                val canvas = Canvas(bmp)
-//                val paint = Paint().apply {
-//                    color = android.graphics.Color.RED
-//                }
-//
-//                canvas.drawRect(0f, 0f, 100f, 100f, paint)
-//
-//                val stream = ByteArrayOutputStream()
-//                bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
-//                stream.toByteArray()
-//            }
-//
-//            for(i in 0..1) {
-//                val conversation = Conversation()
-//                conversation.mmsImage = byteArray
-//                conversation.id = i.toLong()
-//                conversation.text = stringResource(
-//                    R.string
-//                        .settings_add_gateway_server_protocol_meta_description)
-//                conversation.type = if(!isSend) Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-//                else Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT
-//                conversations.add(conversation)
-//                isSend = !isSend
-//            }
-//            Conversations(navController = rememberNavController(), _items=conversations)
-//        }
-//    }
-//}
+@Preview
+@Composable
+fun PreviewMmsImage_Image() {
+    val context = LocalContext.current
+    Column {
+        MmsContentView(context.getUriForDrawable(R.drawable.github_mark)!!,
+            "image/jpeg",
+            "demo.txt") {}
+    }
+}
 
 @Preview
 @Composable
-fun PreviewMmsImage() {
-    val byteArray = remember {
-        val bmp = createBitmap(100, 100)
-        val canvas = Canvas(bmp)
-        val paint = Paint().apply {
-            color = android.graphics.Color.RED
-        }
-
-        canvas.drawRect(0f, 0f, 100f, 100f, paint)
-
-        val stream = ByteArrayOutputStream()
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        stream.toByteArray()
-    }
-
+fun PreviewMmsImage_filepath() {
+    val context = LocalContext.current
     Column {
-//        MmsContentView(byteArray, "image/jpg")
-//        MmsContentView(byteArray, "video/mp4")
         MmsContentView("content://file/path".toUri(),
             "text/v-card",
-            "demo.txt")
+            "demo.txt") {
+
+        }
     }
 }

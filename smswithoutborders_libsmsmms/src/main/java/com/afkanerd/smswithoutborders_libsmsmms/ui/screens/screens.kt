@@ -1,5 +1,6 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.screens
 
+import android.net.Uri
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -27,3 +28,10 @@ object ComposeNewMessageScreenNav
 
 @Serializable
 object SettingsScreenNav
+
+@Serializable
+data class ImageViewScreenNav(
+    var contentUri: String,
+    var address: String,
+    var date: String,
+)

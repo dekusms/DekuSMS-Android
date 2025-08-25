@@ -16,16 +16,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import androidx.window.layout.WindowLayoutInfo
+import coil3.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ComposeNewMessage
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ContactDetails
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ConversationsMainLayout
+import com.afkanerd.smswithoutborders_libsmsmms.ui.ImageViewMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SearchThreadsMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.SettingsMain
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ThreadConversationLayout
@@ -33,6 +36,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ComposeNewMessageScre
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ContactDetailsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ImageViewScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -97,6 +101,16 @@ fun NavHostControllerInstance(
 
             composable<SettingsScreenNav>{
                 SettingsMain(navController = navController)
+            }
+
+            composable<ImageViewScreenNav>{ backStackEntry ->
+                val imageViewScreen: ImageViewScreenNav = backStackEntry.toRoute()
+                ImageViewMain(
+                    contentUri = imageViewScreen.contentUri.toUri(),
+                    address = imageViewScreen.address,
+                    date = imageViewScreen.date,
+                    navController = navController
+                )
             }
         }
         else {
