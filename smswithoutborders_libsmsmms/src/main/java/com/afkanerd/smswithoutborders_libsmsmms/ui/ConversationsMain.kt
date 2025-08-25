@@ -662,7 +662,7 @@ fun ConversationsMainLayout(
 
                         val position by remember {
                             mutableStateOf(
-                                if(conversation.mms_content_uri.isNullOrEmpty()) {
+                                if(!conversation.mms_content_uri.isNullOrEmpty()) {
                                     ConversationPositionTypes.END
                                 } else getConversationType(
                                     index,
