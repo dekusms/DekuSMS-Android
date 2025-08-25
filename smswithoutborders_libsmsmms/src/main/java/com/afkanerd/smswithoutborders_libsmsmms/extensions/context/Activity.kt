@@ -103,15 +103,16 @@ fun Context.getUriForDrawable(drawableId: Int): Uri? {
     return Uri.parse("android.resource://${packageName}/$drawableId")
 }
 
-
-fun Context.saveImageToInternalStorage(uri: Uri, filename: String) {
-    val inputStream = contentResolver.openInputStream(uri)
-    val outputStream = openFileOutput(filename, Context.MODE_PRIVATE)
-    inputStream?.use { input ->
-        outputStream.use { output ->
-            input.copyTo(output)
+fun Context.getBytesFromUri(uri: Uri): ByteArray? {
+    return try {
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            inputStream.readBytes()
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
+
 
 

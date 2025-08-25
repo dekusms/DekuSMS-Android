@@ -67,6 +67,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.exportRawWithColumnGuesses
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactPhoto
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
@@ -76,6 +77,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.FileOutputStream
 
 @Composable
 fun DeleteConfirmationAlert(
@@ -503,20 +505,19 @@ fun ThreadsNavMenuItems(
         uri?.let {
             CoroutineScope(Dispatchers.IO).launch {
                 with(context.contentResolver.openFileDescriptor(uri, "w")) {
-                    // TODO: fix export
-//                    this?.fileDescriptor.let { fd ->
-//                        val fileOutputStream = FileOutputStream(fd);
-//                        fileOutputStream.write(context
-//                            .getAllExport(context).encodeToByteArray())
-//                        fileOutputStream.close();
-//                    }
-//                    this?.close();
-//
-//                    CoroutineScope(Dispatchers.Main).launch {
-//                        Toast.makeText(context,
-//                            context.getString(R.string.conversations_exported_complete),
-//                            Toast.LENGTH_LONG).show();
-//                    }
+                    this?.fileDescriptor.let { fd ->
+                        val fileOutputStream = FileOutputStream(fd);
+                        fileOutputStream.write(context.exportRawWithColumnGuesses()
+                            .encodeToByteArray())
+                        fileOutputStream.close();
+                    }
+                    this?.close();
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Toast.makeText(context,
+                            context.getString(R.string.conversations_exported_complete),
+                            Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         }

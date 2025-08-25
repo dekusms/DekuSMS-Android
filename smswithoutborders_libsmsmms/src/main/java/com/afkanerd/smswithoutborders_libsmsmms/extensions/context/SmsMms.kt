@@ -372,7 +372,7 @@ fun Context.sendMms(
         val filename = MmsParser.getFileName(this, contentUri)
 
         mMessage.addMedia(
-            MmsParser.getBytesFromUri(this, contentUri),
+            getBytesFromUri(contentUri),
             mimeType,
             filename
         )

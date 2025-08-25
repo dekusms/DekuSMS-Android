@@ -148,17 +148,6 @@ object MmsParser {
         return name
     }
 
-    fun getBytesFromUri(context: Context, uri: Uri): ByteArray? {
-        return try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                inputStream.readBytes()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
     fun getSendMessageSettings(): Settings {
         val settings = Settings()
         settings.useSystemSending = true
@@ -201,7 +190,7 @@ object MmsParser {
                 mms_mimetype = mimeType,
                 mms_filename = filename,
                 mms_filepath = filepath,
-                mms_content_uri = contentUri.toString(),
+                mms_content_uri = contentUri?.toString(),
             )
         }
     }
@@ -212,8 +201,11 @@ object MmsParser {
         cursor: Cursor
     ): Conversations? {
         val uri = "content://mms/part".toUri()
-        val idIndex = cursor.getColumnIndexOrThrow("_id")
-        val id = cursor.getString(idIndex)
+        val id = cursor.getString(cursor
+            .getColumnIndexOrThrow(Telephony.Mms._ID))
+
+        val textOnly = cursor.getInt(cursor
+            .getColumnIndexOrThrow(Telephony.Mms.TEXT_ONLY)).run { this == 1 }
 
         val parsedMms = ParsedMms()
         context.contentResolver.query(
@@ -244,8 +236,8 @@ object MmsParser {
                         if (parsedMms.text.isNullOrEmpty())
                             parsedMms.text = partCursor.getString(partCursor
                                 .getColumnIndex(Telephony.Mms.Part.TEXT))
-                    } else if (type != "application/smil") {
-                        if(parsedMms.contentUri != null) {
+                    } else if (type != "application/smil" && !textOnly) {
+                        if(parsedMms.contentUri == null) {
                             parsedMms.mimeType = type
                             parsedMms.contentUri = ("content://mms/part/$pid").toUri()
                         }
@@ -255,9 +247,7 @@ object MmsParser {
                         parsedMms.filename = parseAttachmentNames(text).firstOrNull()
                     }
                 } while (partCursor.moveToNext())
-                partCursor.close()
             }
-
             partCursor.close()
         }
 

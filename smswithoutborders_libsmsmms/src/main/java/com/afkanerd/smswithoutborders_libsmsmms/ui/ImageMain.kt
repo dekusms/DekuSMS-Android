@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -49,9 +50,14 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.exportRawWithColumnGuesses
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getBytesFromUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getUriForDrawable
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.saveImageToInternalStorage
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.shareItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +72,23 @@ fun ImageViewMain(
     val navBarVisible = rememberSaveable { mutableStateOf(true) }
 
     val context = LocalContext.current
+
+    val downloadLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(mimeType)) { uri ->
+        println(uri)
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                with(context.contentResolver.openFileDescriptor(uri, "w")) {
+                    this?.fileDescriptor.let { fd ->
+                        val fileOutputStream = FileOutputStream(fd);
+                        fileOutputStream.write(context.getBytesFromUri(uri))
+                        fileOutputStream.close();
+                    }
+                    this?.close();
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -101,7 +124,7 @@ fun ImageViewMain(
                     actions = {
                         Row {
                             IconButton(onClick = {
-                                context.saveImageToInternalStorage(contentUri, filename)
+                                downloadLauncher.launch(filename)
                             }) {
                                 Icon(
                                     Icons.Outlined.DownloadForOffline,
