@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b991f0f56b0e9f05db89a47bbb617269",
+    "identityHash": "e64c088b6aefb70a6a029f32d2f9aeb6",
     "entities": [
       {
         "tableName": "Conversations",
@@ -335,7 +335,7 @@
       },
       {
         "tableName": "Threads",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMms` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
         "fields": [
           {
             "fieldPath": "threadId",
@@ -374,6 +374,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "isMms",
+            "columnName": "isMms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "isMute",
             "columnName": "isMute",
             "affinity": "INTEGER",
@@ -403,12 +409,23 @@
           "columnNames": [
             "threadId"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_Threads_address",
+            "unique": true,
+            "columnNames": [
+              "address"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Threads_address` ON `${TABLE_NAME}` (`address`)"
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b991f0f56b0e9f05db89a47bbb617269')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e64c088b6aefb70a6a029f32d2f9aeb6')"
     ]
   }
 }

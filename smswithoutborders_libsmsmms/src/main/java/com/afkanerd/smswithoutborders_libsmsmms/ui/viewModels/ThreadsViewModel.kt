@@ -126,6 +126,7 @@ class ThreadsViewModel: ViewModel() {
 
     fun loadNatives(
         context: Context,
+        deleteDb: Boolean = false,
         completeCallback: () -> Unit,
     ) {
         viewModelScope.launch {
@@ -133,7 +134,8 @@ class ThreadsViewModel: ViewModel() {
                 messagesLoading = true
 
                 val conversations = context.loadRawSmsMmsDb()
-                context.getDatabase().conversationsDao()?.insertAll(conversations)
+                context.getDatabase().conversationsDao()
+                    ?.insertAll(conversations, deleteDb)
 
                 withContext(Dispatchers.Main) {
                     messagesLoading = false

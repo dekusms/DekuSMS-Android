@@ -51,6 +51,7 @@ interface ThreadsDao {
             "tc.isMute, " +
             "tc.type, " +
             "tc.unread, " +
+            "tc.isMms, " +
             "SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) as unreadCount, " +
             "c.body AS snippet " +
             "FROM Threads tc LEFT JOIN Conversations c " +
@@ -70,6 +71,7 @@ interface ThreadsDao {
             "tc.isMute, " +
             "tc.type, " +
             "tc.unread, " +
+            "tc.isMms, " +
             "SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) as unreadCount, " +
             "c.body AS snippet " +
             "FROM Threads tc LEFT JOIN Conversations c " +

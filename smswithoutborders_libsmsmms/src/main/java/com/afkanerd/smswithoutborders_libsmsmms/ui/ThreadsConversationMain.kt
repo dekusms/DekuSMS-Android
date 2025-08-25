@@ -609,7 +609,8 @@ fun ThreadConversationLayout(
                                             isSelected = selectedItems.contains(thread),
                                             isMuted = thread.isMute,
                                             type = thread.type,
-                                            unreadCount = thread.unreadCount
+                                            unreadCount = thread.unreadCount,
+                                            mms = thread.isMms
                                         )
                                     }
                                 }
@@ -671,6 +672,7 @@ fun PreviewMessageCard() {
     Surface(Modifier.safeDrawingPadding()) {
         val messages: MutableList<Threads> =
             remember { mutableListOf( ) }
+        var mms = true
         for(i in 0..10) {
             val thread = Threads(
                 threadId = i.toInt(),
@@ -681,7 +683,10 @@ fun PreviewMessageCard() {
                 isMute = true,
                 type = Telephony.Sms.MESSAGE_TYPE_SENT,
                 conversationId = i.toLong(),
-                isArchive = false
+                isArchive = false,
+                isMms = mms.apply {
+                    mms = !mms
+                }
             )
             messages.add(thread)
         }

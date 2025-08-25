@@ -262,7 +262,8 @@ fun ThreadConversationCard(
     isSelected: Boolean = false,
     isMuted: Boolean = false,
     isBlocked: Boolean = false,
-    type: Int
+    type: Int,
+    mms: Boolean = false
 ) {
     val context = LocalContext.current
 
@@ -305,14 +306,18 @@ fun ThreadConversationCard(
         },
         supportingContent = {
             Text(
-                text = when(type) {
-                    Telephony.Sms.MESSAGE_TYPE_DRAFT ->
-                        stringResource(R.string.thread_conversation_type_draft) + ": $content"
-                    Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
-                        stringResource(R.string.sms_status_sending)+ ": $content"
-                    Telephony.Sms.MESSAGE_TYPE_FAILED ->
-                        stringResource(R.string.sms_status_failed_only)+ ": $content"
-                    else -> content
+                text = if(!mms) {
+                    when(type) {
+                        Telephony.Sms.MESSAGE_TYPE_DRAFT ->
+                            stringResource(R.string.thread_conversation_type_draft) + ": $content"
+                        Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
+                            stringResource(R.string.sms_status_sending)+ ": $content"
+                        Telephony.Sms.MESSAGE_TYPE_FAILED ->
+                            stringResource(R.string.sms_status_failed_only)+ ": $content"
+                        else -> content
+                    }
+                } else {
+                    stringResource(R.string.image)
                 },
                 color = colorContent,
                 style = MaterialTheme.typography.bodySmall,
@@ -596,22 +601,6 @@ fun ThreadsNavMenuItems(
                     )
             }
 
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text= stringResource(R.string.reset),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                onClick = {
-                    dismissCallback?.invoke(false)
-                    threadsViewModel.loadNatives(context){
-                        Toast.makeText(context,
-                            context.getString(R.string.reset_complete), Toast.LENGTH_LONG).show()
-                    }
-                }
-            )
-
             HorizontalDivider()
 
             threadMenuItems?.let { dropMenuItem ->
@@ -631,6 +620,23 @@ fun ThreadsNavMenuItems(
                 }
             }
 
+            HorizontalDivider()
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text= stringResource(R.string.reset),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                onClick = {
+                    dismissCallback?.invoke(false)
+                    threadsViewModel.loadNatives(context, true){
+                        Toast.makeText(context,
+                            context.getString(R.string.reset_complete), Toast.LENGTH_LONG).show()
+                    }
+                }
+            )
         }
     }
 }

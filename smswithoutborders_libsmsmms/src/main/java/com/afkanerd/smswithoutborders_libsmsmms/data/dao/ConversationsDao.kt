@@ -24,7 +24,7 @@ interface ConversationsDao {
     @Update
     fun updateThread(thread: Threads)
 
-    fun insertUpdateThread(sms: SmsMmsNatives.Sms, keepArchived: Boolean) {
+    fun insertUpdateThread(sms: SmsMmsNatives.Sms, keepArchived: Boolean, isMms: Boolean) {
         val thread = getThread(sms.thread_id)
         val count = unreadCount(sms.thread_id)
 
@@ -41,6 +41,7 @@ interface ConversationsDao {
                     conversationId = sms._id ?: -1,
                     isArchive = false,
                     unreadCount = count,
+                    isMms = isMms
                 )
             )
         } else {
@@ -56,6 +57,7 @@ interface ConversationsDao {
                     isMute = thread.isMute,
                     isArchive = if(thread.isArchive) keepArchived else false,
                     unreadCount = count,
+                    isMms = isMms
                 )
             )
         }
@@ -64,7 +66,13 @@ interface ConversationsDao {
     @Transaction
     fun update(conversation: Conversations) {
         updateConversation(conversation)
-        conversation.sms?.let { insertUpdateThread(it, true) }
+        conversation.sms?.let {
+            insertUpdateThread(
+                it,
+                true,
+                !conversation.mms_content_uri.isNullOrEmpty()
+            )
+        }
     }
 
     @Update
@@ -102,17 +110,38 @@ interface ConversationsDao {
 
     @Transaction
     fun insert(conversation: Conversations, removeArchive: Boolean = false): Long {
-        conversation.sms?.let { insertUpdateThread(it, removeArchive) }
+        conversation.sms?.let {
+            insertUpdateThread(
+                it,
+                removeArchive,
+                !conversation.mms_content_uri.isNullOrEmpty()
+            )
+        }
         return insertConversation(conversation)
     }
 
     @Transaction
-    fun insertAll(conversationsList: List<Conversations>) {
+    fun insertAll(conversationsList: List<Conversations>, deleteDb: Boolean = false) {
+        if(deleteDb) {
+            deleteAllConversations()
+            deleteAllThreads()
+        }
+
         insertConversations(conversationsList)
         conversationsList.forEach {
-            it.sms?.let { sms -> insertUpdateThread(sms, true) }
+            it.sms?.let { sms -> insertUpdateThread(
+                sms,
+                true,
+                !it.mms_content_uri.isNullOrEmpty()
+            )}
         }
     }
+
+    @Query("DELETE FROM Conversations")
+    fun deleteAllConversations()
+
+    @Query("DELETE FROM Threads")
+    fun deleteAllThreads()
 
     @Delete
     fun deleteConversation(conversations: Conversations)
