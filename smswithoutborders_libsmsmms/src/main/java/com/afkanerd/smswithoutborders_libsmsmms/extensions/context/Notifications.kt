@@ -23,7 +23,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceive
 import com.google.gson.Gson
 import kotlin.jvm.java
 
-fun Context.notifyText(
+fun Context.notify(
     conversation: Conversations,
     cls: Class<*>,
     self: Boolean = false,
@@ -52,7 +52,7 @@ fun Context.notifyText(
         val messages = getNotificationSession(conversation.sms?.thread_id!!)
         messages?.sortedWith(compareBy {it.date})?.forEach {
             style.addMessage(
-                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                (if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     NotificationCompat.MessagingStyle.Message(
                         text ?: it.text,
                         it.date,
@@ -64,8 +64,10 @@ fun Context.notifyText(
                         it.date,
                         if(it.self) user else sender
                     )
-                }
-            )
+                }) .apply {
+                    if(!it.contentUri.isNullOrEmpty()) {
+                        setData("image/*", it.contentUri.toUri()) }
+                })
                 .setGroupConversation(false)
                 .setConversationTitle(title ?: (contactName ?: conversation.sms?.address!!))
         }
@@ -92,7 +94,7 @@ fun Context.notifyText(
 
     with(NotificationManagerCompat.from(this)) {
         if (ActivityCompat.checkSelfPermission(
-                this@notifyText,
+                this@notify,
                 Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -325,7 +327,8 @@ data class IncomingNotificationSession(
     val threadId: String,
     val text: String,
     val date: Long,
-    val self: Boolean
+    val self: Boolean,
+    val contentUri: String? = null,
 )
 
 private const val notificationSessionsFilename = "NOTIFICATIONS_SESSIONS"
@@ -344,8 +347,9 @@ private fun Context.insertNotificationSessions(conversation: Conversations, self
             address = conversation.sms?.address!!,
             threadId = conversation.sms?.thread_id!!.toString(),
             text = conversation.sms?.body!!,
-            date = conversation.sms?.date?.toLong() ?: 0,
+            date = conversation.sms?.date ?: 0,
             self = self,
+            contentUri = conversation.mms_content_uri
         )
         val gson = Gson().toJson(notifSession)
         newSets.add(gson)

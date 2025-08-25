@@ -7,7 +7,6 @@ import androidx.core.app.RemoteInput
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import kotlinx.coroutines.CoroutineScope

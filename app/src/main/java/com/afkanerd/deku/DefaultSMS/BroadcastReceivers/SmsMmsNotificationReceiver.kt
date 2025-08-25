@@ -8,7 +8,7 @@ import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notify
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                     notifyMessageFailedToSend(context, conversation)
                                 }
                                 else -> {
-                                    context.notifyText(
+                                    context.notify(
                                         conversation = conversation,
                                         cls = cls,
                                         self = self,
@@ -49,7 +49,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                     .message_failed_send_notification_description_a_message_failed_to_send_to) +
                 " ${conversation.sms?.address}"
 
-        context.notifyText(
+        context.notify(
             conversation = conversation,
             actions = false,
             text = content,

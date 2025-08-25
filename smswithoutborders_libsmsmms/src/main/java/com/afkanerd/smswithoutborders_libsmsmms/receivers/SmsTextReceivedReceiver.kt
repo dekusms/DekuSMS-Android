@@ -2,30 +2,20 @@ package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
 import android.app.Activity
 import android.content.BroadcastReceiver
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
-import android.util.Base64
-import android.util.Log
-import android.util.Pair
-import android.widget.Toast
 import androidx.core.net.toUri
-import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
-import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notifyText
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSms
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class SmsTextReceivedReceiver : BroadcastReceiver() {
     companion object {
