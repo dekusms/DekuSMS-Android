@@ -742,6 +742,9 @@ fun ConversationsMainLayout(
                                             contentUri = contentUri.toString(),
                                             address = contactName,
                                             date = date,
+                                            filename = conversation.mms_filename
+                                                ?: System.currentTimeMillis().toString(),
+                                            mimeType = conversation.mms_mimetype ?: "image/jpeg",
                                         ))
                                     } else {
                                         showDate = !showDate

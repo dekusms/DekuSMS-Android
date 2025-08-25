@@ -175,6 +175,7 @@ object MmsParser {
         var mimeType: String? = null,
         var filename: String? = null,
         var contentUri: Uri? = null,
+        var filepath: String? = null,
     ){
         fun getConversation(context: Context, cursor: Cursor): Conversations? {
             if(address.isNullOrEmpty()) return null
@@ -199,7 +200,8 @@ object MmsParser {
                 mms_text = text,
                 mms_mimetype = mimeType,
                 mms_filename = filename,
-                mms_content_uri = contentUri.toString()
+                mms_filepath = filepath,
+                mms_content_uri = contentUri.toString(),
             )
         }
     }
@@ -223,21 +225,34 @@ object MmsParser {
         )?.let { partCursor ->
             if (partCursor.moveToFirst()) {
                 do {
-                    val _idIndex = partCursor.getColumnIndex("_id")
-                    val pid = partCursor.getString(_idIndex)
-                    val typeIndex = partCursor.getColumnIndex("ct")
-                    val type = partCursor.getString(typeIndex)
+                    val pid = partCursor.getString(partCursor
+                        .getColumnIndex(Telephony.Mms.Part._ID))
+
+                    val type = partCursor.getString(partCursor
+                        .getColumnIndex(Telephony.Mms.Part.CONTENT_TYPE))
+
+                    val data = partCursor.getString(partCursor
+                        .getColumnIndex(Telephony.Mms.Part._DATA))
 
                     if (parsedMms.address.isNullOrEmpty())
                         parsedMms.address = getMmsAddr(context, id)
+
+                    if(!data.isNullOrEmpty())
+                        parsedMms.filepath = data
 
                     if ("text/plain" == type) {
                         if (parsedMms.text.isNullOrEmpty())
                             parsedMms.text = partCursor.getString(partCursor
                                 .getColumnIndex(Telephony.Mms.Part.TEXT))
-                    } else if (type != "application/smil" && parsedMms.contentUri == null) {
-                        parsedMms.mimeType = type
-                        parsedMms.contentUri = ("content://mms/part/$pid").toUri()
+                    } else if (type != "application/smil") {
+                        if(parsedMms.contentUri != null) {
+                            parsedMms.mimeType = type
+                            parsedMms.contentUri = ("content://mms/part/$pid").toUri()
+                        }
+                    } else {
+                        val text = partCursor.getString(partCursor
+                            .getColumnIndex(Telephony.Mms.Part.TEXT))
+                        parsedMms.filename = parseAttachmentNames(text).firstOrNull()
                     }
                 } while (partCursor.moveToNext())
                 partCursor.close()
