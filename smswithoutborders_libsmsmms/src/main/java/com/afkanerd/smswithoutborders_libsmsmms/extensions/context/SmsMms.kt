@@ -236,7 +236,7 @@ private fun Context.getDataPendingIntent(
 ): Pair<PendingIntent, PendingIntent> {
     val sentPendingIntent = PendingIntent.getBroadcast(
         this,
-        conversation.sms?._id?.toInt() ?: -1,
+        conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.DATA_SENT_BROADCAST_INTENT
@@ -251,7 +251,7 @@ private fun Context.getDataPendingIntent(
 
     val deliveredPendingIntent = PendingIntent.getBroadcast(
         this,
-        conversation.sms?._id?.toInt() ?: -1,
+        conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT
@@ -273,7 +273,7 @@ private fun Context.getSmsPendingIntents(
 ): Pair<PendingIntent, PendingIntent> {
     val sentPendingIntent = PendingIntent.getBroadcast(
         this,
-        conversation.sms?._id?.toInt() ?: -1,
+        conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
@@ -288,7 +288,7 @@ private fun Context.getSmsPendingIntents(
 
     val deliveredPendingIntent = PendingIntent.getBroadcast(
         this,
-        conversation.sms?._id?.toInt() ?: -1,
+        conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
             action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
@@ -324,7 +324,7 @@ fun Context.sendMms(
             date = System.currentTimeMillis(),
             date_sent = 0,
             type = Telephony.Sms.MESSAGE_TYPE_QUEUED,
-            status = Telephony.Sms.STATUS_NONE,
+            status = Telephony.Sms.STATUS_PENDING,
             read = 1,
             sub_id = subscriptionId,
             address = address,

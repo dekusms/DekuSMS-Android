@@ -125,10 +125,10 @@ private fun ConversationReceived(
                     else MaterialTheme.colorScheme.outlineVariant
                 ),
                 modifier = Modifier
-                    .clip(shape=shape)
+                    .clip(shape = shape)
                     .combinedClickable(
-                        onClick = { onClickCallback?.let{ it() }},
-                        onLongClick = { onLongClickCallback?.let{ it() } }
+                        onClick = { onClickCallback?.let { it() } },
+                        onLongClick = { onLongClickCallback?.let { it() } }
                     )
             ) {
                 Text(
@@ -147,7 +147,7 @@ private fun ConversationReceived(
 private fun ConversationSent(
     text: AnnotatedString,
     position: ConversationPositionTypes = ConversationPositionTypes.START_TIMESTAMP,
-    status: Int,
+    type: Int,
     isSelected: Boolean = false,
     onClickCallback: (() -> Unit)? = null,
     onLongClickCallback: (() -> Unit)? = null,
@@ -186,13 +186,13 @@ private fun ConversationSent(
                     else MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier
-                    .clip(shape=shape)
+                    .clip(shape = shape)
                     .align(alignment = Alignment.End)
                     .combinedClickable(
                         onClick = {
                             onClickCallback?.let { it() }
                         },
-                        onLongClick ={
+                        onLongClick = {
                             onLongClickCallback?.let { it() }
                         }
                     )
@@ -208,7 +208,7 @@ private fun ConversationSent(
 
         }
 
-        if(status == Telephony.Sms.STATUS_FAILED || status == Telephony.Mms.MESSAGE_BOX_FAILED) {
+        if(type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
             Column(modifier = Modifier
                 .align(Alignment.CenterVertically)) {
                 IconButton(onClick = {}) {
@@ -258,7 +258,7 @@ fun ConversationsCard(
 
         Box(modifier = Modifier
             .fillMaxWidth()
-            .padding(start=8.dp, end=8.dp)
+            .padding(start = 8.dp, end = 8.dp)
         ) {
             when(type) {
                 SmsMmsNatives.MMS_MESSAGE_TYPES_M_RETRIEVE_CONF,
@@ -319,7 +319,7 @@ fun ConversationsCard(
                             ConversationSent(
                                 text =text,
                                 position =position,
-                                status =status,
+                                type =type,
                                 isSelected = isSelected,
                                 onClickCallback = onClickCallback,
                                 onLongClickCallback = onLongClickCallback,
@@ -328,24 +328,26 @@ fun ConversationsCard(
 
                         if(showDate || inPreview) {
                             Text(
-                                text= when(status) {
-                                    Telephony.Sms.STATUS_NONE ->
-                                        "$date " + stringResource(R.string.sms_status_sent)
+                                text= when(type) {
+                                    Telephony.Sms.MESSAGE_TYPE_SENT -> {
+                                        if(status == Telephony.Sms.STATUS_COMPLETE)
+                                            "$date ${stringResource(
+                                                R.string.sms_status_delivered)}"
+                                        else
+                                            "$date " + stringResource(R.string.sms_status_sent)
+                                    }
 
-                                    Telephony.Sms.STATUS_COMPLETE ->
-                                        "$date ${stringResource(
-                                            R.string.sms_status_delivered)}"
-
-                                    Telephony.Sms.STATUS_FAILED,
-                                    Telephony.Mms.MESSAGE_BOX_FAILED ->
+                                    Telephony.Sms.MESSAGE_TYPE_FAILED ->
                                         stringResource(R.string.sms_status_failed)
+
+                                    Telephony.Sms.MESSAGE_TYPE_QUEUED ->
+                                        stringResource(R.string.waiting_to_send)
 
                                     else ->
                                         stringResource(R.string.sms_status_sending)
                                 },
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if(status == Telephony.Sms.STATUS_FAILED ||
-                                    status == Telephony.Mms.MESSAGE_BOX_FAILED)
+                                color = if(type == Telephony.Sms.MESSAGE_TYPE_FAILED)
                                     MaterialTheme.colorScheme.error
                                 else MaterialTheme.colorScheme.outlineVariant,
 
@@ -634,7 +636,7 @@ fun PreviewConversationsReceived() {
             )
             ConversationSent(
                 text = AnnotatedString("Hello world"),
-                status = Telephony.Mms.MESSAGE_BOX_FAILED
+                type = Telephony.Mms.MESSAGE_BOX_FAILED
             )
         }
     }
