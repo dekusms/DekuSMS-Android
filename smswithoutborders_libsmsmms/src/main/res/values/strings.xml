@@ -443,5 +443,6 @@
     <string name="download_for_offline">Download for offline</string>
     <string name="share_mms_content">Share MMS content</string>
     <string name="waiting_to_send">waiting to send...</string>
+    <string name="language">Language</string>
 
 </resources>

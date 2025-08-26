@@ -14,8 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,16 +41,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getCurrentLocale
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getLocaleDisplayName
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setLocale
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableContextReplies
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetGetDeliveryReports
@@ -63,6 +75,11 @@ fun SettingsMain(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    val inPreviewMode = LocalInspectionMode.current
+    var localeExpanded by remember { mutableStateOf(inPreviewMode) }
+    val localeArraysValues = stringArrayResource(R.array.language_values)
+    val localeArraysOptions= stringArrayResource(R.array.language_options)
 
     var storeTelephonyDb by remember {
         mutableStateOf(context.settingsGetStoreTelephonyDb)
@@ -110,10 +127,38 @@ fun SettingsMain(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
             SettingsItem(
+                itemTitle = stringResource(R.string.language),
+                itemDescription = context.getCurrentLocale()?.displayName ?: "English",
+                checked = null,
+            ) {
+                localeExpanded = true
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                DropdownMenu(
+                    expanded = localeExpanded,
+                    onDismissRequest = { localeExpanded = false }
+                ) {
+                localeArraysOptions.forEachIndexed { i, item ->
+                        DropdownMenuItem(
+                            text = { Text(item) },
+                            onClick = {
+                                context.setLocale(localeArraysValues[i])
+                                localeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            SettingsItem(
                 itemTitle = stringResource(R.string.save_messages_to_system_s_database),
                 itemDescription = stringResource(R.string.other_messaging_apps_would_have_access_to_the_system_s_database),
                 checked = storeTelephonyDb,
-                horizontalDivider = false,
             ) {
                 context.settingsSetStoreTelephonyDb(it ?: storeTelephonyDb)
                 storeTelephonyDb = it ?: storeTelephonyDb
@@ -154,6 +199,7 @@ fun SettingsMain(
                 context.settingsSetKeepMessagesArchived(it ?: enableContextReplies)
                 enableContextReplies = it ?: enableContextReplies
             }
+
         }
     }
 }
@@ -163,45 +209,53 @@ fun SettingsItem(
     itemTitle: String,
     itemDescription: String? = null,
     checked: Boolean? = null,
-    horizontalDivider: Boolean = true,
     onClickCallback: (Boolean?) -> Unit,
 ) {
-//    var checked by remember { mutableStateOf(checked) }
-    if(horizontalDivider) HorizontalDivider()
-
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .clickable { onClickCallback(checked) },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                itemTitle,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(bottom=8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            itemDescription?.let {
-                Text(
-                    it,
-                    fontSize = 14.sp,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
+    val inPreviewMode = LocalInspectionMode.current
+    Card(
+        onClick = {
+            if(!inPreviewMode) {
+                if(checked != null)
+                    onClickCallback(!checked)
+                else onClickCallback(null)
             }
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-
-        if(checked != null || LocalInspectionMode.current) {
-            Column {
-                Switch(
-                    checked = checked ?: true,
-                    onCheckedChange = {
-//                        checked = it
-                        onClickCallback(it)
-                    }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    itemTitle,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom=8.dp),
+                    style = MaterialTheme.typography.titleSmall
                 )
+                itemDescription?.let {
+                    Text(
+                        it,
+                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+
+            if(checked != null) {
+                Column {
+                    Switch(
+                        checked = checked,
+                        onCheckedChange = {
+//                        checked = it
+                            onClickCallback(it)
+                        }
+                    )
+                }
             }
         }
     }

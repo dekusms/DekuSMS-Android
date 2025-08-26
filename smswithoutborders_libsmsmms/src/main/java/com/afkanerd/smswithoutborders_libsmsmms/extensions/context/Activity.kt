@@ -8,16 +8,22 @@ import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import android.provider.Telephony
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.activities.ShareItem
+import java.util.Locale
 
 
 object ActivitiesConstant {
@@ -138,6 +144,30 @@ fun Context.getMimeTypeFromUri(uri: Uri): String? {
     val contentResolver = getContentResolver()
     val mimeType = contentResolver.getType(uri)
     return mimeType
+}
+
+fun Context.getCurrentLocale(): Locale? {
+    val resources = getResources()
+    val configuration: Configuration = resources.configuration
+    return ConfigurationCompat.getLocales(configuration).get(0)
+}
+
+fun Context.setLocale(languageLocale: String) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getSystemService( android.app.LocaleManager::class.java )
+            ?.applicationLocales =
+            android.os.LocaleList(Locale.forLanguageTag(languageLocale))
+    } else {
+        val appLocale =
+            androidx.core.os.LocaleListCompat.forLanguageTags(languageLocale)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+    }
+}
+
+fun getLocaleDisplayName(localeTag: String): String {
+    // Create a Locale object from a BCP 47 language tag.
+    val locale = Locale.forLanguageTag(localeTag)
+    return locale.displayName // Kotlin property for getDisplayName()
 }
 
 

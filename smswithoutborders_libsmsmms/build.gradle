@@ -20,6 +20,8 @@ android {
         ksp {
             arg('room.schemaLocation', "$projectDir/schemas")
         }
+
+        resourceConfigurations += ["en", "fr", "ru", "de", "pl"]
     }
 
     buildTypes {
@@ -48,17 +50,6 @@ android {
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
     }
-
-    // This block configures the Compose Compiler Gradle plugin
-//    composeCompiler {
-//        // Enable strong skipping mode (recommended for Compose 1.5.10+)
-//        enableStrongSkippingMode = true
-//
-//        // To enable compiler reports (metrics and report files)
-////        enableCompilerReports = true
-//        // Specify the directory where the reports will be generated
-//        reportsDestination = layout.buildDirectory.dir("compose_compiler_reports")
-//    }
 }
 
 dependencies {

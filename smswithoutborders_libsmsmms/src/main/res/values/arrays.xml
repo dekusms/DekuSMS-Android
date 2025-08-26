@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="language_options">
+        <item>@string/language_english</item>
+        <item>@string/language_french</item>
+        <item>@string/language_russian</item>
+        <item>@string/language_german</item>
+        <item>@string/language_polish</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>@string/language_english_value</item>
+        <item>@string/language_french_value</item>
+        <item>@string/language_russian_value</item>
+        <item>@string/language_german_value</item>
+        <item>@string/language_polish_value</item>
+    </string-array>
+
+    <!-- Background colors for LetterTileDrawables. This set of colors is a subset of
+    https://spec.googleplex.com/quantumpalette#extended which passes Google Accessibility
+    Requirements for the color in question on white with >= 3.0 contrast. We used
+    http://leaverou.github.io/contrast-ratio/#white-on-%23db4437 to double-check the contrast.
+    These colors are also used by MaterialColorMapUtils to generate primary activity colors.
+-->
+    <array name="letter_tile_colors">
+        <item>#DB4437</item>
+        <item>#E91E63</item>
+        <item>#9C27B0</item>
+        <item>#673AB7</item>
+        <item>#3F51B5</item>
+        <item>#4285F4</item>
+        <item>#039BE5</item>
+        <item>#0097A7</item>
+        <item>#009688</item>
+        <item>#0F9D58</item>
+        <item>#689F38</item>
+        <item>#EF6C00</item>
+        <item>#FF5722</item>
+        <item>#757575</item>
+    </array>
+    <!-- Darker versions of letter_tile_colors, two shades darker. These colors are used
+        for settings secondary activity colors. -->
+
+</resources>

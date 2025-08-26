@@ -40,7 +40,6 @@ android {
             }
         }
 
-        resourceConfigurations += ["en", "fr", "ru", "de", "pl"]
     }
 
     buildFeatures {
