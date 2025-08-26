@@ -27,6 +27,16 @@ import java.io.IOException
 import java.text.MessageFormat
 
 @Throws
+fun Context.updateMms(conversation: Conversations) {
+    try {
+        getDatabase().conversationsDao()?.update(conversation)
+    } catch(e: Exception) {
+        e.printStackTrace()
+        throw e
+    }
+}
+
+@Throws
 fun Context.updateSms(uri: Uri, conversation: Conversations) {
     try {
         if(settingsGetStoreTelephonyDb)
@@ -81,6 +91,18 @@ private fun Context.insertSmsTelephony(
 
     try {
         return contentResolver.insert( Telephony.Sms.CONTENT_URI, contentValues)
+    } catch (e: Exception) {
+        throw e
+    }
+}
+
+@Throws
+fun Context.insertMms(conversation: Conversations) {
+    try{
+        getDatabase().conversationsDao()
+            ?.insert(conversation, settingsGetKeepMessagesArchived)
+            ?.let { id -> conversation.id = id }
+
     } catch (e: Exception) {
         throw e
     }
@@ -360,41 +382,38 @@ fun Context.sendMms(
     )
 
     try {
-        insertSms(conversation)?.let { uri ->
-            val sendSettings = MmsParser.getSendMessageSettings()
-            sendSettings.subscriptionId = subscriptionId.toInt()
+        insertMms(conversation)
+        val sendSettings = MmsParser.getSendMessageSettings()
+        sendSettings.subscriptionId = subscriptionId.toInt()
 
-            val sendTransaction = Transaction(this, sendSettings)
+        val sendTransaction = Transaction(this, sendSettings)
 
-//        val intent = Intent(this, MmsSentReceiverImpl::class.java)
-//            .apply {
-//                this.putExtra(
-//                    MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
-//                    conversation.mms!!._id,
-//                )
-//            }
-
-//        sendTransaction.setExplicitBroadcastForSentMms(intent)
-
-            val mMessage = Message(text, address)
-            mMessage.addMedia(
-                getBytesFromUri(contentUri),
-                mimeType,
-                filename
-            )
-
-            try {
-                sendTransaction.sendNewMessage(mMessage)
-            } catch(e: Exception) {
-                conversation.sms?.status = Telephony.Sms.STATUS_FAILED
-                conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
-                updateSms(uri, conversation)
-                throw e
+        val intent = Intent(this, MmsSentReceiverImpl::class.java)
+            .apply {
+                this.putExtra(
+                    MmsSentReceiverImpl.EXTRA_ORIGINAL_RESENT_MESSAGE_ID,
+                    conversation.id,
+                )
             }
-//            conversation.sms?.status = Telephony.Sms.STATUS_PENDING
-            conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-            updateSms(uri, conversation)
+        sendTransaction.setExplicitBroadcastForSentMms(intent)
+
+        val mMessage = Message(text, address)
+        mMessage.addMedia(
+            getBytesFromUri(contentUri),
+            mimeType,
+            filename
+        )
+
+        try {
+            sendTransaction.sendNewMessage(mMessage)
+        } catch(e: Exception) {
+            conversation.sms?.status = Telephony.Sms.STATUS_FAILED
+            conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_FAILED
+            updateMms(conversation)
+            throw e
         }
+        conversation.sms?.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+        updateMms(conversation)
 
     } catch (e: Exception) {
         e.printStackTrace()

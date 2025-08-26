@@ -201,7 +201,7 @@ object MmsParser {
         cursor: Cursor
     ): Conversations? {
         val uri = "content://mms/part".toUri()
-        val id = cursor.getString(cursor
+        val id = cursor.getLong(cursor
             .getColumnIndexOrThrow(Telephony.Mms._ID))
 
         val textOnly = cursor.getInt(cursor
@@ -212,7 +212,7 @@ object MmsParser {
             uri,
             null,
             "${Telephony.Mms.Part.MSG_ID} = ?",
-            arrayOf(id),
+            arrayOf(id.toString()),
             null
         )?.let { partCursor ->
             if (partCursor.moveToFirst()) {
@@ -227,7 +227,7 @@ object MmsParser {
                         .getColumnIndex(Telephony.Mms.Part._DATA))
 
                     if (parsedMms.address.isNullOrEmpty())
-                        parsedMms.address = getMmsAddr(context, id)
+                        parsedMms.address = getMmsAddr(context, id.toString())
 
                     if(!data.isNullOrEmpty())
                         parsedMms.filepath = data

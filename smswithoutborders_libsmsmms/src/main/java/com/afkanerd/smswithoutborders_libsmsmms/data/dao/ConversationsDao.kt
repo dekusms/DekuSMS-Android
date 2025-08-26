@@ -31,8 +31,8 @@ interface ConversationsDao {
         mms: SmsMmsNatives.Mms?,
         conversationId: Long,
     ) {
-//        val threadId = mms?.thread_id ?: sms.thread_id
-        val threadId = sms.thread_id
+        val threadId = mms?.thread_id ?: sms.thread_id
+//        val threadId = sms.thread_id
         val thread = getThread(threadId)
         val count = unreadCount(threadId)
 
@@ -88,10 +88,12 @@ interface ConversationsDao {
     @Update
     fun update(conversations: MutableList<Conversations>): Int
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
+    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId OR " +
+            "Conversations.mms_thread_id = :threadId ORDER BY date DESC")
     fun getConversations(threadId: Int): PagingSource<Int, Conversations>
 
-    @Query("SELECT COUNT('_id') FROM Conversations WHERE thread_id = :threadId AND read = 0")
+    @Query("SELECT COUNT('_id') FROM Conversations WHERE thread_id = :threadId OR " +
+            "Conversations.mms_thread_id = :threadId AND read = 0")
     fun unreadCount(threadId: Int): Int
 
     @Insert
@@ -188,13 +190,16 @@ interface ConversationsDao {
         }
     }
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId AND " +
+    @Query("SELECT * FROM Conversations WHERE (thread_id = :threadId OR " +
+            "Conversations.mms_thread_id = :threadId) AND " +
             "type = :type ORDER BY  date DESC LIMIT 1")
     fun fetchConversationsForType(threadId: Int, type: Int): Conversations?
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC")
+    @Query("SELECT * FROM Conversations WHERE (thread_id = :threadId OR " +
+            "Conversations.mms_thread_id = :threadId) ORDER BY date DESC")
     fun getConversationsList(threadId: Int): List<Conversations>
 
-    @Query("SELECT * FROM Conversations WHERE thread_id = :threadId ORDER BY date DESC LIMIT 1")
+    @Query("SELECT * FROM Conversations WHERE (thread_id = :threadId OR " +
+            "Conversations.mms_thread_id = :threadId) ORDER BY date DESC LIMIT 1")
     fun getLatestConversation(threadId: Int): Conversations?
 }

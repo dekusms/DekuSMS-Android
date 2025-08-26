@@ -1,11 +1,13 @@
 package com.afkanerd.smswithoutborders_libsmsmms.receivers
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.widget.Toast
+import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import kotlinx.coroutines.CoroutineScope
@@ -13,10 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MmsSentReceiverImpl: BroadcastReceiver() {
+    @SuppressLint("Range")
     override fun onReceive(context: Context, intent: Intent) {
         val uri = intent.getStringExtra(EXTRA_CONTENT_URI)
         val filepath = intent.getStringExtra(EXTRA_FILE_PATH)
-        val originalResentMessageId = intent.getStringExtra(EXTRA_ORIGINAL_RESENT_MESSAGE_ID)
+        val id = intent.getLongExtra(EXTRA_ORIGINAL_RESENT_MESSAGE_ID, -1)
 
         val messageBox = if (resultCode == Activity.RESULT_OK) {
             Telephony.Mms.MESSAGE_BOX_SENT
@@ -26,18 +29,26 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
             Telephony.Mms.MESSAGE_BOX_FAILED
         }
 
-        originalResentMessageId?.let {
-            CoroutineScope(Dispatchers.Default).launch {
-                context.getDatabase().conversationsDao()
-                    ?.getConversation(originalResentMessageId.toLong())
-                    ?.let { conversation ->
-                        conversation.sms?.status = Telephony.Sms.STATUS_PENDING
-                        conversation.sms?.type = messageBox
-                        conversation.mms_content_uri = uri
-                        conversation.mms_filepath = filepath
-                        context.getDatabase().conversationsDao()?.update(conversation)
-                    }
+        context.contentResolver.query(
+            uri!!.toUri(),
+            null,
+            null,
+            null,
+            null
+        )?.let { cursor ->
+            if(cursor.moveToFirst()) {
+                CoroutineScope(Dispatchers.Default).launch {
+                    context.getDatabase().conversationsDao()
+                        ?.getConversation(id)
+                        ?.let { conversation ->
+                            conversation.sms?.status = messageBox
+                            conversation.sms?.type = messageBox
+                            conversation.mms_filepath = filepath
+                            context.getDatabase().conversationsDao()?.update(conversation)
+                        }
+                }
             }
+            cursor.close()
         }
     }
 
