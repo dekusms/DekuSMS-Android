@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,26 +30,18 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
             Telephony.Mms.MESSAGE_BOX_FAILED
         }
 
-        context.contentResolver.query(
-            uri!!.toUri(),
-            null,
-            null,
-            null,
-            null
-        )?.let { cursor ->
-            if(cursor.moveToFirst()) {
-                CoroutineScope(Dispatchers.Default).launch {
-                    context.getDatabase().conversationsDao()
-                        ?.getConversation(id)
-                        ?.let { conversation ->
-                            conversation.sms?.status = messageBox
-                            conversation.sms?.type = messageBox
-                            conversation.mms_filepath = filepath
-                            context.getDatabase().conversationsDao()?.update(conversation)
-                        }
+        CoroutineScope(Dispatchers.Default).launch {
+            context.getDatabase().conversationsDao()
+                ?.getConversation(id)
+                ?.let { conversation ->
+                    conversation.sms?.status = messageBox
+                    conversation.sms?.type = messageBox
+                    conversation.mms_filepath = filepath
+                    context.getDatabase().conversationsDao()?.update(conversation)
+
+                    if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
+                        context.sendNotificationBroadcast(conversation)
                 }
-            }
-            cursor.close()
         }
     }
 
