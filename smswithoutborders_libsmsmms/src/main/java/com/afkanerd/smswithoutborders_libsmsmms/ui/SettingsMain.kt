@@ -106,9 +106,7 @@ fun SettingsMain(
         mutableStateOf(context.settingsGetEnableContextReplies)
     }
 
-    val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 navigationIcon = {
