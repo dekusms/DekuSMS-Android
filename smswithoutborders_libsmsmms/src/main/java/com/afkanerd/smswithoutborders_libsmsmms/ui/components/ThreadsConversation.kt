@@ -311,11 +311,12 @@ fun ThreadConversationCard(
                 text = when(type) {
                     Telephony.Sms.MESSAGE_TYPE_DRAFT ->
                         stringResource(R.string.thread_conversation_type_draft) + ": $content"
-                    Telephony.Sms.MESSAGE_TYPE_QUEUED ->
+                    Telephony.Sms.MESSAGE_TYPE_QUEUED,
+                    Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
                         stringResource(R.string.sms_status_sending)+ ": $content"
                     Telephony.Sms.MESSAGE_TYPE_FAILED ->
                         stringResource(R.string.sms_status_failed_only)+ ": $content"
-                    Telephony.Sms.MESSAGE_TYPE_OUTBOX ->
+                    Telephony.Sms.MESSAGE_TYPE_SENT ->
                         stringResource(R.string.messages_thread_you)+ " $content"
                     else -> if(!mms) content else stringResource(R.string.image)
                 },

@@ -46,6 +46,7 @@ private fun Context.updateSmsToLocalDb(
     val contentValues = ContentValues().apply {
         put(Telephony.TextBasedSmsColumns.TYPE, conversations.sms?.type)
         put(Telephony.TextBasedSmsColumns.STATUS, conversations.sms?.status)
+        put(Telephony.TextBasedSmsColumns.ERROR_CODE, conversations.sms?.error_code)
     }
 
     try {
@@ -104,14 +105,36 @@ fun Context.insertSms(conversation: Conversations): Uri? {
     }
 
     try{
-//        conversation.sms?._id = if(uri != null) getIdFromLocal(uri) else System.currentTimeMillis()
+        conversation.sms?._id = if(uri != null)
+            getIdFromLocalDb(uri) else System.currentTimeMillis()
+
         getDatabase().conversationsDao()
             ?.insert(conversation, settingsGetKeepMessagesArchived)
             ?.let { id -> conversation.id = id }
+
     } catch (e: Exception) {
         throw e
     }
     return uri
+}
+
+@SuppressLint("Range")
+fun Context.getIdFromLocalDb(uri: Uri): Long? {
+    contentResolver.query(
+        uri,
+        null,
+        null,
+        null,
+        null
+    )?.let { cursor ->
+        if(cursor.moveToFirst()) {
+            val id = cursor.getLong(cursor
+                .getColumnIndex(Telephony.Sms._ID))
+            return id
+        }
+        cursor.close()
+    }
+    return null
 }
 
 @Throws
