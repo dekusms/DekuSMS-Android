@@ -269,6 +269,7 @@ fun ConversationsCard(
                                 mmsContentUri,
                                 mmsMimeType,
                                 mmsFilename,
+                                type = type,
                                 isSelected = isSelected,
                                 onClickCallback = onClickCallback,
                                 onLongClickCallback = onLongClickCallback,
@@ -311,6 +312,7 @@ fun ConversationsCard(
                                 mmsFilename,
                                 isSelected = isSelected,
                                 isSending = true,
+                                type = type,
                                 onClickCallback = onClickCallback,
                                 onLongClickCallback = onLongClickCallback,
                             )

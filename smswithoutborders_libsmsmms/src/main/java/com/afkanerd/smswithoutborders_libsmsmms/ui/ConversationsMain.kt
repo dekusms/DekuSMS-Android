@@ -34,6 +34,7 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
@@ -880,15 +881,16 @@ fun MmsContentView(
     mimeType: String,
     filename: String?,
     isSelected: Boolean,
+    type: Int,
     isSending: Boolean = false,
     onClickCallback: (() -> Unit)?,
     onLongClickCallback: (() -> Unit)?,
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalAlignment = if(isSending) Alignment.End else Alignment.Start
+        horizontalArrangement = if(isSending) Arrangement.End else Arrangement.Start
     ) {
         Box(
             modifier = Modifier
@@ -972,6 +974,20 @@ fun MmsContentView(
                 }
             }
         }
+
+        if(LocalInspectionMode.current || type == Telephony.Sms.MESSAGE_TYPE_FAILED) {
+            Column(modifier = Modifier
+                .align(Alignment.CenterVertically)) {
+                IconButton(onClick = {}) {
+                    Icon(
+                        Icons.Default.Info,
+                        "Message failed icon",
+//                        tint= colorResource(R.color.design_default_color_error)
+                        tint= MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -980,9 +996,14 @@ fun MmsContentView(
 fun PreviewMmsImage_Image() {
     val context = LocalContext.current
     Column {
-        MmsContentView(context.getUriForDrawable(R.drawable.github_mark)!!,
+        MmsContentView(
+            context.getUriForDrawable(R.drawable.github_mark)!!,
             "image/jpeg",
-            "demo.txt", true, isSending = true, onClickCallback = {}) {
+            "demo.txt",
+            true,
+            Telephony.Mms.MESSAGE_BOX_SENT,
+            isSending = true,
+            onClickCallback = {}) {
         }
     }
 }
@@ -991,9 +1012,13 @@ fun PreviewMmsImage_Image() {
 @Composable
 fun PreviewMmsImage_filepath() {
     Column {
-        MmsContentView("content://file/path".toUri(),
+        MmsContentView(
+            "content://file/path".toUri(),
             "text/v-card",
-            "demo.txt", false, onClickCallback = {}) {
+            "demo.txt",
+            false,
+            Telephony.Mms.MESSAGE_BOX_SENT,
+            onClickCallback = {}) {
         }
     }
 }
