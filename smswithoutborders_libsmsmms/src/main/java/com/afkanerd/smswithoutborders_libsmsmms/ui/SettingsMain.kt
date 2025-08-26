@@ -59,12 +59,15 @@ import androidx.navigation.compose.rememberNavController
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getCurrentLocale
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setLocale
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnable24HourFormat
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableContextReplies
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetGetDeliveryReports
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetKeepMessagesArchived
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetStoreTelephonyDb
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetCanSwipeBehaviour
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetEnable24HourFormat
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetEnableContextReplies
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetGetDeliveryReports
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetKeepMessagesArchived
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsSetStoreTelephonyDb
@@ -104,6 +107,10 @@ fun SettingsMain(
 
     var enableContextReplies by remember {
         mutableStateOf(context.settingsGetEnableContextReplies)
+    }
+
+    var enable24HoursFormat by remember {
+        mutableStateOf(context.settingsGetEnable24HourFormat)
     }
 
     Scaffold(
@@ -247,8 +254,17 @@ fun SettingsMain(
                 itemDescription = stringResource(R.string.your_phone_would_suggest_smart_replies_in_notifications_if_enabled),
                 checked = enableContextReplies,
             ) {
-                context.settingsSetKeepMessagesArchived(it ?: enableContextReplies)
+                context.settingsSetEnableContextReplies(it ?: enableContextReplies)
                 enableContextReplies = it ?: enableContextReplies
+            }
+
+            SettingsItem(
+                itemTitle = stringResource(R.string.enable_24_hours_time_format),
+                itemDescription = stringResource(R.string.when_turned_off_would_use_your_system_s_default_time_format),
+                checked = enable24HoursFormat,
+            ) {
+                context.settingsSetEnable24HourFormat(it ?: enable24HoursFormat)
+                enable24HoursFormat = it ?: enable24HoursFormat
             }
 
         }

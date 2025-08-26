@@ -3,6 +3,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.data.data.models
 import android.content.Context
 import android.text.format.DateUtils
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnable24HourFormat
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -60,8 +61,17 @@ object DateTimeUtils {
                     DateUtils.MINUTE_IN_MILLIS
                 ).toString()
             } else if (diff < DateUtils.DAY_IN_MILLIS) {
-                return DateUtils.formatDateTime(
-                    context, epochTime, DateUtils.FORMAT_SHOW_TIME)
+                return when(context.settingsGetEnable24HourFormat) {
+                    true -> SimpleDateFormat("HH:mm", Locale.getDefault())
+                        .format(Date(epochTime))
+
+                    false -> return DateUtils.formatDateTime(
+                        context,
+                        epochTime,
+                        DateUtils.FORMAT_SHOW_TIME
+                    )
+                }
+
             }
         } else if (dateCal.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) - 1) {
             // Show "yesterday" if the date is yesterday
@@ -84,7 +94,10 @@ object DateTimeUtils {
         val currentDate = Date(currentTime)
         val targetDate = Date(epochTime)
 
-        val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+        val timeFormat = when(context.settingsGetEnable24HourFormat) {
+            true -> SimpleDateFormat("HH:mm", Locale.getDefault())
+            false -> SimpleDateFormat("h:mm a", Locale.getDefault())
+        }
         val fullDayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
         val shortDayFormat = SimpleDateFormat("EEE", Locale.getDefault())
         val shortMonthDayFormat = SimpleDateFormat("MMM d", Locale.getDefault())

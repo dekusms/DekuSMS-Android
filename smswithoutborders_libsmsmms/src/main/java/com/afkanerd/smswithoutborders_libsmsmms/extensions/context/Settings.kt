@@ -10,6 +10,7 @@ object Settings {
     const val SETTINGS_GET_DELIVERY_REPORTS = "SETTINGS_GET_DELIVERY_REPORTS"
     const val SETTINGS_KEEP_MESSAGES_ARCHIVED = "SETTINGS_KEEP_MESSAGES_ARCHIVED"
     const val SETTINGS_ENABLE_CONTEXT_REPLIES = "SETTINGS_ENABLE_CONTEXT_REPLIES"
+    const val SETTINGS_ENABLE_24_HOUR_FORMAT = "SETTINGS_ENABLE_24_HOUR_FORMAT"
 }
 
 val Context.settingsGetEnableContextReplies get(): Boolean {
@@ -40,6 +41,12 @@ val Context.settingsGetKeepMessagesArchived get(): Boolean {
     val sharedPreferences = getSharedPreferences(
         Settings.FILENAME, Context.MODE_PRIVATE)
     return sharedPreferences.getBoolean(Settings.SETTINGS_KEEP_MESSAGES_ARCHIVED, true)
+}
+
+val Context.settingsGetEnable24HourFormat get(): Boolean {
+    val sharedPreferences = getSharedPreferences(
+        Settings.FILENAME, Context.MODE_PRIVATE)
+    return sharedPreferences.getBoolean(Settings.SETTINGS_ENABLE_24_HOUR_FORMAT, false)
 }
 
 fun Context.settingsSetKeepMessagesArchived(state: Boolean) {
@@ -73,6 +80,13 @@ fun Context.settingsSetGetDeliveryReports(state: Boolean) {
 fun Context.settingsSetEnableContextReplies(state: Boolean) {
     getSharedPreferences( Settings.FILENAME, Context.MODE_PRIVATE).edit {
         putBoolean(Settings.SETTINGS_ENABLE_CONTEXT_REPLIES, state)
+        apply()
+    }
+}
+
+fun Context.settingsSetEnable24HourFormat(state: Boolean) {
+    getSharedPreferences( Settings.FILENAME, Context.MODE_PRIVATE).edit {
+        putBoolean(Settings.SETTINGS_ENABLE_24_HOUR_FORMAT, state)
         apply()
     }
 }

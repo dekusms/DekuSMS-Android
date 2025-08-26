@@ -448,5 +448,7 @@
     <string name="dark">Dark</string>
     <string name="system_default">System default</string>
     <string name="theme">Theme</string>
+    <string name="when_turned_off_would_use_your_system_s_default_time_format">When turned off would use your system\'s default time format</string>
+    <string name="enable_24_hours_time_format">Enable 24 hours time format</string>
 
 </resources>
