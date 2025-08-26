@@ -444,5 +444,9 @@
     <string name="share_mms_content">Share MMS content</string>
     <string name="waiting_to_send">waiting to send...</string>
     <string name="language">Language</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="system_default">System default</string>
+    <string name="theme">Theme</string>
 
 </resources>

@@ -163,11 +163,3 @@ fun Context.setLocale(languageLocale: String) {
         AppCompatDelegate.setApplicationLocales(appLocale)
     }
 }
-
-fun getLocaleDisplayName(localeTag: String): String {
-    // Create a Locale object from a BCP 47 language tag.
-    val locale = Locale.forLanguageTag(localeTag)
-    return locale.displayName // Kotlin property for getDisplayName()
-}
-
-

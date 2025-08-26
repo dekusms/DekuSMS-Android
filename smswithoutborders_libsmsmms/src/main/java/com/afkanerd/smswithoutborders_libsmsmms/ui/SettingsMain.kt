@@ -1,5 +1,7 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui
 
+import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +58,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getCurrentLocale
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getLocaleDisplayName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setLocale
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableContextReplies
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
@@ -77,9 +78,13 @@ fun SettingsMain(
     val scrollState = rememberScrollState()
 
     val inPreviewMode = LocalInspectionMode.current
-    var localeExpanded by remember { mutableStateOf(inPreviewMode) }
     val localeArraysValues = stringArrayResource(R.array.language_values)
     val localeArraysOptions= stringArrayResource(R.array.language_options)
+
+    val currentNightMode = LocalConfiguration.current.uiMode and Configuration.UI_MODE_NIGHT_MASK
+
+    var localeExpanded by remember { mutableStateOf(inPreviewMode) }
+    var themeExpanded by remember { mutableStateOf(inPreviewMode) }
 
     var storeTelephonyDb by remember {
         mutableStateOf(context.settingsGetStoreTelephonyDb)
@@ -137,13 +142,13 @@ fun SettingsMain(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(start = 8.dp)
             ) {
                 DropdownMenu(
                     expanded = localeExpanded,
                     onDismissRequest = { localeExpanded = false }
                 ) {
-                localeArraysOptions.forEachIndexed { i, item ->
+                    localeArraysOptions.forEachIndexed { i, item ->
                         DropdownMenuItem(
                             text = { Text(item) },
                             onClick = {
@@ -152,6 +157,54 @@ fun SettingsMain(
                             }
                         )
                     }
+                }
+            }
+
+            SettingsItem(
+                itemTitle = stringResource(R.string.theme),
+                itemDescription = when(currentNightMode) {
+                    Configuration.UI_MODE_NIGHT_YES -> stringResource(R.string.dark)
+                    Configuration.UI_MODE_NIGHT_NO -> stringResource(R.string.light)
+                    else -> stringResource(R.string.system_default)
+                },
+                checked = null,
+            ) {
+                themeExpanded = true
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            ) {
+                DropdownMenu(
+                    expanded = themeExpanded,
+                    onDismissRequest = { themeExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.light)) },
+                        onClick = {
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                            themeExpanded = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.dark)) },
+                        onClick = {
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                            themeExpanded = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.system_default)) },
+                        onClick = {
+                            AppCompatDelegate
+                                .setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                            themeExpanded = false
+                        }
+                    )
                 }
             }
 
