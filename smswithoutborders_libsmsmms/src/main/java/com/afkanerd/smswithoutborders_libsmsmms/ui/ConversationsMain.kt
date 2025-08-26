@@ -475,20 +475,6 @@ fun ConversationsMainLayout(
                                     contentDescription = stringResource(R.string.call)
                                 )
                             }
-
-//                            if(!isSecured || LocalInspectionMode.current) {
-//                                IconButton(onClick = {
-//                                    showSecureRequestModal = true
-//                                }) {
-//                                    Icon(
-//                                        imageVector = Icons.Filled.EnhancedEncryption,
-//                                        contentDescription = stringResource(
-//                                            R.string
-//                                                .request_secure_communication)
-//                                    )
-//                                }
-//
-//                            }
                         }
                         IconButton(onClick = {
                             rememberMenuExpanded = !rememberMenuExpanded
