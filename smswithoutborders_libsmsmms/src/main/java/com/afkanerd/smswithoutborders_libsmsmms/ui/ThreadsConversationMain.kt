@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -585,11 +586,6 @@ fun ThreadConversationLayout(
                                                 if(selectedItems.isEmpty()) {
                                                     if(!foldOpen) {
                                                         if(BuildConfig.DEBUG)
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Thread id: ${thread.threadId}",
-                                                                Toast.LENGTH_LONG
-                                                            ).show()
                                                         navController.navigate(
                                                             ConversationsScreenNav(
                                                                 address,

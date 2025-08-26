@@ -14,6 +14,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -653,16 +654,13 @@ fun ConversationsMainLayout(
                             })
                         }
 
-                        val position by remember {
-                            mutableStateOf(
-                                if(!conversation.mms_content_uri.isNullOrEmpty()) {
-                                    ConversationPositionTypes.END
-                                } else getConversationType(
-                                    index,
-                                    conversation,
-                                    inboxMessagesItems.itemSnapshotList.items)
-                                )
-                        }
+                        val position = if(!conversation.mms_content_uri.isNullOrEmpty()) {
+                            ConversationPositionTypes.END
+                        } else getConversationType(
+                            index,
+                            conversation,
+                            inboxMessagesItems.itemSnapshotList.items
+                        )
 
                         var text = if(LocalInspectionMode.current)
                             AnnotatedString(conversation.sms?.body ?: "")

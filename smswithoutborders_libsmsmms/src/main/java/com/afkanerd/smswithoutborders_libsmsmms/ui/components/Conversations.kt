@@ -108,11 +108,11 @@ private fun ConversationReceived(
 
     val modifier = when(position) {
         ConversationPositionTypes.NORMAL, ConversationPositionTypes.NORMAL_TIMESTAMP ->
-            Modifier.padding(end=32.dp, top=16.dp, bottom=16.dp)
+            Modifier.padding(end=32.dp, top=16.dp, bottom=8.dp)
         ConversationPositionTypes.START, ConversationPositionTypes.START_TIMESTAMP ->
             Modifier.padding(end=32.dp, top=16.dp)
         ConversationPositionTypes.MIDDLE -> Modifier.padding(end=32.dp, top=1.dp)
-        ConversationPositionTypes.END -> Modifier.padding(end=32.dp, top=1.dp, bottom=16.dp)
+        ConversationPositionTypes.END -> Modifier.padding(end=32.dp, top=1.dp, bottom=8.dp)
     }
 
     Row(modifier = modifier
