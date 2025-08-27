@@ -16,12 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.SendToMobile
+import androidx.compose.material.icons.automirrored.outlined.VolumeMute
+import androidx.compose.material.icons.automirrored.outlined.VolumeOff
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
@@ -30,8 +36,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.VolumeOff
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -335,6 +344,21 @@ fun ThreadConversationLayout(
                             }
 
                             IconButton(onClick = {
+                                val state = inboxType == ThreadsViewModel.InboxType.MUTED
+                                threadsViewModel.update(context, selectedItems.apply {
+                                    forEach { it.isMute = !state }
+                                }) { threadsViewModel.removeAllSelectedItems() }
+                            }) {
+                                Icon(
+                                    imageVector = if(inboxType != ThreadsViewModel.InboxType.MUTED)
+                                        Icons.AutoMirrored.Rounded.VolumeOff
+                                    else Icons.AutoMirrored.Rounded.VolumeUp,
+                                    tint = selectedIconColors,
+                                    contentDescription = stringResource(R.string.thread_muted)
+                                )
+                            }
+
+                            IconButton(onClick = {
                                 val state = inboxType == ThreadsViewModel.InboxType.BLOCKED
                                 threadsViewModel.setIsBlocked(
                                     context,
@@ -357,6 +381,7 @@ fun ThreadConversationLayout(
                                                 "${e.message}",
                                                 Toast.LENGTH_LONG).show()
                                         }
+                                        threadsViewModel.removeAllSelectedItems()
                                     }
                                 }
                             }) {

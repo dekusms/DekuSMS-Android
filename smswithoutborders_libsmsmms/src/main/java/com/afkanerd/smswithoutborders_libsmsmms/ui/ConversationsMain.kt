@@ -381,12 +381,14 @@ fun ConversationsMainLayout(
             if(isBlocked) {
                 ThreadsViewModel().setIsBlocked(context, listOf(address), false) {
                     context.unblockContact(listOf(address))
+                    viewModel.removeAllSelectedItems()
                 }
                 isBlocked = false
             }
             else {
                 ThreadsViewModel().setIsBlocked(context, listOf(address), true) {
                     context.blockContact(listOf(address))
+                    viewModel.removeAllSelectedItems()
                 }
                 isBlocked = true
             }
