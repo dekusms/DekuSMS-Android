@@ -451,5 +451,6 @@
     <string name="when_turned_off_would_use_your_system_s_default_time_format">When turned off would use your system\'s default time format</string>
     <string name="enable_24_hours_time_format">Enable 24 hours time format</string>
     <string name="block_contact">Block contact</string>
+    <string name="lib_app_name" translatable="false">DekuSMS</string>
 
 </resources>

@@ -238,7 +238,7 @@ fun ThreadConversationLayout(
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
-                                text = "DekuSMS",
+                                text = stringResource(R.string.lib_app_name),
                                 style = MaterialTheme.typography.titleLarge
                             )
                         },
