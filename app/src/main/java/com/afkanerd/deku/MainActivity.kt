@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity(){
     private fun processIntent(navController: NavController, newIntent: Intent? = null) {
         val intent = newIntent ?: intent
         when(intent.action) {
-            applicationContext.NEW_NOTIFICATION_ACTION -> {
+            intent.NEW_NOTIFICATION_ACTION -> {
                 val address = intent.getStringExtra("address")
                 address?.let {
                     intent.removeExtra("address")
@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity(){
                         ?: intent.getStringExtra(Intent.EXTRA_TEXT)
 
                     intent.removeExtra("sms_body")
+                    intent.removeExtra(Intent.EXTRA_TEXT)
                     intent.data = null
 
                     navController.navigate(ConversationsScreenNav(

@@ -193,7 +193,7 @@ fun Context.getNotificationBuilder(
         }
 }
 
-val Context.NEW_NOTIFICATION_ACTION
+val Intent.NEW_NOTIFICATION_ACTION
     get() = "NEW_NOTIFICATION_ACTION"
 
 private fun Context.getPendingIntent(

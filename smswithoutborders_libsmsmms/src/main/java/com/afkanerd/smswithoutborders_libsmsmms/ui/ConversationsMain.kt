@@ -200,6 +200,7 @@ fun ConversationsMainLayout(
 ) {
 //    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
 //    val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
+    var text = text
     val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
     if(!readPhoneStatePermission.status.isGranted) {
         navController.navigate(HomeScreenNav())
@@ -214,8 +215,6 @@ fun ConversationsMainLayout(
     val address = context.makeE16PhoneNumber(address)
 
     val dualSim = if(inPreviewMode) true else context.isDualSim()
-
-    var isDefault by remember{ mutableStateOf( inPreviewMode || context.isDefault()) }
 
     var typingText by remember{ mutableStateOf(text) }
     var typingMmsImage by remember{ mutableStateOf<Uri?>(null) }
@@ -247,6 +246,7 @@ fun ConversationsMainLayout(
                 }
             }
             if(event == Lifecycle.Event.ON_RESUME) {
+                text = ""
                 val threadsViewModel = ThreadsViewModel()
                 threadsViewModel.get(context, threadId) {
                     it?.let { thread ->

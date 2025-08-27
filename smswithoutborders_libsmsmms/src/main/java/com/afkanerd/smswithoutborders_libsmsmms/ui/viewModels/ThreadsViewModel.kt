@@ -133,13 +133,18 @@ class ThreadsViewModel: ViewModel() {
             withContext(Dispatchers.IO) {
                 messagesLoading = true
 
-                val conversations = context.loadRawSmsMmsDb()
-                context.getDatabase().conversationsDao()
-                    ?.insertAll(conversations, deleteDb)
+                try {
+                    val conversations = context.loadRawSmsMmsDb()
+                    context.getDatabase().conversationsDao()
+                        ?.insertAll(conversations, deleteDb)
 
-                withContext(Dispatchers.Main) {
-                    messagesLoading = false
-                    completeCallback()
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    withContext(Dispatchers.Main) {
+                        messagesLoading = false
+                        completeCallback()
+                    }
                 }
             }
         }

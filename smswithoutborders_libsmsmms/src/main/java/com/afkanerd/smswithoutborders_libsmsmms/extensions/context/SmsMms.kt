@@ -422,43 +422,48 @@ fun Context.sendMms(
     return conversation
 }
 
+@Throws
 fun Context.loadRawSmsMmsDb() : List<Conversations>{
     val conversationsList = arrayListOf<Conversations>()
 
-    // SMS
-    contentResolver.query(
-        Telephony.Sms.CONTENT_URI,
-        null,
-        null,
-        null,
-        "date asc"
-    )?.let { cursor ->
-        if(cursor.moveToFirst()) {
-            do {
-                parseRawSmsContents(cursor)?.let { it ->
-                    conversationsList.add(Conversations(sms = it.apply {
-                        this.thread_id = getThreadId(this.address!!)
-                    }))
-                }
-            } while(cursor.moveToNext())
-        }
-        cursor.close()
-    }
-
-    contentResolver.query(
-        Telephony.Mms.CONTENT_URI,
-        null,
-        null,
-        null,
-        "date asc"
-    )?.let { cursor ->
-        if(cursor.moveToFirst()) {
-            do {
-                val conversation = MmsParser.parse(this, cursor)
-                conversation?.sms?.let { conversationsList.add(conversation) }
-            } while(cursor.moveToNext())
+    try {
+        // SMS
+        contentResolver.query(
+            Telephony.Sms.CONTENT_URI,
+            null,
+            null,
+            null,
+            "date asc"
+        )?.let { cursor ->
+            if(cursor.moveToFirst()) {
+                do {
+                    parseRawSmsContents(cursor)?.let { it ->
+                        conversationsList.add(Conversations(sms = it.apply {
+                            this.thread_id = getThreadId(this.address!!)
+                        }))
+                    }
+                } while(cursor.moveToNext())
+            }
             cursor.close()
         }
+
+        contentResolver.query(
+            Telephony.Mms.CONTENT_URI,
+            null,
+            null,
+            null,
+            "date asc"
+        )?.let { cursor ->
+            if(cursor.moveToFirst()) {
+                do {
+                    val conversation = MmsParser.parse(this, cursor)
+                    conversation?.sms?.let { conversationsList.add(conversation) }
+                } while(cursor.moveToNext())
+                cursor.close()
+            }
+        }
+    } catch(e: Exception) {
+        throw e
     }
 
     return conversationsList
