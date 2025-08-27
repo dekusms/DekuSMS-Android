@@ -26,9 +26,11 @@ import androidx.compose.material.icons.automirrored.filled.SendToMobile
 import androidx.compose.material.icons.automirrored.outlined.VolumeMute
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -454,7 +456,7 @@ fun ThreadConversationLayout(
                                             )
                                         },
                                         icon = { Icon(
-                                            Icons.AutoMirrored.Default.SendToMobile, "")},
+                                            Icons.AutoMirrored.Rounded.Chat, "")},
                                         text = { Text("Send MMS") },
                                         expanded = true,
                                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -467,7 +469,7 @@ fun ThreadConversationLayout(
                                     onClick = {
                                         navController.navigate(ComposeNewMessageScreenNav)
                                     },
-                                    icon = { Icon( Icons.AutoMirrored.Default.Message,
+                                    icon = { Icon( Icons.Default.ChatBubbleOutline,
                                         stringResource(R.string.compose_new_message)) },
                                     text = { Text(text = stringResource(R.string.compose)) },
                                     expanded = listState.isScrollingUp(),
