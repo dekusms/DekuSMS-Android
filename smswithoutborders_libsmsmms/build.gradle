@@ -4,6 +4,8 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.10'
     id 'com.google.devtools.ksp' version '2.2.0-2.0.2'
     alias(libs.plugins.compose.compiler)
+
+    id "com.vanniktech.maven.publish" version "0.34.0"
 }
 
 //apply plugin: "org.jetbrains.kotlin.plugin.compose"
@@ -52,30 +54,38 @@ android {
     }
 }
 
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+mavenPublishing {
+    // the first parameter represennts which variant is published
+    // the second whether to publish a sources jar
+    // the third whether to publish a javadoc jar
+    configure(new AndroidSingleVariantLibrary("release", true, true))
+}
+
 dependencies {
 
-    implementation libs.androidx.core.ktx.v1131
-    implementation libs.androidx.appcompat
-    implementation libs.material
-    implementation libs.androidx.room.common.jvm
-    implementation libs.androidx.room.runtime
-    implementation libs.androidx.paging.common
-    implementation libs.androidx.runtime
-    implementation libs.androidx.compose.ui.ui.tooling.preview
-    implementation libs.androidx.navigation.runtime.ktx
-    implementation libs.navigation.compose
-    implementation libs.androidx.material3
-    implementation libs.androidx.animation
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.junit
-    androidTestImplementation libs.androidx.espresso.core
-    annotationProcessor libs.androidx.room.compiler
-    implementation libs.kotlinx.serialization.json
+    implementation "androidx.core:core-ktx:1.17.0"
+    implementation "androidx.appcompat:appcompat:1.7.1"
+    implementation "com.google.android.material:material:1.12.0"
+    implementation "androidx.room:room-common-jvm:2.7.2"
+    implementation "androidx.room:room-runtime:2.7.2"
+    implementation "androidx.paging:paging-common:3.3.6"
+    implementation "androidx.compose.runtime:runtime:1.9.0"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.9.0"
+    implementation "androidx.navigation:navigation-runtime-ktx:2.9.3"
+    implementation "androidx.navigation:navigation-compose:2.9.3"
+    implementation "androidx.compose.material3:material3:1.3.2"
+    implementation "androidx.compose.animation:animation:1.9.0"
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.3.0"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.7.0"
+    annotationProcessor "androidx.room:room-compiler:2.7.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0"
 
-    implementation(libs.android.smsmms)
-    implementation libs.libphonenumber
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    debugImplementation libs.androidx.compose.ui.ui.tooling
+    implementation "org.fossify:android-smsmms:c3e678befd"
+    implementation "com.googlecode.libphonenumber:libphonenumber:9.0.12"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.9.0"
 
     def room_version = "2.7.2"
 
@@ -87,14 +97,14 @@ dependencies {
     // No additional plugins are necessary
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    // optional - RxJava2 support for Room
-    implementation libs.androidx.room.rxjava2
-
-    // optional - RxJava3 support for Room
-    implementation libs.androidx.room.rxjava3
-
-    // optional - Guava support for Room, including Optional and ListenableFuture
-    implementation libs.androidx.room.guava
+//    // optional - RxJava2 support for Room
+//    implementation libs.androidx.room.rxjava2
+//
+//    // optional - RxJava3 support for Room
+//    implementation libs.androidx.room.rxjava3
+//
+//    // optional - Guava support for Room, including Optional and ListenableFuture
+//    implementation libs.androidx.room.guava
 
     // optional - Test helpers
     testImplementation "androidx.room:room-testing:$room_version"
@@ -106,11 +116,6 @@ dependencies {
     implementation composeBom
     androidTestImplementation composeBom
 
-    // Choose one of the following:
-    // Material Design 3
-//    implementation libs.androidx.compose.material3.material32
-    implementation 'androidx.compose.material3:material3'
-    // or Material Design 2
     implementation 'androidx.compose.material:material'
     // or skip Material Design and build directly on top of foundational components
     implementation 'androidx.compose.foundation:foundation'
