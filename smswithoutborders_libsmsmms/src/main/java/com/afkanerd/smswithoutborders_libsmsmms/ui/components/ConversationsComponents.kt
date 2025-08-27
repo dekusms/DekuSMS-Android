@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.InsertPhoto
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.BottomAppBar
@@ -89,6 +91,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -254,178 +257,132 @@ fun ChatCompose(
                 24.dp,
                 24.dp)
             )
-            .background(MaterialTheme.colorScheme.outlineVariant)
+            .background(MaterialTheme.colorScheme.outlineVariant),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.End
     ) {
         Row {
             Column(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Bottom
+                modifier=Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 IconButton(onClick = {
                     imagePicker.launch(arrayOf("*/*"))
                 }) {
                     Icon(
-                        Icons.Outlined.PhotoLibrary,
+                        Icons.Outlined.InsertPhoto,
                         stringResource(R.string.send_mms_photo),
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
 
-            Column(modifier = Modifier
-                .padding(end = 8.dp)
-                .weight(1f)
-                .fillMaxSize()
+            Column(
+                modifier=Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.End
             ) {
-                if(shouldPulse)
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 
-                if(encryptedValue.isNotBlank() || LocalInspectionMode.current) {
-                    Text(
-                        encryptedValue,
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
-                        maxLines = 4,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                    Divider()
-                }
-                
-                if((imageUri != null) || LocalInspectionMode.current) {
-                    ComposeMmsImage(imageUri) {
-                        mmsCancelCallback?.invoke()
-                        imageUri = null
-                    }
-                }
-
-                Column(
+                BasicTextField(
+                    value = value,
+                    onValueChange = {
+                        valueChanged?.invoke(it)
+                    },
+                    maxLines = 7,
+                    singleLine = false,
+                    textStyle = TextStyle(
+                        color= MaterialTheme.colorScheme.onBackground,
+                        fontSize = 16.sp
+                    ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
-                        .padding(end = 8.dp)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Bottom
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                 ) {
-                    BasicTextField(
+                    TextFieldDefaults.DecorationBox(
                         value = value,
-                        onValueChange = {
-                            valueChanged?.invoke(it)
-                        },
-                        maxLines = 7,
+                        visualTransformation = VisualTransformation.None,
+                        innerTextField = it,
                         singleLine = false,
-                        textStyle = TextStyle(color= MaterialTheme.colorScheme.onBackground),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
-                    ) {
-                        TextFieldDefaults.DecorationBox(
-                            value = value,
-                            visualTransformation = VisualTransformation.None,
-                            innerTextField = it,
-                            singleLine = false,
-                            enabled = true,
-                            interactionSource = interactionsSource,
-                            placeholder = {
-                                Text(
-                                    text= stringResource(R.string.text_message),
-                                    color = MaterialTheme.colorScheme.outline
-                                )
-                            },
-                            shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                            ),
-                        )
-                    }
-
+                        enabled = true,
+                        interactionSource = interactionsSource,
+                        placeholder = {
+                            Text(
+                                text= stringResource(R.string.text_message),
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        },
+                        shape = RoundedCornerShape(24.dp, 24.dp, 24.dp, 24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Bottom
+            Row(
+                modifier = Modifier.fillMaxHeight(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.End
             ) {
-                Row {
-                    simCardChooserCallback?.let {
-                        IconButton(
-                            onClick = { it() },
-                        ) {
-                            if(LocalInspectionMode.current) {
-                                Icon(
-                                    Icons.Outlined.SimCard,
-                                    stringResource(R.string.send_message),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                            } else {
-                                if(subscriptionId > -1) {
-                                    context.getSubscriptionBitmap(
-                                        subscriptionId.toInt())
-                                        ?.asImageBitmap()?.let { image ->
-                                            Image(
-                                                image,
-                                                stringResource(R.string.choose_sim_card)
-                                            )
-                                        }
-                                }
-                            }
-                        }
-
-                    }
-
-                    if(value.isNotBlank() || imageUri != null || LocalInspectionMode.current) {
-                        IconButton(
-                            onClick = {
-                                if(imageUri != null) {
-                                    sendMmsCallback(imageUri!!)
-                                } else {
-                                    smsSendCallback.invoke()
-                                }
-                                imageUri = null
-                            },
-                        ) {
+                if(simCardChooserCallback != null || inPreviewMode) {
+                    IconButton(
+                        onClick = { simCardChooserCallback!!() },
+                    ) {
+                        if(LocalInspectionMode.current) {
                             Icon(
-                                Icons.AutoMirrored.Default.Send,
+                                Icons.Outlined.SimCard,
                                 stringResource(R.string.send_message),
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
+                        } else {
+                            if(subscriptionId > -1) {
+                                context.getSubscriptionBitmap(
+                                    subscriptionId.toInt())
+                                    ?.asImageBitmap()?.let { image ->
+                                        Image(
+                                            image,
+                                            stringResource(R.string.choose_sim_card)
+                                        )
+                                    }
+                            }
                         }
                     }
-                }
-            }
-        }
 
-        Row(
-            modifier = Modifier
-//                .padding(top = 8.dp, end = 8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
-        ) {
-            Column {
-                if(encryptedValue.isNotBlank() || value.isNotBlank() || inPreviewMode) {
-                    val length = if(inPreviewMode) "10/140"
-                    else getSMSCount(context, encryptedValue.ifBlank { value })
-                    Text(
-                        length,
-                        color= MaterialTheme.colorScheme.secondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
                 }
 
+                if(value.isNotBlank() || imageUri != null || LocalInspectionMode.current) {
+                    IconButton(
+                        onClick = {
+                            if(imageUri != null) {
+                                sendMmsCallback(imageUri!!)
+                            } else {
+                                smsSendCallback.invoke()
+                            }
+                            imageUri = null
+                        },
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Default.Send,
+                            stringResource(R.string.send_message),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-fun getSMSCount(context: Context, text: String): String {
+fun getSMSCount(context: Context, text: String?): String {
+    if(text.isNullOrBlank()) return ""
     val smsManager = context.getSystemService(SmsManager::class.java)
     val messages: List<String> = smsManager.divideMessage(text)
     val segmentCount = messages[messages.size - 1].length
