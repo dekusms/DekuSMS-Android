@@ -463,27 +463,6 @@ fun ModalDrawerSheetLayout(
                 selected = selectedItemIndex == ThreadsViewModel.InboxType.BLOCKED,
                 onClick = { callback?.let{ it(ThreadsViewModel.InboxType.BLOCKED) } }
             )
-
-            HorizontalDivider(Modifier.padding(8.dp))
-
-            NavigationDrawerItem(
-                icon = {
-                    Icon(
-                        Icons.Filled.Android,
-                        contentDescription = stringResource(R.string.android_developer)
-                    )
-                },
-                label = {
-                    Text(
-                        stringResource(R.string.developer_options),
-                        fontSize = 14.sp
-                    )
-                },
-                badge = {
-                },
-                selected = selectedItemIndex == ThreadsViewModel.InboxType.DEVELOPER_MODE,
-                onClick = { callback?.let{ it(ThreadsViewModel.InboxType.DEVELOPER_MODE) } }
-            )
         }
     }
 }

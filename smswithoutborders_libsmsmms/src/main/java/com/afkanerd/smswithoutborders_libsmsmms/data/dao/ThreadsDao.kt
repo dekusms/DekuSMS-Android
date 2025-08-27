@@ -21,11 +21,23 @@ interface ThreadsDao {
     @Query("SELECT * FROM Threads WHERE isArchive = 1 ORDER BY date DESC")
     fun getArchived(): PagingSource<Int, Threads>
 
+    @Query("SELECT * FROM Threads WHERE type = :type ORDER BY date DESC")
+    fun getType(type: Int): PagingSource<Int, Threads>
+
+    @Query("SELECT * FROM Threads WHERE isMute = 1 ORDER BY date DESC")
+    fun getIsMute(): PagingSource<Int, Threads>
+
+    @Query("SELECT * FROM Threads WHERE isBlocked = 1 ORDER BY date DESC")
+    fun getIsBlocked(): PagingSource<Int, Threads>
+
     @Query("SELECT * FROM Threads WHERE threadId = :threadId")
     fun get(threadId: Int): Threads?
 
     @Query("UPDATE Threads SET isMute = :isMute WHERE threadId = :threadId")
     fun setMute(isMute: Boolean, threadId: Int)
+
+    @Query("UPDATE Threads SET isBlocked = :isBlocked WHERE address IN (:addresses)")
+    fun setIsBlocked(isBlocked: Boolean, addresses: List<String>)
 
     @Delete
     fun deleteThreads(threads: List<Threads>)
@@ -52,6 +64,7 @@ interface ThreadsDao {
             "tc.type, " +
             "tc.unread, " +
             "tc.isMms, " +
+            "tc.isBlocked, " +
             "SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) as unreadCount, " +
             "c.body AS snippet " +
             "FROM Threads tc LEFT JOIN Conversations c " +
@@ -72,6 +85,7 @@ interface ThreadsDao {
             "tc.type, " +
             "tc.unread, " +
             "tc.isMms, " +
+            "tc.isBlocked, " +
             "SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) as unreadCount, " +
             "c.body AS snippet " +
             "FROM Threads tc LEFT JOIN Conversations c " +

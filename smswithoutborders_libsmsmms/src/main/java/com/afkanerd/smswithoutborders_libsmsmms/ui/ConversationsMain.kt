@@ -378,21 +378,28 @@ fun ConversationsMainLayout(
             navController.navigate(SearchScreenNav(address = address))
         },
         blockCallback = {
-            if(isBlocked) { context.unblockContact(address) }
-            else { context.blockContact(address) }
-            isBlocked = BlockedNumberContract.isBlocked(context, address)
+            if(isBlocked) {
+                ThreadsViewModel().setIsBlocked(context, listOf(address), false) {
+                    context.unblockContact(listOf(address))
+                }
+                isBlocked = false
+            }
+            else {
+                ThreadsViewModel().setIsBlocked(context, listOf(address), true) {
+                    context.blockContact(listOf(address))
+                }
+                isBlocked = true
+            }
         },
         deleteCallback = {
             rememberDeleteAlert = true
         },
         archiveCallback = {
-            if(isArchived && threadId != null) {
-                viewModel.unArchive(context, threadId!!) {}
+            if(isArchived) {
+                viewModel.unArchive(context, threadId) {}
             }
             else {
-                threadId?.let {
-                    viewModel.archive(context, it) {}
-                }
+                viewModel.archive(context, threadId) {}
             }
             backHandler(
                 context,

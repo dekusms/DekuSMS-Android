@@ -28,6 +28,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -77,11 +80,13 @@ import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Threads
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetEnableSwipeBehaviour
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.unblockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.isScrollingUp
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsReceivedReceiverImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.MmsReceivedReceiverImplTest
@@ -140,57 +145,26 @@ fun ThreadConversationLayout(
 
     val inboxMessagesPagers = threadsViewModel.getThreads(context)
     val archivedMessagesPagers = threadsViewModel.getArchives(context)
-//
-//    val encryptedMessagesPagers = threadsViewModel
-//        .getEncryptedPagingSource(context)
-//
-//    val draftMessagesPagers = threadsViewModel
-//        .getDraftPagingSource(context)
-//
-//    val mutedMessagesPagers = threadsViewModel
-//        .getMutedPagingSource(context)
-//
-//    val remoteMessagesPagers = threadsViewModel
-//        .getRemoteListenersPagingSource(context)
+    val draftMessagesPagers = threadsViewModel.getDrafts(context)
+    val mutedMessagesPagers = threadsViewModel.getIsMute(context)
+    val blockedMessagesPager = threadsViewModel.getIsBlocked(context)
 
     val inboxMessagesItems = inboxMessagesPagers.collectAsLazyPagingItems()
     val archivedMessagesItems = archivedMessagesPagers.collectAsLazyPagingItems()
-//    val encryptedMessagesItems = encryptedMessagesPagers.collectAsLazyPagingItems()
-//    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
-//    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
-//    val remoteMessagesItems = remoteMessagesPagers.collectAsLazyPagingItems()
-
-//    val blockedItems: MutableList<Conversation> = remember { mutableStateListOf() }
+    val draftMessagesItems = draftMessagesPagers.collectAsLazyPagingItems()
+    val mutedMessagesItems = mutedMessagesPagers.collectAsLazyPagingItems()
+    val blockedMessagesItems = blockedMessagesPager.collectAsLazyPagingItems()
 
     val listState = rememberLazyListState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    val slideDeleteItem = remember { mutableStateOf("") }
-
     val selectedIconColors = MaterialTheme.colorScheme.primary
 
-    var rememberImportMenuExpanded by remember { mutableStateOf( false)}
     var rememberDeleteMenu by remember { mutableStateOf( false)}
 
     val scope = rememberCoroutineScope()
-    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
-
-    // TODO: Handle blocked messages
-//    LaunchedEffect(inboxType) {
-//        selectedItemIndex = inboxType
-//        if(inboxType == InboxType.BLOCKED && isDefault) {
-//            coroutineScope.launch {
-//                threadsViewModel.get(context).let {
-//                    blockedItems.addAll(it.filter {
-//                        BlockedNumberContract.isBlocked(context, it.address)
-//                    })
-//                }
-//            }
-//        }
-//    }
-
 
     BackHandler(
         inboxType != ThreadsViewModel.InboxType.INBOX ||
@@ -213,6 +187,14 @@ fun ThreadConversationLayout(
     }
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
+
+    val displayedInbox = when(inboxType) {
+        ThreadsViewModel.InboxType.INBOX -> inboxMessagesItems
+        ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems
+        ThreadsViewModel.InboxType.BLOCKED -> blockedMessagesItems
+        ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems
+        ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems
+    }
 
     ThreadsNavMenuItems(
         navController = navController,
@@ -351,6 +333,40 @@ fun ThreadConversationLayout(
                                         stringResource(R.string.message_threads_menu_delete)
                                 )
                             }
+
+                            IconButton(onClick = {
+                                val state = inboxType == ThreadsViewModel.InboxType.BLOCKED
+                                threadsViewModel.setIsBlocked(
+                                    context,
+                                    selectedItems.map{ it.address },
+                                    !state
+                                ) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        try {
+                                            if(state) {
+                                                context.unblockContact(selectedItems.map {
+                                                    it.address })
+                                            } else {
+                                                context.blockContact(selectedItems.map {
+                                                    it.address })
+                                            }
+                                        } catch(e: Exception) {
+                                            e.printStackTrace()
+                                            Toast.makeText(
+                                                context,
+                                                "${e.message}",
+                                                Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = if(inboxType != ThreadsViewModel.InboxType.BLOCKED)
+                                        Icons.Outlined.Block else Icons.Outlined.Remove,
+                                    tint = selectedIconColors,
+                                    contentDescription = stringResource(R.string.block_contact)
+                                )
+                            }
                         },
                         scrollBehavior = scrollBehaviour
                     )
@@ -477,9 +493,6 @@ fun ThreadConversationLayout(
                                         )
                                     }
                             }
-                            ThreadsViewModel.InboxType.DEVELOPER_MODE -> {
-                                TODO("Implement navigate to thread view")
-                            }
                             else -> {
                                 if(inboxMessagesItems.loadState.refresh != Loading &&
                                     inboxMessagesItems.itemCount < 1)
@@ -501,35 +514,10 @@ fun ThreadConversationLayout(
                             state = listState
                         )  {
                             items(
-                                count = when(inboxType) {
-                                    ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems.itemCount
-//                                ThreadsViewModel.InboxType.BLOCKED -> blockedItems.size
-//                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemCount
-//                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemCount
-//                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemCount
-//                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemCount
-                                    else -> inboxMessagesItems.itemCount
-                                },
-                                key = when(inboxType) {
-                                    ThreadsViewModel.InboxType.ARCHIVED ->
-                                        archivedMessagesItems.itemKey{ it.threadId }
-//                                ThreadsViewModel.InboxType.BLOCKED -> {{ blockedItems[it].id }}
-//                                ThreadsViewModel.InboxType.ENCRYPTED -> encryptedMessagesItems.itemKey{ it.id }
-//                                ThreadsViewModel.InboxType.DRAFTS -> draftMessagesItems.itemKey{ it.id }
-//                                ThreadsViewModel.InboxType.MUTED -> mutedMessagesItems.itemKey{ it.id }
-//                                ThreadsViewModel.InboxType.REMOTE_LISTENER -> remoteMessagesItems.itemKey{ it.id }
-                                    else -> inboxMessagesItems.itemKey{ it.threadId }
-                                }
+                                count = displayedInbox.itemCount,
+                                key = displayedInbox.itemKey { it.threadId }
                             ) { index ->
-                                val thread = when(inboxType) {
-                                    ThreadsViewModel.InboxType.ARCHIVED -> archivedMessagesItems[index]
-                                    else -> inboxMessagesItems[index]
-//                                InboxType.ENCRYPTED -> encryptedMessagesItems[index]
-//                                InboxType.BLOCKED -> blockedItems[index]
-//                                InboxType.DRAFTS -> draftMessagesItems[index]
-//                                InboxType.MUTED -> mutedMessagesItems[index]
-//                                InboxType.REMOTE_LISTENER -> remoteMessagesItems[index]
-                                }
+                                val thread = displayedInbox[index]
 
                                 val address = thread!!.address
                                 val isBlocked = if(isDefault)
@@ -552,9 +540,6 @@ fun ThreadConversationLayout(
                                 }
 
                                 val dismissState = GetSwipeBehaviour(thread, inboxType)
-
-//                                val date = if(thread.date > 0) DateTimeUtils
-//                                    .formatDate(context, (thread.date * 1000L)) ?: "" else "Tues"
 
                                 val date = if(!inPreviewMode) DateTimeUtils.formatDate(
                                     context,
@@ -585,7 +570,6 @@ fun ThreadConversationLayout(
                                             onClick = {
                                                 if(selectedItems.isEmpty()) {
                                                     if(!foldOpen) {
-                                                        if(BuildConfig.DEBUG)
                                                         navController.navigate(
                                                             ConversationsScreenNav(
                                                                 address,
@@ -642,32 +626,6 @@ fun ThreadConversationLayout(
                                 threadsViewModel.removeAllSelectedItems()
                             }
                         }
-
-//                    if(rememberImportMenuExpanded) {
-//                        val importConversations by remember { mutableStateOf(threadsViewModel
-//                            .importAll(context, detailsOnly = true)) }
-//                        val numThreads by remember { mutableStateOf(
-//                            importConversations.map { it.thread_id }.toSet()
-//                        ) }
-//                        ImportDetails(
-//                            numOfConversations = importConversations.size,
-//                            numOfThreads = numThreads.size,
-//                            resetConfirmCallback = {
-//                                coroutineScope.launch {
-//                                    threadsViewModel.clear(context)
-//                                    threadsViewModel.importAll(context)
-//                                    threadsViewModel.importDetails = ""
-//                                }
-//                            },
-//                            confirmCallback = {
-//                                coroutineScope.launch {
-//                                    threadsViewModel.importAll(context)
-//                                    threadsViewModel.importDetails = ""
-//                                }
-//                            }) {
-//                            threadsViewModel.importDetails = ""
-//                        }
-//                    }
                     }
                 }
 

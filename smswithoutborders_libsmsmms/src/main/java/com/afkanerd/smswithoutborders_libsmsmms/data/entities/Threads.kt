@@ -6,8 +6,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-//@Entity(indices = [Index(value = ["address"], unique = true)])
-@Entity
+@Entity(indices = [Index(value = ["address"], unique = true)])
 data class Threads(
     @PrimaryKey var threadId: Int,
     var address: String,
@@ -17,7 +16,8 @@ data class Threads(
     var conversationId: Long,
     var isMms: Boolean,
     var isMute: Boolean = false,
-    var unread: Boolean = true,
     var isArchive: Boolean = false,
+    var isBlocked: Boolean = false,
+    var unread: Boolean = true,
     var unreadCount: Int = 0,
 )

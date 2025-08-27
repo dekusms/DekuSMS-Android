@@ -2,6 +2,7 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Telephony
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -37,7 +38,6 @@ class ThreadsViewModel: ViewModel() {
         BLOCKED,
         DRAFTS,
         MUTED,
-        DEVELOPER_MODE;
     }
 
     private val _selectedInbox = MutableLiveData(InboxType.INBOX) // default
@@ -66,6 +66,9 @@ class ThreadsViewModel: ViewModel() {
 
     private var threadsPager: Flow<PagingData<Threads>>? = null
     private var archivePager: Flow<PagingData<Threads>>? = null
+    private var draftsPager: Flow<PagingData<Threads>>? = null
+    private var mutePager: Flow<PagingData<Threads>>? = null
+    private var blockedPager: Flow<PagingData<Threads>>? = null
 
     fun getThreads(context: Context): Flow<PagingData<Threads>> {
         if(threadsPager == null) {
@@ -103,10 +106,79 @@ class ThreadsViewModel: ViewModel() {
         return archivePager!!
     }
 
+    fun getDrafts(context: Context): Flow<PagingData<Threads>> {
+        if(draftsPager == null) {
+            draftsPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    context.getDatabase().threadsDao()!!
+                        .getType(Telephony.Sms.MESSAGE_TYPE_DRAFT)
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return draftsPager!!
+    }
+
+    fun getIsMute(context: Context): Flow<PagingData<Threads>> {
+        if(mutePager == null) {
+            mutePager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    context.getDatabase().threadsDao()!!.getIsMute()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return mutePager!!
+    }
+
+    fun getIsBlocked(context: Context): Flow<PagingData<Threads>> {
+        if(blockedPager == null) {
+            blockedPager = Pager(
+                config=PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+                ),
+                pagingSourceFactory = {
+                    context.getDatabase().threadsDao()!!.getIsBlocked()
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
+        return blockedPager!!
+    }
+
     fun deleteThreads(context: Context, threads: List<Threads>) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 context.getDatabase().threadsDao()?.delete(threads)
+            }
+        }
+    }
+
+    fun setIsBlocked(
+        context: Context,
+        addresses: List<String>,
+        isBlocked: Boolean,
+        callback: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.getDatabase().threadsDao()?.setIsBlocked(isBlocked, addresses)
+                callback()
             }
         }
     }

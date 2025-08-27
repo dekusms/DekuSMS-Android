@@ -88,21 +88,33 @@ fun Context.getThreadId(address: String): Int{
     return Telephony.Threads.getOrCreateThreadId(this, address).toInt();
 }
 
-fun Context.blockContact(address: String) {
-    val contentValues = ContentValues();
-    contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address);
-    contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, contentValues);
+@Throws
+fun Context.blockContact(addresses: List<String>) {
+    try {
+        addresses.forEach { address ->
+            val contentValues = ContentValues();
+            contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address);
+            contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, contentValues);
 
-    Toast.makeText(this,
-        getString(this, R.string.conversations_menu_block_toast),
-        Toast.LENGTH_SHORT).show();
-    val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-    startActivity(this,
-        telecomManager.createManageBlockedNumbersIntent(), null);
+        }
+
+        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+        startActivity(this,
+            telecomManager.createManageBlockedNumbersIntent(), null);
+    } catch(e: Exception) {
+        throw e
+    }
 }
 
-fun Context.unblockContact(address: String) {
-    BlockedNumberContract.unblock(this, address)
+@Throws
+fun Context.unblockContact(addresses: List<String>) {
+    try {
+        addresses.forEach { address ->
+            BlockedNumberContract.unblock(this, address)
+        }
+    } catch(e: Exception) {
+        throw e
+    }
 }
 
 fun Context.getBlocked(): Cursor? {

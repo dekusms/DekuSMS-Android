@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "51691c47ddaf658dd3611dcc00e9ab0e",
+    "identityHash": "3f6952b13cfccd8884e25b0765f3d216",
     "entities": [
       {
         "tableName": "Conversations",
@@ -324,7 +324,7 @@
       },
       {
         "tableName": "Threads",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMms` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, `address` TEXT NOT NULL, `snippet` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `conversationId` INTEGER NOT NULL, `isMms` INTEGER NOT NULL, `isMute` INTEGER NOT NULL, `isArchive` INTEGER NOT NULL, `isBlocked` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
         "fields": [
           {
             "fieldPath": "threadId",
@@ -375,14 +375,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "unread",
-            "columnName": "unread",
+            "fieldPath": "isArchive",
+            "columnName": "isArchive",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "isArchive",
-            "columnName": "isArchive",
+            "fieldPath": "isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unread",
+            "columnName": "unread",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -398,12 +404,23 @@
           "columnNames": [
             "threadId"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_Threads_address",
+            "unique": true,
+            "columnNames": [
+              "address"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Threads_address` ON `${TABLE_NAME}` (`address`)"
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '51691c47ddaf658dd3611dcc00e9ab0e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3f6952b13cfccd8884e25b0765f3d216')"
     ]
   }
 }

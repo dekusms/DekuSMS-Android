@@ -78,6 +78,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.toHslColor
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -345,12 +346,20 @@ fun ContactDetails (
                     }
 
                     TextButton(onClick = {
-                        if (isBlocked) {
-                            context.unblockContact(address)
-                        } else {
-                            context.blockContact(address)
+                        if(isBlocked) {
+                            ThreadsViewModel().setIsBlocked(
+                                context, listOf(address), false) {
+                                context.unblockContact(listOf(address))
+                            }
+                            isBlocked = false
                         }
-                        isBlocked = ConversationsViewModel().contactIsBlocked(context, address)
+                        else {
+                            ThreadsViewModel().setIsBlocked(context,
+                                listOf(address), true) {
+                                context.blockContact(listOf(address))
+                            }
+                            isBlocked = true
+                        }
                     }) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
