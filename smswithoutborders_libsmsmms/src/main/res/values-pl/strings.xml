@@ -412,6 +412,44 @@
     <string name="dev_mode">Tryb programisty</string>
     <string name="read_our_text_part">Przeczytaj naszą</string>
     <string name="privacy_policy_text_part">politykę prywatności</string>
+    <string name="send_mms_photo">Wyślij zdjęcie MMS</string>
+    <string name="mms_selected_image">Wybrany obraz MMS</string>
+    <string name="unknown_error_sending_mms">Nieznany błąd podczas wysyłania wiadomości MMS:</string>
+    <string name="mms_image">Obraz MMS...</string>
+    <string name="mms_video">Wideo MMS...</string>
+    <string name="export_sms_mms_database">Eksport bazy danych SMS/MMS</string>
+    <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">Eksportuje wszystkie bazy danych SMS i MMS. Może się to przydać, jeśli chcesz przechwycić wszystkie pola zapisane przez domyślne aplikacje SMS.</string>
+    <string name="developer_options">Opcje programistyczne</string>
+    <string name="android_developer">Programista Androida</string>
+    <string name="sms_mms_import_export">Import/eksport SMS/MMS</string>
+    <string name="export_native_sms_database">Eksportuj natywną bazę danych SMS</string>
+    <string name="something_went_wrong_with_sending">Wystąpił błąd podczas wysyłania!</string>
+    <string name="set_default_sms_app">Ustaw domyślną aplikację SMS</string>
+    <string name="to_use_deku_sms_make_it_your_default_sms_app">Aby korzystać z Deku SMS, ustaw ją jako domyślną aplikację do SMS-ów</string>
+    <string name="reset_complete">Resetowanie zakończone!</string>
+    <string name="give_it_a_minute">Daj temu minutę...</string>
+    <string name="general_settings">Ustawienia ogólne</string>
+    <string name="save_messages_to_system_s_database">Zapisywanie wiadomości w bazie danych systemu</string>
+    <string name="other_messaging_apps_would_have_access_to_the_system_s_database">Inne aplikacje do przesyłania wiadomości będą miały dostęp do bazy danych systemu</string>
+    <string name="get_sms_delivery_reports">Uzyskaj raporty o dostarczeniu SMS-ów</string>
+    <string name="find_out_when_an_sms_message_is_delivered">Dowiedz się, kiedy wiadomość SMS została dostarczona</string>
+    <string name="messages_can_be_deleted_or_archived_by_swiping">Wiadomości można usuwać lub archiwizować, przesuwając palcem</string>
+    <string name="keep_messages_archived">Przechowuj wiadomości w archiwum</string>
+    <string name="messages_remain_in_archive_even_when_new_ones_are_sent_or_received">Wiadomości pozostają w archiwum nawet wtedy, gdy zostaną wysłane lub odebrane nowe</string>
+    <string name="enable_notification_context_replies">Włącz odpowiedzi kontekstowe powiadomień</string>
+    <string name="your_phone_would_suggest_smart_replies_in_notifications_if_enabled">Jeśli ta funkcja jest włączona, Twój telefon będzie proponował inteligentne odpowiedzi w powiadomieniach</string>
+    <string name="reset">Nastawić</string>
+    <string name="image">Obraz</string>
+    <string name="download_for_offline">Pobierz w trybie offline</string>
+    <string name="share_mms_content">Udostępnij zawartość MMS</string>
+    <string name="waiting_to_send">czekam na wysłanie...</string>
+    <string name="language">Język</string>
+    <string name="light">Światło</string>
+    <string name="dark">Ciemny</string>
+    <string name="system_default">Domyślne ustawienie systemu</string>
+    <string name="theme">Temat</string>
+    <string name="when_turned_off_would_use_your_system_s_default_time_format">Po wyłączeniu zostanie użyty domyślny format czasu systemu</string>
+    <string name="enable_24_hours_time_format">Włącz format czasu 24-godzinnego</string>
 
 
 </resources>
