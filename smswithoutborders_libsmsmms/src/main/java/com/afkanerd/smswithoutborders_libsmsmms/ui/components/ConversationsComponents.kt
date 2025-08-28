@@ -221,14 +221,9 @@ fun SearchTopAppBarText(
 @Composable
 fun ChatCompose(
     value: String,
-    encryptedValue: String = if(LocalInspectionMode.current)
-        Base64.encodeToString(LoremIpsum().values.first()
-            .encodeToByteArray(), Base64.DEFAULT)
-    else "",
     valueChanged: ((String) -> Unit)? = null,
     mmsValueChanged: ((Uri) -> Unit)? = null,
     subscriptionId: Long = -1,
-    shouldPulse: Boolean = LocalInspectionMode.current,
     sendMmsCallback: (Uri) -> Unit,
     mmsCancelCallback: (() -> Unit)? = null,
     simCardChooserCallback: (() -> Unit)? = null,
@@ -324,6 +319,24 @@ fun ChatCompose(
                             unfocusedContainerColor = Color.Transparent,
                         ),
                     )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    if(value.isNotBlank() || inPreviewMode) {
+                        val length = if(inPreviewMode) "10/140"
+                        else getSMSCount(context, value)
+                        Text(
+                            length,
+                            color= MaterialTheme.colorScheme.secondary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
                 }
             }
 
@@ -729,8 +742,6 @@ fun SearchTopAppBarTextPreview() {
 fun ChatComposePreview() {
     ChatCompose(
         value = "Hello there!",
-        encryptedValue = "U2FsdGVkX1+...", // Example encrypted
-        shouldPulse = true,
         sendMmsCallback = {}
     ) {
 

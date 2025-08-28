@@ -568,7 +568,6 @@ fun ConversationsMainLayout(
                     ChatCompose(
                         value = typingText,
                         subscriptionId = subscriptionId!!,
-                        shouldPulse = shouldPulse,
                         simCardChooserCallback = if(dualSim) {
                             { openSimCardChooser = true}
                         } else null,
