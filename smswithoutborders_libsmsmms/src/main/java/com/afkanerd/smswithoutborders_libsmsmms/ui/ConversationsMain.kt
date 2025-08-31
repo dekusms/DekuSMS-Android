@@ -524,7 +524,10 @@ fun ConversationsMainLayout(
                         else searchIndex += 1
                         scope.launch {
                             if(searchIndexes.size >= searchIndex)
-                                listState.animateScrollToItem(searchIndexes[searchIndex], 0)
+                                listState.animateScrollToItem(
+                                    searchIndexes[searchIndex],
+                                    0
+                                )
                         }
                     },
                     backwardClick = {
@@ -532,7 +535,10 @@ fun ConversationsMainLayout(
                             searchIndex = searchIndexes.size - 1
                         else searchIndex -= 1
                         scope.launch {
-                            listState.animateScrollToItem(searchIndexes[searchIndex], 0)
+                            listState.animateScrollToItem(
+                                searchIndexes[searchIndex],
+                                0
+                            )
                         }
                     }
                 )
