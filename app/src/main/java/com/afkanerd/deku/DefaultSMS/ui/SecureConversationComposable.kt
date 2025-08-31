@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,17 +21,19 @@ fun SecureConversationComposable(
     viewModel: SecureConversationViewModel
 ) {
     val context = LocalContext.current
-    val inPreviewMode = LocalInspectionMode.current
 
-    // TODO: put show logic in here
+    val mode = viewModel.mode
+    val showModal = viewModel.showModal
 
     val state by context.getEncryptedState(address)
         .collectAsState(EncryptionController.EncryptionMode.REQUEST_SENT.name)
 
-    val mode by remember{ mutableStateOf( enumValueOf<EncryptionController
-        .EncryptionMode>(state!!) ) }
-
-    val showModal = viewModel.showModal
+    LaunchedEffect(state) {
+        if(state == EncryptionController.EncryptionMode.REQUEST_RECEIVED.name) {
+            viewModel.mode = EncryptionController.EncryptionMode.REQUEST_RECEIVED
+            viewModel.setModal(true)
+        }
+    }
 
     SecureRequestAcceptModal(
         address = address,

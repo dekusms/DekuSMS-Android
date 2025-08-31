@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.ui.viewModels
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SecureConversationViewModel: CustomsConversationsViewModel() {
+    var mode by mutableStateOf(EncryptionController.EncryptionMode.REQUEST_SENT)
 
     fun requestSecureConversation(
         context: Context,
