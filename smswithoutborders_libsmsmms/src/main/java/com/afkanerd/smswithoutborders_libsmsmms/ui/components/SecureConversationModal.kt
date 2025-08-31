@@ -33,7 +33,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewM
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SecureRequestAcceptModal(
-    viewModel: ConversationsViewModel = ConversationsViewModel(),
     isSecureRequest: Boolean = true,
     dismissCallback: (() -> Unit)? = null
 ) {
@@ -159,7 +158,6 @@ fun SecureRequestAcceptModal(
 @Composable
 fun SecureRequestModal_RequestFlow_Preview() {
     SecureRequestAcceptModal(
-        viewModel = remember { ConversationsViewModel() },
         isSecureRequest = true,
         dismissCallback = {}
     )
@@ -170,7 +168,6 @@ fun SecureRequestModal_RequestFlow_Preview() {
 @Composable
 fun SecureRequestModal_AcceptFlow_Preview() {
     SecureRequestAcceptModal(
-        viewModel = remember { ConversationsViewModel() },
         isSecureRequest = false,
         dismissCallback = {}
     )

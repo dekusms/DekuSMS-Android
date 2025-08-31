@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
+import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
@@ -88,6 +89,9 @@ class MainActivity : AppCompatActivity(){
                                         threadsViewModel = threadsViewModel,
                                         searchViewModel = searchViewModel,
                                         threadsMainMenuItems = getThreadMenuItems(),
+                                        conversationsCustomComposable = {
+                                            SecureConversationComposable()
+                                        }
                                     ) {
                                         composable<RemoteListenersScreen> {
                                             RMQMainComposable(

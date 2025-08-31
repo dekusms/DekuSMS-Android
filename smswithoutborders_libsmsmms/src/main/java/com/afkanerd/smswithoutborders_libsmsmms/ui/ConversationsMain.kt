@@ -196,10 +196,9 @@ fun ConversationsMainLayout(
     text: String = "",
     foldOpen: Boolean = false,
     threadId: Int? = null,
+    CustomComposable: @Composable () -> Unit = {},
     _items: List<Conversations>? = null
 ) {
-//    val smsReadSMSState = rememberPermissionState(requiredReceiveSMSPermission)
-//    val smsSendSMSState = rememberPermissionState(requiredSendSMSPermission)
     var text = text
     val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
     if(!readPhoneStatePermission.status.isGranted) {
@@ -287,8 +286,6 @@ fun ConversationsMainLayout(
 
     val isShortCode = if(inPreviewMode) false else isShortCode(address)
 
-    var shouldPulse by remember { mutableStateOf(false) }
-
     var rememberDeleteAlert by remember { mutableStateOf(false) }
 
     var openInfoAlert by remember { mutableStateOf(false) }
@@ -353,7 +350,6 @@ fun ConversationsMainLayout(
             }
         }
     }
-
 
     BackHandler {
         if(!searchQuery.isNullOrEmpty()) searchQuery = ""
@@ -853,22 +849,6 @@ fun ConversationsMainLayout(
             }
         }
 
-        // TODO: Show secure request modals
-//        if(showSecureRequestModal || showSecureAgreeModal) {
-//            SecureRequestAcceptModal(
-//                viewModel=viewModel,
-//                isSecureRequest = showSecureRequestModal,
-//            ){
-//                if(showSecureAgreeModal) {
-//                    isSecured = E2EEHandler.isSecured(context, viewModel.address)
-//                    showSecureAgreeModal = false
-//                }
-//
-//                if(showSecureRequestModal)
-//                    showSecureRequestModal = false
-//            }
-//        }
-
         if(rememberDeleteAlert) {
             DeleteConfirmationAlert(
                 confirmCallback = {
@@ -884,7 +864,10 @@ fun ConversationsMainLayout(
                 viewModel.removeAllSelectedItems()
             }
         }
+
+        CustomComposable()
     }
+
 }
 
 @Composable

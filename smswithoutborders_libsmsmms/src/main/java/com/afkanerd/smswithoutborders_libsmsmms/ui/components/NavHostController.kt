@@ -49,8 +49,10 @@ fun NavHostControllerInstance(
     threadsViewModel: ThreadsViewModel,
     searchViewModel: SearchViewModel,
     threadsMainMenuItems: Map<String, () -> Unit>? = null,
+    conversationsCustomComposable: @Composable () -> Unit = {},
     builder: NavGraphBuilder.() -> Unit
 ) {
+    // TODO: fix folding
     val isFolded by remember {
         mutableStateOf(newLayoutInfo.displayFeatures.isNotEmpty())
     }
@@ -61,70 +63,73 @@ fun NavHostControllerInstance(
     ) {
         builder()
 
-        if(!isFolded) {
-            composable<HomeScreenNav>{ backStackEntry ->
-                ThreadConversationLayout(
-                    threadsViewModel = threadsViewModel,
-                    navController = navController,
-                    threadsMainMenuItems = threadsMainMenuItems,
-                )
-            }
-            composable<ConversationsScreenNav> { backStackEntry ->
-                val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
-                ConversationsMainLayout(
-                    address = convScreen.address,
-                    text = convScreen.text ?: "",
-                    searchQuery = convScreen.query,
-                    navController = navController,
-                    threadId = convScreen.threadId
-                )
-            }
-            composable<SearchScreenNav> { backStackEntry ->
-                val searchScreen: SearchScreenNav = backStackEntry.toRoute()
-                SearchThreadsMain(
-                    address = searchScreen.address,
-                    searchViewModel = searchViewModel,
-                    navController = navController
-                )
-            }
-            composable<ContactDetailsScreenNav>{ backStackEntry ->
-                val contactsDetailsScreen: ContactDetailsScreenNav = backStackEntry.toRoute()
-                ContactDetails(
-                    address = contactsDetailsScreen.address,
-                    navController = navController
-                )
-            }
-
-            composable<ComposeNewMessageScreenNav>{
-                ComposeNewMessage(navController = navController)
-            }
-
-            composable<SettingsScreenNav>{
-                SettingsMain(navController = navController)
-            }
-
-            composable<ImageViewScreenNav>{ backStackEntry ->
-                val imageViewScreen: ImageViewScreenNav = backStackEntry.toRoute()
-                ImageViewMain(
-                    contentUri = imageViewScreen.contentUri.toUri(),
-                    address = imageViewScreen.address,
-                    date = imageViewScreen.date,
-                    navController = navController,
-                    filename = imageViewScreen.filename,
-                    mimeType = imageViewScreen.mimeType
-                )
-            }
+        composable<HomeScreenNav>{ backStackEntry ->
+            ThreadConversationLayout(
+                threadsViewModel = threadsViewModel,
+                navController = navController,
+                threadsMainMenuItems = threadsMainMenuItems,
+            )
         }
-        else {
-            composable<HomeScreenNav>{ backStackEntry ->
-                val homeScreenNav: HomeScreenNav = backStackEntry.toRoute()
-                FoldOpen(
-                    threadsViewModel = threadsViewModel,
-                    homeScreenNav = homeScreenNav,
-                    navController = navController,
-                )
-            }
+        composable<ConversationsScreenNav> { backStackEntry ->
+            val convScreen: ConversationsScreenNav = backStackEntry.toRoute()
+            ConversationsMainLayout(
+                address = convScreen.address,
+                text = convScreen.text ?: "",
+                searchQuery = convScreen.query,
+                navController = navController,
+                threadId = convScreen.threadId,
+                CustomComposable = conversationsCustomComposable
+            )
         }
+        composable<SearchScreenNav> { backStackEntry ->
+            val searchScreen: SearchScreenNav = backStackEntry.toRoute()
+            SearchThreadsMain(
+                address = searchScreen.address,
+                searchViewModel = searchViewModel,
+                navController = navController
+            )
+        }
+        composable<ContactDetailsScreenNav>{ backStackEntry ->
+            val contactsDetailsScreen: ContactDetailsScreenNav = backStackEntry.toRoute()
+            ContactDetails(
+                address = contactsDetailsScreen.address,
+                navController = navController
+            )
+        }
+
+        composable<ComposeNewMessageScreenNav>{
+            ComposeNewMessage(navController = navController)
+        }
+
+        composable<SettingsScreenNav>{
+            SettingsMain(navController = navController)
+        }
+
+        composable<ImageViewScreenNav>{ backStackEntry ->
+            val imageViewScreen: ImageViewScreenNav = backStackEntry.toRoute()
+            ImageViewMain(
+                contentUri = imageViewScreen.contentUri.toUri(),
+                address = imageViewScreen.address,
+                date = imageViewScreen.date,
+                navController = navController,
+                filename = imageViewScreen.filename,
+                mimeType = imageViewScreen.mimeType
+            )
+        }
+
+//        if(!isFolded) {
+//
+//        }
+//        else {
+//            composable<HomeScreenNav>{ backStackEntry ->
+//                val homeScreenNav: HomeScreenNav = backStackEntry.toRoute()
+//                FoldOpen(
+//                    threadsViewModel = threadsViewModel,
+//                    homeScreenNav = homeScreenNav,
+//                    navController = navController,
+//                )
+//            }
+//        }
 
     }
 }

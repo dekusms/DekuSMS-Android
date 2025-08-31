@@ -100,33 +100,6 @@ object E2EEHandler {
         ).getString(derivePeerPublicKeystoreAlias(keystoreAlias), "")!!
     }
 
-    fun generateKey(context: Context, address: String): ByteArray {
-        val libSigCurve25519 = SecurityCurve25519()
-        val publicKey = libSigCurve25519.generateKey()
-
-        if(isSelf(context, address)) {
-            val encryptionPublicKey = SecurityRSA.generateKeyPair(
-                deriveSelfSecureRequestKeystoreAlias(address), 2048)
-
-            val privateKeyCipherText = SecurityRSA.encrypt(encryptionPublicKey,
-                libSigCurve25519.privateKey)
-
-            secureStoreKeypair(context, address, deriveSelfSecureRequestKeystoreAlias(address),
-                privateKeyCipherText, publicKey)
-        }
-        else {
-            val encryptionPublicKey = SecurityRSA.generateKeyPair(
-                deriveSecureRequestKeystoreAlias(address), 2048)
-
-            val privateKeyCipherText = SecurityRSA.encrypt(encryptionPublicKey,
-                libSigCurve25519.privateKey)
-
-            secureStoreKeypair(context, address, deriveSecureRequestKeystoreAlias(address),
-                privateKeyCipherText, publicKey)
-        }
-        return publicKey
-    }
-
     private fun getSecuredStoredKeypair(context: Context, address: String,
                                         isSelf: Boolean= false) : Pair<String, String> {
         val masterKey: MasterKey = MasterKey.Builder(context)
