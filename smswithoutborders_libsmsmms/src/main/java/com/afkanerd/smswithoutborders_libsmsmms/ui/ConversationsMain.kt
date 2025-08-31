@@ -3,18 +3,11 @@ package com.afkanerd.smswithoutborders_libsmsmms.ui
 import android.Manifest
 import androidx.compose.foundation.Image
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.net.Uri
-import android.provider.BlockedNumberContract
 import android.provider.Telephony
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,7 +60,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -93,20 +85,17 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.ImageLoader
 import coil3.compose.rememberAsyncImagePainter
-import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
-import androidx.core.graphics.createBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.paging.LoadState
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
@@ -117,7 +106,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getMimeTypeFr
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getUriForDrawable
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isShortCode
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
@@ -196,7 +184,9 @@ fun ConversationsMainLayout(
     text: String = "",
     foldOpen: Boolean = false,
     threadId: Int? = null,
-    CustomComposable: @Composable () -> Unit = {},
+    customComposable: (@Composable (String, ViewModel?) -> Unit)? = null,
+    customMenuItems: Map<String, () -> Unit>? = null,
+    customViewModel: ViewModel? = null,
     _items: List<Conversations>? = null
 ) {
     var text = text
@@ -420,6 +410,7 @@ fun ConversationsMainLayout(
 //                isMute = viewModel.isMuted(context)
             }
         },
+        customMenuCallbacks = customMenuItems,
     ) {
         rememberMenuExpanded = false
     }
@@ -865,7 +856,7 @@ fun ConversationsMainLayout(
             }
         }
 
-        CustomComposable()
+        customComposable?.invoke(address, customViewModel)
     }
 
 }

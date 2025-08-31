@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
+import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
@@ -43,6 +44,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneN
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 
@@ -51,9 +53,8 @@ class MainActivity : AppCompatActivity(){
 
     private lateinit var navController: NavHostController
 
-    private val conversationViewModel: ConversationsViewModel by viewModels()
     private val threadsViewModel: ThreadsViewModel by viewModels()
-    private val contactsViewModel: ContactsViewModel by viewModels()
+    private val secureViewModel: SecureConversationViewModel by viewModels()
 
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
@@ -89,8 +90,13 @@ class MainActivity : AppCompatActivity(){
                                         threadsViewModel = threadsViewModel,
                                         searchViewModel = searchViewModel,
                                         threadsMainMenuItems = getThreadMenuItems(),
-                                        conversationsCustomComposable = {
-                                            SecureConversationComposable()
+                                        customMenuItems = getConversationsMenuItems(),
+                                        conversationsCustomViewModel = secureViewModel, //This can be an array
+                                        conversationsCustomComposable = { address, vm ->
+                                            SecureConversationComposable(
+                                                address,
+                                                secureViewModel
+                                            )
                                         }
                                     ) {
                                         composable<RemoteListenersScreen> {
@@ -176,6 +182,15 @@ class MainActivity : AppCompatActivity(){
             Pair(stringResource(R.string.about_deku)) {
                 navController.navigate(AboutScreen)
             }
+        )
+    }
+
+    @Composable
+    private fun getConversationsMenuItems(): Map<String, () -> Unit> {
+        return mapOf(
+            Pair(stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure)) {
+                secureViewModel.setModal(true)
+            },
         )
     }
 

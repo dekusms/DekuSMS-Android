@@ -20,6 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +44,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.ui.MmsContentView
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 
 enum class ConversationPositionTypes(val value: Int) {
     NORMAL(0),
@@ -376,6 +378,7 @@ fun ConversationsMainDropDownMenu(
     isMute: Boolean = false,
     isBlocked: Boolean = false,
     isArchived: Boolean = false,
+    customMenuCallbacks: Map<String, () -> Unit>? = null,
     dismissCallback: ((Boolean) -> Unit)? = null,
 ) {
     val expanded = expanded
@@ -385,8 +388,25 @@ fun ConversationsMainDropDownMenu(
     ) {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { dismissCallback?.let{ it(false) }},
+            onDismissRequest = { dismissCallback?.invoke( false )},
         ) {
+            customMenuCallbacks?.forEach { item ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text=item.key,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    onClick = {
+                        dismissCallback?.invoke( false )
+                        item.value()
+                    }
+                )
+            }
+
+            HorizontalDivider()
+
             DropdownMenuItem(
                 text = {
                     Text(
@@ -396,7 +416,7 @@ fun ConversationsMainDropDownMenu(
                 },
                 onClick = {
                     searchCallback?.let{
-                        dismissCallback?.let { it(false) }
+                        dismissCallback?.invoke( false )
                         it()
                     }
                 }
@@ -412,7 +432,7 @@ fun ConversationsMainDropDownMenu(
                 },
                 onClick = {
                     blockCallback?.let {
-                        dismissCallback?.let { it(false) }
+                        dismissCallback?.invoke( false )
                         it()
                     }
                 }
@@ -428,7 +448,7 @@ fun ConversationsMainDropDownMenu(
                 },
                 onClick = {
                     archiveCallback?.let {
-                        dismissCallback?.let { it(false) }
+                        dismissCallback?.invoke( false )
                         it()
                     }
                 }
@@ -443,7 +463,7 @@ fun ConversationsMainDropDownMenu(
                 },
                 onClick = {
                     deleteCallback?.let {
-                        dismissCallback?.let { it(false) }
+                        dismissCallback?.invoke( false )
                         it()
                     }
                 }
@@ -459,7 +479,7 @@ fun ConversationsMainDropDownMenu(
                 },
                 onClick = {
                     muteCallback?.let {
-                        dismissCallback?.let { it(false) }
+                        dismissCallback?.invoke( false )
                         it()
                     }
                 }

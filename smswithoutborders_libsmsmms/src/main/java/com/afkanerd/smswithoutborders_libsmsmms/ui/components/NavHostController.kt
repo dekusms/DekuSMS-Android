@@ -17,13 +17,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import androidx.window.layout.WindowLayoutInfo
-import coil3.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ComposeNewMessage
 import com.afkanerd.smswithoutborders_libsmsmms.ui.ContactDetails
@@ -41,6 +41,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
+import kotlin.String
 
 @Composable
 fun NavHostControllerInstance(
@@ -49,8 +50,10 @@ fun NavHostControllerInstance(
     threadsViewModel: ThreadsViewModel,
     searchViewModel: SearchViewModel,
     threadsMainMenuItems: Map<String, () -> Unit>? = null,
-    conversationsCustomComposable: @Composable () -> Unit = {},
-    builder: NavGraphBuilder.() -> Unit
+    customMenuItems: Map<String, () -> Unit>? = null,
+    conversationsCustomComposable: (@Composable (String, ViewModel?) -> Unit)? = null,
+    conversationsCustomViewModel: ViewModel? = null,
+    builder: NavGraphBuilder.() -> Unit,
 ) {
     // TODO: fix folding
     val isFolded by remember {
@@ -78,7 +81,9 @@ fun NavHostControllerInstance(
                 searchQuery = convScreen.query,
                 navController = navController,
                 threadId = convScreen.threadId,
-                CustomComposable = conversationsCustomComposable
+                customComposable = conversationsCustomComposable,
+                customMenuItems = customMenuItems,
+                customViewModel = conversationsCustomViewModel,
             )
         }
         composable<SearchScreenNav> { backStackEntry ->
