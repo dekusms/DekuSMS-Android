@@ -31,8 +31,6 @@ fun SecureConversationComposable(viewModel: SecureConversationViewModel ) {
     val mode = viewModel.mode
     val showModal = viewModel.trigger
 
-    var simCardChooser by remember { mutableStateOf(false) }
-
     viewModel.address?.let { address ->
         val state by context.getEncryptionModeStates(address).collectAsState("")
 
