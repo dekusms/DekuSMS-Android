@@ -27,7 +27,7 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
         callback: (Conversations) -> Unit
     ) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Default) {
                 val type = when(mode) {
                     EncryptionController.SecureRequestMode.REQUEST_RECEIVED ->
                         EncryptionController.SecureRequestType.TYPE_ACCEPT

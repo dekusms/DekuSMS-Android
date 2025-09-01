@@ -452,5 +452,6 @@
     <string name="enable_24_hours_time_format">Enable 24 hours time format</string>
     <string name="block_contact">Block contact</string>
     <string name="lib_app_name" translatable="false">DekuSMS</string>
+    <string name="text_body_cannot_empty">Text body cannot empty!</string>
 
 </resources>

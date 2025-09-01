@@ -10,10 +10,13 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
+import android.util.Base64
+import android.widget.Toast
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
+import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
@@ -22,6 +25,9 @@ import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceive
 import com.google.gson.GsonBuilder
 import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Transaction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.text.MessageFormat
@@ -167,7 +173,13 @@ fun Context.sendSms(
     subscriptionId: Long,
     data: ByteArray? = null,
 ): Conversations? {
-    if(text.isEmpty()) return null
+    if(text.isEmpty() && data == null) {
+        CoroutineScope(Dispatchers.Main).launch {
+            Toast.makeText(this@sendSms,
+                getString(R.string.text_body_cannot_empty), Toast.LENGTH_LONG).show()
+        }
+        return null
+    }
 
     val address = makeE16PhoneNumber(address)
 
@@ -184,13 +196,14 @@ fun Context.sendSms(
             read = 1,
             status = Telephony.Sms.STATUS_PENDING,
             type = Telephony.Sms.MESSAGE_TYPE_QUEUED,
-            body = text,
+            body = if(data == null) text else {
+                Base64.encodeToString(data, Base64.DEFAULT)
+            },
             sub_id = subscriptionId,
         ), sms_data = data)
 
         insertSms(conversation)?.let { uri ->
-            val pendingIntents = if(data == null) getSmsPendingIntents(uri, conversation)
-            else getDataPendingIntent(uri, conversation)
+            val pendingIntents = getSmsPendingIntents(uri, conversation)
 
             sendSms(
                 address = address,
@@ -275,43 +288,6 @@ private fun Context.sendSms(
     updateSms(uri, conversation)
 }
 
-private fun Context.getDataPendingIntent(
-    uri: Uri?,
-    conversation: Conversations
-): Pair<PendingIntent, PendingIntent> {
-    val sentPendingIntent = PendingIntent.getBroadcast(
-        this,
-        conversation.id.toInt(),
-        Intent(this, SmsTextReceivedReceiver::class.java).apply {
-            setPackage(packageName)
-            action = SmsTextReceivedReceiver.DATA_SENT_BROADCAST_INTENT
-            this.putExtra("id", conversation.id)
-            this.putExtra("address", conversation.sms?.address)
-            this.putExtra("thread_id", conversation.sms?.thread_id)
-            this.putExtra("sub_id", conversation.sms?.sub_id)
-            this.putExtra("uri", uri)
-        },
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val deliveredPendingIntent = PendingIntent.getBroadcast(
-        this,
-        conversation.id.toInt(),
-        Intent(this, SmsTextReceivedReceiver::class.java).apply {
-            setPackage(packageName)
-            action = SmsTextReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT
-            this.putExtra("id", conversation.id)
-            this.putExtra("address", conversation.sms?.address)
-            this.putExtra("thread_id", conversation.sms?.thread_id)
-            this.putExtra("sub_id", conversation.sms?.sub_id)
-            this.putExtra("uri", uri)
-        },
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    return Pair(sentPendingIntent, deliveredPendingIntent)
-}
-
 private fun Context.getSmsPendingIntents(
     uri: Uri?,
     conversation: Conversations
@@ -321,7 +297,10 @@ private fun Context.getSmsPendingIntents(
         conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
-            action = SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT
+            action = if(conversation.sms_data == null)
+                SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT else
+                    SmsTextReceivedReceiver.DATA_SENT_BROADCAST_INTENT
+
             this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
@@ -336,7 +315,10 @@ private fun Context.getSmsPendingIntents(
         conversation.id.toInt(),
         Intent(this, SmsTextReceivedReceiver::class.java).apply {
             setPackage(packageName)
-            action = SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT
+            action = if(conversation.sms_data == null)
+                SmsTextReceivedReceiver.SMS_DELIVERED_BROADCAST_INTENT else
+                    SmsTextReceivedReceiver.DATA_DELIVERED_BROADCAST_INTENT
+
             this.putExtra("id", conversation.id)
             this.putExtra("address", conversation.sms?.address)
             this.putExtra("thread_id", conversation.sms?.thread_id)
