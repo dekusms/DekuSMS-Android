@@ -401,14 +401,7 @@ fun ConversationsMainLayout(
             )
         },
         muteCallback = {
-            coroutineScope.launch {
-                TODO("Implement mute")
-//                if(isMute) {
-//                    viewModel.unMute(context)
-//                }
-//                else viewModel.mute(context)
-//                isMute = viewModel.isMuted(context)
-            }
+            TODO("Implement unmute")
         },
         customMenuCallbacks = customMenuItems,
     ) {

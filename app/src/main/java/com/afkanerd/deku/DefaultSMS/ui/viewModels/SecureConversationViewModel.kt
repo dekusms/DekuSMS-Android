@@ -10,14 +10,13 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionControll
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SecureConversationViewModel: CustomsConversationsViewModel() {
-    var mode by mutableStateOf(EncryptionController.SecureRequestMode.REQUEST_SENT)
+class SecureConversationViewModel(): CustomsConversationsViewModel() {
+    var mode by mutableStateOf(EncryptionController.SecureRequestMode.REQUEST_NONE)
 
     fun requestSecureConversation(
         context: Context,
@@ -28,13 +27,7 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val type = when(mode) {
-                    EncryptionController.SecureRequestMode.REQUEST_RECEIVED ->
-                        EncryptionController.SecureRequestType.TYPE_ACCEPT
-                    else -> EncryptionController.SecureRequestType.TYPE_REQUEST
-                }
-
-                val publicKey = EncryptionController.sendRequest(context, address, type)
+                val publicKey = EncryptionController.sendRequest(context, address, mode)
 
                 try {
                     context.sendSms(

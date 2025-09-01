@@ -147,13 +147,6 @@ object E2EEHandler {
             Base64.decode(keypair.second, Base64.DEFAULT))
     }
 
-    fun calculateSharedSecret(context: Context, address: String, publicKey: ByteArray): ByteArray {
-        val keypair = fetchKeypair(context, address)
-        val privateKey = keypair.first
-        val libSigCurve25519 = SecurityCurve25519(privateKey)
-        return libSigCurve25519.calculateSharedSecret(publicKey)
-    }
-
 
     fun formatMessage(header: Headers, cipherText: ByteArray) : ByteArray {
         val mn: ByteArray = byteArrayOf(MagicNumber.MESSAGE.num.toByte())
@@ -487,26 +480,26 @@ object E2EEHandler {
         ).contains(deriveSecureRequestKeystoreAlias(address))
     }
 
-    fun encryptMessage(context: Context, text: String, address: String) : Pair<String, States?> {
-        var sendingState: States? = null
-        var text = text
-        val isSelf = E2EEHandler.isSelf(context, address)
-        if(E2EEHandler.isSecured(context, address)) {
-            val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey( context,
-                address, isSelf), Base64.DEFAULT)
-            var states = E2EEHandler.fetchStates(context, address)
-            if(states.isBlank()) {
-                val aliceState = States()
-                val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
-                Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
-                states = aliceState.serializedStates
-            }
-            sendingState = States(states)
-            val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
-                text.encodeToByteArray(), peerPublicKey)
-            val msg = E2EEHandler.formatMessage(headerCipherText.first, headerCipherText.second)
-            text = Base64.encodeToString(msg, Base64.DEFAULT)
-        }
-        return Pair(text, sendingState)
-    }
+//    fun encryptMessage(context: Context, text: String, address: String) : Pair<String, States?> {
+//        var sendingState: States? = null
+//        var text = text
+//        val isSelf = E2EEHandler.isSelf(context, address)
+//        if(E2EEHandler.isSecured(context, address)) {
+//            val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey( context,
+//                address, isSelf), Base64.DEFAULT)
+//            var states = E2EEHandler.fetchStates(context, address)
+//            if(states.isBlank()) {
+//                val aliceState = States()
+//                val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
+//                Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
+//                states = aliceState.serializedStates
+//            }
+//            sendingState = States(states)
+//            val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
+//                text.encodeToByteArray(), peerPublicKey)
+//            val msg = E2EEHandler.formatMessage(headerCipherText.first, headerCipherText.second)
+//            text = Base64.encodeToString(msg, Base64.DEFAULT)
+//        }
+//        return Pair(text, sendingState)
+//    }
 }

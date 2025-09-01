@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
+import android.widget.Toast
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders_libsmsmms.R
@@ -14,6 +15,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SmsMmsNotificationReceiver: BroadcastReceiver() {
     private val cls = MainActivity::class.java
@@ -31,7 +33,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                 }
                                 else -> {
                                     if(conversation.sms_data != null) {
-                                        processEncryptedContent(conversation)
+                                        processEncryptedContent(context, conversation)
                                     }
 
                                     context.notify(
@@ -67,12 +69,17 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
         conversation: Conversations
     ) {
         val data = conversation.sms_data!!
-        when(EncryptionController.getRequestType(data)) {
-            EncryptionController.SecureRequestType.TYPE_REQUEST -> {
-
+        try {
+            EncryptionController.receiveRequest(
+                context,
+                conversation.sms?.address!!,
+                data
+            )
+        } catch(e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
             }
-            EncryptionController.SecureRequestType.TYPE_ACCEPT -> TODO()
-            EncryptionController.SecureRequestType.TYPE_MESSAGE -> TODO()
         }
     }
 }

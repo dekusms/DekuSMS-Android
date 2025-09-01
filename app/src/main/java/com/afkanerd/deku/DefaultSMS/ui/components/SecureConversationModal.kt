@@ -15,8 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,12 +33,13 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SecureRequestAcceptModal(
-    address: String?,
+    address: String,
     show: Boolean = true,
     displayMode: EncryptionController.SecureRequestMode,
     dismissCallback: (() -> Unit)? = {},
@@ -47,6 +51,9 @@ fun SecureRequestAcceptModal(
         initialValue = if(inPreviewMode) SheetValue.Expanded else SheetValue.Hidden,
         skipHiddenState = false
     )
+
+    var contactName by remember{
+        mutableStateOf( context.retrieveContactName(address) ?: address )}
 
     val url = stringResource(
         R.string.conversations_secure_conversation_request_information_deku_encryption_link)
@@ -69,7 +76,39 @@ fun SecureRequestAcceptModal(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 when(displayMode) {
-                    EncryptionController.SecureRequestMode.REQUEST_SENT -> {
+                    EncryptionController.SecureRequestMode.REQUEST_RECEIVED -> {
+                        Text(
+                            text = stringResource(
+                                com.afkanerd.deku.DefaultSMS.R.string.has_requested_to_secure_this_conversation,
+                                contactName
+                            ),
+                            textAlign = TextAlign.Center,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string
+                                .conversations_secure_conversation_request_information),
+                            textAlign = TextAlign.Center,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        )
+
+                        Button(onClick = {
+                            scope.launch { state.hide() }
+                            onRequestClickedCallback()
+                        }) {
+                            Text(stringResource(R.string.conversations_secure_conversation_request_agree))
+                        }
+
+                        TextButton (onClick={
+                            context.startActivity(intent)
+                        }) {
+                            Text(stringResource(R.string
+                                .conversations_secure_conversation_request_information_deku_encryption_read_more))
+                        }
+                    }
+                    else -> {
                         Text(
                             text = stringResource(R.string.secure_request),
                             style = MaterialTheme.typography.titleLarge,
@@ -84,7 +123,7 @@ fun SecureRequestAcceptModal(
                         )
 
                         Text(
-                            text = address ?: "",
+                            text = address,
                             style = MaterialTheme.typography.labelMedium,
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.SemiBold,
@@ -115,36 +154,6 @@ fun SecureRequestAcceptModal(
                         }
                     }
 
-                    EncryptionController.SecureRequestMode.REQUEST_RECEIVED -> {
-                        Text(
-                            text = stringResource(R.string.conversations_secure_conversation_request),
-                            textAlign = TextAlign.Center,
-                            fontSize = 20.sp,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string
-                                .conversations_secure_conversation_request_information),
-                            textAlign = TextAlign.Center,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(bottom = 24.dp)
-                        )
-
-                        Button(onClick = {
-                            scope.launch { state.hide() }
-                            onRequestClickedCallback()
-                        }) {
-                            Text(stringResource(R.string.conversations_secure_conversation_request_agree))
-                        }
-
-                        TextButton (onClick={
-                            context.startActivity(intent)
-                        }) {
-                            Text(stringResource(R.string
-                                .conversations_secure_conversation_request_information_deku_encryption_read_more))
-                        }
-                    }
-                    else -> {}
                 }
             }
         }
@@ -158,7 +167,7 @@ fun SecureRequestModal_RequestFlow_Preview() {
     SecureRequestAcceptModal(
         "+237123456789",
         true,
-        displayMode = EncryptionController.SecureRequestMode.REQUEST_SENT,
+        displayMode = EncryptionController.SecureRequestMode.REQUEST_NONE,
         dismissCallback = {}
     ){}
 }

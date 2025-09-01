@@ -426,5 +426,6 @@
     <string name="messages_loaded">Messages loaded!</string>
     <string name="to_1">To</string>
     <string name="secure">Secure</string>
+    <string name="has_requested_to_secure_this_conversation">%1$s has requested to secure this conversation.</string>
 
 </resources>

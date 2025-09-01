@@ -303,13 +303,13 @@ fun ThreadConversationCard(
                 if(isMuted)
                     Icon(Icons.Default.NotificationsOff,
                         stringResource(R.string.thread_muted),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
 
                 if(isBlocked)
                     Icon(Icons.Filled.Block,
                         stringResource(R.string.contact_is_blocked),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
             }
         },

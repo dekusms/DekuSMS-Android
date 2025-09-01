@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -8,7 +9,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.DefaultSMS.ui.components.SecureRequestAcceptModal
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptedState
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStates
+import com.google.gson.Gson
 
 @Composable
 fun SecureConversationComposable(viewModel: SecureConversationViewModel ) {
@@ -18,17 +21,24 @@ fun SecureConversationComposable(viewModel: SecureConversationViewModel ) {
     val showModal = viewModel.showModal
 
     viewModel.address?.let { address ->
-        val state = context.getEncryptedState(address)
-            .collectAsState(EncryptionController.SecureRequestMode.REQUEST_SENT.name) ?: ""
+        val state by context.getEncryptionModeStates(address).collectAsState("")
 
         LaunchedEffect(state) {
-            if(state == EncryptionController.SecureRequestMode.REQUEST_RECEIVED.name) {
-                viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED
-                viewModel.setModal(true)
+            if(!state.isNullOrEmpty()) {
+                val currentState = Gson().fromJson(state,
+                    SavedEncryptedModes::class.java)
+
+                if(currentState.mode == EncryptionController.SecureRequestMode.REQUEST_RECEIVED) {
+                    viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED
+                    viewModel.setModal(true)
+                }
+                else if(currentState.mode == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED) {
+                    viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_ACCEPTED
+                    Toast.makeText(context, "Secure conversation!", Toast.LENGTH_LONG)
+                        .show()
+                }
             }
         }
-
-        // TODO: if MODE_ACCEPT stop user from sending any further
 
         SecureRequestAcceptModal(
             address = address,
