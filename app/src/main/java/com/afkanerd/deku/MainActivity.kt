@@ -92,11 +92,9 @@ class MainActivity : AppCompatActivity(){
                                         threadsMainMenuItems = getThreadMenuItems(),
                                         customMenuItems = getConversationsMenuItems(),
                                         conversationsCustomViewModel = secureViewModel, //This can be an array
-                                        conversationsCustomComposable = { address, vm ->
+                                        conversationsCustomComposable = { vm ->
                                             SecureConversationComposable(
-                                                address,
-                                                secureViewModel
-                                            )
+                                                vm as SecureConversationViewModel)
                                         }
                                     ) {
                                         composable<RemoteListenersScreen> {

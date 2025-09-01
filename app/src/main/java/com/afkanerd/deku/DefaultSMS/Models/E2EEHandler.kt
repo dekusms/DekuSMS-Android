@@ -2,14 +2,12 @@ package com.afkanerd.deku.DefaultSMS.Models
 
 import android.content.Context
 import android.util.Base64
-import android.widget.Toast
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.BuildConfig
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityCurve25519
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.extensions.getKeypairFromKeystore
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
@@ -140,10 +138,10 @@ object E2EEHandler {
         }
 
         val cipherPrivateKey = Base64.decode(cipherPrivateKeyString, Base64.DEFAULT)
-        val secretKeyKeypair = if(isSelf) KeystoreHelpers
-            .getKeyPairFromKeystore(deriveSelfSecureRequestKeystoreAlias(address))
+        val secretKeyKeypair = if(isSelf) context
+            .getKeypairFromKeystore(deriveSelfSecureRequestKeystoreAlias(address))!!
         else
-            KeystoreHelpers.getKeyPairFromKeystore(deriveSecureRequestKeystoreAlias(address))
+            context.getKeypairFromKeystore(deriveSecureRequestKeystoreAlias(address))!!
 
         return android.util.Pair(SecurityRSA.decrypt(secretKeyKeypair.private, cipherPrivateKey),
             Base64.decode(keypair.second, Base64.DEFAULT))
@@ -156,13 +154,6 @@ object E2EEHandler {
         return libSigCurve25519.calculateSharedSecret(publicKey)
     }
 
-    fun formatRequestPublicKey(publicKey: ByteArray, magicNumber: MagicNumber) : ByteArray {
-        val mn: ByteArray = byteArrayOf(magicNumber.num.toByte())
-        val lenPubKey = ByteArray(4)
-        ByteBuffer.wrap(lenPubKey).order(ByteOrder.LITTLE_ENDIAN).putInt(publicKey.size)
-
-        return mn + lenPubKey + publicKey
-    }
 
     fun formatMessage(header: Headers, cipherText: ByteArray) : ByteArray {
         val mn: ByteArray = byteArrayOf(MagicNumber.MESSAGE.num.toByte())
@@ -468,9 +459,9 @@ object E2EEHandler {
         if(encodedEncryptedState.isNullOrBlank())
             return ""
 
-        val keypair = if(isSelf) KeystoreHelpers.getKeyPairFromKeystore(
-            deriveSelfSaveStatesEncryptKeystoreAlias(address))
-        else KeystoreHelpers.getKeyPairFromKeystore(deriveSaveStatesEncryptKeystoreAlias(address))
+        val keypair = if(isSelf) context.getKeypairFromKeystore(
+            deriveSelfSaveStatesEncryptKeystoreAlias(address))!!
+        else context.getKeypairFromKeystore(deriveSaveStatesEncryptKeystoreAlias(address))!!
 
         val secretKeyEncrypted = if(isSelf)
             sharedPreferences.getString("self_secret_key", "")!!

@@ -39,6 +39,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ImageViewScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SettingsScreenNav
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import kotlin.String
@@ -51,8 +52,8 @@ fun NavHostControllerInstance(
     searchViewModel: SearchViewModel,
     threadsMainMenuItems: Map<String, () -> Unit>? = null,
     customMenuItems: Map<String, () -> Unit>? = null,
-    conversationsCustomComposable: (@Composable (String, ViewModel?) -> Unit)? = null,
-    conversationsCustomViewModel: ViewModel? = null,
+    conversationsCustomComposable: (@Composable (CustomsConversationsViewModel?) -> Unit)? = null,
+    conversationsCustomViewModel: CustomsConversationsViewModel? = null,
     builder: NavGraphBuilder.() -> Unit,
 ) {
     // TODO: fix folding
@@ -83,7 +84,7 @@ fun NavHostControllerInstance(
                 threadId = convScreen.threadId,
                 customComposable = conversationsCustomComposable,
                 customMenuItems = customMenuItems,
-                customViewModel = conversationsCustomViewModel,
+                customsConversationsViewModel = conversationsCustomViewModel,
             )
         }
         composable<SearchScreenNav> { backStackEntry ->

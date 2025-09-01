@@ -130,6 +130,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.HomeScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ImageViewScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.SearchScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -184,9 +185,9 @@ fun ConversationsMainLayout(
     text: String = "",
     foldOpen: Boolean = false,
     threadId: Int? = null,
-    customComposable: (@Composable (String, ViewModel?) -> Unit)? = null,
+    customComposable: (@Composable (CustomsConversationsViewModel?) -> Unit)? = null,
     customMenuItems: Map<String, () -> Unit>? = null,
-    customViewModel: ViewModel? = null,
+    customsConversationsViewModel: CustomsConversationsViewModel? = null,
     _items: List<Conversations>? = null
 ) {
     var text = text
@@ -262,7 +263,6 @@ fun ConversationsMainLayout(
     var rememberMenuExpanded by remember { mutableStateOf( false) }
     var openSimCardChooser by remember { mutableStateOf(inPreviewMode) }
     var searchIndexes by remember { mutableStateOf(emptyList<Int>())}
-
 
     val inboxMessagesItems = messages.collectAsLazyPagingItems()
 
@@ -856,7 +856,11 @@ fun ConversationsMainLayout(
             }
         }
 
-        customComposable?.invoke(address, customViewModel)
+        customComposable?.invoke(customsConversationsViewModel?.apply {
+            setConversationAddress(address)
+            setConversationThreadId(threadId)
+            setConversationSubscriptionId(subscriptionId)
+        })
     }
 
 }

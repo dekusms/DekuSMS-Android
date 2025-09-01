@@ -1,7 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.ui.components
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,12 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,11 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.afkanerd.smswithoutborders_libsmsmms.BuildConfig
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -44,7 +37,7 @@ import kotlinx.coroutines.launch
 fun SecureRequestAcceptModal(
     address: String?,
     show: Boolean = true,
-    displayMode: EncryptionController.EncryptionMode,
+    displayMode: EncryptionController.SecureRequestMode,
     dismissCallback: (() -> Unit)? = {},
     onRequestClickedCallback: () -> Unit,
 ) {
@@ -76,7 +69,7 @@ fun SecureRequestAcceptModal(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 when(displayMode) {
-                    EncryptionController.EncryptionMode.REQUEST_SENT -> {
+                    EncryptionController.SecureRequestMode.REQUEST_SENT -> {
                         Text(
                             text = stringResource(R.string.secure_request),
                             style = MaterialTheme.typography.titleLarge,
@@ -122,7 +115,7 @@ fun SecureRequestAcceptModal(
                         }
                     }
 
-                    EncryptionController.EncryptionMode.REQUEST_RECEIVED -> {
+                    EncryptionController.SecureRequestMode.REQUEST_RECEIVED -> {
                         Text(
                             text = stringResource(R.string.conversations_secure_conversation_request),
                             textAlign = TextAlign.Center,
@@ -165,7 +158,7 @@ fun SecureRequestModal_RequestFlow_Preview() {
     SecureRequestAcceptModal(
         "+237123456789",
         true,
-        displayMode = EncryptionController.EncryptionMode.REQUEST_SENT,
+        displayMode = EncryptionController.SecureRequestMode.REQUEST_SENT,
         dismissCallback = {}
     ){}
 }
@@ -177,7 +170,7 @@ fun SecureRequestModal_AcceptFlow_Preview() {
     SecureRequestAcceptModal(
         "+237123456789",
         true,
-        displayMode = EncryptionController.EncryptionMode.REQUEST_RECEIVED,
+        displayMode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED,
         dismissCallback = {}
     ){}
 }

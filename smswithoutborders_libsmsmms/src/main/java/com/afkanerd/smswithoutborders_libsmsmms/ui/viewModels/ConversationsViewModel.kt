@@ -203,6 +203,7 @@ class ConversationsViewModel: ViewModel() {
         address: String,
         subscriptionId: Long,
         threadId: Int,
+        data: ByteArray? = null,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -213,6 +214,7 @@ class ConversationsViewModel: ViewModel() {
                         address = address,
                         threadId = threadId,
                         subscriptionId = subscriptionId,
+                        data = data,
                     )?.let { conversation ->
                         callback(conversation)
                     }
