@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import com.afkanerd.deku.MainActivity
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
@@ -29,6 +30,10 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                     notifyMessageFailedToSend(context, conversation)
                                 }
                                 else -> {
+                                    if(conversation.sms_data != null) {
+                                        processEncryptedContent(conversation)
+                                    }
+
                                     context.notify(
                                         conversation = conversation,
                                         cls = cls,
@@ -55,5 +60,19 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
             text = content,
             cls = cls,
         )
+    }
+
+    private suspend fun processEncryptedContent(
+        context: Context,
+        conversation: Conversations
+    ) {
+        val data = conversation.sms_data!!
+        when(EncryptionController.getRequestType(data)) {
+            EncryptionController.SecureRequestType.TYPE_REQUEST -> {
+
+            }
+            EncryptionController.SecureRequestType.TYPE_ACCEPT -> TODO()
+            EncryptionController.SecureRequestType.TYPE_MESSAGE -> TODO()
+        }
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.DropdownMenu
@@ -300,10 +301,16 @@ fun ThreadConversationCard(
                 )
 
                 if(isMuted)
-                    Icon(Icons.AutoMirrored.Default.VolumeOff, stringResource(R.string.thread_muted))
+                    Icon(Icons.Default.NotificationsOff,
+                        stringResource(R.string.thread_muted),
+                        modifier = Modifier.size(14.dp)
+                    )
 
                 if(isBlocked)
-                    Icon(Icons.Filled.Block, stringResource(R.string.contact_is_blocked))
+                    Icon(Icons.Filled.Block,
+                        stringResource(R.string.contact_is_blocked),
+                        modifier = Modifier.size(14.dp)
+                    )
             }
         },
         supportingContent = {

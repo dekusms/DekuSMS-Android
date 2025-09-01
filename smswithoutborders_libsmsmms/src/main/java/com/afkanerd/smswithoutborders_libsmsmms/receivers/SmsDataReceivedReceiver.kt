@@ -6,79 +6,32 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.util.Base64
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerIncomingSms
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.IOException
 import kotlin.text.toInt
 
 //import org.bouncycastle.operator.OperatorCreationException;
 class SmsDataReceivedReceiver : BroadcastReceiver() {
-    //    var databaseConnector: Datastore? = null
-//
-//    override fun onReceive(context: Context, intent: Intent) {
-//        /**
-//         * Important note: either image or dump it
-//         */
-//
-//        databaseConnector = Datastore.getDatastore(context)
-//
-//        if (intent.action == Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION) {
-//            if (resultCode == Activity.RESULT_OK) {
-//                try {
-//                    val regIncomingOutput =
-//                        NativeSMSDB.Incoming.register_incoming_data(context, intent)
-//
-//                    val threadId = regIncomingOutput[NativeSMSDB.THREAD_ID]
-//                    val messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID]
-//                    val data = regIncomingOutput[NativeSMSDB.BODY]
-//                    val address = regIncomingOutput[NativeSMSDB.ADDRESS]
-//                    val strSubscriptionId = regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]
-//                    val dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT]
-//                    val date = regIncomingOutput[NativeSMSDB.DATE]
-//                    val subscriptionId = strSubscriptionId.toInt()
-//
-//                    val byteData = Base64.decode(data, Base64.DEFAULT)
-//                    val isValidKey = isValidPublicKey(byteData)
-//
-//                    TODO("Data not completely implemented")
-////                    val conversation = Conversations()
-////                    conversation.data = data
-////                    conversation.address = address
-////                    conversation.isIs_key = isValidKey
-////                    conversation.message_id = messageId
-////                    conversation.thread_id = threadId
-////                    conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX
-////                    conversation.subscription_id = subscriptionId
-////                    conversation.date_sent = dateSent
-////                    conversation.date = date
-////
-////                    var isSelf = false
-////                    var isSecured = false
-////                    if (isValidKey) {
-////                        try {
-////                            val res = processAndGetFlags(context, byteData, address)
-////                            isSelf = res[0]
-////                            isSecured = res[1]
-////                        } catch (e: Exception) {
-////                            e.printStackTrace()
-////                        }
-////                    }
-////                    conversation.isIs_key = true
-////                    conversation.isIs_encrypted = isSecured
-////                    conversation.isData = true
-////
-////                    val finalIsSelf = isSelf
-////                    CoroutineScope(Dispatchers.Default).launch {
-////                        val conversations =
-////                            databaseConnector!!.conversationDao()._insert(conversation)
-////
-////                        if (!ConversationsViewModel().isMuted(context, conversation.thread_id))
-////                            context.notifyText(conversation)
-////                    }
-//                } catch (e: IOException) {
-//                    e.printStackTrace()
-//                }
-//            }
-//        }
-//    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if(context == null || intent == null) return
+
+        if(intent.action == Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION) {
+            if (resultCode == Activity.RESULT_OK) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val conversation = context.registerIncomingSms(intent)
+                    context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
+                        if(!it.isMute) context.sendNotificationBroadcast(conversation)
+                    }
+                }
+            }
+        }
+    }
 //
 //    private fun processAndGetFlags(
 //        context: Context,
@@ -134,7 +87,4 @@ class SmsDataReceivedReceiver : BroadcastReceiver() {
 ////        var DATA_DELIVERED_BROADCAST_INTENT: String =
 ////            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT"
 ////    }
-    override fun onReceive(context: Context?, intent: Intent?) {
-        TODO("Not yet implemented")
-    }
 }

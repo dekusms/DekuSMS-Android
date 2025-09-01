@@ -29,8 +29,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.text.MessageFormat
 
 @Throws
 fun Context.updateMms(conversation: Conversations) {
@@ -403,6 +401,48 @@ fun Context.sendMms(
     }
     return conversation
 }
+
+
+fun Context.registerIncomingSms(intent: Intent): Conversations {
+    val bundle = intent.extras
+    val subscriptionId = bundle!!.getInt("subscription", -1)
+    var address: String? = ""
+    val bodyBuffer = StringBuilder()
+    val dataBuffer = ByteArrayOutputStream()
+    var dateSent: Long = 0
+    val date = System.currentTimeMillis()
+    var status = -1
+
+    for (currentSMS in Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+        address = currentSMS.displayOriginatingAddress
+        bodyBuffer.append(currentSMS.displayMessageBody)
+        dataBuffer.write(currentSMS.userData)
+        dateSent = currentSMS.timestampMillis
+        status = currentSMS.status
+    }
+    val body = bodyBuffer.toString()
+
+    // TODO: process encrypted message
+    val conversation = Conversations(
+        sms = SmsMmsNatives.Sms(
+            body = body,
+            sub_id = subscriptionId.toLong(),
+            date = date,
+            date_sent = dateSent,
+            address = address!!,
+            type = Telephony.Sms.MESSAGE_TYPE_INBOX,
+            status = status,
+            thread_id = getThreadId(address),
+            read = 0,
+        ),
+    ).apply {
+        if(bodyBuffer.isNotEmpty()) sms_data = dataBuffer.toByteArray()
+    }
+
+    insertSms(conversation)
+    return conversation
+}
+
 
 @Throws
 fun Context.loadRawSmsMmsDb() : List<Conversations>{

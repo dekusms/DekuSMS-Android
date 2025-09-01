@@ -14,7 +14,7 @@ data class Conversations(
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
     @Embedded var sms: SmsMmsNatives.Sms? = null,
     @Embedded("mms_") var mms: SmsMmsNatives.Mms? = null,
-    val sms_data: ByteArray? = null,
+    var sms_data: ByteArray? = null,
     val mms_text: String? = null,
     var mms_content_uri: String? = null,
     val mms_mimetype: String? = null,

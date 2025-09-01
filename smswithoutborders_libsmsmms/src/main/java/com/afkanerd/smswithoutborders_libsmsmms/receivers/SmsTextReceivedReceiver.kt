@@ -11,6 +11,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerIncomingSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.updateSms
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +33,7 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
             Telephony.Sms.Intents.SMS_DELIVER_ACTION -> {
                 if (resultCode == Activity.RESULT_OK) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        val conversation = registerIncomingText(context, intent)
+                        val conversation = context.registerIncomingSms(intent)
                         context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
                             if(!it.isMute) context.sendNotificationBroadcast(conversation)
                         }
@@ -92,41 +93,6 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
             }
         }
 
-    }
-
-    fun registerIncomingText(context: Context, intent: Intent): Conversations {
-        val bundle = intent.extras
-        val subscriptionId = bundle!!.getInt("subscription", -1)
-        var address: String? = ""
-        val bodyBuffer = StringBuilder()
-        var dateSent: Long = 0
-        val date = System.currentTimeMillis()
-        var status = -1
-
-        for (currentSMS in Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-            address = currentSMS.displayOriginatingAddress
-            bodyBuffer.append(currentSMS.displayMessageBody)
-            dateSent = currentSMS.timestampMillis
-            status = currentSMS.status
-        }
-        val body = bodyBuffer.toString()
-
-        // TODO: process encrypted message
-        val conversation = Conversations(
-            sms = SmsMmsNatives.Sms(
-                body = body,
-                sub_id = subscriptionId.toLong(),
-                date = date,
-                date_sent = dateSent,
-                address = address!!,
-                type = Telephony.Sms.MESSAGE_TYPE_INBOX,
-                status = status,
-                thread_id = context.getThreadId(address),
-                read = 0,
-            )
-        )
-        context.insertSms(conversation)
-        return conversation
     }
 
 }
