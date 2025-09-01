@@ -1,12 +1,17 @@
 package com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels
 
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 open class CustomsConversationsViewModel : ViewModel() {
-    var showModal by mutableStateOf(false)
+    var trigger by mutableStateOf(false)
         private set
 
     var address: String? by mutableStateOf(null)
@@ -28,9 +33,10 @@ open class CustomsConversationsViewModel : ViewModel() {
 
     fun setConversationSubscriptionId(subscriptionId: Long?) {
         this.subscriptionId = subscriptionId
+
     }
 
     fun setModal(show: Boolean) {
-        showModal = show
+        trigger = show
     }
 }

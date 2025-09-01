@@ -7,6 +7,7 @@ import android.provider.Telephony
 import android.widget.Toast
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
@@ -30,6 +31,11 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                             when(conversation.sms?.status) {
                                 Telephony.Sms.STATUS_FAILED -> {
                                     notifyMessageFailedToSend(context, conversation)
+
+                                    if(conversation.sms_data != null) {
+                                        context.removeEncryptionModeStates(
+                                            conversation.sms?.address!!)
+                                    }
                                 }
                                 else -> {
                                     if(conversation.sms_data != null) {

@@ -1,13 +1,25 @@
 package com.afkanerd.deku.DefaultSMS.ui.components
 
 import android.content.Intent
+import android.telephony.SubscriptionInfo
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -22,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
@@ -33,16 +46,25 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionBitmap
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
+import com.afkanerd.smswithoutborders_libsmsmms.ui.components.SimChooser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SecureRequestAcceptModal(
     address: String,
+    subscriptionId: Long,
     show: Boolean = true,
     displayMode: EncryptionController.SecureRequestMode,
     dismissCallback: (() -> Unit)? = {},
+    simCardChanger: (SubscriptionInfo) -> Unit = {},
     onRequestClickedCallback: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -94,6 +116,18 @@ fun SecureRequestAcceptModal(
                             modifier = Modifier.padding(bottom = 24.dp)
                         )
 
+                        Spacer(Modifier.padding(16.dp))
+                        SimCardLayout(subscriptionId, simCardChanger)
+                        Spacer(Modifier.padding(8.dp))
+                        Text(
+                            text = stringResource(
+                                R.string
+                                    .conversation_secure_popup_request_menu_description_subtext),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(4.dp)
+                        )
+
                         Button(onClick = {
                             scope.launch { state.hide() }
                             onRequestClickedCallback()
@@ -117,33 +151,23 @@ fun SecureRequestAcceptModal(
                         )
 
                         Text(
-                            text = stringResource(com.afkanerd.deku.DefaultSMS.R.string.to_1),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-
-                        Text(
-                            text = address,
-                            style = MaterialTheme.typography.labelMedium,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom=16.dp),
-                        )
-
-                        Text(
                             text = stringResource(
                                 R.string
                                     .conversation_secure_popup_request_menu_description),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                         )
+
+                        Spacer(Modifier.padding(16.dp))
+                        SimCardLayout(subscriptionId, simCardChanger)
+                        Spacer(Modifier.padding(8.dp))
                         Text(
                             text = stringResource(
                                 R.string
                                     .conversation_secure_popup_request_menu_description_subtext),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(4.dp)
                         )
 
                         Button (onClick = {
@@ -160,12 +184,72 @@ fun SecureRequestAcceptModal(
     }
 }
 
+@Composable
+fun SimCardLayout(
+    subscriptionId: Long,
+    simCardChanger: (SubscriptionInfo) -> Unit
+) {
+    val context = LocalContext.current
+    val inPreviewMode = LocalInspectionMode.current
+    val simCardsInfo = if(inPreviewMode) listOf() else context.getSimCardInformation()
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        if(LocalInspectionMode.current || context.isDualSim()) {
+            simCardsInfo?.forEach { simInfo ->
+                IconButton(onClick = {
+                    simCardChanger(simInfo)
+                }) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = (if(simInfo.subscriptionId
+                            == subscriptionId.toInt())
+                            Modifier.background(MaterialTheme
+                                .colorScheme.onPrimary) else Modifier)
+                            .padding(8.dp)
+                    ) {
+                        if(LocalInspectionMode.current) {
+                            Icon(
+                                Icons.Outlined.SimCard,
+                                "Simcard information",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        } else {
+                            context.getSubscriptionBitmap(
+                                simInfo.subscriptionId)
+                                ?.asImageBitmap()?.let { image ->
+                                    Image(
+                                        image,
+                                        stringResource(
+                                            R.string.choose_sim_card),
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                        }
+                        Spacer(Modifier.padding(8.dp))
+                        Text(
+                            if(inPreviewMode) "Unknown" else
+                                simInfo.carrierName.toString(),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Preview(showBackground = true, name = "Secure Request Modal - Request Flow")
 @Composable
 fun SecureRequestModal_RequestFlow_Preview() {
     SecureRequestAcceptModal(
         "+237123456789",
+        -1,
         true,
         displayMode = EncryptionController.SecureRequestMode.REQUEST_NONE,
         dismissCallback = {}
@@ -178,6 +262,7 @@ fun SecureRequestModal_RequestFlow_Preview() {
 fun SecureRequestModal_AcceptFlow_Preview() {
     SecureRequestAcceptModal(
         "+237123456789",
+        -1,
         true,
         displayMode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED,
         dismissCallback = {}
