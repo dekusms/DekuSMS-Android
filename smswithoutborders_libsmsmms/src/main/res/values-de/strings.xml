@@ -388,6 +388,8 @@
     <string name="theme">Thema</string>
     <string name="when_turned_off_would_use_your_system_s_default_time_format">Wenn deaktiviert, wird das Standardzeitformat Ihres Systems verwendet</string>
     <string name="enable_24_hours_time_format">24-Stunden-Zeitformat aktivieren</string>
+    <string name="block_contact">Kontakt blockieren</string>
+    <string name="text_body_cannot_empty">Textkörper darf nicht leer sein!</string>
 
 
 </resources>

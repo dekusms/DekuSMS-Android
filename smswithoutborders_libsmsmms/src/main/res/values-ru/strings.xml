@@ -407,5 +407,7 @@
     <string name="theme">Temat</string>
     <string name="when_turned_off_would_use_your_system_s_default_time_format">При выключении будет использоваться формат времени вашей системы по умолчанию.</string>
     <string name="enable_24_hours_time_format">Включить 24-часовой формат времени</string>
+    <string name="block_contact">Блокировать контакт</string>
+    <string name="text_body_cannot_empty">Текстовое поле не может быть пустым!</string>
 
 </resources>

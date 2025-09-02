@@ -363,5 +363,7 @@
     <string name="theme">Thème</string>
     <string name="when_turned_off_would_use_your_system_s_default_time_format">Lorsqu\'il est désactivé, le format d\'heure par défaut de votre système sera utilisé.</string>
     <string name="enable_24_hours_time_format">24-Stunden-Zeitformat aktivieren</string>
+    <string name="block_contact">Contact de bloc</string>
+    <string name="text_body_cannot_empty">Le corps du texte ne peut pas être vide !</string>
 
 </resources>

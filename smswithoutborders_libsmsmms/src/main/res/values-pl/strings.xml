@@ -450,6 +450,8 @@
     <string name="theme">Temat</string>
     <string name="when_turned_off_would_use_your_system_s_default_time_format">Po wyłączeniu zostanie użyty domyślny format czasu systemu</string>
     <string name="enable_24_hours_time_format">Włącz format czasu 24-godzinnego</string>
+    <string name="block_contact">Zablokuj kontakt</string>
+    <string name="text_body_cannot_empty">Treść tekstu nie może być pusta!</string>
 
 
 </resources>
