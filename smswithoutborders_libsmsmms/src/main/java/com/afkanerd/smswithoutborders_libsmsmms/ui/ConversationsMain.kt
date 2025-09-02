@@ -203,6 +203,10 @@ fun ConversationsMainLayout(
     val inPreviewMode = LocalInspectionMode.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
+    val scope = rememberCoroutineScope()
+    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
+    val listState = rememberLazyListState()
+
     val address = context.makeE16PhoneNumber(address)
 
     val dualSim = if(inPreviewMode) true else context.isDualSim()
@@ -237,7 +241,18 @@ fun ConversationsMainLayout(
                 }
             }
             if(event == Lifecycle.Event.ON_RESUME) {
-                text = ""
+                if(text.isBlank()) {
+                    viewModel.fetchDraft(context, threadId) {
+                        typingText = it?.sms?.body!!
+                        viewModel.clearDraft(context, it)
+                        if(searchQuery.isNullOrEmpty()) {
+                            scope.launch{
+                                listState.animateScrollToItem(0)
+                            }
+                        }
+                    }
+                }
+
                 val threadsViewModel = ThreadsViewModel()
                 threadsViewModel.get(context, threadId) {
                     it?.let { thread ->
@@ -246,6 +261,7 @@ fun ConversationsMainLayout(
                         }))
                     }
                 }
+
             }
         }
 
@@ -257,8 +273,6 @@ fun ConversationsMainLayout(
     }
 
     val messages = viewModel.getConversations(context, threadId)
-    val scope = rememberCoroutineScope()
-    val coroutineScope = remember { CoroutineScope(Dispatchers.Default) }
 
     var showFailedRetryModal by rememberSaveable { mutableStateOf(false) }
     var rememberMenuExpanded by remember { mutableStateOf( false) }
@@ -269,7 +283,6 @@ fun ConversationsMainLayout(
 
     val selectedItems by viewModel.selectedItems.collectAsState()
 
-    val listState = rememberLazyListState()
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
@@ -331,17 +344,6 @@ fun ConversationsMainLayout(
             context.cancelNotification(threadId)
         }
 
-        if(text.isBlank()) {
-            viewModel.fetchDraft(context, threadId) {
-                typingText = it?.sms?.body!!
-                viewModel.clearDraft(context, it)
-                if(searchQuery.isNullOrEmpty()) {
-                    scope.launch{
-                        listState.animateScrollToItem(0)
-                    }
-                }
-            }
-        }
     }
 
     BackHandler {

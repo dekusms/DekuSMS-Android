@@ -430,5 +430,6 @@
     <string name="security_status">Security status</string>
     <string name="changed_subscription_to">"Changed subscription to: "</string>
     <string name="secure_conversation">Secure conversation!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Empty encrypted cipher... something went wrong!</string>
 
 </resources>

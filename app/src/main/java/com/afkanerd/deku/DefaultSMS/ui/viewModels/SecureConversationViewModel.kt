@@ -11,6 +11,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,8 +28,29 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
         data: ByteArray?,
         callback: (Conversations?) -> Unit
     ) {
-        TODO("Override the text in here")
-        super.sendSms(context, text, address, subscriptionId, threadId, data, callback)
+        viewModelScope.launch {
+            if(mode == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED) {
+                withContext(Dispatchers.Default) {
+                    val cipherText = EncryptionController.encrypt(
+                        context = context,
+                        address = address,
+                        text = text
+                    )
+                    if(cipherText.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                context.getString(com.afkanerd.deku.DefaultSMS.R.string.empty_encrypted_cipher_something_went_wrong),
+                                Toast.LENGTH_LONG).show()
+                        }
+                        return@withContext
+                    }
+                    super.sendSms(context, cipherText, address, subscriptionId, threadId, data, callback)
+                }
+            } else {
+                super.sendSms(context, text, address, subscriptionId, threadId, data, callback)
+            }
+        }
     }
 
     fun requestSecureConversation(
