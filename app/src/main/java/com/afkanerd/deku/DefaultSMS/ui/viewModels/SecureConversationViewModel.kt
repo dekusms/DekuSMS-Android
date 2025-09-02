@@ -15,8 +15,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SecureConversationViewModel(): CustomsConversationsViewModel() {
+class SecureConversationViewModel: CustomsConversationsViewModel() {
     var mode by mutableStateOf(EncryptionController.SecureRequestMode.REQUEST_NONE)
+
+    override fun sendSms(
+        context: Context,
+        text: String,
+        address: String,
+        subscriptionId: Long,
+        threadId: Int,
+        data: ByteArray?,
+        callback: (Conversations?) -> Unit
+    ) {
+        TODO("Override the text in here")
+        super.sendSms(context, text, address, subscriptionId, threadId, data, callback)
+    }
 
     fun requestSecureConversation(
         context: Context,

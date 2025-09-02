@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewModelScope
+import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.DefaultSMS.ui.components.SecureRequestAcceptModal
@@ -43,10 +44,14 @@ fun SecureConversationComposable(viewModel: SecureConversationViewModel ) {
                     viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED
                     viewModel.setModal(true)
                 }
-                else if(currentState.mode == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED) {
+                else if(currentState.mode
+                    == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED) {
                     viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_ACCEPTED
-                    Toast.makeText(context, "Secure conversation!", Toast.LENGTH_LONG)
-                        .show()
+
+                    if(BuildConfig.DEBUG)
+                        Toast.makeText(context,
+                            context.getString(R.string.secure_conversation),
+                            Toast.LENGTH_LONG).show()
                 }
             }
         }

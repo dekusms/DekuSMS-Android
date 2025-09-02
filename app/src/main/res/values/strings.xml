@@ -429,5 +429,6 @@
     <string name="has_requested_to_secure_this_conversation">%1$s has requested to secure this conversation.</string>
     <string name="security_status">Security status</string>
     <string name="changed_subscription_to">"Changed subscription to: "</string>
+    <string name="secure_conversation">Secure conversation!</string>
 
 </resources>

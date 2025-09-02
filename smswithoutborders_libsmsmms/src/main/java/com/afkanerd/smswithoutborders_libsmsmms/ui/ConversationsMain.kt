@@ -96,6 +96,7 @@ import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.blockContact
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.call
@@ -279,6 +280,8 @@ fun ConversationsMainLayout(
     var rememberDeleteAlert by remember { mutableStateOf(false) }
 
     var openInfoAlert by remember { mutableStateOf(false) }
+
+    val smsManager = SmsManager(customsConversationsViewModel ?: viewModel)
 
     LaunchedEffect(Unit){
         if(!searchQuery.isNullOrEmpty()) {
@@ -582,12 +585,13 @@ fun ConversationsMainLayout(
                             typingText = ""
                         },
                         smsSendCallback = {
-                            viewModel.sendSms(
+                            smsManager.sendSms(
                                 context,
                                 text = typingText,
                                 address = address,
                                 subscriptionId = subscriptionId!!,
                                 threadId = threadId,
+                                data = null
                             ){}
                             typingText = ""
                         }

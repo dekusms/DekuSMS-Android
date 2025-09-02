@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ConversationsViewModel: ViewModel() {
+class ConversationsViewModel : ViewModel(),  CustomConversationServices {
     private val _selectedItems = MutableStateFlow<List<Conversations>>(emptyList()) // default
     val selectedItems: StateFlow<List<Conversations>> = _selectedItems.asStateFlow()
 
@@ -197,13 +197,13 @@ class ConversationsViewModel: ViewModel() {
         }
     }
 
-    fun sendSms(
+    override fun sendSms(
         context: Context,
         text: String,
         address: String,
         subscriptionId: Long,
         threadId: Int,
-        data: ByteArray? = null,
+        data: ByteArray?,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
