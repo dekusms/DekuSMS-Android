@@ -363,6 +363,9 @@
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Native SMS-Datenbank exportieren</string>
     <string name="messages_loaded">Nachrichten geladen!</string>
+    <string name="to_1">Das</string>
+    <string name="secure">Sicher</string>
+    <string name="has_requested_to_secure_this_conversation">%1$s hat darum gebeten, diese Konversation zu sichern.</string>
 
 
 </resources>

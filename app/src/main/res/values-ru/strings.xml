@@ -382,5 +382,8 @@
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Экспорт собственной базы данных SMS</string>
     <string name="messages_loaded">Сообщения загружены!</string>
+    <string name="to_1">К</string>
+    <string name="secure">Безопасный</string>
+    <string name="has_requested_to_secure_this_conversation">%1$s запросил защиту этого разговора.</string>
 
 </resources>

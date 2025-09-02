@@ -338,5 +338,8 @@
     <string name="developer_options">Options pour les développeurs</string>
     <string name="android_developer">Développeur Android</string>
     <string name="sms_mms_import_export">Importation/exportation SMS/MMS</string>
+    <string name="to_1">À</string>
+    <string name="secure">Sécurisé</string>
+    <string name="has_requested_to_secure_this_conversation">%1$s a demandé de sécuriser cette conversation.</string>
 
 </resources>
