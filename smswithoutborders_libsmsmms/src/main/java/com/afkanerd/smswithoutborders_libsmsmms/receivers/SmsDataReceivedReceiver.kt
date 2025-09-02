@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.util.Base64
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.registerIncomingSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
@@ -26,7 +27,8 @@ class SmsDataReceivedReceiver : BroadcastReceiver() {
                 CoroutineScope(Dispatchers.IO).launch {
                     val conversation = context.registerIncomingSms(intent)
                     context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
-                        if(!it.isMute) context.sendNotificationBroadcast(conversation)
+                        if(!it.isMute) context.sendNotificationBroadcast(
+                            conversation, type = NotificationTxType.DATA)
                     }
                 }
             }

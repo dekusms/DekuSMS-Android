@@ -7,16 +7,21 @@ import android.provider.Telephony
 import android.widget.Toast
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notify
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.jvm.java
 
 class SmsMmsNotificationReceiver: BroadcastReceiver() {
     private val cls = MainActivity::class.java
@@ -25,6 +30,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
             SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT_LIB -> {
                 val id = intent.getLongExtra("id", -1)
                 val self = intent.getBooleanExtra("self", false)
+                val type = intent.getStringExtra("type")
                 CoroutineScope(Dispatchers.IO).launch {
                     context?.getDatabase()?.conversationsDao()
                         ?.getConversation(id)?.let { conversation ->
@@ -38,8 +44,11 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                     }
                                 }
                                 else -> {
-                                    if(conversation.sms_data != null) {
+                                    if(type == NotificationTxType.DATA.name) {
                                         processEncryptedContent(context, conversation)
+                                    } else {
+                                        val body = processEncryptedMessage(context, conversation)
+                                        body?.let { conversation.sms?.body = it }
                                     }
 
                                     context.notify(
@@ -87,5 +96,31 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                 Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private suspend fun processEncryptedMessage(
+        context: Context,
+        conversation: Conversations,
+    ) : String? {
+        context.getEncryptionModeStatesSync(conversation.sms?.address!!)?.let { data ->
+            val saveData = Gson().fromJson(data, SavedEncryptedModes::class.java)
+            if(saveData.mode != EncryptionController.SecureRequestMode.REQUEST_ACCEPTED)
+                return null
+
+            return try {
+                EncryptionController.decrypt(
+                    context,
+                    conversation.sms?.address!!,
+                    conversation.sms?.body!!
+                )
+            } catch(e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                }
+                null
+            }
+        }
+        return null
     }
 }

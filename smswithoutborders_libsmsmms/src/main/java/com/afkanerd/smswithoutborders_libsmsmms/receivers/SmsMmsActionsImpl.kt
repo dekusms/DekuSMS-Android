@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
@@ -51,7 +52,8 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                                 threadId = threadId,
                                 subscriptionId = subscriptionId
                             )?.let { conversation ->
-                                context.sendNotificationBroadcast(conversation, true)
+                                context.sendNotificationBroadcast(
+                                    conversation, self=true, type = NotificationTxType.TEXT)
                             }
                         } catch(e: Exception) {
                             e.printStackTrace()

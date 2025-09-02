@@ -435,9 +435,8 @@ fun Context.registerIncomingSms(intent: Intent): Conversations {
             thread_id = getThreadId(address),
             read = 0,
         ),
-    ).apply {
-        if(bodyBuffer.isNotEmpty()) sms_data = dataBuffer.toByteArray()
-    }
+        sms_data = if(bodyBuffer.isEmpty()) null else dataBuffer.toByteArray()
+    )
 
     insertSms(conversation)
     return conversation

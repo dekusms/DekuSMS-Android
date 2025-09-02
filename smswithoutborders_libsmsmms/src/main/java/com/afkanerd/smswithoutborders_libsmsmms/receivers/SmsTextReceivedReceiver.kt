@@ -8,6 +8,7 @@ import android.provider.Telephony
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
@@ -35,7 +36,8 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                     CoroutineScope(Dispatchers.IO).launch {
                         val conversation = context.registerIncomingSms(intent)
                         context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)?.let {
-                            if(!it.isMute) context.sendNotificationBroadcast(conversation)
+                            if(!it.isMute) context.sendNotificationBroadcast(
+                                conversation, type = NotificationTxType.TEXT)
                         }
                     }
                 }
@@ -59,7 +61,11 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                             try {
                                 context.updateSms(uri!!, conversation)
                                 if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
-                                    context.sendNotificationBroadcast(conversation)
+                                    context.sendNotificationBroadcast(
+                                        conversation,
+                                        if(intent.action == SMS_SENT_BROADCAST_INTENT)
+                                            NotificationTxType.TEXT else NotificationTxType.DATA
+                                    )
                             } catch(e: Exception) {
                                 e.printStackTrace()
                             }
@@ -84,7 +90,11 @@ class SmsTextReceivedReceiver : BroadcastReceiver() {
                             try {
                                 context.updateSms(uri!!, conversation)
                                 if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
-                                    context.sendNotificationBroadcast(conversation)
+                                    context.sendNotificationBroadcast(
+                                        conversation,
+                                        if(intent.action == SMS_DELIVERED_BROADCAST_INTENT)
+                                            NotificationTxType.TEXT else NotificationTxType.DATA
+                                    )
                             } catch(e: Exception) {
                                 e.printStackTrace()
                             }

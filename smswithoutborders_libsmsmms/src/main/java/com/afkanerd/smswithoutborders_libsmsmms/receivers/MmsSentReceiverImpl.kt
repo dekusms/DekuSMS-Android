@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,8 @@ class MmsSentReceiverImpl: BroadcastReceiver() {
                     context.getDatabase().conversationsDao()?.update(conversation)
 
                     if(conversation.sms?.status == Telephony.Sms.STATUS_FAILED)
-                        context.sendNotificationBroadcast(conversation)
+                        context.sendNotificationBroadcast(
+                            conversation, type = NotificationTxType.MMS)
                 }
         }
     }

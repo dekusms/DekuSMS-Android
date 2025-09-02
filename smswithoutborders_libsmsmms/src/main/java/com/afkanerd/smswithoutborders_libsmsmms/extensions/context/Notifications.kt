@@ -390,13 +390,21 @@ fun Context.cancelNotification(threadId: Int) {
     NotificationManagerCompat.from(this).cancel(threadId)
 }
 
+enum class NotificationTxType {
+    TEXT,
+    DATA,
+    MMS,
+}
+
 fun Context.sendNotificationBroadcast(
     conversation: Conversations,
+    type: NotificationTxType,
     self: Boolean = false,
 ) {
     sendBroadcast(Intent(SMS_SENT_BROADCAST_INTENT_LIB).apply{
         putExtra("id", conversation.id)
         putExtra("self", self)
+        putExtra("type", type.name)
         setPackage(packageName)
     })
 }

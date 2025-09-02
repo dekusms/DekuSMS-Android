@@ -10,6 +10,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.MmsParser
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.insertSms
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
@@ -44,7 +45,10 @@ class MmsReceivedReceiverImpl: MmsReceivedReceiver() {
                             context.getDatabase().threadsDao()?.get(conversation.sms?.thread_id!!)
                                 ?.let {
                                     if(!it.isMute)
-                                        context.sendNotificationBroadcast(conversation)
+                                        context.sendNotificationBroadcast(
+                                            conversation,
+                                            type = NotificationTxType.MMS
+                                        )
                                 }
                         }
                     }
