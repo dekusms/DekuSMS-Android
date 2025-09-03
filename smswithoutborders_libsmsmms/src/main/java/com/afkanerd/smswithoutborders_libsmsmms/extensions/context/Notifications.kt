@@ -21,6 +21,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver.Companion.SMS_SENT_BROADCAST_INTENT_LIB
 import com.google.gson.Gson
+import java.util.Properties
 import kotlin.jvm.java
 
 fun Context.notify(
@@ -407,4 +408,15 @@ fun Context.sendNotificationBroadcast(
         putExtra("type", type.name)
         setPackage(packageName)
     })
+}
+
+@Throws
+fun Context.getCustomizationProperties() : Properties {
+    return try {
+        Properties().apply {
+            load(resources.openRawResource(R.raw.customization))
+        }
+    } catch(e: Exception) {
+        throw e
+    }
 }

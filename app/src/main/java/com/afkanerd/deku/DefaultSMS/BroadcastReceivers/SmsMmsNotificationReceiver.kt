@@ -15,6 +15,9 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notify
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -59,6 +62,34 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                 }
                             }
                         }
+                }
+            }
+
+            SmsMmsActionsImpl.NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY -> {
+                val address = intent.getStringExtra("address")
+                val threadId = intent.getIntExtra("threadId", -1)
+                val subscriptionId = intent.getLongExtra("subscriptionId", -1)
+                val reply = intent.getStringExtra("reply")
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val text = processForSecureMessaging(
+                        context!!,
+                        address!!,
+                        reply!!
+                    ) ?: reply
+                    try {
+                        context.sendSms(
+                            text = text,
+                            address = address,
+                            threadId = threadId,
+                            subscriptionId = subscriptionId
+                        )?.let { conversation ->
+                            context.sendNotificationBroadcast(
+                                conversation, self=true, type = NotificationTxType.TEXT)
+                        }
+                    } catch(e: java.lang.Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }
@@ -112,6 +143,33 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                     context,
                     conversation.sms?.address!!,
                     conversation.sms?.body!!
+                )
+            } catch(e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                }
+                null
+            }
+        }
+        return null
+    }
+
+    private suspend fun processForSecureMessaging(
+        context: Context,
+        address: String,
+        text: String
+    ): String? {
+        context.getEncryptionModeStatesSync(address)?.let { data ->
+            val saveData = Gson().fromJson(data, SavedEncryptedModes::class.java)
+            if(saveData.mode != EncryptionController.SecureRequestMode.REQUEST_ACCEPTED)
+                return null
+
+            return try {
+                EncryptionController.encrypt(
+                    context,
+                    address,
+                    text
                 )
             } catch(e: Exception) {
                 e.printStackTrace()

@@ -3,14 +3,17 @@ package com.afkanerd.smswithoutborders_libsmsmms.receivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.RemoteInput
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getCustomizationProperties
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultSimSubscription
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
+import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver.Companion.SMS_SENT_BROADCAST_INTENT_LIB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +28,9 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
 
         const val NOTIFICATION_REPLY_ACTION_INTENT_ACTION =
             "NOTIFICATION_REPLY_ACTION_INTENT_ACTION"
+
+        const val NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY =
+            "com.afkanerd.deku.NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY"
 
         const val NOTIFICATION_MUTE_ACTION_INTENT_ACTION = "NOTIFICATION_MUTE_ACTION_INTENT_ACTION"
     }
@@ -45,20 +51,35 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                     val reply = remoteInput.getCharSequence(NOTIFICATION_REPLY_ACTION_KEY)
                     if (reply == null || reply.toString().isEmpty()) return
 
-                    TODO("Implement custom encryption broadcast for this")
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            context.sendSms(
-                                text = reply.toString(),
-                                address = address!!,
-                                threadId = threadId,
-                                subscriptionId = subscriptionId
-                            )?.let { conversation ->
-                                context.sendNotificationBroadcast(
-                                    conversation, self=true, type = NotificationTxType.TEXT)
+                    val properties = context.getCustomizationProperties()
+                    val broadcast = properties
+                        .getProperty("broadcast_notifications_reply_actions").toBoolean()
+
+                    if(broadcast) {
+                        context.sendBroadcast(
+                            Intent(NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY).apply{
+                                putExtra("address", address)
+                                putExtra("threadId", threadId)
+                                putExtra("subscriptionId", subscriptionId)
+                                putExtra("reply", reply)
+                                setPackage(context.packageName)
                             }
-                        } catch(e: Exception) {
-                            e.printStackTrace()
+                        )
+                    } else {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                context.sendSms(
+                                    text = reply.toString(),
+                                    address = address!!,
+                                    threadId = threadId,
+                                    subscriptionId = subscriptionId
+                                )?.let { conversation ->
+                                    context.sendNotificationBroadcast(
+                                        conversation, self=true, type = NotificationTxType.TEXT)
+                                }
+                            } catch(e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
                 }
