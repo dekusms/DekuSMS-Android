@@ -54,7 +54,11 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                         processEncryptedContent(context, conversation)
                                     } else {
                                         val body = processEncryptedMessage(context, conversation)
-                                        body?.let { conversation.sms?.body = it }
+                                        body?.let {
+                                            conversation.sms?.body = it
+                                            context.getDatabase().conversationsDao()
+                                                ?.update(conversation)
+                                        }
                                     }
 
                                     context.notify(
