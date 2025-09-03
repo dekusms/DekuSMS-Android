@@ -5,12 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.widget.Toast
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
+import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
 import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
@@ -71,25 +74,22 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                 val subscriptionId = intent.getLongExtra("subscriptionId", -1)
                 val reply = intent.getStringExtra("reply")
 
-                CoroutineScope(Dispatchers.IO).launch {
-                    val text = processForSecureMessaging(
-                        context!!,
-                        address!!,
-                        reply!!
-                    ) ?: reply
-                    try {
-                        context.sendSms(
-                            text = text,
-                            address = address,
-                            threadId = threadId,
-                            subscriptionId = subscriptionId
-                        )?.let { conversation ->
-                            context.sendNotificationBroadcast(
-                                conversation, self=true, type = NotificationTxType.TEXT)
-                        }
-                    } catch(e: java.lang.Exception) {
-                        e.printStackTrace()
+                val smsManager = SmsManager(SecureConversationViewModel())
+                try {
+                    smsManager.sendSms(
+                        context = context!!,
+                        text = reply!!,
+                        address = address!!,
+                        threadId = threadId,
+                        subscriptionId = subscriptionId,
+                        data = null,
+                    ) { conversation ->
+                        if(conversation == null) return@sendSms
+                        context.sendNotificationBroadcast(
+                            conversation, self=true, type = NotificationTxType.TEXT)
                     }
+                } catch(e: java.lang.Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -143,33 +143,6 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                     context,
                     conversation.sms?.address!!,
                     conversation.sms?.body!!
-                )
-            } catch(e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
-                }
-                null
-            }
-        }
-        return null
-    }
-
-    private suspend fun processForSecureMessaging(
-        context: Context,
-        address: String,
-        text: String
-    ): String? {
-        context.getEncryptionModeStatesSync(address)?.let { data ->
-            val saveData = Gson().fromJson(data, SavedEncryptedModes::class.java)
-            if(saveData.mode != EncryptionController.SecureRequestMode.REQUEST_ACCEPTED)
-                return null
-
-            return try {
-                EncryptionController.encrypt(
-                    context,
-                    address,
-                    text
                 )
             } catch(e: Exception) {
                 e.printStackTrace()

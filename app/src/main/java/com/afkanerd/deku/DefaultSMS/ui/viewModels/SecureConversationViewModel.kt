@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders_libsmsmms.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +46,21 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
                         }
                         return@withContext
                     }
-                    super.sendSms(context, cipherText, address, subscriptionId, threadId, data, callback)
+                    super.sendSms(
+                        context,
+                        cipherText,
+                        address,
+                        subscriptionId,
+                        threadId,
+                        data
+                    ) { conversation ->
+                        if(conversation == null) return@sendSms
+
+                        conversation.sms?.body = text
+                        context.getDatabase().conversationsDao()?.update(conversation)
+
+                        callback(conversation)
+                    }
                 }
             } else {
                 super.sendSms(context, text, address, subscriptionId, threadId, data, callback)
