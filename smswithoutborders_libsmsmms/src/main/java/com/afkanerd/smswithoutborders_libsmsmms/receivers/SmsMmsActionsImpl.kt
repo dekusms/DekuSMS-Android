@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.cancelNotification
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
@@ -44,6 +45,7 @@ class SmsMmsActionsImpl : BroadcastReceiver() {
                     val reply = remoteInput.getCharSequence(NOTIFICATION_REPLY_ACTION_KEY)
                     if (reply == null || reply.toString().isEmpty()) return
 
+                    TODO("Implement custom encryption broadcast for this")
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             context.sendSms(
