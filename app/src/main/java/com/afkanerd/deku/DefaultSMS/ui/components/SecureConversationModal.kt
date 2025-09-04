@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation

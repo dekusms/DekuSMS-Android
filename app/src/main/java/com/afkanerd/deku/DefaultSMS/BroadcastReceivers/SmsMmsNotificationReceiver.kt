@@ -12,7 +12,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionControll
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
-import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType

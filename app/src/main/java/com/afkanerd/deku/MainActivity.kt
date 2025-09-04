@@ -37,7 +37,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQue
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
-import com.afkanerd.smswithoutborders_libsmsmms.R
+import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
