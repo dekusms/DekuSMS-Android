@@ -89,8 +89,81 @@ class MainActivity : AppCompatActivity(){
                                         navController = navController,
                                         threadsViewModel = threadsViewModel,
                                         searchViewModel = searchViewModel,
-                                        threadsMainMenuItems = getThreadMenuItems(),
-                                        customMenuItems = getConversationsMenuItems(),
+                                        threadsMainMenuItems = {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(R.string.about_deku),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    navController.navigate(AboutScreen)
+                                                    it(false)
+                                                }
+                                            )
+
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    navController.navigate(RemoteForwardingScreen)
+                                                    it(false)
+                                                }
+                                            )
+
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(R.string.remote_listeners),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    navController.navigate(RemoteForwardingScreen)
+                                                    it(false)
+                                                }
+                                            )
+                                        },
+                                        customMenuItems = {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    secureViewModel.setModal(true)
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    secureViewModel.setModal(true)
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    secureViewModel.setModal(true)
+                                                }
+                                            )
+                                        },
                                         conversationsCustomViewModel = secureViewModel, //This can be an array
                                         conversationsCustomComposable = { vm ->
                                             SecureConversationComposable(
@@ -165,31 +238,4 @@ class MainActivity : AppCompatActivity(){
             }
         }
     }
-
-    @Composable
-    private fun getThreadMenuItems(): Map<String, () -> Unit> {
-        return mapOf(
-            Pair(stringResource(R.string.homepage_menu_routed)) {
-                navController.navigate(RemoteForwardingScreen)
-            },
-
-            Pair(stringResource(R.string.remote_listeners)) {
-                navController.navigate(RemoteListenersScreen)
-            },
-
-            Pair(stringResource(R.string.about_deku)) {
-                navController.navigate(AboutScreen)
-            }
-        )
-    }
-
-    @Composable
-    private fun getConversationsMenuItems(): Map<String, () -> Unit> {
-        return mapOf(
-            Pair(stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure)) {
-                secureViewModel.setModal(true)
-            },
-        )
-    }
-
 }
