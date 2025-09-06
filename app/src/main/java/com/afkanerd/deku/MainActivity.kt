@@ -93,20 +93,7 @@ class MainActivity : AppCompatActivity(){
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(
-                                                        text= stringResource(R.string.about_deku),
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                },
-                                                onClick = {
-                                                    navController.navigate(AboutScreen)
-                                                    it(false)
-                                                }
-                                            )
-
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Text(
-                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
+                                                        text= stringResource(R.string.homepage_menu_routed),
                                                         color = MaterialTheme.colorScheme.onBackground
                                                     )
                                                 },
@@ -128,30 +115,21 @@ class MainActivity : AppCompatActivity(){
                                                     it(false)
                                                 }
                                             )
+
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text= stringResource(R.string.about_deku),
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                },
+                                                onClick = {
+                                                    navController.navigate(AboutScreen)
+                                                    it(false)
+                                                }
+                                            )
                                         },
                                         customMenuItems = {
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Text(
-                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                },
-                                                onClick = {
-                                                    secureViewModel.setModal(true)
-                                                }
-                                            )
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Text(
-                                                        text= stringResource(com.afkanerd.deku.DefaultSMS.R.string.secure),
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                },
-                                                onClick = {
-                                                    secureViewModel.setModal(true)
-                                                }
-                                            )
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(
