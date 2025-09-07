@@ -170,7 +170,7 @@ class MainActivity : AppCompatActivity(){
                                         conversationsCustomComposable = { vm ->
                                             SecureConversationComposable(
                                                 vm as SecureConversationViewModel)
-                                        }
+                                        },
                                     ) {
                                         composable<RemoteListenersScreen> {
                                             RMQMainComposable(
