@@ -428,6 +428,10 @@
     <string name="to_1">Do</string>
     <string name="secure">Bezpieczny</string>
     <string name="has_requested_to_secure_this_conversation">%1$s poprosił o zabezpieczenie tej konwersacji.</string>
+    <string name="security_status">Status bezpieczeństwa</string>
+    <string name="changed_subscription_to">Zmieniono subskrypcję na:</string>
+    <string name="secure_conversation">Bezpieczna rozmowa!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Pusty zaszyfrowany szyfr... coś poszło nie tak!</string>
 
 
 </resources>

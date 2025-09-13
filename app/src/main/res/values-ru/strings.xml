@@ -385,5 +385,9 @@
     <string name="to_1">К</string>
     <string name="secure">Безопасный</string>
     <string name="has_requested_to_secure_this_conversation">%1$s запросил защиту этого разговора.</string>
+    <string name="security_status">Статус безопасности</string>
+    <string name="changed_subscription_to">Изменена подписка на:</string>
+    <string name="secure_conversation">Безопасный разговор!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Пустой зашифрованный шифр... что-то пошло не так!</string>
 
 </resources>

@@ -341,5 +341,9 @@
     <string name="to_1">À</string>
     <string name="secure">Sécurisé</string>
     <string name="has_requested_to_secure_this_conversation">%1$s a demandé de sécuriser cette conversation.</string>
+    <string name="security_status">Statut de sécurité</string>
+    <string name="changed_subscription_to">Abonnement modifié à :</string>
+    <string name="secure_conversation">Conversation sécurisée !</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Chiffrement crypté vide... quelque chose s\'est mal passé !</string>
 
 </resources>
