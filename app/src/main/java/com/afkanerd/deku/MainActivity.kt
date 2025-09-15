@@ -8,12 +8,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Forward
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -135,6 +141,28 @@ class MainActivity : AppCompatActivity(){
                                                 },
                                                 onClick = {
                                                     secureViewModel.setModal(true)
+                                                }
+                                            )
+                                        },
+                                        modalNavigationModalItems = {
+                                            NavigationDrawerItem(
+                                                icon = {
+                                                    Icon(
+                                                        Icons.AutoMirrored.Default.Forward,
+                                                        contentDescription = stringResource(com.afkanerd.deku.DefaultSMS.R.string.cloud_forward)
+                                                    )
+                                                },
+                                                label = {
+                                                    Text(
+                                                        stringResource(com.afkanerd.deku.DefaultSMS.R.string.cloud_forward),
+                                                        fontSize = 14.sp
+                                                    )
+                                                },
+                                                badge = {},
+                                                selected = false,
+                                                onClick = {
+                                                    navController
+                                                        .navigate(RemoteForwardingScreen)
                                                 }
                                             )
                                         },

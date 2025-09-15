@@ -1,6 +1,7 @@
 package com.afkanerd.deku.Router.ui.modals
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -149,6 +150,8 @@ fun GatewayServerAddSmtpModal(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
 
+                Spacer(Modifier.padding(16.dp))
+
                 Button(onClick = {
                     viewModel.add(
                         context, GatewayServer().apply {
@@ -163,6 +166,7 @@ fun GatewayServerAddSmtpModal(
                             )
                         },
                     ) {
+                        onDismissCallback()
                     }
                 }) {
                     Text(stringResource(R.string.add))

@@ -71,7 +71,7 @@ fun GatewayServerAddHttpModal(
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = url,
-                    onValueChange = {},
+                    onValueChange = { url = it },
                     label = {
                         Text(stringResource(R.string.enter_url))
                     },
@@ -81,7 +81,7 @@ fun GatewayServerAddHttpModal(
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = tag,
-                    onValueChange = {},
+                    onValueChange = { tag = it },
                     label = {
                         Text(stringResource(R.string.enter_tag_optional))
                     },
@@ -97,6 +97,7 @@ fun GatewayServerAddHttpModal(
                             this.tag = tag
                         },
                     ) {
+                        onDismissCallback()
                     }
                 }) {
                     Text(stringResource(R.string.save))

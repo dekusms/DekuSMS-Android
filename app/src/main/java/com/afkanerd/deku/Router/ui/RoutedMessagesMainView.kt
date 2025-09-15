@@ -44,7 +44,7 @@ fun RoutedMessagesMainView(
                         )
                     }
                 },
-                title = {Text("Routed messages")},
+                title = {Text(stringResource(R.string.routed_messages))},
                 actions = {
                     IconButton(onClick = {
                         navController.navigate(GatewayClientsListScreen)
