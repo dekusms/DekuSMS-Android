@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.room.Database
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -24,24 +26,20 @@ import com.afkanerd.deku.Router.data.RouterWorkManager.Companion.CONVERSATION_ID
 import com.afkanerd.deku.Router.data.RouterWorkManager.Companion.GATEWAY_SERVER_ID
 import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class GatewayServerViewModel : ViewModel() {
     private lateinit var gatewayServersList: LiveData<List<GatewayServer>>
 
-    private lateinit var datastore: Datastore
 
     operator fun get(context: Context): LiveData<List<GatewayServer>> {
         if (!::gatewayServersList.isInitialized) {
-            datastore = Datastore.getDatastore(context)
             gatewayServersList = MutableLiveData()
-            loadGatewayServers()
+            gatewayServersList = Datastore.getDatastore(context).gatewayServerDAO().all
         }
         return gatewayServersList
-    }
-
-    private fun loadGatewayServers() {
-        gatewayServersList = datastore.gatewayServerDAO().all
     }
 
     fun route(
@@ -104,6 +102,16 @@ class GatewayServerViewModel : ViewModel() {
 
     }
 
+    fun add(
+        context: Context,
+        gatewayClient: GatewayServer,
+        completeCallback: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Datastore.getDatastore(context).gatewayServerDAO().insert(gatewayClient)
+            completeCallback()
+        }
+    }
 //    private fun loadSMSThreads(context: Context): LiveData<MutableList<WorkInfo>> {
 //        return getMessageIdsFromWorkManagers(context)
 //    }

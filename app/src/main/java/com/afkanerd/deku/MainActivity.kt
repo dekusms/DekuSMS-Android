@@ -152,7 +152,10 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         }
                                         composable<GatewayClientsListScreen> {
-                                            GatewayClientsMainView(gatewayServerViewModel)
+                                            GatewayClientsMainView(
+                                                navController,
+                                                gatewayServerViewModel
+                                            )
                                         }
                                         composable<RemoteForwardingScreen> {
                                             RoutedMessagesMainView(navController)

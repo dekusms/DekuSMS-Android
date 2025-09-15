@@ -6,10 +6,10 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.Network
-import com.afkanerd.deku.Router.FTP
+import com.afkanerd.deku.Router.data.models.FTP
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
-import com.afkanerd.deku.Router.SMTP
+import com.afkanerd.deku.Router.data.models.SMTP
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.sun.mail.util.MailConnectException
 

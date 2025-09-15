@@ -68,8 +68,8 @@ object RouterHandler {
         Log.d(javaClass.name, "Request to route - SMTP: $body")
 
         val properties = Properties()
-        properties["mail.smtp.host"] = gatewayServer.smtp.smtp_host
-        properties["mail.smtp.port"] = gatewayServer.smtp.smtp_port
+        properties["mail.smtp.host"] = gatewayServer.smtp?.smtp_host
+        properties["mail.smtp.port"] = gatewayServer.smtp?.smtp_port
         properties["mail.smtp.auth"] = "true";
         properties["mail.smtp.starttls.enable"] = "true"
         if (BuildConfig.DEBUG) properties["mail.debug"] = "true"
@@ -84,15 +84,16 @@ object RouterHandler {
          * session = Session.getDefaultInstance(props, null);
          * }
          */
-        val internetAddresses = InternetAddress.parse(gatewayServer.smtp.smtp_recipient)
+        val internetAddresses = InternetAddress.parse(gatewayServer.smtp?.smtp_recipient)
         val session = Session.getInstance(properties, null)
         val message: Message = MimeMessage(session)
-        message.setFrom(InternetAddress(gatewayServer.smtp.smtp_from))
+        message.setFrom(InternetAddress(gatewayServer.smtp?.smtp_from))
         message.setRecipients(Message.RecipientType.TO, internetAddresses)
-        message.subject = gatewayServer.smtp.smtp_subject
+        message.subject = gatewayServer.smtp?.smtp_subject
         message.sentDate = Date()
         message.setText(body)
-        Transport.send(message, gatewayServer.smtp.smtp_username, gatewayServer.smtp.smtp_password)
+        Transport.send(message, gatewayServer.smtp?.smtp_username,
+            gatewayServer.smtp?.smtp_password)
     }
 
     fun removeWorkForMessage(context: Context?, messageId: String) {

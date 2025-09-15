@@ -26,7 +26,7 @@ import com.afkanerd.deku.Router.data.models.GatewayServer;
         GatewayServer.class,
         RemoteListenersQueues.class,
         RemoteListeners.class},
-        version = 30,
+        version = 31,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -49,6 +49,7 @@ import com.afkanerd.deku.Router.data.models.GatewayServer;
         @AutoMigration(from = 27, to = 28),
         @AutoMigration(from = 28, to = 29, spec = Datastore.Migrate28To29.class),
         @AutoMigration(from = 29, to = 30),
+        @AutoMigration(from = 30, to = 31),
 })
 
 

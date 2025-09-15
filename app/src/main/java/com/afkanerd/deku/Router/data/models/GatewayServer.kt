@@ -4,28 +4,33 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.afkanerd.deku.Router.FTP
-import com.afkanerd.deku.Router.SMTP
 
 @Entity
-class GatewayServer {
+data class GatewayServer(
     @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
+    var id: Long = 0,
     @Embedded
-    var smtp: SMTP = SMTP()
+    var smtp: SMTP? = null,
+
     @Embedded
-    var ftp: FTP = FTP()
+    var ftp: FTP = FTP(),
+
     @ColumnInfo(name = "URL")
-    var URL: String? = null
+    var URL: String? = null,
+
     @ColumnInfo(name = "protocol")
-    var protocol: String? = POST_PROTOCOL
+    var protocol: String? = POST_PROTOCOL,
+
     @ColumnInfo(name = "tag")
-    var tag: String = ""
+    var tag: String = "",
+
     @ColumnInfo(name = "format")
-    var format: String? = ALL_FORMAT
+    var format: String? = ALL_FORMAT,
+
     @ColumnInfo(name = "date")
     var date: Long? = null
 
+) {
     companion object {
         @JvmField
         var BASE64_FORMAT: String = "base_64"

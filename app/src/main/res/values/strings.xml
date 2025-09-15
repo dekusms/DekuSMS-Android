@@ -433,5 +433,12 @@
     <string name="empty_encrypted_cipher_something_went_wrong">Empty encrypted cipher... something went wrong!</string>
     <string name="gateway_clients">Gateway Clients</string>
     <string name="list_gateway_clients">List gateway clients</string>
+    <string name="enter_url">Enter Url</string>
+    <string name="enter_tag_optional">Enter tag (optional)</string>
+    <string name="enter_port_number">Enter port number</string>
+    <string name="from_label_optional">From label (optional)</string>
+    <string name="enter_recipients_separated_by_comma">Enter recipients (separated by comma)</string>
+    <string name="enter_password">Enter password</string>
+    <string name="enter_username">Enter username</string>
 
 </resources>
