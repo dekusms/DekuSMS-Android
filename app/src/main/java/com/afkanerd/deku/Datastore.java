@@ -19,14 +19,14 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
+import com.afkanerd.deku.Router.data.dao.GatewayServerDAO;
+import com.afkanerd.deku.Router.data.models.GatewayServer;
 
 @Database(entities = {
         GatewayServer.class,
         RemoteListenersQueues.class,
         RemoteListeners.class},
-        version = 29,
+        version = 30,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -48,6 +48,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 26, to = 27),
         @AutoMigration(from = 27, to = 28),
         @AutoMigration(from = 28, to = 29, spec = Datastore.Migrate28To29.class),
+        @AutoMigration(from = 29, to = 30),
 })
 
 

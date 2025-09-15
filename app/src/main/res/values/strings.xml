@@ -431,5 +431,7 @@
     <string name="changed_subscription_to">"Changed subscription to: "</string>
     <string name="secure_conversation">Secure conversation!</string>
     <string name="empty_encrypted_cipher_something_went_wrong">Empty encrypted cipher... something went wrong!</string>
+    <string name="gateway_clients">Gateway Clients</string>
+    <string name="list_gateway_clients">List gateway clients</string>
 
 </resources>

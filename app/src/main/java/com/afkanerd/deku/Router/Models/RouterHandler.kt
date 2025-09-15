@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkManagerInitializer
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer
+import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest

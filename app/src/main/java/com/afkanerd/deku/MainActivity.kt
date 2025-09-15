@@ -1,10 +1,8 @@
 package com.afkanerd.deku
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Telephony
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -14,7 +12,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
@@ -29,22 +26,20 @@ import androidx.window.layout.WindowInfoTracker
 import com.afkanerd.deku.DefaultSMS.AboutActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ContactsViewModel
-import com.afkanerd.deku.DefaultSMS.Models.DevMode
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity
+import com.afkanerd.deku.Router.ui.GatewayClientsMainView
+import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
+import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
-import com.afkanerd.smswithoutborders_libsmsmms.ui.screens.ConversationsScreenNav
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
-import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 
@@ -55,6 +50,7 @@ class MainActivity : AppCompatActivity(){
 
     private val threadsViewModel: ThreadsViewModel by viewModels()
     private val secureViewModel: SecureConversationViewModel by viewModels()
+    private val gatewayServerViewModel: GatewayServerViewModel by viewModels()
 
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
@@ -155,11 +151,11 @@ class MainActivity : AppCompatActivity(){
                                                 navController = navController
                                             )
                                         }
+                                        composable<GatewayClientsListScreen> {
+                                            GatewayClientsMainView(gatewayServerViewModel)
+                                        }
                                         composable<RemoteForwardingScreen> {
-                                            startActivity(
-                                                Intent(applicationContext,
-                                                    GatewayServerRoutedActivity::class.java))
-                                            finish()
+                                            RoutedMessagesMainView(navController)
                                         }
                                         composable<AboutScreen> {
                                             startActivity(

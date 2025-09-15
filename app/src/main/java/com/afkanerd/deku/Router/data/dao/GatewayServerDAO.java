@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.GatewayServers;
+package com.afkanerd.deku.Router.data.dao;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -7,6 +7,8 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
+
+import com.afkanerd.deku.Router.data.models.GatewayServer;
 
 import java.util.List;
 
