@@ -440,5 +440,7 @@
     <string name="enter_recipients_separated_by_comma">Enter recipients (separated by comma)</string>
     <string name="enter_password">Enter password</string>
     <string name="enter_username">Enter username</string>
+    <string name="add_new_gateway_server">Add new Gateway server</string>
+    <string name="save">Save</string>
 
 </resources>

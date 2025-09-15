@@ -1,10 +1,14 @@
 package com.afkanerd.deku.Router.ui.modals
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
@@ -19,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,28 +55,40 @@ fun GatewayServerAddHttpModal(
             sheetState = sheetState,
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    stringResource(R.string.add_new_gateway_server),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                HorizontalDivider(Modifier.padding(16.dp))
+
                 OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     value = url,
                     onValueChange = {},
                     label = {
                         Text(stringResource(R.string.enter_url))
                     },
-                    modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                 )
 
                 OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     value = tag,
                     onValueChange = {},
                     label = {
                         Text(stringResource(R.string.enter_tag_optional))
                     },
-                    modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                 )
+
+                Spacer(Modifier.padding(16.dp))
 
                 Button(onClick = {
                     viewModel.add(
@@ -82,7 +99,7 @@ fun GatewayServerAddHttpModal(
                     ) {
                     }
                 }) {
-
+                    Text(stringResource(R.string.save))
                 }
             }
         }
