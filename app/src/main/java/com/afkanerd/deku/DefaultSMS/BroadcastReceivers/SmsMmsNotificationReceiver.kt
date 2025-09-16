@@ -8,6 +8,7 @@ import android.widget.Toast
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
+import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
@@ -58,8 +59,11 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                                             conversation.sms?.body = it
                                             context.getDatabase().conversationsDao()
                                                 ?.update(conversation)
+
                                         }
                                     }
+
+                                    GatewayServerViewModel().route(context, conversation)
 
                                     context.notify(
                                         conversation = conversation,

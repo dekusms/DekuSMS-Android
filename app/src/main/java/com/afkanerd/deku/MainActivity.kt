@@ -186,7 +186,10 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         }
                                         composable<RemoteForwardingScreen> {
-                                            RoutedMessagesMainView(navController)
+                                            RoutedMessagesMainView(
+                                                navController,
+                                                gatewayServerViewModel,
+                                            )
                                         }
                                         composable<AboutScreen> {
                                             startActivity(

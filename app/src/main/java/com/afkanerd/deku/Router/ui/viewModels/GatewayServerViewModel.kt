@@ -26,13 +26,19 @@ import com.afkanerd.deku.Router.data.RouterWorkManager.Companion.CONVERSATION_ID
 import com.afkanerd.deku.Router.data.RouterWorkManager.Companion.GATEWAY_SERVER_ID
 import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class GatewayServerViewModel : ViewModel() {
     private lateinit var gatewayServersList: LiveData<List<GatewayServer>>
 
+    private val _workFlowItems = MutableStateFlow<List<Conversations>>(emptyList()) // default
+    val workFlowItems: StateFlow<List<Conversations>> = _workFlowItems.asStateFlow()
 
     operator fun get(context: Context): LiveData<List<GatewayServer>> {
         if (!::gatewayServersList.isInitialized) {
@@ -40,6 +46,31 @@ class GatewayServerViewModel : ViewModel() {
             gatewayServersList = Datastore.getDatastore(context).gatewayServerDAO().all
         }
         return gatewayServersList
+    }
+
+    fun getActiveWorkManagerItems(
+        context: Context
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            WorkManager.getInstance(context)
+                .getWorkInfosByTagFlow(RouterHandler.TAG_NAME_GATEWAY_SERVER)
+                .collect { workInfos ->
+                    val conversations = mutableListOf<Conversations>()
+
+                    workInfos.forEach {
+                        val workInfo = RouterHandler.workInfoParser(it)
+                        val messageId = workInfo.first
+                        val gatewayServerId = workInfo.second
+
+                        context.getDatabase().conversationsDao()
+                            ?.getConversation(messageId.toLong())?.let { it ->
+                                conversations.add(it)
+                            }
+                    }
+
+                    _workFlowItems.value = conversations
+                }
+        }
     }
 
     fun route(
