@@ -24,7 +24,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
         val conversation = applicationContext.getDatabase()
             .conversationsDao()?.getConversation(conversationId.toLong())
 
-        val routerItem = RouterItem(conversation!!)
+        val routerItem = RouterItem( conversation!!.sms!!)
         routerItem.tag = gatewayServer.tag
 
         val jsonStringBody = routerItem.serializeJson()

@@ -28,17 +28,24 @@ import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+data class RoutedConversationsItems(
+    var conversation: Conversations,
+    var workInfo: WorkInfo,
+    var gatewayServerId: String,
+)
 class GatewayServerViewModel : ViewModel() {
     private lateinit var gatewayServersList: LiveData<List<GatewayServer>>
 
-    private val _workFlowItems = MutableStateFlow<List<Conversations>>(emptyList()) // default
-    val workFlowItems: StateFlow<List<Conversations>> = _workFlowItems.asStateFlow()
+    private val _workFlowItems = MutableStateFlow<List<RoutedConversationsItems>>(emptyList()) // default
+    val workFlowItems: StateFlow<List<RoutedConversationsItems>> = _workFlowItems.asStateFlow()
 
     operator fun get(context: Context): LiveData<List<GatewayServer>> {
         if (!::gatewayServersList.isInitialized) {
@@ -55,22 +62,43 @@ class GatewayServerViewModel : ViewModel() {
             WorkManager.getInstance(context)
                 .getWorkInfosByTagFlow(RouterHandler.TAG_NAME_GATEWAY_SERVER)
                 .collect { workInfos ->
-                    val conversations = mutableListOf<Conversations>()
+                    val routedConversationsItems = mutableListOf<RoutedConversationsItems>()
+                    workInfos.forEach { workInfo ->
+                        val workInfoPair = RouterHandler.workInfoParser(workInfo)
+                        val messageId = workInfoPair.first
+                        val gatewayServerId = workInfoPair.second
 
-                    workInfos.forEach {
-                        val workInfo = RouterHandler.workInfoParser(it)
-                        val messageId = workInfo.first
-                        val gatewayServerId = workInfo.second
-
-                        context.getDatabase().conversationsDao()
-                            ?.getConversation(messageId.toLong())?.let { it ->
-                                conversations.add(it)
-                            }
+                        val conversation = context.getDatabase().conversationsDao()
+                            ?.getConversation(messageId.toLong())
+                        routedConversationsItems.add(RoutedConversationsItems(
+                            conversation = conversation!!,
+                            workInfo = workInfo,
+                            gatewayServerId = gatewayServerId
+                        ))
                     }
-
-                    _workFlowItems.value = conversations
+                    _workFlowItems.value = routedConversationsItems
                 }
         }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            WorkManager.getInstance(context)
+//                .getWorkInfosByTagFlow(RouterHandler.TAG_NAME_GATEWAY_SERVER)
+//                .collect { workInfos ->
+//                    val conversations = mutableListOf<Conversations>()
+//
+//                    workInfos.forEach {
+//                        val workInfo = RouterHandler.workInfoParser(it)
+//                        val messageId = workInfo.first
+//                        val gatewayServerId = workInfo.second
+//
+//                        context.getDatabase().conversationsDao()
+//                            ?.getConversation(messageId.toLong())?.let { it ->
+//                                conversations.add(it)
+//                            }
+//                    }
+//
+//                    _workFlowItems.value = conversations
+//                }
+//        }
     }
 
     fun route(
