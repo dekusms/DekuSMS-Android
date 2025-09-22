@@ -161,4 +161,15 @@ class GatewayServerViewModel : ViewModel() {
             completeCallback()
         }
     }
+
+    fun delete(
+        context: Context,
+        gatewayClient: GatewayServer,
+        completeCallback: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Datastore.getDatastore(context).gatewayServerDAO().delete(gatewayClient)
+            completeCallback()
+        }
+    }
 }

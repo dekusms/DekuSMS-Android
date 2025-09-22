@@ -9,6 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +173,8 @@ fun GatewayServerAddSmtpModal(
                         ) {
                             onDismissCallback()
                         }
-                    } else {
+                    }
+                    else {
                         viewModel.add(
                             context, GatewayServer().apply {
                                 this.smtp = SMTP(
@@ -189,6 +193,22 @@ fun GatewayServerAddSmtpModal(
                     }
                 }) {
                     Text(stringResource(R.string.add))
+                }
+
+                Spacer(Modifier.padding(16.dp))
+
+                if(gatewayServer != null || LocalInspectionMode.current) {
+                    Button(onClick = {
+                        viewModel.delete(
+                            context = context,
+                            gatewayClient = gatewayServer!!,
+                        ){
+                            onDismissCallback()
+                        }
+                    }, colors = ButtonDefaults
+                        .buttonColors(MaterialTheme.colorScheme.error) ) {
+                        Text(stringResource(R.string.delete))
+                    }
                 }
             }
         }
