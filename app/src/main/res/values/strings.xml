@@ -446,5 +446,8 @@
     <string name="cloud_forward">Cloud forward</string>
     <string name="routed_messages">Routed messages</string>
     <string name="add_http_forwarders">Add HTTP forwarders</string>
+    <string name="encoding">Encoding</string>
+    <string name="protocols">Protocols</string>
+    <string name="status1">Status</string>
 
 </resources>

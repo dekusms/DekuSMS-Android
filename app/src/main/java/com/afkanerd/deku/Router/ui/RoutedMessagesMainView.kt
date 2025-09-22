@@ -126,7 +126,6 @@ fun RouterItemCard(
         context.retrieveContactName(address)
     else address
 
-
     var firstName by remember { mutableStateOf(conversation.sms?.address) }
     var lastName by remember { mutableStateOf("") }
 

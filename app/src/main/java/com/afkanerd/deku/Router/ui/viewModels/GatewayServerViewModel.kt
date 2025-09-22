@@ -18,7 +18,6 @@ import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers.isBase64Encoded
 import com.afkanerd.deku.Router.Models.RouterHandler
-import com.afkanerd.deku.Router.Models.RouterHandler.getMessageIdsFromWorkManagers
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForGatewayServers
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForMessages
 import com.afkanerd.deku.Router.data.RouterWorkManager
@@ -79,26 +78,6 @@ class GatewayServerViewModel : ViewModel() {
                     _workFlowItems.value = routedConversationsItems
                 }
         }
-//        viewModelScope.launch(Dispatchers.IO) {
-//            WorkManager.getInstance(context)
-//                .getWorkInfosByTagFlow(RouterHandler.TAG_NAME_GATEWAY_SERVER)
-//                .collect { workInfos ->
-//                    val conversations = mutableListOf<Conversations>()
-//
-//                    workInfos.forEach {
-//                        val workInfo = RouterHandler.workInfoParser(it)
-//                        val messageId = workInfo.first
-//                        val gatewayServerId = workInfo.second
-//
-//                        context.getDatabase().conversationsDao()
-//                            ?.getConversation(messageId.toLong())?.let { it ->
-//                                conversations.add(it)
-//                            }
-//                    }
-//
-//                    _workFlowItems.value = conversations
-//                }
-//        }
     }
 
     fun route(

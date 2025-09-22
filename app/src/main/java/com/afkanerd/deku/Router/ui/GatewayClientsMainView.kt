@@ -1,5 +1,6 @@
 package com.afkanerd.deku.Router.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,9 +16,13 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.GatewayClientsListScreen
 import com.afkanerd.deku.Router.data.models.GatewayServer
@@ -166,26 +173,89 @@ fun GatewayServerCard(
     gatewayClient: GatewayServer,
     onClickCallback: () -> Unit,
 ) {
-    Card(onClick = onClickCallback) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row {
-                Text(gatewayClient.URL.toString())
-                Spacer(Modifier.weight(1f))
-                Text(gatewayClient.date.toString())
+    Card(
+        onClick = onClickCallback,
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
+    ) {
+        Column {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primary)
+            ) {
+                Column(
+                    Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        gatewayClient.URL.toString(),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(Modifier.padding(4.dp))
+                    Text(
+                        gatewayClient.date.toString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
-            Spacer(Modifier.padding(8.dp))
-            Text(gatewayClient.protocol.toString())
+
+
+            Column(Modifier.padding(16.dp)) {
+                Row {
+                    Text(
+                        stringResource(R.string.protocols),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        gatewayClient.protocol.toString(),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+                HorizontalDivider(Modifier.padding(16.dp))
+
+                Row {
+                    Text(
+                        stringResource(R.string.encoding),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        gatewayClient.format.toString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                HorizontalDivider(Modifier.padding(16.dp))
+
+                Row {
+                    Text(
+                        stringResource(R.string.status1),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        "N/A",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun GatewayServerCardPreview() {
     AppTheme {
-        val gatewayServer = GatewayServer()
+        val gatewayServer = GatewayServer().apply {
+            this.URL = "https://example.com/gateway-clients/sms"
+            this.date = System.currentTimeMillis()
+        }
         GatewayServerCard(gatewayServer){}
     }
 }

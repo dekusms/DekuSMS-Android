@@ -96,18 +96,6 @@ object RouterHandler {
             gatewayServer.smtp?.smtp_password)
     }
 
-    fun removeWorkForMessage(context: Context?, messageId: String) {
-        val tag = getTagForMessages(messageId)
-        val workManager = WorkManager.getInstance(context!!)
-        workManager.cancelAllWorkByTag(tag)
-    }
-
-    fun removeWorkForGatewayServers(context: Context?, gatewayServerId: Long) {
-        val tag = getTagForGatewayServers(gatewayServerId)
-        val workManager = WorkManager.getInstance(context!!)
-        workManager.cancelAllWorkByTag(tag)
-    }
-
     const val TAG_NAME_GATEWAY_SERVER = "TAG_NAME_GATEWAY_SERVER"
     const val TAG_GATEWAY_SERVER_MESSAGE_ID = "TAG_GATEWAY_SERVER_MESSAGE_ID:"
     const val TAG_GATEWAY_SERVER_ID = "TAG_GATEWAY_SERVER_ID:"
@@ -125,24 +113,6 @@ object RouterHandler {
 
     private fun getGatewayServerIdFromTag(tag: String): String {
         return tag.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-    }
-
-    fun reverseState(context: Context, state: WorkInfo.State): String {
-        return when (state) {
-            WorkInfo.State.SUCCEEDED -> context.getString(R.string.gateway_server_routing_state_success)
-            WorkInfo.State.ENQUEUED -> context.getString(R.string.gateway_server_routing_state_enqueued)
-            WorkInfo.State.FAILED -> context.getString(R.string.gateway_server_routing_state_failed)
-            WorkInfo.State.RUNNING -> context.getString(R.string.gateway_server_routing_state_running)
-            WorkInfo.State.CANCELLED -> context.getString(R.string.gateway_server_routing_state_cancelled)
-            else -> ""
-        }
-    }
-
-    fun getMessageIdsFromWorkManagers(context: Context): LiveData<List<WorkInfo>> {
-//        AppInitializer.getInstance(context)
-//                .initializeComponent(com.afkanerd.deku.WorkManagerInitializer::class.java)
-        val workManager = WorkManager.getInstance(context)
-        return workManager.getWorkInfosByTagLiveData(TAG_NAME_GATEWAY_SERVER)
     }
 
     fun workInfoParser(workInfo: WorkInfo): Pair<String, String> {
