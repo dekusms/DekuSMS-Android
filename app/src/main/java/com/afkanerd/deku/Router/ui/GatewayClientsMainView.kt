@@ -176,7 +176,8 @@ fun GatewayServerCard(
     Card(
         onClick = onClickCallback,
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary),
+        modifier = Modifier.padding(8.dp)
     ) {
         Column {
             Column(

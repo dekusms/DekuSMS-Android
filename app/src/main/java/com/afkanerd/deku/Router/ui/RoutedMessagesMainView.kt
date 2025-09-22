@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -143,13 +144,13 @@ fun RouterItemCard(
     ) ?: "" else "Tues"
 
     OutlinedCard(
-        modifier = Modifier.combinedClickable(
-            onClick = {},
-            onLongClick = {}
-        ),
-        onClick = {
-
-        }
+        modifier = Modifier
+            .padding(8.dp)
+            .combinedClickable(
+                onClick = {},
+                onLongClick = {}
+            ),
+        onClick = {},
     ) {
         Column {
             ThreadConversationCard(
@@ -173,7 +174,7 @@ fun RouterItemCard(
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier
-                    .padding(end=16.dp, bottom=8.dp)
+                    .padding(16.dp)
                     .fillMaxWidth()
             ) {
                 Text( status,
