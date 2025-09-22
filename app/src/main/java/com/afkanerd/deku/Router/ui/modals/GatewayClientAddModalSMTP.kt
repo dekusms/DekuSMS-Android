@@ -45,6 +45,7 @@ import com.example.compose.AppTheme
 fun GatewayServerAddSmtpModal(
     showBottomSheet: Boolean,
     viewModel: GatewayServerViewModel,
+    gatewayServer: GatewayServer? = null,
     onDismissCallback: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -54,13 +55,13 @@ fun GatewayServerAddSmtpModal(
         skipHiddenState = false
     )
 
-    var host by remember{ mutableStateOf("") }
-    var username by remember{ mutableStateOf("") }
-    var password by remember{ mutableStateOf("") }
-    var from by remember{ mutableStateOf("") }
-    var recipient by remember{ mutableStateOf("") }
-    var subject: String by remember{ mutableStateOf("") }
-    var port by remember{ mutableStateOf("587") }
+    var host by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_host ?: "") }
+    var username by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_username ?: "") }
+    var password by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_password ?: "") }
+    var from by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_from ?: "") }
+    var recipient by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_recipient ?: "") }
+    var subject: String by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_subject ?: "") }
+    var port by remember{ mutableStateOf(gatewayServer?.smtp?.smtp_port.toString()) }
     var passwordVisibility: Boolean by remember { mutableStateOf(false) }
 
     if (showBottomSheet) {
@@ -153,20 +154,38 @@ fun GatewayServerAddSmtpModal(
                 Spacer(Modifier.padding(16.dp))
 
                 Button(onClick = {
-                    viewModel.add(
-                        context, GatewayServer().apply {
-                            this.smtp = SMTP(
-                                host,
-                                username,
-                                password,
-                                from,
-                                recipient,
-                                subject,
-                                port.toInt()
-                            )
-                        },
-                    ) {
-                        onDismissCallback()
+                    if(gatewayServer != null) {
+                        viewModel.update(
+                            context, gatewayServer.apply {
+                                this.smtp = SMTP(
+                                    host,
+                                    username,
+                                    password,
+                                    from,
+                                    recipient,
+                                    subject,
+                                    port.toInt()
+                                )
+                            },
+                        ) {
+                            onDismissCallback()
+                        }
+                    } else {
+                        viewModel.add(
+                            context, GatewayServer().apply {
+                                this.smtp = SMTP(
+                                    host,
+                                    username,
+                                    password,
+                                    from,
+                                    recipient,
+                                    subject,
+                                    port.toInt()
+                                )
+                            },
+                        ) {
+                            onDismissCallback()
+                        }
                     }
                 }) {
                     Text(stringResource(R.string.add))

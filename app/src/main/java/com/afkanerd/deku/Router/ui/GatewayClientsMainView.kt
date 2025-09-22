@@ -68,6 +68,8 @@ fun GatewayClientsMainView(
     var showAddHttpModal by remember { mutableStateOf( false)}
     var showAddSmtpModal by remember { mutableStateOf( false)}
 
+    var selectedGatewayServer: GatewayServer? by remember { mutableStateOf(null)}
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.TopEnd)
@@ -141,7 +143,8 @@ fun GatewayClientsMainView(
                 ) { gatewayClient ->
                     Column {
                         GatewayServerCard( gatewayClient ) {
-                            TODO("Show modal")
+                            showAddHttpModal = true
+                            selectedGatewayServer = it
                         }
                     }
                 }
@@ -151,6 +154,7 @@ fun GatewayClientsMainView(
                 GatewayServerAddHttpModal(
                     showBottomSheet = showAddHttpModal,
                     viewModel = viewModel,
+                    gatewayServer = selectedGatewayServer
                 ) {
                     showAddHttpModal = false
                 }
@@ -160,6 +164,7 @@ fun GatewayClientsMainView(
                 GatewayServerAddSmtpModal(
                     showBottomSheet = showAddSmtpModal,
                     viewModel = viewModel,
+                    gatewayServer = selectedGatewayServer,
                 ) {
                     showAddSmtpModal = false
                 }
@@ -171,10 +176,10 @@ fun GatewayClientsMainView(
 @Composable
 fun GatewayServerCard(
     gatewayClient: GatewayServer,
-    onClickCallback: () -> Unit,
+    onClickCallback: (GatewayServer) -> Unit,
 ) {
     Card(
-        onClick = onClickCallback,
+        onClick = {onClickCallback(gatewayClient)},
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary),
         modifier = Modifier.padding(8.dp)
@@ -235,6 +240,20 @@ fun GatewayServerCard(
 
                 Row {
                     Text(
+                        stringResource(R.string.tag),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        gatewayClient.tag,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+                HorizontalDivider(Modifier.padding(16.dp))
+
+                Row {
+                    Text(
                         stringResource(R.string.status1),
                         style = MaterialTheme.typography.titleSmall
                     )
@@ -256,6 +275,7 @@ fun GatewayServerCardPreview() {
         val gatewayServer = GatewayServer().apply {
             this.URL = "https://example.com/gateway-clients/sms"
             this.date = System.currentTimeMillis()
+            this.tag = "tags_here"
         }
         GatewayServerCard(gatewayServer){}
     }

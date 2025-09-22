@@ -449,5 +449,6 @@
     <string name="encoding">Encoding</string>
     <string name="protocols">Protocols</string>
     <string name="status1">Status</string>
+    <string name="tag">Tag</string>
 
 </resources>

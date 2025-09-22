@@ -37,6 +37,7 @@ import com.example.compose.AppTheme
 fun GatewayServerAddHttpModal(
     showBottomSheet: Boolean,
     viewModel: GatewayServerViewModel,
+    gatewayServer: GatewayServer? = null,
     onDismissCallback: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -46,8 +47,8 @@ fun GatewayServerAddHttpModal(
         skipHiddenState = false
     )
 
-    var url: String by remember{ mutableStateOf("") }
-    var tag: String by remember{ mutableStateOf("") }
+    var url: String by remember{ mutableStateOf(gatewayServer?.URL ?: "") }
+    var tag: String by remember{ mutableStateOf(gatewayServer?.tag ?: "") }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -91,13 +92,24 @@ fun GatewayServerAddHttpModal(
                 Spacer(Modifier.padding(16.dp))
 
                 Button(onClick = {
-                    viewModel.add(
-                        context, GatewayServer().apply {
-                            this.URL = url
-                            this.tag = tag
-                        },
-                    ) {
-                        onDismissCallback()
+                    if(gatewayServer != null) {
+                        viewModel.update(
+                            context, gatewayServer.apply {
+                                this.URL = url
+                                this.tag = tag
+                            },
+                        ) {
+                            onDismissCallback()
+                        }
+                    } else {
+                        viewModel.update(
+                            context, GatewayServer().apply {
+                                this.URL = url
+                                this.tag = tag
+                            },
+                        ) {
+                            onDismissCallback()
+                        }
                     }
                 }) {
                     Text(stringResource(R.string.save))

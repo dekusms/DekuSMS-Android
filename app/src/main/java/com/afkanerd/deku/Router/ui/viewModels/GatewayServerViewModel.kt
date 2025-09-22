@@ -140,6 +140,17 @@ class GatewayServerViewModel : ViewModel() {
 
     }
 
+    fun update(
+        context: Context,
+        gatewayClient: GatewayServer,
+        completeCallback: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Datastore.getDatastore(context).gatewayServerDAO().update(gatewayClient)
+            completeCallback()
+        }
+    }
+
     fun add(
         context: Context,
         gatewayClient: GatewayServer,
@@ -150,7 +161,4 @@ class GatewayServerViewModel : ViewModel() {
             completeCallback()
         }
     }
-//    private fun loadSMSThreads(context: Context): LiveData<MutableList<WorkInfo>> {
-//        return getMessageIdsFromWorkManagers(context)
-//    }
 }
