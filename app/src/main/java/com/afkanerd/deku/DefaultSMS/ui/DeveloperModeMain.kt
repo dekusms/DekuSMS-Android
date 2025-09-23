@@ -42,9 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.clearRawColumnGuesses
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.exportRawWithColumnGuesses
-import com.afkanerd.deku.DefaultSMS.Extensions.Context.importRawColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.context.clearRawColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.context.exportRawWithColumnGuesses
+import com.afkanerd.deku.DefaultSMS.Extensions.context.importRawColumnGuesses
 import com.afkanerd.deku.DefaultSMS.R
 import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope

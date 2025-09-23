@@ -163,7 +163,7 @@
 
         <!-- Custom receiver for notifications from lib -->
         <receiver
-            android:name=".BroadcastReceivers.SmsMmsNotificationReceiver"
+            android:name=".receivers.SmsMmsNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT_LIB" />

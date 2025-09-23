@@ -16,7 +16,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers.isBase64Encoded
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForGatewayServers
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForMessages

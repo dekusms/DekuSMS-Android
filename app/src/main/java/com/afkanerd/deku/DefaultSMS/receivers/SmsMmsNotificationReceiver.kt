@@ -1,11 +1,10 @@
-package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
+package com.afkanerd.deku.DefaultSMS.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.widget.Toast
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
@@ -20,7 +19,6 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationT
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notify
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
 import com.google.gson.Gson

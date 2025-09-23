@@ -14,10 +14,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.BuildConfig
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQWorkManager
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDefaultRegion
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,7 +30,7 @@ object RemoteListenersHandler {
 
     fun getPublisherDetails(context: Context, projectName: String): List<String> {
         val operatorDetails: MutableList<String> = ArrayList()
-        val simCards = SIMHandler.getSimCardInformation(context)
+        val simCards = context.getSimCardInformation()
 
         val operatorCountry = context.getDefaultRegion()
         simCards?.let {

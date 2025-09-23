@@ -13,12 +13,11 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -147,8 +146,8 @@ class RMQConnectionWorker(
             val remoteListenerQueues = databaseConnector.remoteListenersQueuesDao()
                 .fetchRemoteListenersQueues(remoteListener.id)
 
-            val subscriptionInfoList: List<SubscriptionInfo> =
-                SIMHandler.getSimCardInformation(context)
+            val subscriptionInfoList: List<SubscriptionInfo> = context.getSimCardInformation()
+                ?: return
 
             /**
              * Due to prefetch count, we need just one channel per simcard
