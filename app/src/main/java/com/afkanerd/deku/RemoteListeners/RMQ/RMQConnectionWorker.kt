@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.os.Bundle
 import android.os.IBinder
 import android.telephony.SubscriptionInfo
 import android.util.Log
@@ -17,7 +18,10 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
@@ -257,9 +261,6 @@ class RMQConnectionWorker(
                     if (intent.hasExtra(RMQConnectionHandler.MESSAGE_SID) &&
                         intent.hasExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG)) {
 
-                        val sid = intent.getStringExtra(RMQConnectionHandler.MESSAGE_SID)
-                        val messageId = intent.getStringExtra(NativeSMSDB.ID)
-
                         val consumerTag = intent.getStringExtra(RMQConnectionHandler.RMQ_CONSUMER_TAG)
                         val deliveryTag =
                             intent.getLongExtra(RMQConnectionHandler.RMQ_DELIVERY_TAG, -1)
@@ -301,36 +302,26 @@ class RMQConnectionWorker(
 
     private fun sendSMS(
         smsRequest: SMSRequest,
-        subscriptionId: Int,
         consumerTag: String,
         deliveryTag: Long,
         rmqConnectionId: Long
     ) {
-        TODO("Implement this for RMQ")
-//        val messageId = System.currentTimeMillis()
-//
-//        val threadId = Telephony.Threads.getOrCreateThreadId(context, smsRequest.to)
-//
-//        val bundle = Bundle()
-//        bundle.putString(RMQConnectionHandler.MESSAGE_SID, smsRequest.sid)
-//        bundle.putString(RMQConnectionHandler.RMQ_CONSUMER_TAG, consumerTag)
-//        bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
-//        bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
-//
-//        val conversation = Conversation()
-//        conversation.message_id = messageId.toString()
-//        conversation.text = smsRequest.text
-//        conversation.address = smsRequest.to
-//        conversation.subscription_id = subscriptionId
-//        conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
-//        conversation.date = System.currentTimeMillis().toString()
-//        conversation.thread_id = threadId.toString()
-//        conversation.status = Telephony.Sms.STATUS_PENDING
-//        conversation.isRemoteListener = true
-//
-//        databaseConnector.conversationDao()._insert(conversation)
-//        SMSDatabaseWrapper.send_text(context, conversation, bundle)
-//        Log.d(javaClass.name, "SMS sent...")
+        val bundle = Bundle()
+        bundle.putString(RMQConnectionHandler.MESSAGE_SID, smsRequest.sid)
+        bundle.putString(RMQConnectionHandler.RMQ_CONSUMER_TAG, consumerTag)
+        bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
+        bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
+
+        SmsManager(ConversationsViewModel()).sendSms(
+            context = context,
+            text = smsRequest.text,
+            address = smsRequest.to,
+            subscriptionId = smsRequest.sid.toLong(),
+            threadId = context.getThreadId(smsRequest.to),
+            bundle = bundle
+        ) {
+
+        }
     }
 
     private fun getDeliverCallback(
@@ -357,11 +348,10 @@ class RMQConnectionWorker(
                     }
                     null
                 }
-                smsRequest?.let {
+                smsRequest?.let { smsRequest ->
                     try {
                         sendSMS(
-                            it,
-                            subscriptionId,
+                            smsRequest,
                             consumerTag,
                             delivery.envelope.deliveryTag,
                             rmqConnectionId

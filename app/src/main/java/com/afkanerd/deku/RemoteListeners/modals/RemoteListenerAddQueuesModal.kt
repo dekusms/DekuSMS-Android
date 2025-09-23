@@ -36,6 +36,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -65,7 +66,8 @@ fun RemoteListenerAddQueuesModal(
     val inspectMode = LocalInspectionMode.current
 
     val isDualSim by remember{
-        mutableStateOf(if(inspectMode) true else SIMHandler.isDualSim(context))
+        mutableStateOf(if(inspectMode) true
+        else context.isDualSim())
     }
 
     LaunchedEffect(sim1Binding, sim2Binding) {

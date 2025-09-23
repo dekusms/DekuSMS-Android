@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.ui.viewModels
 
 import android.content.Context
+import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,9 +9,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.lib_smsmms_android.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +30,7 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
         subscriptionId: Long,
         threadId: Int,
         data: ByteArray?,
+        bundle: Bundle,
         callback: (Conversations?) -> Unit
     ) {
         viewModelScope.launch {
@@ -47,12 +51,13 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
                         return@withContext
                     }
                     super.sendSms(
-                        context,
-                        cipherText,
-                        address,
-                        subscriptionId,
-                        threadId,
-                        data
+                        context = context,
+                        text = cipherText,
+                        address = address,
+                        subscriptionId = subscriptionId,
+                        threadId = threadId,
+                        data = data,
+                        bundle = bundle
                     ) { conversation ->
                         if(conversation == null) return@sendSms
 
@@ -62,8 +67,18 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
                         callback(conversation)
                     }
                 }
-            } else {
-                super.sendSms(context, text, address, subscriptionId, threadId, data, callback)
+            }
+            else {
+                super.sendSms(
+                    context,
+                    text,
+                    address,
+                    subscriptionId,
+                    threadId,
+                    data,
+                    bundle,
+                    callback
+                )
             }
         }
     }
@@ -80,14 +95,16 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
                 val publicKey = EncryptionController.sendRequest(context, address, mode)
 
                 try {
-                    context.sendSms(
+                    val smsManager = SmsManager(ConversationsViewModel())
+                    smsManager.sendSms(
                         text = "",
                         address = address,
                         threadId = threadId,
                         subscriptionId = subscriptionId,
                         data = publicKey,
-                    )?.let { conversation ->
-                        callback(conversation)
+                        context = context,
+                    ) { conversation ->
+                        conversation?.let { callback(it) }
                     }
                 } catch(e: Exception) {
                     e.printStackTrace()

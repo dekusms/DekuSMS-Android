@@ -16,6 +16,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
+import com.afkanerd.deku.RemoteListeners.extensions.isBase64Encoded
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForGatewayServers
 import com.afkanerd.deku.Router.Models.RouterHandler.getTagForMessages
@@ -87,7 +88,7 @@ class GatewayServerViewModel : ViewModel() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val isBase64 = isBase64Encoded(conversation.sms!!.body!!)
+        val isBase64 = conversation.sms!!.body!!.isBase64Encoded()
         val gatewayServerList =
             Datastore.getDatastore(context.applicationContext)
                 .gatewayServerDAO()
