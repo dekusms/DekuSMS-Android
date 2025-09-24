@@ -325,5 +325,16 @@
     <string name="dev_mode">Mode développeur</string>
     <string name="read_our_text_part">Lisez notre</string>
     <string name="privacy_policy_text_part">politique de confidentialité</string>
+    <string name="send_mms_photo">Envoyer une photo par MMS</string>
+    <string name="mms_selected_image">Image sélectionnée par MMS</string>
+    <string name="unknown_error_sending_mms">Erreur inconnue lors de l\'envoi du MMS :</string>
+    <string name="mms_image">Image MMS...</string>
+    <string name="mms_video">Vidéo MMS...</string>
+    <string name="export_sms_mms_database">Exporter la base de données SMS/MMS</string>
+    <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">Ceci exporte toutes les bases de données SMS et MMS. Cela peut être utile si vous devez capturer tous les champs stockés par les applications SMS par défaut.</string>
+    <string name="developer_options">Options pour les développeurs</string>
+    <string name="android_developer">Développeur Android</string>
+    <string name="sms_mms_import_export">Importation/exportation SMS/MMS</string>
+    <string name="export_native_sms_database">Exporter la base de données SMS native</string>
 
 </resources>
