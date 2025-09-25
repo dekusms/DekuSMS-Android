@@ -421,7 +421,7 @@
     <string name="developer_options">Developer options</string>
     <string name="android_developer">Android developer</string>
     <string name="sms_mms_import_export">SMS/MMS Import/Export</string>
-    <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
+    <string name="deku_sms_dev_mode_export" translatable="false">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Export native SMS database</string>
 
 </resources>
