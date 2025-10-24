@@ -143,28 +143,6 @@ class MainActivity : AppCompatActivity(){
                                                 }
                                             )
                                         },
-                                        modalNavigationModalItems = {
-                                            NavigationDrawerItem(
-                                                icon = {
-                                                    Icon(
-                                                        Icons.AutoMirrored.Default.Forward,
-                                                        contentDescription = stringResource(com.afkanerd.deku.DefaultSMS.R.string.cloud_forward)
-                                                    )
-                                                },
-                                                label = {
-                                                    Text(
-                                                        stringResource(com.afkanerd.deku.DefaultSMS.R.string.cloud_forward),
-                                                        fontSize = 14.sp
-                                                    )
-                                                },
-                                                badge = {},
-                                                selected = false,
-                                                onClick = {
-                                                    navController
-                                                        .navigate(RemoteForwardingScreen)
-                                                }
-                                            )
-                                        },
                                         conversationsCustomViewModel = secureViewModel, //This can be an array
                                         conversationsCustomComposable = { vm ->
                                             SecureConversationComposable(
