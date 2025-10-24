@@ -446,5 +446,7 @@
     <string name="status1">Status</string>
     <string name="tag">Tag</string>
     <string name="delete">Delete</string>
+    <string name="messages_loaded">Messages Loaded!</string>
+    <string name="to_1">To</string>
 
 </resources>

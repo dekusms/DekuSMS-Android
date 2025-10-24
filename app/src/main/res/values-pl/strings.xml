@@ -424,10 +424,31 @@
     <string name="sms_mms_import_export">Import/eksport SMS/MMS</string>
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Eksportuj natywną bazę danych SMS</string>
+    <string name="delete">Usuwać</string>
     <string name="messages_loaded">Wiadomości załadowane!</string>
     <string name="to_1">Do</string>
     <string name="secure">Bezpieczny</string>
     <string name="has_requested_to_secure_this_conversation">%1$s poprosił o zabezpieczenie tej konwersacji.</string>
+    <string name="secure_conversation">Bezpieczna rozmowa!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Pusty zaszyfrowany szyfr... coś poszło nie tak!</string>
+    <string name="gateway_clients">Klienci Gateway</string>
+    <string name="list_gateway_clients">Wyświetl listę klientów bramy</string>
+    <string name="enter_url">Wprowadź adres URL</string>
+    <string name="enter_tag_optional">Wprowadź tag (opcjonalnie)</string>
+    <string name="enter_port_number">Wprowadź numer portu</string>
+    <string name="from_label_optional">Z etykiety (opcjonalnie)</string>
+    <string name="enter_recipients_separated_by_comma">Wprowadź odbiorców (rozdzielonych przecinkami)</string>
+    <string name="enter_password">Wprowadź hasło</string>
+    <string name="enter_username">Wprowadź nazwę użytkownika</string>
+    <string name="add_new_gateway_server">Dodaj nowy serwer bramy</string>
+    <string name="save">Ratować</string>
+    <string name="cloud_forward">Chmura do przodu</string>
+    <string name="routed_messages">Przekierowane wiadomości</string>
+    <string name="add_http_forwarders">Dodaj przekierowania HTTP</string>
+    <string name="encoding">Kodowanie</string>
+    <string name="protocols">Protokoły</string>
+    <string name="status1">Status</string>
+    <string name="tag">Etykietka</string>
 
 
 </resources>
