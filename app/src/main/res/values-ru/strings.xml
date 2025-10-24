@@ -381,9 +381,30 @@
     <string name="sms_mms_import_export">Импорт/экспорт SMS/MMS</string>
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Экспорт собственной базы данных SMS</string>
+    <string name="delete">Удалить</string>
     <string name="messages_loaded">Сообщения загружены!</string>
     <string name="to_1">К</string>
     <string name="secure">Безопасный</string>
     <string name="has_requested_to_secure_this_conversation">%1$s запросил защиту этого разговора.</string>
+    <string name="secure_conversation">Безопасный разговор!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Пустой зашифрованный шифр... что-то пошло не так!</string>
+    <string name="gateway_clients">Клиенты шлюза</string>
+    <string name="list_gateway_clients">Список клиентов шлюза</string>
+    <string name="enter_url">Введите URL-адрес</string>
+    <string name="enter_tag_optional">Введите тег (необязательно)</string>
+    <string name="enter_port_number">Введите номер порта</string>
+    <string name="from_label_optional">С этикетки (необязательно)</string>
+    <string name="enter_recipients_separated_by_comma">Введите получателей (через запятую)</string>
+    <string name="enter_password">Введите пароль</string>
+    <string name="enter_username">Введите имя пользователя</string>
+    <string name="add_new_gateway_server">Добавить новый сервер Gateway</string>
+    <string name="save">Сохранять</string>
+    <string name="cloud_forward">Облако вперед</string>
+    <string name="routed_messages">Маршрутизированные сообщения</string>
+    <string name="add_http_forwarders">Добавить HTTP-пересылки</string>
+    <string name="encoding">Кодирование</string>
+    <string name="protocols">Протоколы</string>
+    <string name="status1">Статус</string>
+    <string name="tag">Ярлык</string>
 
 </resources>
