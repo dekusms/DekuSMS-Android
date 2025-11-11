@@ -54,6 +54,7 @@ windowTesting = "1.5.0"
 workRuntime = "2.10.5"
 activity = "1.11.0"
 android-smsmms = "c3e678befd"
+media3ExoplayerVersion = "1.8.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -133,6 +134,7 @@ prov = { module = "com.madgag.spongycastle:prov", version.ref = "prov" }
 rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxbinding" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3ExoplayerVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
