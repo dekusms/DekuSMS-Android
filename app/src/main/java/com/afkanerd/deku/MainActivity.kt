@@ -8,31 +8,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Forward
-import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.example.compose.AppTheme
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
 import com.afkanerd.deku.DefaultSMS.AboutActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
+import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
@@ -48,6 +40,9 @@ import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerI
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
+import com.example.compose.AppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity(){
@@ -148,6 +143,9 @@ class MainActivity : AppCompatActivity(){
                                             SecureConversationComposable(
                                                 vm as SecureConversationViewModel)
                                         },
+                                        conversationsCustomDataView = { 
+                                            KeyExchangeType(it)
+                                        }
                                     ) {
                                         composable<RemoteListenersScreen> {
                                             RMQMainComposable(

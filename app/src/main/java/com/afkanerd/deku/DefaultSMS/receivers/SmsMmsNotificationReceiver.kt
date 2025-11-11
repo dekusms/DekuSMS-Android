@@ -8,11 +8,12 @@ import android.widget.Toast
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
-import com.afkanerd.lib_smsmms_android.R
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionRatchetStates
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
@@ -26,7 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.jvm.java
 
 class SmsMmsNotificationReceiver: BroadcastReceiver() {
     private val cls = MainActivity::class.java
@@ -122,6 +122,12 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
     ) {
         val data = conversation.sms_data!!
         try {
+            if(EncryptionController.MessageRequestType.fromMessage(data) ==
+                EncryptionController.MessageRequestType.TYPE_REQUEST
+            ) {
+                context.removeEncryptionRatchetStates(conversation.sms?.address!!)
+            }
+
             EncryptionController.receiveRequest(
                 context,
                 conversation.sms?.address!!,

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Extensions.context
+package com.afkanerd.deku.DefaultSMS.extensions.context
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
