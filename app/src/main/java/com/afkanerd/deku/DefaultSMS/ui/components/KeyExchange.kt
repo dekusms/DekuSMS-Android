@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
@@ -38,26 +39,32 @@ fun KeyExchangeType(conversation: Conversations) {
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        HorizontalDivider(Modifier
-            .padding()
-            .weight(1f),
+        // Leading line
+        HorizontalDivider(
+            modifier = Modifier
+                .weight(1f),
             color = color
         )
 
-        Text(text, Modifier
-            .padding(start = 8.dp)
-            .weight(1f),
-            color = color,
-            fontStyle = FontStyle.Italic
+        // Text in the center
+        Text(
+            text = text,
+            fontStyle = FontStyle.Italic,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 8.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Visible
         )
 
-        HorizontalDivider(Modifier
-            .padding()
-            .weight(1f),
+        // Trailing line
+        HorizontalDivider(
+            modifier = Modifier
+                .weight(1f),
             color = color
         )
     }
