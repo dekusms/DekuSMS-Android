@@ -423,5 +423,30 @@
     <string name="sms_mms_import_export">SMS/MMS Import/Export</string>
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Export native SMS database</string>
+    <string name="secure">Secure</string>
+    <string name="has_requested_to_secure_this_conversation">%1$s has requested to secure this conversation.</string>
+    <string name="secure_conversation">Secure conversation!</string>
+    <string name="empty_encrypted_cipher_something_went_wrong">Empty encrypted cipher... something went wrong!</string>
+    <string name="gateway_clients">Gateway Clients</string>
+    <string name="list_gateway_clients">List gateway clients</string>
+    <string name="enter_url">Enter Url</string>
+    <string name="enter_tag_optional">Enter tag (optional)</string>
+    <string name="enter_port_number">Enter port number</string>
+    <string name="from_label_optional">From label (optional)</string>
+    <string name="enter_recipients_separated_by_comma">Enter recipients (separated by comma)</string>
+    <string name="enter_password">Enter password</string>
+    <string name="enter_username">Enter username</string>
+    <string name="add_new_gateway_server">Add new Gateway server</string>
+    <string name="save">Save</string>
+    <string name="cloud_forward">Cloud forward</string>
+    <string name="routed_messages">Routed messages</string>
+    <string name="add_http_forwarders">Add HTTP forwarders</string>
+    <string name="encoding">Encoding</string>
+    <string name="protocols">Protocols</string>
+    <string name="status1">Status</string>
+    <string name="tag">Tag</string>
+    <string name="delete">Delete</string>
+    <string name="messages_loaded">Messages Loaded!</string>
+    <string name="to_1">To</string>
 
 </resources>

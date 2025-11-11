@@ -1,66 +1,60 @@
 [versions]
 accompanistPermissionsVersion = "0.37.3"
 activityCompose = "1.10.1"
-amqpClient = "5.25.0"
-androidMail = "1.6.7"
-androidSmsmmsVersion = "5.2.6"
+amqpClient = "5.26.0"
+androidMail = "1.6.8"
 appcompat = "1.7.1"
 autolinktext = "2.0.2"
 avatarviewCoil = "1.0.7"
-coilCompose = "3.2.0"
-coilNetworkOkhttp = "3.2.0"
+coilCompose = "3.3.0"
+coilNetworkOkhttp = "3.3.0"
 coilVideoVersion = "3.3.0"
-commonsCodec = "1.18.0"
-commonsNet = "3.11.1"
-composeBom = "2025.06.01"
-composeBomVersion = "2025.06.01"
-conscryptAndroid = "2.5.3"
+commonsCodec = "1.19.0"
+commonsNet = "3.12.0"
+composeBom = "2025.09.01"
 constraintlayout = "2.2.1"
-coreKtx = "1.16.0"
 datastorePreferences = "1.1.7"
 datastorePreferencesRxjava2 = "1.1.7"
-espressoCore = "3.6.1"
+espressoCore = "3.7.0"
 fuelVersion = "2.3.1"
 graphicsShapes = "1.0.1"
-gson = "2.13.1"
-guava = "33.4.8-jre"
-hkdf = "2.0.0"
+gson = "2.13.2"
 javaWebsocket = "1.6.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-kotlin = "2.2.0"
+junitVersion = "1.3.0"
+kotlin = "2.2.20"
 kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
-ktx = "1.16.0"
+ktx = "1.17.0"
 legacySupportV4 = "1.0.0"
-libphonenumber = "9.0.9"
-lifecycleRuntimeKtx = "2.9.1"
-lifecycleViewmodelCompose = "2.9.1"
+libphonenumber = "9.0.15"
+lifecycleRuntimeKtx = "2.9.4"
+lifecycleViewmodelCompose = "2.9.4"
 lz4 = "1.3.0"
-material = "1.12.0"
-material3 = "1.3.2"
+material = "1.13.0"
+material3 = "1.4.0"
 materialIconsExtended = "1.7.8"
-navigationCompose = "2.9.1"
-navigationFragment = "2.9.1"
-navigationTesting = "2.9.1"
-navigationUi = "2.9.1"
+navigationCompose = "2.9.5"
+navigationFragment = "2.9.5"
+navigationTesting = "2.9.5"
+navigationUi = "2.9.5"
 pagingCompose = "3.3.6"
 pagingGuava = "3.3.6"
 preference = "1.2.1"
 prov = "1.58.0.0"
-roomTesting = "2.7.2"
-rulesVersion = "1.6.1"
+roomTesting = "2.8.1"
+rulesVersion = "1.7.0"
 rxbinding = "1.0.1"
-securityCrypto = "1.1.0-beta01"
+securityCrypto = "1.1.0"
 startupRuntime = "1.2.0"
-uiTextGoogleFonts = "1.8.3"
+uiTextGoogleFonts = "1.9.2"
 volley = "1.2.1"
-window = "1.4.0"
-windowTesting = "1.4.0"
-workRuntime = "2.10.2"
-activity = "1.10.1"
-x25519 = "2.0"
+window = "1.5.0"
+windowTesting = "1.5.0"
+workRuntime = "2.10.5"
+activity = "1.11.0"
 android-smsmms = "c3e678befd"
+media3ExoplayerVersion = "1.8.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -71,10 +65,8 @@ android-smsmms = { module = "org.fossify:android-smsmms", version.ref = "android
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-androidx-compose-bom-v20250200 = { module = "androidx.compose:compose-bom", version.ref = "composeBomVersion" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core = { module = "androidx.core:core", version.ref = "ktx" }
-androidx-core-ktx-v1131 = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences-rxjava2 = { module = "androidx.datastore:datastore-preferences-rxjava2", version.ref = "datastorePreferencesRxjava2" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-datastore-preferences-rxjava3 = { module = "androidx.datastore:datastore-preferences-rxjava3", version.ref = "datastorePreferences" }
@@ -86,7 +78,7 @@ androidx-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx"
 androidx-legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
-androidx-material = { module = "androidx.compose.material:material", version = "1.8.3" }
+androidx-material = { module = "androidx.compose.material:material", version = "1.9.0" }
 androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
@@ -108,7 +100,7 @@ androidx-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2"
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
 androidx-ui = { module = "androidx.compose.ui:ui" }
-androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.8.3" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.9.0" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
@@ -125,13 +117,10 @@ coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coilVideoVersion" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-net = { module = "commons-net:commons-net", version.ref = "commonsNet" }
-conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscryptAndroid" }
 fuel = { module = "com.github.kittinunf.fuel:fuel", version.ref = "fuelVersion" }
 fuel-android = { module = "com.github.kittinunf.fuel:fuel-android", version.ref = "fuelVersion" }
 fuel-coroutines = { module = "com.github.kittinunf.fuel:fuel-coroutines", version.ref = "fuelVersion" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-hkdf = { module = "at.favre.lib:hkdf", version.ref = "hkdf" }
 java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocket" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
@@ -145,9 +134,8 @@ prov = { module = "com.madgag.spongycastle:prov", version.ref = "prov" }
 rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxbinding" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-x25519 = { module = "com.github.netricecake:x25519", version.ref = "x25519" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3ExoplayerVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-

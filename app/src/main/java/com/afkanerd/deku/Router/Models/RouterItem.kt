@@ -3,46 +3,42 @@ package com.afkanerd.deku.Router.Models
 import android.database.Cursor
 import android.util.Pair
 import androidx.recyclerview.widget.DiffUtil
+import androidx.room.Embedded
 import androidx.work.DelegatingWorkerFactory
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer
+import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.google.gson.annotations.Expose
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+@Serializable
+data class RouterItem(
+    val thread_id: Int,
+    val address: String,
+    val date: Long,
+    val date_sent: Long,
+    val read: Int,
+    val status: Int,
+    val type: Int,
+    val body: String,
+    val text: String,
+    val sub_id: Long,
+    val url: String? = null,
+    var tag: String? = null
+) {
+    constructor(sms: SmsMmsNatives.Sms) : this(
+        thread_id = sms.thread_id,
+        address = sms.address!!,
+        date = sms.date,
+        date_sent = sms.date_sent,
+        read = sms.read,
+        status = sms.status,
+        type = sms.type,
+        body = sms.body!!,
+        text = sms.body!!,
+        sub_id = sms.sub_id
+    )
 
-class RouterItem(val conversation: Conversation) : Conversation(conversation) {
-    var routingUniqueId: String? = null
-    var url: String? = null
-    var routingStatus: String? = null
-
-    fun setConversationTag(tag: String) {
-        conversation.tag = tag
-    }
-
-    fun serializeJson() : String {
-        val json = Json {
-            prettyPrint = true
-        }
-        return json.encodeToString(conversation)
-    }
-
-    companion object {
-        fun build(cursor: Cursor?): RouterItem {
-            return cursor?.let { Conversation.build(it) } as RouterItem
-        }
-        class DIFF_CALLBACK : DiffUtil.ItemCallback<Pair<RouterItem, GatewayServer>>() {
-            override fun areItemsTheSame(oldItem: Pair<RouterItem, GatewayServer>,
-                                         newItem: Pair<RouterItem, GatewayServer>): Boolean {
-                // Logic to compare if two items represent the same data (e.g., by ID)
-                return oldItem.first.routingUniqueId == newItem.first.routingUniqueId
-            }
-
-            override fun areContentsTheSame(oldItem: Pair<RouterItem, GatewayServer>,
-                                         newItem: Pair<RouterItem, GatewayServer>): Boolean {
-                // Logic to compare if content of two items are the same
-                return oldItem == newItem
-            }
-        }
-    }
+    fun serializeJson(): String =
+        Json { prettyPrint = true }.encodeToString(this)
 }

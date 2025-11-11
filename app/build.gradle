@@ -40,11 +40,14 @@ android {
             }
         }
 
-        resourceConfigurations += ["en", "fr", "ru", "de", "pl"]
     }
 
     buildFeatures {
         compose true
+    }
+
+    dexOptions {
+        incremental true
     }
 
     buildscript {
@@ -110,6 +113,7 @@ android {
 
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
+    implementation project(':smswithoutborders_libsmsmms:lib_smsmms_android')
 
     implementation libs.androidx.room.testing
     implementation libs.androidx.activity
@@ -271,7 +275,7 @@ dependencies {
 
     implementation libs.accompanist.permissions
 
-    implementation(platform(libs.androidx.compose.bom.v20250200))
+//    implementation(platform(libs.androidx.compose.bom.v20250200))
     implementation(libs.androidx.paging.compose)
 
     implementation(libs.android.smsmms)
@@ -281,4 +285,3 @@ dependencies {
 
     implementation(libs.coil.video)
 }
-
