@@ -21,6 +21,14 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+
+    <uses-permission android:name="android.permission.WRITE_SMS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <queries>
         <intent>
@@ -53,11 +61,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
@@ -96,9 +103,7 @@
         <activity
             android:name=".AboutActivity"
             android:exported="false"/>
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="false"/>
+
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"/>
@@ -110,51 +115,6 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
             android:exported="false"/>
-
-        <receiver
-            android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-
-                <data android:scheme="sms" />
-                <data android:host="localhost" />
-                <!-- <data android:port="8200" /> -->
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.MMSReceiverBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_WAP_PUSH">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
-
-                <data android:mimeType="application/vnd.wap.mms-message" />
-            </intent-filter>
-        </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
-        <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyMuteActionBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name="com.afkanerd.deku.MainActivity"
@@ -171,6 +131,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
+
         <service
             android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService"
             android:exported="false"
@@ -179,6 +140,7 @@
                 <action android:name="androidx.work.impl.foreground.SystemForegroundService" />
             </intent-filter>
         </service>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -188,6 +150,29 @@
                 android:name="com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionServiceInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Custom receiver for notifications from lib -->
+        <receiver
+            android:name=".receivers.SmsMmsNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT_LIB" />
+                <action android:name="com.afkanerd.deku.NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY" />
+            </intent-filter>
+        </receiver>
+
     </application>
+
+
 
 </manifest>

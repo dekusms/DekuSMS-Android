@@ -15,33 +15,18 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.AutoMigrationSpec;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadsConfigurationsDao;
-import com.afkanerd.deku.DefaultSMS.Models.Archive;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadsConfigurations;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao;
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
-//import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
-//import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
-//import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-//import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
-
-//@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class,
-//        ThreadedConversations.class, Conversation.class}, version = 9)
+import com.afkanerd.deku.Router.data.dao.GatewayServerDAO;
+import com.afkanerd.deku.Router.data.models.GatewayServer;
 
 @Database(entities = {
-        Archive.class,
         GatewayServer.class,
         RemoteListenersQueues.class,
-        Conversation.class,
-        RemoteListeners.class,
-        ThreadsConfigurations.class},
-        version = 24,
+        RemoteListeners.class},
+        version = 31,
         autoMigrations = {
         @AutoMigration(from = 9, to = 10),
         @AutoMigration(from = 10, to = 11),
@@ -57,7 +42,14 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 20, to = 21, spec = Datastore.Migrate20To21.class),
         @AutoMigration(from = 21, to = 22, spec = Datastore.Migrate21To22.class),
         @AutoMigration(from = 22, to = 23, spec = Datastore.Migrate22To23.class),
-        @AutoMigration(from = 23, to = 24)
+        @AutoMigration(from = 23, to = 24),
+        @AutoMigration(from = 24, to = 25),
+        @AutoMigration(from = 25, to = 26),
+        @AutoMigration(from = 26, to = 27),
+        @AutoMigration(from = 27, to = 28),
+        @AutoMigration(from = 28, to = 29, spec = Datastore.Migrate28To29.class),
+        @AutoMigration(from = 29, to = 30),
+        @AutoMigration(from = 30, to = 31),
 })
 
 
@@ -83,10 +75,6 @@ public abstract class Datastore extends RoomDatabase {
 
     public abstract RemoteListenerDAO remoteListenerDAO();
     public abstract RemoteListenersQueuesDao remoteListenersQueuesDao();
-
-    public abstract ConversationDao conversationDao();
-
-    public abstract ThreadsConfigurationsDao threadsConfigurationsDao();
 
     @Override
     public void clearAllTables() {
@@ -138,4 +126,11 @@ public abstract class Datastore extends RoomDatabase {
             )
     )
     static class Migrate22To23 implements AutoMigrationSpec { }
+
+    @DeleteTable.Entries({
+            @DeleteTable(tableName = "Archive"),
+            @DeleteTable(tableName = "Conversation"),
+            @DeleteTable(tableName = "ThreadsConfigurations")
+    })
+    static class Migrate28To29 implements AutoMigrationSpec { }
 }

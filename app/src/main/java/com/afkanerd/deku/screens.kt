@@ -4,14 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 object HomeScreen
-@Serializable
-object ConversationsScreen
-@Serializable
-object ComposeNewMessageScreen
-@Serializable
-object SearchThreadScreen
-@Serializable
-object ContactDetailsScreen
 
 // Remote Listeners
 @Serializable
@@ -22,4 +14,10 @@ object RemoteListenersQueuesScreen
 object RemoteListenersAddScreen
 
 @Serializable
-object LogcatScreen
+object AboutScreen
+
+@Serializable
+object RemoteForwardingScreen
+
+@Serializable
+object GatewayClientsListScreen

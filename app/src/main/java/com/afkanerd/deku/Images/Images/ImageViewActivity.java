@@ -22,10 +22,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Deprecated.ConversationActivity;
-import com.afkanerd.deku.DefaultSMS.Models.Compression;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 

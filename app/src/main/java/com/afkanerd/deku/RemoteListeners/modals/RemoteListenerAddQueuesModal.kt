@@ -1,6 +1,5 @@
 package com.afkanerd.deku.RemoteListeners.modals
 
-import android.Manifest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,14 +31,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RMQ.RMQConnectionHandler
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDualSim
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -68,7 +66,8 @@ fun RemoteListenerAddQueuesModal(
     val inspectMode = LocalInspectionMode.current
 
     val isDualSim by remember{
-        mutableStateOf(if(inspectMode) true else SIMHandler.isDualSim(context))
+        mutableStateOf(if(inspectMode) true
+        else context.isDualSim())
     }
 
     LaunchedEffect(sim1Binding, sim2Binding) {

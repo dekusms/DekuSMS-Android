@@ -1,53 +1,108 @@
 package com.example.ui.theme
 
-import com.afkanerd.deku.DefaultSMS.R
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.unit.sp
+import com.afkanerd.deku.DefaultSMS.R
 
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
+
+val MonaSans = FontFamily(
+    Font(R.font.mona_sans_regular),
+    Font(R.font.mona_sans_bold, FontWeight.Bold),
+    Font(R.font.mona_sans_light, FontWeight.Light),
+    Font(R.font.mona_sans_medium, FontWeight.Medium),
+    Font(R.font.mona_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.mona_sans_extrabold, FontWeight.ExtraBold),
 )
 
-val bodyFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Public Sans"),
-        fontProvider = provider,
+val Unbounded = FontFamily(
+    Font(R.font.unbounded_regular),
+    Font(R.font.unbounded_bold, FontWeight.Bold),
+    Font(R.font.unbounded_light, FontWeight.Light),
+    Font(R.font.unbounded_medium, FontWeight.Medium),
+    Font(R.font.unbounded_semibold, FontWeight.SemiBold),
+    Font(R.font.unbounded_extrabold, FontWeight.ExtraBold),
+)
+
+val DekuSMSTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Normal,
+        fontSize = 57.sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Bold,
+        fontSize = 45.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Bold,
+        fontSize = 36.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 32.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 28.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = MonaSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 11.sp
     )
 )
-
-val displayFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Public Sans"),
-        fontProvider = provider,
-    )
-)
-
-// Default Material 3 typography values
-val baseline = Typography()
-
-val AppTypography = Typography(
-    displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
-    displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
-    displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
-    headlineLarge = baseline.headlineLarge.copy(fontFamily = displayFontFamily),
-    headlineMedium = baseline.headlineMedium.copy(fontFamily = displayFontFamily),
-    headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
-    titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
-    titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
-    titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
-    bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
-    bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
-    bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
-    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
-    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
-)
-

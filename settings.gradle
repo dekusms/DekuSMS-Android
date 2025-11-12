@@ -3,9 +3,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        jcenter() // Warning: this repository is going to shut down soon
+        maven { setUrl("https://jitpack.io") }
     }
 }
 rootProject.name = "swob_server"
 include ':app'
 include ':smswithoutborders_libsignal-doubleratchet'
+//include ':smswithoutborders_libsmsmms:lib_smsmms_android'

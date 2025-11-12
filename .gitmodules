@@ -4,3 +4,6 @@
 [submodule "reproducible-apk-tools"]
 	path = reproducible-apk-tools
 	url = https://github.com/obfusk/reproducible-apk-tools.git
+[submodule "smswithoutborders_libsmsmms"]
+	path = smswithoutborders_libsmsmms
+	url = git@github.com:smswithoutborders/lib_smsmms_android.git
