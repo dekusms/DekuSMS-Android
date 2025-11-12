@@ -406,5 +406,7 @@
     <string name="protocols">Протоколы</string>
     <string name="status1">Статус</string>
     <string name="tag">Ярлык</string>
+    <string name="secure_message_requested">Запрошено защищенное сообщение</string>
+    <string name="secure_message_accepted">Защищенное сообщение принято</string>
 
 </resources>

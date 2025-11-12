@@ -449,6 +449,8 @@
     <string name="protocols">Protokoły</string>
     <string name="status1">Status</string>
     <string name="tag">Etykietka</string>
+    <string name="secure_message_requested">Prośba o bezpieczną wiadomość</string>
+    <string name="secure_message_accepted">Zaakceptowano bezpieczną wiadomość</string>
 
 
 </resources>

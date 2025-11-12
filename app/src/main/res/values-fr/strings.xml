@@ -362,5 +362,7 @@
     <string name="enter_tag_optional">Entrez le tag (facultatif)</string>
     <string name="enter_port_number">Entrez le numéro de port</string>
     <string name="from_label_optional">De l\'étiquette (facultatif)</string>
+    <string name="secure_message_requested">Message sécurisé demandé</string>
+    <string name="secure_message_accepted">Message sécurisé accepté</string>
 
 </resources>
