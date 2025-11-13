@@ -57,7 +57,6 @@ import androidx.core.content.edit
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.HomeScreen
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
@@ -73,6 +72,9 @@ import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerModal
 import com.afkanerd.deku.RemoteListeners.modals.RemoteListenerSMSPermissionsModal
 import com.afkanerd.deku.RemoteListenersAddScreen
 import com.afkanerd.deku.RemoteListenersQueuesScreen
+import com.afkanerd.smswithoutborders_libsmsmms.ui.getSetDefaultBehaviour
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -82,7 +84,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 const val requiredSendSMSPermission = Manifest.permission.SEND_SMS
-//const val requiredReceiveSMSPermission = Manifest.permission.RECEIVE_SMS
 const val requiredReceiveSMSPermission = Manifest.permission.READ_SMS
 
 const val requiredNotificationsPermissions = Manifest.permission.POST_NOTIFICATIONS
@@ -96,7 +97,6 @@ fun RMQMainComposable(
     _remoteListeners: List<RemoteListeners> = emptyList<RemoteListeners>(),
     remoteListenerViewModel: RemoteListenersViewModel,
     remoteListenerQueuesViewModel: RemoteListenerQueuesViewModel,
-    conversationsViewModel: ConversationsViewModel,
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -119,22 +119,7 @@ fun RMQMainComposable(
     val notificationPermission = rememberPermissionState(requiredNotificationsPermissions)
     val readPhoneStatePermission = rememberPermissionState(requiredReadPhoneStatePermissions)
 
-    val getDefaultPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(context)
-                sharedPreferences.edit() {
-                    putBoolean(context.getString(R.string.configs_load_natives), true)
-                }
-                CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.reset(context)
-                    launch(Dispatchers.Main) {
-                        Toast.makeText(context, "Messages loaded!", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
+    val getDefaultPermission = getSetDefaultBehaviour(context) { }
 
     var showPermissionModal by remember { mutableStateOf(false) }
 
@@ -147,11 +132,7 @@ fun RMQMainComposable(
 
     BackHandler {
         remoteListenerViewModel.remoteListener = null
-        if(!navController.popBackStack(HomeScreen, false)) {
-            navController.navigate(HomeScreen) {
-                popUpTo(0) { inclusive = true }
-            }
-        }
+        navController.popBackStack()
     }
 
     Scaffold(
@@ -161,11 +142,7 @@ fun RMQMainComposable(
                 navigationIcon = {
                     IconButton(onClick = {
                         remoteListenerViewModel.remoteListener = null
-                        if(!navController.popBackStack(HomeScreen, false)) {
-                            navController.navigate(HomeScreen) {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
+                        navController.popBackStack()
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
@@ -277,7 +254,7 @@ fun RMQMainComposable(
                 RemoteListenerSMSPermissionsModal(
                     showModal = showPermissionModal,
                     makeDefaultCallback = {
-                        getDefaultPermissionLauncher.launch(makeDefault(context))
+                        getDefaultPermission.launch(makeDefault(context))
                         showPermissionModal = false
                     },
                 ) {
@@ -391,44 +368,44 @@ fun openNotificationSettings(context: Context) {
     context.startActivity(intent)
 }
 
-@Composable
-@Preview
-fun ConnectionCards_Preview() {
-    AppTheme {
-        val remoteListeners = RemoteListeners()
-        remoteListeners.id = 0
-        remoteListeners.hostUrl = "amqp://example.com"
-        remoteListeners.virtualHost = "/"
-        remoteListeners.port = 5671
-        remoteListeners.username = "example_user"
-
-        val remoteListeners1 = RemoteListeners()
-        remoteListeners1.id = 1
-        remoteListeners1.hostUrl = "amqp://example.com"
-        remoteListeners1.virtualHost = "/"
-        remoteListeners1.port = 5671
-        remoteListeners1.username = "example_user"
-
-        RMQMainComposable(
-            listOf(remoteListeners, remoteListeners1),
-            RemoteListenersViewModel(),
-            RemoteListenerQueuesViewModel(),
-            ConversationsViewModel(),
-            rememberNavController(),
-        )
-    }
-}
-
-@Composable
-@Preview
-fun ConnectionEmptyCards_Preview() {
-    AppTheme {
-        RMQMainComposable(
-            emptyList(),
-            RemoteListenersViewModel(),
-            RemoteListenerQueuesViewModel(),
-            ConversationsViewModel(),
-            rememberNavController(),
-        )
-    }
-}
+//@Composable
+//@Preview
+//fun ConnectionCards_Preview() {
+//    AppTheme {
+//        val remoteListeners = RemoteListeners()
+//        remoteListeners.id = 0
+//        remoteListeners.hostUrl = "amqp://example.com"
+//        remoteListeners.virtualHost = "/"
+//        remoteListeners.port = 5671
+//        remoteListeners.username = "example_user"
+//
+//        val remoteListeners1 = RemoteListeners()
+//        remoteListeners1.id = 1
+//        remoteListeners1.hostUrl = "amqp://example.com"
+//        remoteListeners1.virtualHost = "/"
+//        remoteListeners1.port = 5671
+//        remoteListeners1.username = "example_user"
+//
+//        RMQMainComposable(
+//            listOf(remoteListeners, remoteListeners1),
+//            RemoteListenersViewModel(),
+//            RemoteListenerQueuesViewModel(),
+//            ConversationsViewModel(),
+//            rememberNavController(),
+//        )
+//    }
+//}
+//
+//@Composable
+//@Preview
+//fun ConnectionEmptyCards_Preview() {
+//    AppTheme {
+//        RMQMainComposable(
+//            emptyList(),
+//            RemoteListenersViewModel(),
+//            RemoteListenerQueuesViewModel(),
+//            ConversationsViewModel(),
+//            rememberNavController(),
+//        )
+//    }
+//}

@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkManagerInitializer
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer
+import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
@@ -68,8 +68,8 @@ object RouterHandler {
         Log.d(javaClass.name, "Request to route - SMTP: $body")
 
         val properties = Properties()
-        properties["mail.smtp.host"] = gatewayServer.smtp.smtp_host
-        properties["mail.smtp.port"] = gatewayServer.smtp.smtp_port
+        properties["mail.smtp.host"] = gatewayServer.smtp?.smtp_host
+        properties["mail.smtp.port"] = gatewayServer.smtp?.smtp_port
         properties["mail.smtp.auth"] = "true";
         properties["mail.smtp.starttls.enable"] = "true"
         if (BuildConfig.DEBUG) properties["mail.debug"] = "true"
@@ -84,27 +84,16 @@ object RouterHandler {
          * session = Session.getDefaultInstance(props, null);
          * }
          */
-        val internetAddresses = InternetAddress.parse(gatewayServer.smtp.smtp_recipient)
+        val internetAddresses = InternetAddress.parse(gatewayServer.smtp?.smtp_recipient)
         val session = Session.getInstance(properties, null)
         val message: Message = MimeMessage(session)
-        message.setFrom(InternetAddress(gatewayServer.smtp.smtp_from))
+        message.setFrom(InternetAddress(gatewayServer.smtp?.smtp_from))
         message.setRecipients(Message.RecipientType.TO, internetAddresses)
-        message.subject = gatewayServer.smtp.smtp_subject
+        message.subject = gatewayServer.smtp?.smtp_subject
         message.sentDate = Date()
         message.setText(body)
-        Transport.send(message, gatewayServer.smtp.smtp_username, gatewayServer.smtp.smtp_password)
-    }
-
-    fun removeWorkForMessage(context: Context?, messageId: String) {
-        val tag = getTagForMessages(messageId)
-        val workManager = WorkManager.getInstance(context!!)
-        workManager.cancelAllWorkByTag(tag)
-    }
-
-    fun removeWorkForGatewayServers(context: Context?, gatewayServerId: Long) {
-        val tag = getTagForGatewayServers(gatewayServerId)
-        val workManager = WorkManager.getInstance(context!!)
-        workManager.cancelAllWorkByTag(tag)
+        Transport.send(message, gatewayServer.smtp?.smtp_username,
+            gatewayServer.smtp?.smtp_password)
     }
 
     const val TAG_NAME_GATEWAY_SERVER = "TAG_NAME_GATEWAY_SERVER"
@@ -124,24 +113,6 @@ object RouterHandler {
 
     private fun getGatewayServerIdFromTag(tag: String): String {
         return tag.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-    }
-
-    fun reverseState(context: Context, state: WorkInfo.State): String {
-        return when (state) {
-            WorkInfo.State.SUCCEEDED -> context.getString(R.string.gateway_server_routing_state_success)
-            WorkInfo.State.ENQUEUED -> context.getString(R.string.gateway_server_routing_state_enqueued)
-            WorkInfo.State.FAILED -> context.getString(R.string.gateway_server_routing_state_failed)
-            WorkInfo.State.RUNNING -> context.getString(R.string.gateway_server_routing_state_running)
-            WorkInfo.State.CANCELLED -> context.getString(R.string.gateway_server_routing_state_cancelled)
-            else -> ""
-        }
-    }
-
-    fun getMessageIdsFromWorkManagers(context: Context): LiveData<List<WorkInfo>> {
-//        AppInitializer.getInstance(context)
-//                .initializeComponent(com.afkanerd.deku.WorkManagerInitializer::class.java)
-        val workManager = WorkManager.getInstance(context)
-        return workManager.getWorkInfosByTagLiveData(TAG_NAME_GATEWAY_SERVER)
     }
 
     fun workInfoParser(workInfo: WorkInfo): Pair<String, String> {

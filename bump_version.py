@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import sys
 import requests
 
 def get_latest_tag():
     """Get the latest tag from the repository."""
-    url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/tags"
+    url = "https://api.github.com/repos/dekusms/DekuSMS-Android/tags"
     response = requests.get(url)
     response.raise_for_status()
 
@@ -57,14 +57,12 @@ def bump_version(filename, flavour):
     if tagVersion is None:
         raise ValueError("Could not find tagVersion in file")
 
-    """
     if flavour == "refs/heads/master":
         releaseVersion = int(releaseVersion) + 1
         stagingVersion = 0
         nightlyVersion = 0
-    """
 
-    if flavour == "refs/heads/staging" or flavour == "refs/heads/master":
+    elif flavour == "refs/heads/staging":
         stagingVersion = int(stagingVersion) + 1
         nightlyVersion = 0
 

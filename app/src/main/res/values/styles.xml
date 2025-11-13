@@ -19,27 +19,6 @@
     </style>
 
 
-
-    <style name="conversation_failed">
-        <item name="android:textStyle">italic</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/md_theme_error</item>
-    </style>
-
-    <style name="conversation_default">
-        <item name="android:textStyle">normal</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/md_theme_onPrimaryContainer</item>
-    </style>
-
-    <style name="conversation_draft_style">
-        <item name="android:textStyle">italic</item>
-    </style>
-
-    <style name="conversation_unread_style">
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <style name="Theme.main.day" parent="Theme.AppTheme">
         <item name="android:windowLightStatusBar">true</item>
     </style>
