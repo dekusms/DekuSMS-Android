@@ -93,7 +93,7 @@ test-flight:
 		) \
 	fi
 
-release-cd: test-flight clean requirements.txt bump_version docker-build-aab clean
+release-cd: requirements.txt bump_version docker-build-aab
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
