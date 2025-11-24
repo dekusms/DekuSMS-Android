@@ -450,5 +450,6 @@
     <string name="to_1">To</string>
     <string name="secure_message_requested">Secure message requested</string>
     <string name="secure_message_accepted">Secure message accepted</string>
+    <string name="enter_subject">Enter subject</string>
 
 </resources>

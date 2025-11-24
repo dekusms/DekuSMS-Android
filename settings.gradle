@@ -9,4 +9,4 @@ dependencyResolutionManagement {
 rootProject.name = "swob_server"
 include ':app'
 include ':smswithoutborders_libsignal-doubleratchet'
-//include ':smswithoutborders_libsmsmms:lib_smsmms_android'
+// include ':smswithoutborders_libsmsmms:lib_smsmms_android'

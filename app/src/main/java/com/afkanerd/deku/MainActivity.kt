@@ -28,7 +28,9 @@ import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
+import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.deku.Router.ui.GatewayClientsMainView
 import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
@@ -107,7 +109,7 @@ class MainActivity : AppCompatActivity(){
                                                     )
                                                 },
                                                 onClick = {
-                                                    navController.navigate(RemoteForwardingScreen)
+                                                    navController.navigate(RemoteListenersScreen)
                                                     it(false)
                                                 }
                                             )
@@ -147,6 +149,18 @@ class MainActivity : AppCompatActivity(){
                                             KeyExchangeType(it)
                                         }
                                     ) {
+                                        composable<RemoteListenersQueuesScreen> {
+                                            RMQQueuesComposable(
+                                                remoteListenersViewModel = remoteListenersViewModel,
+                                                navController = navController
+                                            )
+                                        }
+                                        composable<RemoteListenersAddScreen> {
+                                            RMQAddComposable(
+                                                remoteListenerViewModel = remoteListenersViewModel,
+                                                navController = navController
+                                            )
+                                        }
                                         composable<RemoteListenersScreen> {
                                             RMQMainComposable(
                                                 remoteListenerViewModel = remoteListenersViewModel,
