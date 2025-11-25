@@ -1,5 +1,4 @@
-# pass=$$(cat $(jks_pass))
-pass=$(jks_pass)
+pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 
 branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
