@@ -31,6 +31,25 @@ git add .
 git commit -m "release: making release"
 git tag -f "$tagVersion"
 
+echo "[+] Cleaning up..."
+containers=$(docker ps -a --filter "ancestor=$(docker_apk_image)" --format "{{.ID}}"); \
+	if [ -n "$$containers" ]; then \
+	    docker stop $$containers; \
+	    docker rm $$containers; \
+	fi
+containers=$(docker ps -a --filter "ancestor=$(docker_app_image)" --format "{{.ID}}"); \
+	if [ -n "$$containers" ]; then \
+	    docker stop $$containers; \
+	    docker rm $$containers; \
+	fi
+containers=$(docker ps -a --filter "ancestor=$(docker_apk_image_commit_check)" --format "{{.ID}}"); \
+	if [ -n "$$containers" ]; then \
+	    docker stop $$containers; \
+	    docker rm $$containers; \
+	fi
+echo "[+] Done cleaning up..."
+
+
 echo "[+] Building apk output: $APP1"
 DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t $docker_apk_image --target apk-builder .
 docker run --memory="8g" --cpus="7" --name $CONTAINER_NAME -e PASS=$1 $docker_apk_image && \
@@ -41,3 +60,5 @@ docker run --memory="8g" --cpus="7" --name $CONTAINER_NAME_1 -e PASS=$1 $docker_
 	docker cp $CONTAINER_NAME_1:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/$APP2
 
 diffoscope apk-outputs/$APP1 apk-outputs/$APP2
+echo "[+] All good!! Publish..."
+
