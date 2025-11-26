@@ -33,19 +33,19 @@ git tag -f "$tagVersion"
 
 echo "[+] Cleaning up..."
 containers=$(docker ps -a --filter "ancestor=$docker_apk_image" --format "{{.ID}}"); \
-	if [ -n "$$containers" ]; then \
-	    docker stop $$containers; \
-	    docker rm $$containers; \
+	if [ -n "$containers" ]; then \
+	    docker stop $containers; \
+	    docker rm $containers; \
 	fi
 containers=$(docker ps -a --filter "ancestor=$docker_app_image" --format "{{.ID}}"); \
-	if [ -n "$$containers" ]; then \
-	    docker stop $$containers; \
-	    docker rm $$containers; \
+	if [ -n "$containers" ]; then \
+	    docker stop $containers; \
+	    docker rm $containers; \
 	fi
 containers=$(docker ps -a --filter "ancestor=$docker_apk_image_commit_check" --format "{{.ID}}"); \
-	if [ -n "$$containers" ]; then \
-	    docker stop $$containers; \
-	    docker rm $$containers; \
+	if [ -n "$containers" ]; then \
+	    docker stop $containers; \
+	    docker rm $containers; \
 	fi
 echo "[+] Done cleaning up..."
 
