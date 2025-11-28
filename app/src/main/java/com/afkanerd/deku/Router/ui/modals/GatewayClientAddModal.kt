@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -93,7 +93,7 @@ fun GatewayServerAddHttpModal(
 
                 Spacer(Modifier.padding(16.dp))
 
-                Button(onClick = {
+                Button(modifier = Modifier.fillMaxWidth(), onClick = {
                     if(gatewayServer != null) {
                         viewModel.update(
                             context, gatewayServer.apply {
@@ -104,7 +104,7 @@ fun GatewayServerAddHttpModal(
                             onDismissCallback()
                         }
                     } else {
-                        viewModel.update(
+                        viewModel.add(
                             context, GatewayServer().apply {
                                 this.URL = url
                                 this.tag = tag
@@ -117,19 +117,19 @@ fun GatewayServerAddHttpModal(
                     Text(stringResource(R.string.save))
                 }
 
-                Spacer(Modifier.padding(16.dp))
-
                 if(gatewayServer != null || LocalInspectionMode.current) {
-                    Button(onClick = {
+                    OutlinedButton(onClick = {
                         viewModel.delete(
                             context = context,
                             gatewayClient = gatewayServer!!,
                         ){
                             onDismissCallback()
                         }
-                    }, colors = ButtonDefaults
-                        .buttonColors(MaterialTheme.colorScheme.error) ) {
-                        Text(stringResource(R.string.delete))
+                    },) {
+                        Text(
+                            stringResource(R.string.delete),
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
