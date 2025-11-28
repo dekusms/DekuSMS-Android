@@ -1,9 +1,13 @@
 package com.afkanerd.deku.Router.ui.modals
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -11,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -69,69 +74,109 @@ fun GatewayServerAddHttpModal(
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                HorizontalDivider(Modifier.padding(16.dp))
+                Spacer(Modifier.padding(10.dp))
 
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     value = url,
                     onValueChange = { url = it },
                     label = {
-                        Text(stringResource(R.string.enter_url))
+                        Text(stringResource(R.string.enter_url),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     value = tag,
                     onValueChange = { tag = it },
                     label = {
-                        Text(stringResource(R.string.enter_tag_optional))
+                        Text(stringResource(R.string.enter_tag_optional),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 Spacer(Modifier.padding(16.dp))
 
-                Button(onClick = {
-                    if(gatewayServer != null) {
-                        viewModel.update(
-                            context, gatewayServer.apply {
-                                this.URL = url
-                                this.tag = tag
-                            },
-                        ) {
-                            onDismissCallback()
-                        }
-                    } else {
-                        viewModel.update(
-                            context, GatewayServer().apply {
-                                this.URL = url
-                                this.tag = tag
-                            },
-                        ) {
-                            onDismissCallback()
-                        }
-                    }
-                }) {
-                    Text(stringResource(R.string.save))
-                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
 
-                Spacer(Modifier.padding(16.dp))
+                    val buttonModifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                    val sharedShape = MaterialTheme.shapes.medium
 
-                if(gatewayServer != null || LocalInspectionMode.current) {
                     Button(onClick = {
-                        viewModel.delete(
-                            context = context,
-                            gatewayClient = gatewayServer!!,
-                        ){
-                            onDismissCallback()
+                        if (gatewayServer != null) {
+                            viewModel.update(
+                                context,
+                                gatewayServer.apply {
+                                    this.URL = url
+                                    this.tag = tag
+                                },
+                            ) {
+                                onDismissCallback()
+                            }
+                        } else {
+                            viewModel.update(
+                                context,
+                                GatewayServer().apply {
+                                    this.URL = url
+                                    this.tag = tag
+                                },
+                            ) {
+                                onDismissCallback()
+                            }
                         }
-                    }, colors = ButtonDefaults
-                        .buttonColors(MaterialTheme.colorScheme.error) ) {
-                        Text(stringResource(R.string.delete))
+                    },
+                        modifier = buttonModifier,
+                        shape = sharedShape ) {
+                        Text(stringResource(R.string.save))
+                    }
+                    Spacer(Modifier.padding(8.dp))
+
+                    if (gatewayServer != null || LocalInspectionMode.current) {
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.delete(
+                                    context = context,
+                                    gatewayClient = gatewayServer!!,
+                                ) {
+                                    onDismissCallback()
+                                }
+                            },
+                            modifier = buttonModifier,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(
+                                text = stringResource(R.string.delete),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
+//                    ============
+
             }
         }
     }
