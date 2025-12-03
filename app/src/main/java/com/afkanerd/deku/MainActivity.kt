@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +39,7 @@ import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -234,5 +236,10 @@ class MainActivity : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AppCompatDelegate.setDefaultNightMode(settingsGetTheme)
     }
 }
