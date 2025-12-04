@@ -114,7 +114,7 @@ android {
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
 //    implementation project(':smswithoutborders_libsmsmms:lib_smsmms_android')
-    implementation 'com.github.smswithoutborders:lib_smsmms_android:afcce35b45'
+    implementation 'com.github.smswithoutborders:lib_smsmms_android:a8c65c5'
 
     implementation libs.androidx.room.testing
     implementation libs.androidx.activity
