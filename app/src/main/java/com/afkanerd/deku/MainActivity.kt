@@ -139,6 +139,7 @@ class MainActivity : AppCompatActivity(){
                                                 },
                                                 onClick = {
                                                     secureViewModel.setModal(true)
+                                                    it(false)
                                                 }
                                             )
                                         },
