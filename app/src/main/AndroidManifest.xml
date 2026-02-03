@@ -36,6 +36,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
+        <profileable android:shell="true" />
         <activity
             android:name="com.afkanerd.deku.MainActivity"
             android:windowSoftInputMode="adjustResize"
