@@ -37,7 +37,6 @@ import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
@@ -56,8 +55,8 @@ class MainActivity : AppCompatActivity(){
     private val threadsViewModel: ThreadsViewModel by viewModels()
     private val secureViewModel: SecureConversationViewModel by viewModels()
     private val gatewayServerViewModel: GatewayServerViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
 
-    private lateinit var searchViewModel: SearchViewModel
     private lateinit var remoteListenersViewModel: RemoteListenersViewModel
     private val remoteListenersProjectsViewModel:
             RemoteListenerQueuesViewModel by viewModels()
@@ -70,8 +69,7 @@ class MainActivity : AppCompatActivity(){
             window.isNavigationBarContrastEnforced = false
         }
 
-//        searchViewModel = SearchViewModel(getDatabase().threadsDao()!!)
-//        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
+        remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
 
         lifecycleScope.launch(Dispatchers.Main) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -79,16 +77,16 @@ class MainActivity : AppCompatActivity(){
                     .windowLayoutInfo(this@MainActivity)
                     .collect { newLayoutInfo ->
                         setContent {
+                            navController = rememberNavController()
                             AppTheme {
                                 Surface(Modifier
                                     .fillMaxSize()
                                 ) {
-                                    navController = rememberNavController()
                                     NavHostControllerInstance(
                                         newLayoutInfo = newLayoutInfo,
                                         navController = navController,
                                         threadsViewModel = threadsViewModel,
-                                        searchViewModel = null, // TODO
+                                        searchViewModel = searchViewModel,
                                         threadsMainMenuItems = {
                                             DropdownMenuItem(
                                                 text = {
@@ -165,11 +163,11 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         }
                                         composable<RemoteListenersScreen> {
-//                                            RMQMainComposable(
-//                                                remoteListenerViewModel = remoteListenersViewModel,
-//                                                remoteListenerQueuesViewModel = remoteListenersProjectsViewModel,
-//                                                navController = navController
-//                                            )
+                                            RMQMainComposable(
+                                                remoteListenerViewModel = remoteListenersViewModel,
+                                                remoteListenerQueuesViewModel = remoteListenersProjectsViewModel,
+                                                navController = navController
+                                            )
                                         }
                                         composable<GatewayClientsListScreen> {
                                             GatewayClientsMainView(
@@ -184,14 +182,14 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         }
                                         composable<AboutScreen> {
-//                                            startActivity(
-//                                                Intent(applicationContext,
-//                                                    AboutActivity::class.java))
-//                                            finish()
+                                            startActivity(
+                                                Intent(applicationContext,
+                                                    AboutActivity::class.java))
+                                            finish()
                                         }
                                     }
 
-//                                    processIntent(navController)
+                                    processIntent(navController)
                                 }
                             }
                         }
@@ -202,9 +200,8 @@ class MainActivity : AppCompatActivity(){
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // TODO: this is increase thread
-//        if(::navController.isInitialized)
-//            processIntent(navController, intent)
+        if(::navController.isInitialized)
+            processIntent(navController, intent)
     }
 
     private fun processIntent(navController: NavController, newIntent: Intent? = null) {

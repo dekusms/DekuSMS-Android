@@ -1,7 +1,5 @@
 package com.afkanerd.deku.Router.ui
 
-import android.R.attr.type
-import android.provider.BlockedNumberContract.isBlocked
 import android.provider.Telephony
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -35,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.test.espresso.matcher.ViewMatchers.isSelected
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.GatewayClientsListScreen
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
@@ -144,7 +141,6 @@ fun RouterItemCard(
         Column {
             ThreadConversationCard(
                 id = conversation.sms?.thread_id!!,
-                name = firstName + "" + lastName,
                 content = conversation.sms?.body!!,
                 date = date,
                 isRead = true, // TODO: get actual later
@@ -156,7 +152,9 @@ fun RouterItemCard(
                 type = conversation.sms?.type!!,
                 mms = conversation.mms?.thread_id != null,
                 modifier = Modifier,
-                contactPhotoUri = ""
+                contactPhotoUri = "",
+                firstName = firstName!!,
+                lastName = lastName
             )
 
             Column(
