@@ -1,10 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-	id "com.diffplug.spotless" version "7.0.4"
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.3.0'
-
-    id("com.gradleup.nmcp").version("0.0.8")
+	id "com.diffplug.spotless" version "8.2.1"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.3.10'
+    id 'com.google.devtools.ksp' version '2.2.10-2.0.2'
     alias(libs.plugins.compose.compiler)
 }
 
@@ -38,6 +37,10 @@ android {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
+        }
+
+        ksp {
+            arg('room.schemaLocation', "$projectDir/schemas")
         }
 
     }
@@ -286,4 +289,12 @@ dependencies {
 
     implementation(libs.coil.video)
 
+
+    implementation 'net.zetetic:sqlcipher-android:4.12.0@aar'
+    implementation 'androidx.sqlite:sqlite:2.6.2'
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+    def room_version = "2.8.4"
+    ksp "androidx.room:room-compiler:$room_version"
 }
