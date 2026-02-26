@@ -110,19 +110,8 @@ fun RouterItemCard(
 
     val address = conversation.sms?.address!!
     val contactName = if(isDefault)
-        context.retrieveContactName(address)
+        context.retrieveContactName(address) ?: address
     else address
-
-    var firstName by remember { mutableStateOf(conversation.sms?.address) }
-    var lastName by remember { mutableStateOf("") }
-
-    if (!contactName.isNullOrEmpty()) {
-        contactName.split(" ").let {
-            firstName = it[0]
-            if (it.size > 1)
-                lastName = it[1]
-        }
-    }
 
     val date = if(!inPreviewMode) DateTimeUtils.formatDate(
         context,
@@ -153,8 +142,7 @@ fun RouterItemCard(
                 mms = conversation.mms?.thread_id != null,
                 modifier = Modifier,
                 contactPhotoUri = "",
-                firstName = firstName!!,
-                lastName = lastName
+                name = contactName,
             )
 
             Column(

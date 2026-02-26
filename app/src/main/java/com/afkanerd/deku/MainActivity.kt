@@ -51,7 +51,6 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(){
 
     private lateinit var navController: NavHostController
-
     private val threadsViewModel: ThreadsViewModel by viewModels()
     private val secureViewModel: SecureConversationViewModel by viewModels()
     private val gatewayServerViewModel: GatewayServerViewModel by viewModels()
