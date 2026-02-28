@@ -25,9 +25,9 @@
     <string name="no_showable_router_message">No routed message to show!</string>
 
     <string name="save_new_gateway_client">Save</string>
-    <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_url" translatable="false">Enter URL - e.g. https://example.com:8080/api/</string>
     <string name="new_gateway_server_tag">(Optional) Identifier Tag</string>
-    <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
+    <string name="new_gateway_client_url" translatable="false">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>
     <string name="new_gateway_client_friendly_name">Enter a friendly name - e.g. Example Node</string>
@@ -116,7 +116,7 @@
     <string name="gateway_client_add_manually_title">Add Manually</string>
 
 
-    <string name="settings_SMS_routing_type_base64_option">Base64</string>
+    <string name="settings_SMS_routing_type_base64_option" translatable="false">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
     <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
@@ -225,12 +225,12 @@
     <string name="conversation_secure_popup_request_menu_yes">Send</string>
     <string name="conversation_secure_popup_request_menu_cancel">Cancel</string>
     <string name="conversation_secure_popup_request_menu_title">Secure Conversation Request</string>
-    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to this contact. \n\nThey will need have Deku SMS installed to receive this request.</string>
+    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to this contact.   They will need have Deku SMS installed to receive this request.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
 
     <string name="conversation_shortcode_description">Can\'t reply to this short code</string>
     <string name="conversation_shortcode_action_button">Learn more</string>
-    <string name="conversation_shortcode_learn_more_text">Short codes are local or personalized numbers for sending international SMS messages.\n\nYou can reply to numbers-only short codes, but not to codes with letters and numbers, like \"MSG007\".</string>
+    <string name="conversation_shortcode_learn_more_text">Short codes are local or personalized numbers for sending international SMS messages.  You can reply to numbers-only short codes, but not to codes with letters and numbers, like \"MSG007\".</string>
     <string name="conversation_shortcode_learn_more_ok" translatable="false">OK</string>
 
     <string name="thread_conversation_type_draft">Draft</string>
@@ -307,7 +307,7 @@
     <string name="selected">selected</string>
     <string name="cancel_selection">Cancel selection</string>
     <string name="sms">SMS</string>
-    <string name="folders">Folders</string>
+    <string name="folders">folders</string>
     <string name="inbox_folder">Inbox Folder</string>
     <string name="archive_folder">Archive folder</string>
     <string name="encrypted_folder">Encrypted folder</string>
@@ -330,7 +330,7 @@
     <string name="compose">Compose</string>
 
     <string name="notifications">Notifications</string>
-    <string name="block_report_spam"><![CDATA[Block & report spam]]></string>
+    <string name="block_report_spam" translatable="false"><![CDATA[Block & report spam]]></string>
     <string name="end_to_end_encryption">End-to-end encryption</string>
     <string name="end_to_end_encrypt">"End-to-end encryption: "</string>
     <string name="end_to_end_encryption_isn_t_available_in_this_conversation">End-to-end encryption isn\'t available in this conversation.</string>
@@ -342,7 +342,7 @@
     <string name="conversation_menu_import">Import</string>
     <string name="conversations">"Conversations: "</string>
     <string name="threads">"Threads: "</string>
-    <string name="archive">Archive</string>
+    <string name="archive">archives</string>
     <string name="select_a_conversation_from_the_list_on_the_left">Select a conversation from the list on the left</string>
     <string name="import_conversations">Import Conversations</string>
     <string name="reset_and_import">Reset and Import</string>
@@ -390,7 +390,7 @@
     <string name="choose_protocol">Choose protocol</string>
     <string name="click_to_add_queues">• Click to add queues</string>
     <string name="press_and_hold_to_manage">• Press and hold to manage</string>
-    <string name="queues">%1$s Queues</string>
+    <string name="queues" translatable="false">%1$s Queues</string>
     <string name="list_of_remote_listeners">List of remote listeners</string>
     <string name="settings">Settings</string>
     <string name="no_messages_sent_from_remote_listeners">No messages sent from remote listeners</string>
@@ -420,8 +420,8 @@
     <string name="this_exports_all_sms_and_mms_databases_can_be_useful_if_you_need_to_capture_all_fields_as_stored_by_the_default_sms_apps">This exports all SMS and MMS databases. Can be useful if you need to capture all fields as stored by the default SMS apps.</string>
     <string name="developer_options">Developer options</string>
     <string name="android_developer">Android developer</string>
-    <string name="sms_mms_import_export">SMS/MMS Import/Export</string>
-    <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
+    <string name="sms_mms_import_export" translatable="false">SMS/MMS Import/Export</string>
+    <string name="deku_sms_dev_mode_export" translatable="false">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Export native SMS database</string>
     <string name="secure">Secure</string>
     <string name="has_requested_to_secure_this_conversation">%1$s has requested to secure this conversation.</string>
