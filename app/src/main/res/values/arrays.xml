@@ -6,6 +6,8 @@
         <item>@string/language_russian</item>
         <item>@string/language_german</item>
         <item>@string/language_polish</item>
+        <item>@string/language_spanish</item>
+        <item>@string/language_arabic</item>
     </string-array>
     <string-array name="language_values">
         <item>@string/language_english_value</item>
@@ -13,6 +15,8 @@
         <item>@string/language_russian_value</item>
         <item>@string/language_german_value</item>
         <item>@string/language_polish_value</item>
+        <item>@string/language_spanish_value</item>
+        <item>@string/language_arabic_value</item>
     </string-array>
 
     <!-- Background colors for LetterTileDrawables. This set of colors is a subset of
