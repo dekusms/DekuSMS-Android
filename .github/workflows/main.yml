@@ -39,7 +39,7 @@ jobs:
             fi
 
             # Handle label events
-            if [[ "${{ github.event_name }}" == "label" ]]; then
+            if [[ "${{ github.event_name }}" == "issues" ]]; then
               echo "Label event detected. Running issues command."
               smswithoutborders_deku_libsmsmms_issues
             fi
