@@ -22,29 +22,24 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            bash -l -c '
-              shopt -s expand_aliases
-          
-              # Force load bashrc manually
-              if [ -f ~/.bashrc ]; then
-                source ~/.bashrc
-              fi
-          
-              echo "Event: ${{ github.event_name }}"
-          
-              if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-                if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-                  if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
-                    cd /root/digitalocean_ci_cd_app_releases && ./start.sh
-                  elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-                    cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
-                  fi
+            echo "Event: ${{ github.event_name }}"
+
+            # Handle merged pull requests
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh
+                elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
                 fi
+              else
+                echo "PR closed but not merged. Skipping."
+                exit 0
               fi
-          
-              if [[ "${{ github.event_name }}" == "issues" ]]; then
-                echo "Issue labeled. Running issues command."
-                type smswithoutborders_deku_libsmsmms_issues
-                smswithoutborders_deku_libsmsmms_issues
-              fi
-            '
+            fi
+
+            # Handle label events
+            if [[ "${{ github.event_name }}" == "issues" ]]; then
+              echo "Label event detected. Running issues command."
+              /home/sherlock/issues_migrate/run.sh
+            fi
