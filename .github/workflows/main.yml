@@ -23,6 +23,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             bash -s << 'EOF'
+            shopt -s expand_aliases
+
             echo "Event: ${{ github.event_name }}"
 
             # Handle merged pull requests
@@ -39,9 +41,9 @@ jobs:
               fi
             fi
 
-            # Handle label events
+            # Handle labeled issue events
             if [[ "${{ github.event_name }}" == "issues" ]]; then
-              echo "Label event detected. Running issues command."
+              echo "Issue labeled. Running issues command."
               smswithoutborders_deku_libsmsmms_issues
             fi
             EOF
