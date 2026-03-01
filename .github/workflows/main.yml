@@ -43,6 +43,7 @@ jobs:
             # Handle label events
             if [[ "${{ github.event_name }}" == "issues" ]]; then
               echo "Label event detected. Running issues command."
-              /home/sherlock/issues_migrate/run.sh
+              cd /home/sherlock/issues_migrate/
+              ./run.sh
             fi
             EOF
