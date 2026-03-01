@@ -11,7 +11,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production # Specifies the environment
+
+    # Attach environment here
+    environment: production
+
     steps:
       - name: Run SSH command
         uses: appleboy/ssh-action@master
@@ -23,28 +26,27 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            bash -s << 'EOF'
-            shopt -s expand_aliases
+            bash -l -c '
+              shopt -s expand_aliases
 
-            echo "Event: ${{ github.event_name }}"
-
-            # Handle merged pull requests
-            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-                if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
-                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh
-                elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
-                fi
-              else
-                echo "PR closed but not merged. Skipping."
-                exit 0
+              if [ -f ~/.bashrc ]; then
+                source ~/.bashrc
               fi
-            fi
 
-            # Handle labeled issue events
-            if [[ "${{ github.event_name }}" == "issues" ]]; then
-              echo "Issue labeled. Running issues command."
-              smswithoutborders_deku_libsmsmms_issues
-            fi
-            EOF
+              echo "Event: ${{ github.event_name }}"
+
+              if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                  if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+                    cd /root/digitalocean_ci_cd_app_releases && ./start.sh
+                  elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
+                    cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
+                  fi
+                fi
+              fi
+
+              if [[ "${{ github.event_name }}" == "issues" ]]; then
+                echo "Issue labeled. Running issues command."
+                smswithoutborders_deku_libsmsmms_issues
+              fi
+            '
