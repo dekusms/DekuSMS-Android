@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production # Specifies the environment
     steps:
       - name: Run SSH command
         uses: appleboy/ssh-action@master
