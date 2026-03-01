@@ -5,6 +5,8 @@ on:
   pull_request:
     types:
       - closed
+  label:
+    types: [created, edited, deleted]
 
 jobs:
   build:
@@ -20,13 +22,24 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true ]]; then
-              if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
-                cd /root/digitalocean_ci_cd_app_releases && ./start.sh
-              elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-                cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
+            echo "Event: ${{ github.event_name }}"
+
+            # Handle merged pull requests
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh
+                elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
+                fi
+              else
+                echo "PR closed but not merged. Skipping."
+                exit 0
               fi
-            else
-              echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
-              exit 1
+            fi
+
+            # Handle label events
+            if [[ "${{ github.event_name }}" == "label" ]]; then
+              echo "Label event detected. Running issues command."
+              smswithoutborders_deku_libsmsmms_issues
             fi
