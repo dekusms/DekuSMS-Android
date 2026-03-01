@@ -5,8 +5,8 @@ on:
   pull_request:
     types:
       - closed
-  label:
-    types: [created, edited, deleted]
+  issues:
+    types: [labeled]
 
 jobs:
   build:
