@@ -22,6 +22,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
+            bash -s << 'EOF'
             echo "Event: ${{ github.event_name }}"
 
             # Handle merged pull requests
@@ -43,3 +44,4 @@ jobs:
               echo "Label event detected. Running issues command."
               smswithoutborders_deku_libsmsmms_issues
             fi
+            EOF
