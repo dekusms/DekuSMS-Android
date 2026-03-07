@@ -1,0 +1,72 @@
+name: Reproducible Build Check
+
+on: [push, pull_request]
+
+jobs:
+  verify-reproducibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- Build 1 ---
+      - name: Build First APK
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: apk-builder
+          tags: app:build-one
+          outputs: type=docker,dest=/tmp/image1.tar
+          cache-from: type=gha # Uses GitHub Actions native cache
+          cache-to: type=gha,mode=max
+
+      - name: Extract Build 1 APK
+        run: |
+          docker load -i /tmp/image1.tar
+          docker create --name container1 app:build-one
+          # Find the APK regardless of the exact flavor path and copy it out
+          APK_PATH=$(docker run --rm app:build-one find /android -name "*-unsigned.apk" | head -n 1)
+          docker cp container1:$APK_PATH ./build1.apk
+          sha256sum build1.apk > hash1.txt
+
+      # --- Build 2 (Sequential to save RAM) ---
+      - name: Build Second APK
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: apk-builder
+          tags: app:build-two
+          outputs: type=docker,dest=/tmp/image2.tar
+          # We force a re-run of the build layer by passing a dummy arg or using no-cache 
+          # on the final stage if needed, but usually, a clean build is better.
+          cache-from: type=gha
+
+      - name: Extract Build 2 APK
+        run: |
+          docker load -i /tmp/image2.tar
+          docker create --name container2 app:build-two
+          APK_PATH=$(docker run --rm app:build-two find /android -name "*-unsigned.apk" | head -n 1)
+          docker cp container2:$APK_PATH ./build2.apk
+          sha256sum build2.apk > hash2.txt
+
+      # --- Comparison ---
+      - name: Compare Results
+        run: |
+          echo "HASH 1: $(cat hash1.txt)"
+          echo "HASH 2: $(cat hash2.txt)"
+          if diff hash1.txt hash2.txt; then
+            echo "Build is Reproducible!"
+          else
+            echo "Build is NOT Reproducible!"
+            exit 1
+          fi
+
+      # Diagnostic tool in case of failure
+      - name: Run Diffoscope on Mismatch
+        if: failure()
+        run: |
+          sudo apt-get update && sudo apt-get install -y diffoscope
+          diffoscope build1.apk build2.apk
