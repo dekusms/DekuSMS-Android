@@ -1,5 +1,4 @@
-# pass=$$(cat $(jks_pass))
-pass=$(jks_pass)
+pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 
 branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
@@ -93,7 +92,7 @@ test-flight:
 		) \
 	fi
 
-release-cd: test-flight clean requirements.txt bump_version docker-build-aab clean
+release-cd: requirements.txt bump_version docker-build-aab
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}

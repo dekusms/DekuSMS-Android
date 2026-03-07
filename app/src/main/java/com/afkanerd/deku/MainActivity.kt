@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +29,9 @@ import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
+import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
 import com.afkanerd.deku.Router.ui.GatewayClientsMainView
 import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
@@ -36,6 +39,7 @@ import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -107,7 +111,7 @@ class MainActivity : AppCompatActivity(){
                                                     )
                                                 },
                                                 onClick = {
-                                                    navController.navigate(RemoteForwardingScreen)
+                                                    navController.navigate(RemoteListenersScreen)
                                                     it(false)
                                                 }
                                             )
@@ -135,6 +139,7 @@ class MainActivity : AppCompatActivity(){
                                                 },
                                                 onClick = {
                                                     secureViewModel.setModal(true)
+                                                    it(false)
                                                 }
                                             )
                                         },
@@ -147,6 +152,18 @@ class MainActivity : AppCompatActivity(){
                                             KeyExchangeType(it)
                                         }
                                     ) {
+                                        composable<RemoteListenersQueuesScreen> {
+                                            RMQQueuesComposable(
+                                                remoteListenersViewModel = remoteListenersViewModel,
+                                                navController = navController
+                                            )
+                                        }
+                                        composable<RemoteListenersAddScreen> {
+                                            RMQAddComposable(
+                                                remoteListenerViewModel = remoteListenersViewModel,
+                                                navController = navController
+                                            )
+                                        }
                                         composable<RemoteListenersScreen> {
                                             RMQMainComposable(
                                                 remoteListenerViewModel = remoteListenersViewModel,
@@ -220,5 +237,10 @@ class MainActivity : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AppCompatDelegate.setDefaultNightMode(settingsGetTheme)
     }
 }

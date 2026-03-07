@@ -389,6 +389,7 @@
     <string name="tag">Etikett</string>
     <string name="secure_message_requested">Sichere Nachricht angefordert</string>
     <string name="secure_message_accepted">Sichere Nachricht akzeptiert</string>
+    <string name="enter_subject">Betreff eingeben</string>
 
 
 </resources>

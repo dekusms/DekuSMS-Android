@@ -1,35 +1,35 @@
+# --- Stage 1: Base Environment ---
 FROM ubuntu:22.04 AS base
+RUN apt-get update && apt-get install -y openjdk-17-jdk wget unzip && rm -rf /var/lib/apt/lists/*
 
-RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre android-sdk sdkmanager
+ENV ANDROID_HOME="/opt/android-sdk"
+ENV PATH="${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools"
+
+# Install Android SDK Tools
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/tools.zip && \
+    unzip /tmp/tools.zip -d ${ANDROID_HOME}/cmdline-tools && \
+    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \
+    rm /tmp/tools.zip
+
+# Pre-install specific versions for reproducibility
+RUN yes | sdkmanager --licenses && \
+    sdkmanager "platforms;android-33" "build-tools;33.0.0" "platform-tools"
 
 WORKDIR /android
 
+# --- Stage 2: Cache Gradle ---
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle . 
+COPY settings.gradle .
+COPY app/build.gradle app/
+RUN ./gradlew --no-daemon dependencies
+
+# --- Stage 3: Build APK ---
+FROM base AS apk-builder
 COPY . .
-
-ENV ANDROID_HOME "/usr/lib/android-sdk/"
-ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
-# ENV GRADLE_OPTS "-Xmx2048m"
-
-RUN yes | sdkmanager --licenses
-
-ENV PASS=""
-ENV MIN_SDK=""
-
-# CMD ./gradlew assembleDebug
-FROM base as apk-builder
-CMD ./gradlew assembleRelease && \
-apksigner sign --ks app/keys/app-release-key.jks \
---ks-pass pass:$PASS \
---in app/build/outputs/apk/release/app-release-unsigned.apk \
---out app/build/outputs/apk/release/app-release.apk
-
-FROM base as bundle-builder
-CMD ./gradlew assemble bundleRelease && \
-apksigner sign --ks app/keys/app-release-key.jks \
---ks-pass pass:$PASS \
---in app/build/outputs/bundle/release/app-release.aab \
---out app/build/outputs/bundle/release/app-bundle.aab \
---min-sdk-version $MIN_SDK
-
-# CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
-# CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
+# Fixed timestamp for reproducible ZIP/APK entries
+ENV SOURCE_DATE_EPOCH=1709834400 
+# Run the build during the 'docker build' phase so it's saved in the image
+RUN ./gradlew assembleRelease --no-daemon

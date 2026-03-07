@@ -34,7 +34,7 @@ fun SecureConversationComposable(viewModel: SecureConversationViewModel ) {
                     viewModel.setModal(true)
                 }
                 else if(currentState.mode
-                    == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED &&
+                    == EncryptionController.SecureRequestMode.REQUEST_ACCEPTED ||
                     !ratchetState.isNullOrEmpty()
                 ) {
                     viewModel.mode = EncryptionController.SecureRequestMode.REQUEST_ACCEPTED

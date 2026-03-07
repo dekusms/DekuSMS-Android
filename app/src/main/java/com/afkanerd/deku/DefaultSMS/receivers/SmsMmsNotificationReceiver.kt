@@ -126,6 +126,7 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
                 EncryptionController.MessageRequestType.TYPE_REQUEST
             ) {
                 context.removeEncryptionRatchetStates(conversation.sms?.address!!)
+                context.removeEncryptionModeStates(conversation.sms?.address!!)
             }
 
             EncryptionController.receiveRequest(

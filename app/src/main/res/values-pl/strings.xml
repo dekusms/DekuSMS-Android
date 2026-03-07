@@ -451,6 +451,7 @@
     <string name="tag">Etykietka</string>
     <string name="secure_message_requested">Prośba o bezpieczną wiadomość</string>
     <string name="secure_message_accepted">Zaakceptowano bezpieczną wiadomość</string>
+    <string name="enter_subject">Wprowadź temat</string>
 
 
 </resources>

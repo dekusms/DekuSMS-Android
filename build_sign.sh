@@ -15,15 +15,19 @@ label=$(sed -n '4p' version.properties | cut -d "=" -f 2)
 branch=$(git symbolic-ref HEAD | cut -d "/" -f 3)
 track=$(python3 track.py "$branch")
 
+git add .
+git commit -m "release: making release"
 git tag -f "${tagVersion}"
 
-./gradlew clean assembleRelease
+# ./gradlew clean assembleRelease
+./gradlew clean assembleRelease --no-build-cache --no-configuration-cache --no-daemon
 apksigner sign --ks app/keys/app-release-key.jks \
   --ks-pass pass:"$1" \
   --in app/build/outputs/apk/release/app-release-unsigned.apk \
   --out apk-outputs/"$label".apk
 
-./gradlew clean assembleRelease
+# ./gradlew clean assembleRelease
+./gradlew clean assembleRelease --no-build-cache --no-configuration-cache --no-daemon
 apksigner sign --ks app/keys/app-release-key.jks \
   --ks-pass pass:"$1" \
   --in app/build/outputs/apk/release/app-release-unsigned.apk \
@@ -42,9 +46,8 @@ apksigner sign --ks app/keys/app-release-key.jks \
 git push origin "$branch"
 git push --tag
 
-
 venv/bin/python release.py \
-        --version_code "${tagVersion}" \
+	--version_code "${tagVersion}" \
         --version_name "${label}" \
         --description "<b>Release</b>: ${label}<br><b>Build No</b>: ${tagVersion}<br><b>shasum</b>: $(shasum apk-outputs/${label}.apk)" \
         --branch "${branch}" \
