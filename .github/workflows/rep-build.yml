@@ -20,19 +20,24 @@ jobs:
           target: apk-builder
           tags: app:build-one
           outputs: type=docker,dest=/tmp/image1.tar
-          cache-from: type=gha # Uses GitHub Actions native cache
+          cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Extract Build 1 APK
         run: |
           docker load -i /tmp/image1.tar
+          # Create a container so we can copy from its filesystem
           docker create --name container1 app:build-one
-          # Find the APK regardless of the exact flavor path and copy it out
-          APK_PATH=$(docker run --rm app:build-one find /android -name "*-unsigned.apk" | head -n 1)
+          
+          # Use a more robust way to find the APK path
+          APK_PATH=$(docker run --rm app:build-one find /android -name "*.apk" | grep "release" | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          
+          # Copy it to the current runner workspace
           docker cp container1:$APK_PATH ./build1.apk
           sha256sum build1.apk > hash1.txt
 
-      # --- Build 2 (Sequential to save RAM) ---
+      # --- Build 2 ---
       - name: Build Second APK
         uses: docker/build-push-action@v5
         with:
@@ -40,33 +45,50 @@ jobs:
           target: apk-builder
           tags: app:build-two
           outputs: type=docker,dest=/tmp/image2.tar
-          # We force a re-run of the build layer by passing a dummy arg or using no-cache 
-          # on the final stage if needed, but usually, a clean build is better.
+          # We use no-cache specifically for the app source layer to force a rebuild
+          no-cache-filter: apk-builder 
           cache-from: type=gha
 
       - name: Extract Build 2 APK
         run: |
           docker load -i /tmp/image2.tar
           docker create --name container2 app:build-two
-          APK_PATH=$(docker run --rm app:build-two find /android -name "*-unsigned.apk" | head -n 1)
+          
+          APK_PATH=$(docker run --rm app:build-two find /android -name "*.apk" | grep "release" | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          
           docker cp container2:$APK_PATH ./build2.apk
           sha256sum build2.apk > hash2.txt
 
       # --- Comparison ---
       - name: Compare Results
         run: |
-          echo "HASH 1: $(cat hash1.txt)"
-          echo "HASH 2: $(cat hash2.txt)"
-          if diff hash1.txt hash2.txt; then
-            echo "Build is Reproducible!"
+          echo "Build 1 SHA: $(cat hash1.txt)"
+          echo "Build 2 SHA: $(cat hash2.txt)"
+          
+          if cmp -s build1.apk build2.apk; then
+            echo "Binaries are bit-for-bit identical."
           else
-            echo "Build is NOT Reproducible!"
+            echo "Binaries differ."
             exit 1
           fi
 
-      # Diagnostic tool in case of failure
+      # --- Diagnostic (Only runs if Comparison fails) ---
       - name: Run Diffoscope on Mismatch
         if: failure()
         run: |
-          sudo apt-get update && sudo apt-get install -y diffoscope
-          diffoscope build1.apk build2.apk
+          # Check if files exist before running to avoid the error you saw
+          if [ -f "build1.apk" ] && [ -f "build2.apk" ]; then
+            sudo apt-get update && sudo apt-get install -y diffoscope
+            # We output to a file because the log might be too long for the UI
+            diffoscope build1.apk build2.apk --html diff.html || true
+          else
+            echo "Extraction failed; build1.apk or build2.apk not found."
+          fi
+
+      - name: Upload Diff Report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reproduction-diff
+          path: diff.html
