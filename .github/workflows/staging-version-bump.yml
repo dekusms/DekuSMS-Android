@@ -39,9 +39,9 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Verify versions.properties exists
+      - name: Verify version.properties exists
         run: |
-          if [ ! -f versions.properties ]; then
+          if [ ! -f version.properties ]; then
             echo "ERROR: versions.properties not found in ${{ github.workspace }}"
             ls -la
             exit 1
