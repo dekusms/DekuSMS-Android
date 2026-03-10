@@ -71,19 +71,27 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
           git push origin HEAD:${{ steps.branch.outputs.name }}
 
-      - name: Open PR to master
+      - name: Open or update PR to master
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
-            --base master \
-            --head "${{ steps.branch.outputs.name }}" \
-            --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
-            --body "Automated version bump from \`${{ steps.branch.outputs.name }}\`
+          PR_BODY="Automated version bump from \`${{ steps.branch.outputs.name }}\`
 
           **version.properties:**
           \`\`\`
           ${{ steps.bump.outputs.result }}
-          \`\`\`" \
-            --label "automated" \
-          || echo "PR already exists, skipping"
+          \`\`\`"
+
+          # Try to create, if it already exists update the body instead
+          if gh pr create \
+            --base master \
+            --head "${{ steps.branch.outputs.name }}" \
+            --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+            --body "$PR_BODY"; then
+            echo "PR created"
+          else
+            echo "PR already exists, updating body..."
+            gh pr edit "${{ steps.branch.outputs.name }}" \
+              --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+              --body "$PR_BODY"
+          fi
