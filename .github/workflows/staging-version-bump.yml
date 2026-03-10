@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Run bump_versions.py
+      - name: Run bump_version.py
         id: bump
         run: |
           output=$(python bump_versions.py \
