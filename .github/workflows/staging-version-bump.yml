@@ -41,8 +41,14 @@ jobs:
       - name: Run bump_version.py
         id: bump
         run: |
-          output=$(python bump_version.py ${{ steps.previoustag.outputs.tag }} ${{ steps.branch.outputs.name }}")
-          echo "result=$output" >> $GITHUB_OUTPUT
+          python bump_version.py \
+            "${{ steps.previoustag.outputs.tag }}" \
+            "${{ steps.branch.outputs.name }}" \
+            > version.properties
+          # Store multiline output as a GitHub output using EOF delimiter
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          cat version.properties >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Write version.properties
         run: echo "${{ steps.bump.outputs.result }}" > version.properties
