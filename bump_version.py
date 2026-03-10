@@ -3,15 +3,7 @@ import os
 import sys
 import requests
 
-def get_latest_tag():
-    """Get the latest tag from the repository."""
-    url = "https://api.github.com/repos/dekusms/DekuSMS-Android/tags"
-    response = requests.get(url)
-    response.raise_for_status()
-
-    return response.json()[0]["name"]
-
-def bump_version(filename, flavour):
+def bump_version(tagVersion, filename, flavour):
     """
     Bumps the version number in the specified file.
 
@@ -28,7 +20,6 @@ def bump_version(filename, flavour):
     releaseVersion = None
     stagingVersion = None
     nightlyVersion = None
-    tagVersion = get_latest_tag()
 
     for line in lines:
         if line.startswith("releaseVersion="): 
@@ -71,20 +62,17 @@ def bump_version(filename, flavour):
 
     tagVersion = int(tagVersion) + 1
 
-    with open(filename, "w") as f:
-        f.write("releaseVersion=" + str(releaseVersion) + "\n")
-        f.write("stagingVersion=" + str(stagingVersion) + "\n")
-        f.write("nightlyVersion=" + str(nightlyVersion) + "\n")
-        f.write(f"versionName={str(releaseVersion)}.{str(stagingVersion)}.{str(nightlyVersion)}\n")
-        f.write("tagVersion=" + str(tagVersion))
-
-    return releaseVersion, stagingVersion, nightlyVersion, tagVersion
+    return f"""releaseVersion={str(releaseVersion)}
+stagingVersion={str(stagingVersion)}
+nightlyVersion={str(nightlyVersion)}
+versionName={str(releaseVersion)}.{str(stagingVersion)}.{str(nightlyVersion)}
+tagVersion={str(tagVersion)}"""
 
 
 if __name__ == "__main__":
   filename = "version.properties"
 
-  flavour = sys.argv[1]
-  releaseVersion, stagingVersion, nightlyVersion, tagVersion = bump_version(filename, flavour)
-  print("+ successful version bump: ",
-        releaseVersion, stagingVersion, nightlyVersion, tagVersion)
+  tag = sys.argv[1]
+  flavour = sys.argv[2]
+  version = bump_version(tag, filename, flavour)
+  print(version)

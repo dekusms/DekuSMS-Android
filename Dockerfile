@@ -1,35 +1,32 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:jammy-20230624@sha256:b060fffe8e1561c9c3e6dea6db487b900100fc26830b9ea2ec966c151ab4c020
 
-RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre android-sdk sdkmanager
+RUN apt update
+RUN apt install -y git openjdk-17-jdk unzip wget
 
 WORKDIR /android
 
 COPY . .
 
-ENV ANDROID_HOME "/usr/lib/android-sdk/"
-ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
-# ENV GRADLE_OPTS "-Xmx2048m"
+RUN apt update
+RUN apt install -y git openjdk-17-jdk unzip wget
 
-RUN yes | sdkmanager --licenses
+ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-10406996_latest.zip
+ENV ANDROID_API_LEVELS                  android-36
+ENV ANDROID_BUILD_TOOLS_VERSION         35.0.0
 
-ENV PASS=""
-ENV MIN_SDK=""
+ENV ANDROID_HOME /usr/local/android-sdk-linux
+ENV PATH         ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/bin
 
-# CMD ./gradlew assembleDebug
-FROM base as apk-builder
-CMD ./gradlew assembleRelease && \
-apksigner sign --ks app/keys/app-release-key.jks \
---ks-pass pass:$PASS \
---in app/build/outputs/apk/release/app-release-unsigned.apk \
---out app/build/outputs/apk/release/app-release.apk
+RUN cd /usr/local/
+RUN wget -q "https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}"
+RUN unzip ${ANDROID_COMMAND_LINE_TOOLS_FILENAME} -d /usr/local/android-sdk-linux
+RUN rm ${ANDROID_COMMAND_LINE_TOOLS_FILENAME}
 
-FROM base as bundle-builder
-CMD ./gradlew assemble bundleRelease && \
-apksigner sign --ks app/keys/app-release-key.jks \
---ks-pass pass:$PASS \
---in app/build/outputs/bundle/release/app-release.aab \
---out app/build/outputs/bundle/release/app-bundle.aab \
---min-sdk-version $MIN_SDK
+RUN yes | sdkmanager --update --sdk_root="${ANDROID_HOME}"
+RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" "platforms;${ANDROID_API_LEVELS}" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "extras;google;m2repository" "extras;android;m2repository" "extras;google;google_play_services" "ndk;28.0.13004108" "cmake;3.22.1"
 
-# CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
-# CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
+RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
+
+RUN rm -rf ${ANDROID_HOME}/tools
+
+RUN git config --global --add safe.directory /project
