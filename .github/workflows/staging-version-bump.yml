@@ -68,7 +68,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git status
-          git log --oneline -5        # show last 5 commits so we can see history clearly
+          git log --oneline -5         # show last 5 commits so we can see history clearly
           git add version.properties
           git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
           git push origin HEAD:${{ steps.branch.outputs.name }}   # explicit HEAD:branch avoids any detached state issues
