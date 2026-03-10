@@ -1,20 +1,21 @@
 name: Bump Version
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - staging-release
+      - staging
   workflow_dispatch:
 
 jobs:
   bump-version:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
 
     steps:
       - name: Checkout repository
@@ -38,6 +39,16 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Verify versions.properties exists
+        run: |
+          if [ ! -f versions.properties ]; then
+            echo "ERROR: versions.properties not found in ${{ github.workspace }}"
+            ls -la
+            exit 1
+          fi
+          echo "Found versions.properties:"
+          cat versions.properties
+
       - name: Run bump_version.py
         id: bump
         run: |
@@ -45,13 +56,9 @@ jobs:
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > version.properties
-          # Store multiline output as a GitHub output using EOF delimiter
           echo "result<<EOF" >> $GITHUB_OUTPUT
           cat version.properties >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Write version.properties
-        run: echo "${{ steps.bump.outputs.result }}" > version.properties
 
       - name: Commit and push version.properties
         run: |
