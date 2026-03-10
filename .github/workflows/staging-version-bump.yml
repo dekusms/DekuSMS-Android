@@ -55,7 +55,8 @@ jobs:
           python bump_version.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
-            > version.properties
+            > /tmp/version_bumped.properties
+          cp /tmp/version_bumped.properties version.properties
           echo "result<<EOF" >> $GITHUB_OUTPUT
           cat version.properties >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
