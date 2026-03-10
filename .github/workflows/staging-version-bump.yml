@@ -3,7 +3,7 @@ name: Bump Version
 on:
   push:
     branches:
-      - staging
+      - staging-release
   workflow_dispatch:
 
 jobs:
