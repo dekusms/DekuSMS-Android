@@ -1,0 +1,79 @@
+name: Bump Version
+
+on:
+  push:
+    branches:
+      - staging-release
+  workflow_dispatch:
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current branch name
+        id: branch
+        run: echo "name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+      - name: Get latest tag
+        id: previoustag
+        uses: WyriHaximus/github-action-get-previous-tag@v2
+        with:
+          fallback: 0.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run bump_versions.py
+        id: bump
+        run: |
+          output=$(python bump_versions.py \
+            --tag "${{ steps.previoustag.outputs.tag }}" \
+            --branch "${{ steps.branch.outputs.name }}")
+          echo "result=$output" >> $GITHUB_OUTPUT
+
+      - name: Write version.properties
+        run: echo "${{ steps.bump.outputs.result }}" > version.properties
+
+      - name: Commit and push version.properties
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.properties
+          git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
+          git push origin ${{ steps.branch.outputs.name }}
+
+      - name: Open PR to master
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
+          branch: ${{ steps.branch.outputs.name }}
+          title: "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})"
+          body: |
+            ## Version Bump
+
+            Automated version bump triggered by push to `${{ steps.branch.outputs.name }}`.
+
+            | Field        | Value |
+            |--------------|-------|
+            | Previous tag | `${{ steps.previoustag.outputs.tag }}` |
+            | Branch       | `${{ steps.branch.outputs.name }}` |
+
+            **`version.properties` contents:**
+            ```
+            ${{ steps.bump.outputs.result }}
+            ```
+          labels: automated, version-bump
+          draft: false
