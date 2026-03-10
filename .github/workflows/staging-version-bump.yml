@@ -41,9 +41,7 @@ jobs:
       - name: Run bump_version.py
         id: bump
         run: |
-          output=$(python bump_version.py \
-            --tag "${{ steps.previoustag.outputs.tag }}" \
-            --branch "${{ steps.branch.outputs.name }}")
+          output=$(python bump_version.py ${{ steps.previoustag.outputs.tag }} ${{ steps.branch.outputs.name }}")
           echo "result=$output" >> $GITHUB_OUTPUT
 
       - name: Write version.properties
