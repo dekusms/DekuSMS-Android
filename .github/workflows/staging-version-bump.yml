@@ -1,13 +1,16 @@
 name: Bump Version
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - staging-release
   workflow_dispatch:
 
 jobs:
   bump-version:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
