@@ -52,7 +52,7 @@ jobs:
       - name: Run bump_versions.py
         id: bump
         run: |
-          python bump_versions.py \
+          python bump_version.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > version.properties
