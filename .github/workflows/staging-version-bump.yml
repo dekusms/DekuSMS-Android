@@ -42,12 +42,12 @@ jobs:
       - name: Verify version.properties exists
         run: |
           if [ ! -f version.properties ]; then
-            echo "ERROR: versions.properties not found in ${{ github.workspace }}"
+            echo "ERROR: version.properties not found in ${{ github.workspace }}"
             ls -la
             exit 1
           fi
-          echo "Found versions.properties:"
-          cat versions.properties
+          echo "Found version.properties:"
+          cat version.properties
 
       - name: Run bump_version.py
         id: bump
