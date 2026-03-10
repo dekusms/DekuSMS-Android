@@ -3,6 +3,7 @@ name: Bump Version
 on:
   push:
     branches:
+      - staging
       - staging-release
       - staging-release-*
   workflow_dispatch:
@@ -24,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref }}          # pin to exact triggering ref, avoids implicit merge with master
+          ref: ${{ github.ref }}
 
       - name: Get current branch name
         id: branch
@@ -51,10 +52,10 @@ jobs:
           echo "Found version.properties:"
           cat version.properties
 
-      - name: Run bump_version.py
+      - name: Run bump_versions.py
         id: bump
         run: |
-          python bump_version.py \
+          python bump_versions.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > /tmp/version_bumped.properties
@@ -67,32 +68,23 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git status
-          git log --oneline -5         # show last 5 commits so we can see history clearly
           git add version.properties
           git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
-          git push origin HEAD:${{ steps.branch.outputs.name }}   # explicit HEAD:branch avoids any detached state issues
+          git push origin HEAD:${{ steps.branch.outputs.name }}
 
       - name: Open PR to master
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: master
-          branch: ${{ steps.branch.outputs.name }}
-          title: "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})"
-          body: |
-            ## Version Bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base master \
+            --head "${{ steps.branch.outputs.name }}" \
+            --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+            --body "Automated version bump from \`${{ steps.branch.outputs.name }}\`
 
-            Automated version bump triggered by push to `${{ steps.branch.outputs.name }}`.
-
-            | Field        | Value |
-            |--------------|-------|
-            | Previous tag | `${{ steps.previoustag.outputs.tag }}` |
-            | Branch       | `${{ steps.branch.outputs.name }}` |
-
-            **`version.properties` contents:**
-            ```
-            ${{ steps.bump.outputs.result }}
-            ```
-          labels: automated, version-bump
-          draft: false
+          **version.properties:**
+          \`\`\`
+          ${{ steps.bump.outputs.result }}
+          \`\`\`" \
+            --label "automated" \
+          || echo "PR already exists, skipping"
