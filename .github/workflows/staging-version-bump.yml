@@ -51,10 +51,10 @@ jobs:
           echo "Found version.properties:"
           cat version.properties
 
-      - name: Run bump_versions.py
+      - name: Run bump_version.py
         id: bump
         run: |
-          python bump_versions.py \
+          python bump_version.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > /tmp/version_bumped.properties
