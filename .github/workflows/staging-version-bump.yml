@@ -3,7 +3,8 @@ name: Bump Version
 on:
   push:
     branches:
-      - staging-release-1
+      - staging-release
+      - staging-release-*
   workflow_dispatch:
 
 jobs:
@@ -23,6 +24,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}          # pin to exact triggering ref, avoids implicit merge with master
 
       - name: Get current branch name
         id: branch
@@ -52,7 +54,7 @@ jobs:
       - name: Run bump_versions.py
         id: bump
         run: |
-          python bump_version.py \
+          python bump_versions.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > /tmp/version_bumped.properties
@@ -65,9 +67,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git status
+          git log --oneline -5        # show last 5 commits so we can see history clearly
           git add version.properties
           git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
-          git push origin ${{ steps.branch.outputs.name }}
+          git push origin HEAD:${{ steps.branch.outputs.name }}   # explicit HEAD:branch avoids any detached state issues
 
       - name: Open PR to master
         uses: peter-evans/create-pull-request@v7
