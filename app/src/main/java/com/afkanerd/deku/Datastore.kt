@@ -125,7 +125,7 @@ abstract class Datastore : RoomDatabase() {
     companion object {
         @Volatile
         private var datastore: Datastore? = null
-        private const val dbKeystoreAlias = "afkanerd.smswithoutborders.sms_mms_keystore_alias"
+        private const val dbKeystoreAlias = "afkanerd.smswithoutborders.deku.sms_mms_keystore_alias"
         @JvmField
         var databaseName: String = "afkanerd.smswithoutborders.dekusms.db"
 
