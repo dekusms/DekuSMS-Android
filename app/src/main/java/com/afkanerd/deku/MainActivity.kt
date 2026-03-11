@@ -3,6 +3,7 @@ package com.afkanerd.deku
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -37,13 +38,16 @@ import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
 import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -234,6 +238,25 @@ class MainActivity : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    fun migrations() {
+        val roomVersion = getDatabase().openHelper.readableDatabase.version
+        if(roomVersion == 2) {
+            applicationContext.setNativesLoaded(false)
+//            threadsViewModel.loadNativesAsync(this) {
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    Toast.makeText(applicationContext,
+//                        applicationContext.getString(R.string.secure_database_migrated),
+//                        Toast.LENGTH_SHORT).show()
+//                }
+//            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        migrations()
     }
 
     override fun onResume() {
