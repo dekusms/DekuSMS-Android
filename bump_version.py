@@ -1,90 +1,76 @@
 #!/usr/bin/env python3
-import os
 import sys
-import requests
 
-def get_latest_tag():
-    """Get the latest tag from the repository."""
-    url = "https://api.github.com/repos/dekusms/DekuSMS-Android/tags"
-    response = requests.get(url)
-    response.raise_for_status()
+def bump_version(tagVersion, filename, flavour):
+    with open(filename, "rb") as f:  # open as binary to see raw bytes
+        raw = f.read()
 
-    return response.json()[0]["name"]
+    print(f"DEBUG: raw file bytes: {repr(raw)}", file=sys.stderr)
 
-def bump_version(filename, flavour):
-    """
-    Bumps the version number in the specified file.
+    lines = raw.decode("utf-8-sig").splitlines()  # utf-8-sig strips BOM if present
 
-    Args:
-    filename: The name of the file to update.
-
-    Returns:
-    The new version number.
-    """
-
-    with open(filename, "r") as f:
-        lines = f.readlines()
+    print(f"DEBUG: lines: {lines}", file=sys.stderr)
 
     releaseVersion = None
     stagingVersion = None
     nightlyVersion = None
-    tagVersion = get_latest_tag()
 
     for line in lines:
-        if line.startswith("releaseVersion="): 
-            releaseVersion = line.split("=")[1].strip() 
+        line = line.strip()
+        print(f"DEBUG: processing line: {repr(line)}", file=sys.stderr)
+        if not line or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        print(f"DEBUG: key={repr(key)} value={repr(value)}", file=sys.stderr)
+        if key == "releaseVersion":
+            releaseVersion = value
+        elif key == "stagingVersion":
+            stagingVersion = value
+        elif key == "nightlyVersion":
+            nightlyVersion = value
 
-        if line.startswith("stagingVersion="): 
-            stagingVersion = line.split("=")[1].strip() 
-
-        if line.startswith("nightlyVersion="): 
-            nightlyVersion = line.split("=")[1].strip() 
-
-        """
-        if line.startswith("tagVersion="): 
-            tagVersion = line.split("=")[1].strip() 
-        """
+    print(f"DEBUG: releaseVersion={releaseVersion}, stagingVersion={stagingVersion}, nightlyVersion={nightlyVersion}", file=sys.stderr)
 
     if releaseVersion is None:
         raise ValueError("Could not find releaseVersion in file")
-
     if stagingVersion is None:
         raise ValueError("Could not find stagingVersion in file")
-
     if nightlyVersion is None:
         raise ValueError("Could not find nightlyVersion in file")
-
     if tagVersion is None:
-        raise ValueError("Could not find tagVersion in file")
+        raise ValueError("Could not find tagVersion in args")
 
-    if flavour == "refs/heads/master":
-        releaseVersion = int(releaseVersion) + 1
+    releaseVersion = int(releaseVersion)
+    stagingVersion = int(stagingVersion)
+    nightlyVersion = int(nightlyVersion)
+    tagVersion = int(tagVersion)
+
+    if flavour in ("refs/heads/master", "master"):
+        releaseVersion += 1
         stagingVersion = 0
         nightlyVersion = 0
-
-    elif flavour == "refs/heads/staging":
-        stagingVersion = int(stagingVersion) + 1
+    elif flavour in ("refs/heads/staging", "staging"):
+        stagingVersion += 1
         nightlyVersion = 0
-
     else:
-        nightlyVersion = int(nightlyVersion) + 1
+        nightlyVersion += 1
 
-    tagVersion = int(tagVersion) + 1
+    tagVersion += 1
 
-    with open(filename, "w") as f:
-        f.write("releaseVersion=" + str(releaseVersion) + "\n")
-        f.write("stagingVersion=" + str(stagingVersion) + "\n")
-        f.write("nightlyVersion=" + str(nightlyVersion) + "\n")
-        f.write(f"versionName={str(releaseVersion)}.{str(stagingVersion)}.{str(nightlyVersion)}\n")
-        f.write("tagVersion=" + str(tagVersion))
-
-    return releaseVersion, stagingVersion, nightlyVersion, tagVersion
-
+    return (
+        f"releaseVersion={releaseVersion}\n"
+        f"stagingVersion={stagingVersion}\n"
+        f"nightlyVersion={nightlyVersion}\n"
+        f"versionName={releaseVersion}.{stagingVersion}.{nightlyVersion}\n"
+        f"tagVersion={tagVersion}"
+    )
 
 if __name__ == "__main__":
-  filename = "version.properties"
-
-  flavour = sys.argv[1]
-  releaseVersion, stagingVersion, nightlyVersion, tagVersion = bump_version(filename, flavour)
-  print("+ successful version bump: ",
-        releaseVersion, stagingVersion, nightlyVersion, tagVersion)
+    filename = "version.properties"
+    tag = sys.argv[1]
+    flavour = sys.argv[2]
+    print(f"DEBUG: tag={repr(tag)}, flavour={repr(flavour)}, filename={repr(filename)}", file=sys.stderr)
+    version = bump_version(tag, filename, flavour)
+    print(version)
