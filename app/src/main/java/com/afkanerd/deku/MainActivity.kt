@@ -1,6 +1,8 @@
 package com.afkanerd.deku
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -16,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -32,6 +35,7 @@ import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
+import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
@@ -41,6 +45,7 @@ import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
@@ -243,26 +248,54 @@ class MainActivity : AppCompatActivity(){
     }
 
     fun migrations() {
-        val roomVersion = getDatabase().openHelper.readableDatabase.version
-        if(roomVersion == 2 && !getMigratedV2()) {
-            threadsViewModel.loadNativesAsync(this) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    applicationContext.setMigratedV2(true)
-                    Toast.makeText(applicationContext,
-                        applicationContext.getString(R.string.secure_database_migrated),
-                        Toast.LENGTH_SHORT).show()
+        if(isDefault()) {
+            val roomVersion = getDatabase().openHelper.readableDatabase.version
+            if(roomVersion == 2 && !getMigratedV2()) {
+                threadsViewModel.loadNativesAsync(this) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        applicationContext.setMigratedV2(true)
+                        Toast.makeText(applicationContext,
+                            applicationContext.getString(R.string.secure_database_migrated),
+                            Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
+        } else {
+            applicationContext.setMigratedV2(true)
         }
     }
 
     override fun onStart() {
         super.onStart()
-        migrations()
+        CoroutineScope(Dispatchers.Default).launch {
+            migrations()
+            startServices()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         AppCompatDelegate.setDefaultNightMode(settingsGetTheme)
+    }
+
+    fun startServices() {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) ==
+            PackageManager.PERMISSION_GRANTED) {
+            Datastore.getDatastore(applicationContext).remoteListenerDAO().fetchActivated().apply {
+                if(this.any { it.activated }) {
+                    val intent = Intent(applicationContext,
+                        RemoteListenerConnectionService::class.java)
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(intent)
+                        } else {
+                            startService(intent)
+                        }
+                    } catch(e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
     }
 }
