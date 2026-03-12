@@ -28,8 +28,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
 import com.afkanerd.deku.DefaultSMS.AboutActivity
-import com.afkanerd.deku.DefaultSMS.extensions.context.getMigratedV2
-import com.afkanerd.deku.DefaultSMS.extensions.context.setMigratedV2
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
 import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
@@ -247,28 +245,9 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    fun migrations() {
-        if(isDefault()) {
-            val roomVersion = getDatabase().openHelper.readableDatabase.version
-            if(roomVersion == 2 && !getMigratedV2()) {
-                threadsViewModel.loadNativesAsync(this) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        applicationContext.setMigratedV2(true)
-                        Toast.makeText(applicationContext,
-                            applicationContext.getString(R.string.secure_database_migrated),
-                            Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        } else {
-            applicationContext.setMigratedV2(true)
-        }
-    }
-
     override fun onStart() {
         super.onStart()
         CoroutineScope(Dispatchers.Default).launch {
-            migrations()
             startServices()
         }
     }
