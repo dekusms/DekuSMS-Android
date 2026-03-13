@@ -1,3 +1,6 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -8,5 +11,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "swob_server"
 include ':app'
-include ':smswithoutborders_libsignal-doubleratchet'
-//include ':smswithoutborders_libsmsmms:lib_smsmms_android'
+//include ':smswithoutborders_libsignal-doubleratchet'

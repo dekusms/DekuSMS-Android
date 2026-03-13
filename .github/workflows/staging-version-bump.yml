@@ -1,0 +1,97 @@
+name: Bump Version
+
+on:
+  push:
+    branches:
+      - staging-release
+      - staging-release-*
+  workflow_dispatch:
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
+
+      - name: Get current branch name
+        id: branch
+        run: echo "name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+      - name: Get latest tag
+        id: previoustag
+        uses: WyriHaximus/github-action-get-previous-tag@v2
+        with:
+          fallback: 0.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Verify version.properties exists
+        run: |
+          if [ ! -f version.properties ]; then
+            echo "ERROR: version.properties not found in ${{ github.workspace }}"
+            ls -la
+            exit 1
+          fi
+          echo "Found version.properties:"
+          cat version.properties
+
+      - name: Run bump_version.py
+        id: bump
+        run: |
+          python ci/bump_version.py \
+            "${{ steps.previoustag.outputs.tag }}" \
+            "${{ steps.branch.outputs.name }}" \
+            > /tmp/version_bumped.properties
+          cp /tmp/version_bumped.properties version.properties
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          cat version.properties >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version.properties
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.properties
+          git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
+          git push origin HEAD:${{ steps.branch.outputs.name }}
+
+      - name: Open or update PR to master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BODY="Automated version bump from \`${{ steps.branch.outputs.name }}\`
+
+          **version.properties:**
+          \`\`\`
+          ${{ steps.bump.outputs.result }}
+          \`\`\`"
+
+          # Try to create, if it already exists update the body instead
+          if gh pr create \
+            --base staging \
+            --head "${{ steps.branch.outputs.name }}" \
+            --title "release: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+            --body "$PR_BODY"; then
+            echo "PR created"
+          else
+            echo "PR already exists, updating body..."
+            gh pr edit "${{ steps.branch.outputs.name }}" \
+              --title "release: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+              --body "$PR_BODY"
+          fi
