@@ -84,7 +84,7 @@ jobs:
 
           # Try to create, if it already exists update the body instead
           if gh pr create \
-            --base master \
+            --base staging \
             --head "${{ steps.branch.outputs.name }}" \
             --title "release: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
             --body "$PR_BODY"; then
