@@ -5,10 +5,9 @@ on:
     branches: [ "staging" ]
 
 jobs:
-  reproducible-build:
-    name: Verify Reproducible Build
+  build-1:
+    name: Build 1
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,32 +16,7 @@ jobs:
         working-directory: ci
         run: docker build -t deku_rep_build_release .
 
-      - name: First build
-        run: |
-          docker run --rm \
-            -v "$(pwd)":/project \
-            -w /project \
-            --user "$(id -u):$(id -g)" \
-            -e ANDROID_USER_HOME=/project/.android \
-            -e GRADLE_USER_HOME=/project/.gradle \
-            deku_rep_build_release \
-            ./gradlew assembleRelease \
-              --no-daemon \
-              --max-workers=1 \
-              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
-              -Dkotlin.compiler.execution.strategy=in-process
-
-      - name: Hash first APK
-        id: sha1
-        run: |
-          hash=$(sha256sum app/build/outputs/apk/release/app-release-unsigned.apk)
-          echo "value=$hash" >> "$GITHUB_OUTPUT"
-          echo "First build: $hash"
-
-      - name: Remove first APK
-        run: rm app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Second build
+      - name: Build APK
         run: |
           docker run --rm \
             -v "$(pwd)":/project \
@@ -55,21 +29,73 @@ jobs:
               --no-daemon \
               --max-workers=2 \
               --console=plain \
-              -Dorg.gradle.jvmargs="-Xmx1024m -Xms256m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8" \
+              -Dorg.gradle.jvmargs="-Xmx2048m -Xms512m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" \
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Hash second APK
-        id: sha2
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-build-1
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 1
+
+  build-2:
+    name: Build 2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        working-directory: ci
+        run: docker build -t deku_rep_build_release .
+
+      - name: Build APK
         run: |
-          hash=$(sha256sum app/build/outputs/apk/release/app-release-unsigned.apk)
-          echo "value=$hash" >> "$GITHUB_OUTPUT"
-          echo "Second build: $hash"
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
+            deku_rep_build_release \
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx2048m -Xms512m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-build-2
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 1
+
+  compare:
+    name: Compare APKs
+    runs-on: ubuntu-latest
+    needs: [ build-1, build-2 ]
+    steps:
+      - name: Download APK from build 1
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-build-1
+          path: apk-build-1
+
+      - name: Download APK from build 2
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-build-2
+          path: apk-build-2
 
       - name: Compare hashes
         run: |
-          SHA1="${{ steps.sha1.outputs.value }}"
-          SHA2="${{ steps.sha2.outputs.value }}"
+          SHA1=$(sha256sum apk-build-1/app-release-unsigned.apk | awk '{ print $1 }')
+          SHA2=$(sha256sum apk-build-2/app-release-unsigned.apk | awk '{ print $1 }')
           echo "Build 1: $SHA1"
           echo "Build 2: $SHA2"
           if [ "$SHA1" = "$SHA2" ]; then
