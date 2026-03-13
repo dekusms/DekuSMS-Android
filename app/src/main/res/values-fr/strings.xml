@@ -365,5 +365,7 @@
     <string name="secure_message_requested">Message sécurisé demandé</string>
     <string name="secure_message_accepted">Message sécurisé accepté</string>
     <string name="enter_subject">Saisissez le sujet</string>
+    <string name="language_spanish">Espagnol</string>
+    <string name="language_arabic">arabe</string>
 
 </resources>

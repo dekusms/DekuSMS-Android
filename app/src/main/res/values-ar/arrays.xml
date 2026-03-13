@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_spanish" >الأسبانية</string>
+    <string name="language_arabic">عربي</string>
+    <string name="language_arabic_value" />
+</resources>

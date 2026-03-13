@@ -409,5 +409,7 @@
     <string name="secure_message_requested">Запрошено защищенное сообщение</string>
     <string name="secure_message_accepted">Защищенное сообщение принято</string>
     <string name="enter_subject">Введите тему</string>
+    <string name="language_spanish">испанский</string>
+    <string name="language_arabic">арабский</string>
 
 </resources>
