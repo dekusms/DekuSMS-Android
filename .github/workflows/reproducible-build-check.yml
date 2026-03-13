@@ -3,15 +3,12 @@ name: Reproducible Build Check
 on:
   push:
     branches: [ "staging" ]
-  pull_request:
-    branches: [ "staging" ]
-    types: [ closed ]
 
 jobs:
   reproducible-build:
     name: Verify Reproducible Build
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event.pull_request.merged == true }}
 
     steps:
       - name: Checkout repository
