@@ -23,6 +23,8 @@ jobs:
             -v "$(pwd)":/project \
             -w /project \
             --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
             deku_rep_build_release \
             ./gradlew assembleRelease \
               --no-daemon \
@@ -48,6 +50,8 @@ jobs:
             -v "$(pwd)":/project \
             -w /project \
             --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
             deku_rep_build_release \
             ./gradlew assembleRelease \
               --no-daemon \
