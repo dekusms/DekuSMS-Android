@@ -1,0 +1,80 @@
+name: Reproducible Build Check
+
+on:
+  pull_request:
+    branches: [ "staging" ]
+    types: [ closed ]
+
+jobs:
+  reproducible-build:
+    name: Verify Reproducible Build
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        working-directory: ci
+        run: docker build -t deku_rep_build_release .
+
+      - name: First build
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            deku_rep_build_release \
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx1024m -Xms256m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Hash first APK
+        id: sha1
+        run: |
+          hash=$(sha256sum app/build/outputs/apk/release/app-release-unsigned.apk)
+          echo "value=$hash" >> "$GITHUB_OUTPUT"
+          echo "First build: $hash"
+
+      - name: Remove first APK
+        run: rm app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Second build
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            deku_rep_build_release \
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx1024m -Xms256m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Hash second APK
+        id: sha2
+        run: |
+          hash=$(sha256sum app/build/outputs/apk/release/app-release-unsigned.apk)
+          echo "value=$hash" >> "$GITHUB_OUTPUT"
+          echo "Second build: $hash"
+
+      - name: Compare hashes
+        run: |
+          SHA1="${{ steps.sha1.outputs.value }}"
+          SHA2="${{ steps.sha2.outputs.value }}"
+          echo "Build 1: $SHA1"
+          echo "Build 2: $SHA2"
+          if [ "$SHA1" = "$SHA2" ]; then
+            echo "Reproducible build verified — hashes match."
+          else
+            echo "Build is NOT reproducible — hashes differ! Run diffoscope"
+            exit 1
+          fi

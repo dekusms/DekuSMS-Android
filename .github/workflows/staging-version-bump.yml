@@ -54,7 +54,7 @@ jobs:
       - name: Run bump_version.py
         id: bump
         run: |
-          python bump_version.py \
+          python ci/bump_version.py \
             "${{ steps.previoustag.outputs.tag }}" \
             "${{ steps.branch.outputs.name }}" \
             > /tmp/version_bumped.properties
@@ -86,12 +86,12 @@ jobs:
           if gh pr create \
             --base master \
             --head "${{ steps.branch.outputs.name }}" \
-            --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+            --title "release: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
             --body "$PR_BODY"; then
             echo "PR created"
           else
             echo "PR already exists, updating body..."
             gh pr edit "${{ steps.branch.outputs.name }}" \
-              --title "chore: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
+              --title "release: bump version (${{ steps.previoustag.outputs.tag }} → ${{ steps.branch.outputs.name }})" \
               --body "$PR_BODY"
           fi

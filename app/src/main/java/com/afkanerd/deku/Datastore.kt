@@ -1,6 +1,7 @@
 package com.afkanerd.deku
 
 import android.content.Context
+import androidx.annotation.NonNull
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.DeleteColumn
@@ -9,6 +10,7 @@ import androidx.room.RenameTable
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import androidx.room.migration.AutoMigrationSpec
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.afkanerd.deku.Datastore.Migrate16To17
 import com.afkanerd.deku.Datastore.Migrate19To20
 import com.afkanerd.deku.Datastore.Migrate20To21
@@ -24,6 +26,7 @@ import com.afkanerd.deku.Router.data.models.GatewayServer
 import com.afkanerd.smswithoutborders_libsmsmms.data.Cryptography.getDatabasePassword
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import kotlin.concurrent.Volatile
+
 
 @Database(
     entities = [GatewayServer::class, RemoteListenersQueues::class, RemoteListeners::class],
@@ -122,7 +125,7 @@ abstract class Datastore : RoomDatabase() {
     companion object {
         @Volatile
         private var datastore: Datastore? = null
-        private const val dbKeystoreAlias = "afkanerd.smswithoutborders.sms_mms_keystore_alias"
+        private const val dbKeystoreAlias = "afkanerd.smswithoutborders.deku.sms_mms_keystore_alias"
         @JvmField
         var databaseName: String = "afkanerd.smswithoutborders.dekusms.db"
 
@@ -136,10 +139,9 @@ abstract class Datastore : RoomDatabase() {
         }
 
         private fun create(context: Context): Datastore {
-            val password = getDatabasePassword(context, dbKeystoreAlias)
-
             val databaseFile = context.getDatabasePath(databaseName)
-            val factory = SupportOpenHelperFactory(password)
+            val factory = SupportOpenHelperFactory(
+                getDatabasePassword(context, dbKeystoreAlias))
             return databaseBuilder(
                 context,
                 Datastore::class.java,
@@ -148,9 +150,6 @@ abstract class Datastore : RoomDatabase() {
                 .enableMultiInstanceInvalidation()
                 .openHelperFactory(factory)
                 .build()
-            //        return Room.databaseBuilder(context, Datastore.class, databaseName)
-//                .enableMultiInstanceInvalidation()
-//                .build();
         }
     }
 }
