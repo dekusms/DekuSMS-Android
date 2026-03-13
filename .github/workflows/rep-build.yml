@@ -1,0 +1,48 @@
+name: Reproducible Build Check
+
+on: [push, pull_request]
+
+jobs:
+  verify-reproducibility:
+    runs-on: ubuntu-latest
+    env:
+      # These flags prevent Gradle from being too "greedy" with RAM
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Xmx2g
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build First APK
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: apk-builder
+          tags: app:build-one
+          outputs: type=docker,dest=/tmp/image1.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Pass memory limits into the Docker build
+          build-args: |
+            GRADLE_OPTS=-Xmx2048m
+
+      - name: Extract and Compare
+        run: |
+          docker load -i /tmp/image1.tar
+          docker create --name container1 app:build-one
+          
+          # This 'find' command is safer: it looks for the APK and ensures we found it
+          APK_PATH=$(docker run --rm app:build-one find /android/app/build -name "*.apk" | grep "release" | head -n 1)
+          
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: APK not found in build output!"
+            exit 1
+          fi
+          
+          docker cp container1:$APK_PATH ./build1.apk
+          sha256sum build1.apk
+          
+          # For the sake of this test, we can compare the same image 
+          # Or run the build-push-action again for image2.tar

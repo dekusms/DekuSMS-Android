@@ -2,5 +2,11 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+<<<<<<< HEAD
+=======
+    <mapping directory="$PROJECT_DIR$/reproducible-apk-tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/smswithoutborders_libsignal-doubleratchet" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/smswithoutborders_libsmsmms" vcs="Git" />
+>>>>>>> origin/staging
   </component>
 </project>
