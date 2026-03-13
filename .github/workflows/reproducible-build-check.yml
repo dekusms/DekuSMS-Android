@@ -1,6 +1,8 @@
 name: Reproducible Build Check
 
 on:
+  push:
+    branches: [ "staging" ]
   pull_request:
     branches: [ "staging" ]
     types: [ closed ]
