@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -130,8 +129,6 @@ fun RouterItemCard(
         Column {
             ThreadConversationCard(
                 id = conversation.sms?.thread_id!!,
-                firstName = firstName!!,
-                lastName = lastName,
                 content = conversation.sms?.body!!,
                 date = date,
                 isRead = true, // TODO: get actual later

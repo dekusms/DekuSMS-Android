@@ -10,12 +10,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-<<<<<<< HEAD
-=======
-            <option value="$PROJECT_DIR$/smswithoutborders_libsignal-doubleratchet" />
-            <option value="$PROJECT_DIR$/smswithoutborders_libsmsmms" />
-            <option value="$PROJECT_DIR$/smswithoutborders_libsmsmms/lib_smsmms_android" />
->>>>>>> 8e500422 (update: submodules)
           </set>
         </option>
       </GradleProjectSettings>
