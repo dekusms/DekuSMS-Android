@@ -11,4 +11,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "swob_server"
 include ':app'
-//include ':smswithoutborders_libsignal-doubleratchet'
