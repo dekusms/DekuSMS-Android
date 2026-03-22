@@ -130,6 +130,8 @@ fun RouterItemCard(
         Column {
             ThreadConversationCard(
                 id = conversation.sms?.thread_id!!,
+                firstName = firstName!!,
+                lastName = lastName,
                 content = conversation.sms?.body!!,
                 date = date,
                 isRead = true, // TODO: get actual later
