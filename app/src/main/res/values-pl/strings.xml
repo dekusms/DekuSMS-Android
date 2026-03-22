@@ -452,6 +452,8 @@
     <string name="secure_message_requested">Prośba o bezpieczną wiadomość</string>
     <string name="secure_message_accepted">Zaakceptowano bezpieczną wiadomość</string>
     <string name="enter_subject">Wprowadź temat</string>
+    <string name="language_spanish">hiszpański</string>
+    <string name="language_arabic">arabski</string>
 
 
 </resources>

@@ -1,0 +1,219 @@
+name: Reproducible Build Check
+
+on:
+  push:
+    branches: [ "staging" ]
+
+jobs:
+  build-1:
+    name: Build 1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        working-directory: ci
+        run: docker build -t deku_rep_build_release .
+
+      - name: Build APK
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
+            deku_rep_build_release \
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx2048m -Xms512m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-build-1
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 1
+
+  build-2:
+    name: Build 2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        working-directory: ci
+        run: docker build -t deku_rep_build_release .
+
+      - name: Build APK
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
+            deku_rep_build_release \
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx2048m -Xms512m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-build-2
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 1
+
+  compare:
+    name: Compare APKs
+    runs-on: ubuntu-latest
+    needs: [ build-1, build-2 ]
+    steps:
+      - name: Download APK from build 1
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-build-1
+          path: apk-build-1
+
+      - name: Download APK from build 2
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-build-2
+          path: apk-build-2
+
+      - name: Compare hashes
+        id: compare
+        run: |
+          SHA1=$(sha256sum apk-build-1/app-release-unsigned.apk | awk '{ print $1 }')
+          SHA2=$(sha256sum apk-build-2/app-release-unsigned.apk | awk '{ print $1 }')
+          echo "Build 1: $SHA1"
+          echo "Build 2: $SHA2"
+          if [ "$SHA1" = "$SHA2" ]; then
+            echo "Reproducible build verified — hashes match."
+            echo "reproducible=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Build is NOT reproducible — hashes differ!"
+            echo "reproducible=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install diffoscope
+        if: steps.compare.outputs.reproducible == 'false'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y diffoscope
+
+      - name: Run diffoscope
+        if: steps.compare.outputs.reproducible == 'false'
+        run: |
+          diffoscope \
+            --text diffoscope-report.txt \
+            --html diffoscope-report.html \
+            apk-build-1/app-release-unsigned.apk \
+            apk-build-2/app-release-unsigned.apk || true
+
+      - name: Upload diffoscope report
+        if: steps.compare.outputs.reproducible == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diffoscope-report
+          path: |
+            diffoscope-report.txt
+            diffoscope-report.html
+          retention-days: 7
+
+      - name: Fail if not reproducible
+        if: steps.compare.outputs.reproducible == 'false'
+        run: |
+          echo "See the diffoscope-report artifact for a full breakdown of differences."
+          exit 1
+
+  bump-version-and-pr:
+    name: Bump Version and Open PR to master
+    runs-on: ubuntu-latest
+    needs: [ compare ]
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: staging
+
+      - name: Get latest tag
+        id: previoustag
+        uses: WyriHaximus/github-action-get-previous-tag@v2
+        with:
+          fallback: 0.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Verify version.properties exists
+        run: |
+          if [ ! -f version.properties ]; then
+            echo "ERROR: version.properties not found"
+            ls -la
+            exit 1
+          fi
+          echo "Found version.properties:"
+          cat version.properties
+
+      - name: Run bump_version.py
+        id: bump
+        run: |
+          python ci/bump_version.py \
+            "${{ steps.previoustag.outputs.tag }}" \
+            "staging" \
+            > /tmp/version_bumped.properties
+          cp /tmp/version_bumped.properties version.properties
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          cat version.properties >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version.properties
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.properties
+          git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
+          git push origin HEAD:staging
+
+      - name: Open or update PR to master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BODY="Automated version bump from \`staging\` — reproducible build verified ✅
+
+          **version.properties:**
+          \`\`\`
+          ${{ steps.bump.outputs.result }}
+          \`\`\`"
+
+          if gh pr create \
+            --base master \
+            --head staging \
+            --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+            --body "$PR_BODY"; then
+            echo "PR created"
+          else
+            echo "PR already exists, updating body..."
+            gh pr edit staging \
+              --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+              --body "$PR_BODY"
+          fi
