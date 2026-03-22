@@ -100,10 +100,10 @@ jobs:
           echo "Build 1: $SHA1"
           echo "Build 2: $SHA2"
           if [ "$SHA1" = "$SHA2" ]; then
-            echo "✅ Reproducible build verified — hashes match."
+            echo "Reproducible build verified — hashes match."
             echo "reproducible=true" >> "$GITHUB_OUTPUT"
           else
-            echo "❌ Build is NOT reproducible — hashes differ!"
+            echo "Build is NOT reproducible — hashes differ!"
             echo "reproducible=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -208,12 +208,12 @@ jobs:
           if gh pr create \
             --base master \
             --head staging \
-            --title "release: bump version (${{ steps.previoustag.outputs.tag }} → staging)" \
+            --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
             --body "$PR_BODY"; then
             echo "PR created"
           else
             echo "PR already exists, updating body..."
             gh pr edit staging \
-              --title "release: bump version (${{ steps.previoustag.outputs.tag }} → staging)" \
+              --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
               --body "$PR_BODY"
           fi
