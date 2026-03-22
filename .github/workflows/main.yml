@@ -1,0 +1,49 @@
+name: Run SSH command
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+  issues:
+    types: [labeled]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Run SSH command
+        uses: appleboy/ssh-action@master
+        timeout-minutes: 60
+        with:
+          command_timeout: "60m"
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            bash -s << 'EOF'
+            echo "Event: ${{ github.event_name }}"
+
+            # Handle merged pull requests
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                if [[ "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh
+                elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
+                  cd /root/digitalocean_ci_cd_app_releases && ./start.sh cp && ./start.sh build
+                fi
+              else
+                echo "PR closed but not merged. Skipping."
+                exit 0
+              fi
+            fi
+
+            # Handle label events
+            if [[ "${{ github.event_name }}" == "issues" ]]; then
+              echo "Label event detected. Running issues command."
+              cd /home/sherlock/issues_migrate/
+              ./run.sh
+            fi
+            EOF
