@@ -1,0 +1,110 @@
+name: Play Store Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Build AAB and release to Play Store
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version.properties
+        id: version
+        run: |
+          if [ ! -f version.properties ]; then
+            echo "ERROR: version.properties not found"
+            exit 1
+          fi
+          VERSION_CODE=$(grep "^versionCode=" version.properties | cut -d'=' -f2)
+          VERSION_NAME=$(grep "^versionName=" version.properties | cut -d'=' -f2)
+          if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
+            echo "ERROR: versionCode or versionName missing from version.properties"
+            exit 1
+          fi
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "versionCode=$VERSION_CODE, versionName=$VERSION_NAME"
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/release.keystore
+          if [ ! -s ${{ github.workspace }}/release.keystore ]; then
+            echo "Keystore file is empty — check the KEYSTORE_BASE64 secret."
+            exit 1
+          fi
+          echo "Keystore decoded successfully."
+
+      - name: Decode Play Store credentials
+        run: |
+          echo "${{ secrets.PLAYSTORE_CREDENTIALS_BASE64 }}" | base64 --decode > ${{ github.workspace }}/playstore-credentials.json
+          if [ ! -s ${{ github.workspace }}/playstore-credentials.json ]; then
+            echo "Play Store credentials file is empty — check the PLAYSTORE_CREDENTIALS_BASE64 secret."
+            exit 1
+          fi
+          echo "Play Store credentials decoded successfully."
+
+      - name: Build Docker image
+        working-directory: ci
+        run: docker build -t deku_rep_build_release .
+
+      - name: Build AAB
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/project \
+            -w /project \
+            --user "$(id -u):$(id -g)" \
+            -e ANDROID_USER_HOME=/project/.android \
+            -e GRADLE_USER_HOME=/project/.gradle \
+            deku_rep_build_release \
+            ./gradlew bundleRelease \
+              --no-daemon \
+              --max-workers=2 \
+              --console=plain \
+              -Dorg.gradle.jvmargs="-Xmx2048m -Xms512m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" \
+              -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
+              -Dkotlin.compiler.execution.strategy=in-process
+
+      - name: Sign AAB with apksigner
+        run: |
+          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
+            --ks ${{ github.workspace }}/release.keystore \
+            --ks-type JKS \
+            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+            --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+            --out app/build/outputs/bundle/release/app-release-signed.aab \
+            app/build/outputs/bundle/release/app-release.aab
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install google-api-python-client google-auth httplib2
+
+      - name: Release to Play Store
+        run: |
+          python ci/release.py \
+            --version_code "${{ steps.version.outputs.version_code }}" \
+            --version_name "${{ steps.version.outputs.version_name }}" \
+            --description "Release ${{ github.ref_name }}" \
+            --track internal \
+            --status draft \
+            --app_bundle_file app/build/outputs/bundle/release/app-release-signed.aab \
+            --creds_filepath ${{ github.workspace }}/playstore-credentials.json \
+            --package_name "${{ secrets.PACKAGE_NAME }}"
