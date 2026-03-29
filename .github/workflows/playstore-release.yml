@@ -3,7 +3,7 @@ name: Play Store Release
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]*'
 
 jobs:
   release:
