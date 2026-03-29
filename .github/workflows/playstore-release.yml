@@ -85,6 +85,7 @@ jobs:
             --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
             --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
             --out app/build/outputs/bundle/release/app-release-signed.aab \
+            --min-sdk-version 24 \
             app/build/outputs/bundle/release/app-release.aab
 
       - name: Set up Python
