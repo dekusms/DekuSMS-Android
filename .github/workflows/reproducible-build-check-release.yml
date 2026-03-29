@@ -15,7 +15,12 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/release.keystore
-
+          if [ ! -s ${{ github.workspace }}/release.keystore ]; then
+            echo "Keystore file is empty — check the KEYSTORE_BASE64 secret."
+            exit 1
+          fi
+          ls -lh ${{ github.workspace }}/release.keystore
+          echo "Keystore decoded successfully."
       - name: Build Docker image
         working-directory: ci
         run: docker build -t deku_rep_build_release .
