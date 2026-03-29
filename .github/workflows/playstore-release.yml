@@ -26,7 +26,7 @@ jobs:
             echo "ERROR: version.properties not found"
             exit 1
           fi
-          VERSION_CODE=$(grep "^versionCode=" version.properties | cut -d'=' -f2)
+          VERSION_CODE=$(grep "^tagVersion=" version.properties | cut -d'=' -f2)
           VERSION_NAME=$(grep "^versionName=" version.properties | cut -d'=' -f2)
           if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
             echo "ERROR: versionCode or versionName missing from version.properties"
