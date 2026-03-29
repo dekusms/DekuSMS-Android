@@ -8,6 +8,7 @@ jobs:
   build-1:
     name: Build 1 (signed)
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
