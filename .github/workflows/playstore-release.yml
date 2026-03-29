@@ -101,7 +101,7 @@ jobs:
       - name: Release to Play Store
         run: |
           python ci/release.py \
-            --version_code "${{ steps.version.outputs.tag_version }}" \
+            --version_code "${{ steps.version.outputs.version_code }}" \
             --version_name "${{ steps.version.outputs.version_name }}" \
             --description "Release ${{ github.ref_name }}" \
             --track internal \
