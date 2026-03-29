@@ -201,6 +201,7 @@ jobs:
   tag-and-release:
     name: Tag and create GitHub release
     runs-on: ubuntu-latest
+    environment: production
     needs: [ compare ]
     permissions:
       contents: write
