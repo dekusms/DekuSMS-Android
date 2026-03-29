@@ -80,7 +80,7 @@ class RelGooglePlaystore:
         commit_request = service.edits().commit(
             packageName=package_name,
             editId=edit_id,
-            changesNotSentForReview=changesNotSentForReview
+            # changesNotSentForReview=changesNotSentForReview
         )
         commit_request.execute()
         logging.info("[Playstore] Edit committed and finalized.")
