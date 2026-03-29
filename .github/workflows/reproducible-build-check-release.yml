@@ -272,4 +272,5 @@ jobs:
           **sha256sum:** $(sha256sum "apk-release/${{ steps.version.outputs.version_name }}.apk" | awk '{print $1}')
           
           **changelogs:** " \
-          --published
+          --fail-on-no-commits \
+          --verify-tag
