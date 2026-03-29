@@ -209,7 +209,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.SYNC_TOKEN }}
+          token: ${{ secrets.GH_LIB_SYNC_TOKEN }}
 
       - name: Read version.properties
         id: version
