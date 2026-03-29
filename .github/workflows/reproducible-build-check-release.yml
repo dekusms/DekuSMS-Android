@@ -209,7 +209,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SYNC_TOKEN }}
 
       - name: Compute next tag
         id: next_tag
@@ -229,4 +229,3 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${{ steps.next_tag.outputs.new_tag }}" -m "Release ${{ steps.next_tag.outputs.new_tag }} — reproducible build verified"
           git push origin "${{ steps.next_tag.outputs.new_tag }}"
-          echo "Tagged ${{ steps.next_tag.outputs.new_tag }} and pushed."
