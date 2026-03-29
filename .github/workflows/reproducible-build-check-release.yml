@@ -214,24 +214,12 @@ jobs:
       - name: Compute next tag
         id: next_tag
         run: |
-          # Get latest tag, fallback to 0.0.0 if none exist
           LATEST=$(git tag --sort=-v:refname | head -1)
           if [ -z "$LATEST" ]; then
-            LATEST="0.0.0"
+            LATEST="0"
           fi
           echo "Latest tag: $LATEST"
-
-          # Strip leading 'v' if present
-          VERSION=${LATEST#v}
-
-          # Split into major.minor.patch
-          MAJOR=$(echo "$VERSION" | cut -d. -f1)
-          MINOR=$(echo "$VERSION" | cut -d. -f2)
-          PATCH=$(echo "$VERSION" | cut -d. -f3)
-
-          # Increment patch
-          PATCH=$((PATCH + 1))
-          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          NEW_TAG=$((LATEST + 1))
           echo "New tag: $NEW_TAG"
           echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
 
@@ -241,4 +229,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${{ steps.next_tag.outputs.new_tag }}" -m "Release ${{ steps.next_tag.outputs.new_tag }} — reproducible build verified"
           git push origin "${{ steps.next_tag.outputs.new_tag }}"
-          echo "✅ Tagged ${{ steps.next_tag.outputs.new_tag }} and pushed."
+          echo "Tagged ${{ steps.next_tag.outputs.new_tag }} and pushed."
