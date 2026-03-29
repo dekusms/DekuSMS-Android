@@ -269,7 +269,7 @@ jobs:
 
           **Release:** ${{ steps.version.outputs.version_name }}
           **Build No:** ${{ steps.next_tag.outputs.new_tag }}
-          sha256sum: $(sha256sum "apk-release/${{ steps.version.outputs.version_name }}.apk" | awk '{print $1}')
+          **sha256sum:** $(sha256sum "apk-release/${{ steps.version.outputs.version_name }}.apk" | awk '{print $1}')
           
-          changelogs: " \
+          **changelogs:** " \
           --draft
