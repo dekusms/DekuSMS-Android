@@ -73,6 +73,7 @@ jobs:
   build-2:
     name: Build 2 (signed)
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
