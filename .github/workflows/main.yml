@@ -7,6 +7,7 @@ jobs:
   sync_issue:
     if: github.event.label.name == 'libsmsmms'
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Create issue in lib_smsmms_android
         uses: actions-ecosystem/action-create-issue@v1
