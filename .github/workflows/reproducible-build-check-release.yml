@@ -22,6 +22,7 @@ jobs:
           fi
           ls -lh ${{ github.workspace }}/release.keystore
           echo "Keystore decoded successfully."
+
       - name: Build Docker image
         working-directory: ci
         run: docker build -t deku_rep_build_release .
@@ -46,7 +47,6 @@ jobs:
       - name: Sign APK with apksigner
         run: |
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          # $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
           $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
             --ks ${{ github.workspace }}/release.keystore \
             --ks-type JKS \
@@ -81,6 +81,12 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/release.keystore
+          if [ ! -s ${{ github.workspace }}/release.keystore ]; then
+            echo "Keystore file is empty — check the KEYSTORE_BASE64 secret."
+            exit 1
+          fi
+          ls -lh ${{ github.workspace }}/release.keystore
+          echo "Keystore decoded successfully."
 
       - name: Build Docker image
         working-directory: ci
@@ -191,3 +197,48 @@ jobs:
         run: |
           echo "See the diffoscope-report artifact for a full breakdown of differences."
           exit 1
+
+  tag:
+    name: Tag release
+    runs-on: ubuntu-latest
+    needs: [ compare ]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute next tag
+        id: next_tag
+        run: |
+          # Get latest tag, fallback to 0.0.0 if none exist
+          LATEST=$(git tag --sort=-v:refname | head -1)
+          if [ -z "$LATEST" ]; then
+            LATEST="0.0.0"
+          fi
+          echo "Latest tag: $LATEST"
+
+          # Strip leading 'v' if present
+          VERSION=${LATEST#v}
+
+          # Split into major.minor.patch
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+
+          # Increment patch
+          PATCH=$((PATCH + 1))
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "New tag: $NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.next_tag.outputs.new_tag }}" -m "Release ${{ steps.next_tag.outputs.new_tag }} — reproducible build verified"
+          git push origin "${{ steps.next_tag.outputs.new_tag }}"
+          echo "✅ Tagged ${{ steps.next_tag.outputs.new_tag }} and pushed."
