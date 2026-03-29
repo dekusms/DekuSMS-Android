@@ -104,8 +104,8 @@ jobs:
             --version_code "${{ steps.version.outputs.version_code }}" \
             --version_name "${{ steps.version.outputs.version_name }}" \
             --description "Release ${{ github.ref_name }}" \
-            --track internal \
-            --status draft \
+            --track production \
+            --status completed \
             --app_bundle_file app/build/outputs/bundle/release/app-release-signed.aab \
             --creds_filepath ${{ github.workspace }}/playstore-credentials.json \
             --package_name "${{ secrets.PACKAGE_NAME }}"
