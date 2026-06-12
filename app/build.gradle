@@ -16,7 +16,7 @@ def versionProperties = new Properties()
 versionProperties.load(new FileInputStream(versionsPropertiesFile))
 
 android {
-    compileSdk 36
+    compileSdk 37
     namespace 'com.afkanerd.deku.DefaultSMS'
 
     def _versionName = versionProperties['versionName']
@@ -25,10 +25,32 @@ android {
     println(tagVersion)
     println(_versionName)
 
+    splits {
+
+        // Configures multiple APKs based on ABI.
+        abi {
+
+            // Enables building multiple APKs per ABI.
+            enable true
+
+            // By default all ABIs are included, so use reset() and include to specify that you only
+            // want APKs for x86 and x86_64.
+
+            // Resets the list of ABIs for Gradle to create APKs for to none.
+//            reset()
+
+            // Specifies a list of ABIs for Gradle to create APKs for.
+//            include "x86", "x86_64"
+
+            // Specifies that you don't want to also generate a universal APK that includes all ABIs.
+            universalApk true
+        }
+    }
+
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
-        targetSdk 36
+        targetSdk 37
         versionCode tagVersion
         versionName _versionName
 
@@ -84,10 +106,17 @@ android {
     }
 
     buildTypes {
+        debug {
+//            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            testProguardFiles 'proguard-rules.pro'
+        }
         release {
-            minifyEnabled false
-//            minifyEnabled true
-//            shrinkResources true
+//            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
