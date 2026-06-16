@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-def bump_version(tagVersion, filename, flavour):
+def bump_version(filename, flavour):
     with open(filename, "rb") as f:  # open as binary to see raw bytes
         raw = f.read()
 
@@ -14,6 +14,7 @@ def bump_version(tagVersion, filename, flavour):
     releaseVersion = None
     stagingVersion = None
     nightlyVersion = None
+    tagVersion = None  # Now parsed directly from the file
 
     for line in lines:
         line = line.strip()
@@ -30,8 +31,10 @@ def bump_version(tagVersion, filename, flavour):
             stagingVersion = value
         elif key == "nightlyVersion":
             nightlyVersion = value
+        elif key == "tagVersion":
+            tagVersion = value
 
-    print(f"DEBUG: releaseVersion={releaseVersion}, stagingVersion={stagingVersion}, nightlyVersion={nightlyVersion}", file=sys.stderr)
+    print(f"DEBUG: releaseVersion={releaseVersion}, stagingVersion={stagingVersion}, nightlyVersion={nightlyVersion}, tagVersion={tagVersion}", file=sys.stderr)
 
     if releaseVersion is None:
         raise ValueError("Could not find releaseVersion in file")
@@ -40,13 +43,14 @@ def bump_version(tagVersion, filename, flavour):
     if nightlyVersion is None:
         raise ValueError("Could not find nightlyVersion in file")
     if tagVersion is None:
-        raise ValueError("Could not find tagVersion in args")
+        raise ValueError("Could not find tagVersion in file")
 
     releaseVersion = int(releaseVersion)
     stagingVersion = int(stagingVersion)
     nightlyVersion = int(nightlyVersion)
     tagVersion = int(tagVersion)
 
+    # Determine X.Y.Z increments by branch tier
     if flavour in ("refs/heads/master", "master"):
         releaseVersion += 1
         stagingVersion = 0
@@ -57,6 +61,7 @@ def bump_version(tagVersion, filename, flavour):
     else:
         nightlyVersion += 1
 
+    # Monotonic increment for Google Play versionCode tracking
     tagVersion += 1
 
     return (
@@ -69,8 +74,14 @@ def bump_version(tagVersion, filename, flavour):
 
 if __name__ == "__main__":
     filename = "version.properties"
-    tag = sys.argv[1]
-    flavour = sys.argv[2]
-    print(f"DEBUG: tag={repr(tag)}, flavour={repr(flavour)}, filename={repr(filename)}", file=sys.stderr)
-    version = bump_version(tag, filename, flavour)
+    
+    # We only need the branch/flavour parameter now!
+    if len(sys.argv) < 2:
+        print("ERROR: Missing branch/flavour argument.", file=sys.stderr)
+        sys.exit(1)
+        
+    flavour = sys.argv[1]
+    print(f"DEBUG: flavour={repr(flavour)}, filename={repr(filename)}", file=sys.stderr)
+    
+    version = bump_version(filename, flavour)
     print(version)

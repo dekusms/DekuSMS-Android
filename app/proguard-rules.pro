@@ -28,3 +28,6 @@
     public static int v(...);
     public static int w(...);
 }
+
+-dontwarn androidx.window.extensions.embedding.ActivityStack$Token
+-dontwarn androidx.window.extensions.embedding.SplitInfo$Token

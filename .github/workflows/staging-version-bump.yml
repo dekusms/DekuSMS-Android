@@ -33,11 +33,12 @@ jobs:
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: apk-build-1
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          # Uses wildcard to catch all split APKs
+          path: app/build/outputs/apk/release/app-*-release-unsigned.apk
           retention-days: 1
 
   build-2:
@@ -68,11 +69,11 @@ jobs:
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: apk-build-2
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-*-release-unsigned.apk
           retention-days: 1
 
   compare:
@@ -80,13 +81,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build-1, build-2 ]
     steps:
-      - name: Download APK from build 1
+      - name: Download APKs from build 1
         uses: actions/download-artifact@v4
         with:
           name: apk-build-1
           path: apk-build-1
 
-      - name: Download APK from build 2
+      - name: Download APKs from build 2
         uses: actions/download-artifact@v4
         with:
           name: apk-build-2
@@ -95,15 +96,24 @@ jobs:
       - name: Compare hashes
         id: compare
         run: |
-          SHA1=$(sha256sum apk-build-1/app-release-unsigned.apk | awk '{ print $1 }')
-          SHA2=$(sha256sum apk-build-2/app-release-unsigned.apk | awk '{ print $1 }')
-          echo "Build 1: $SHA1"
-          echo "Build 2: $SHA2"
-          if [ "$SHA1" = "$SHA2" ]; then
-            echo "Reproducible build verified — hashes match."
+          # Generate checksum files for all contents in both directories
+          cd apk-build-1 && sha256sum app-*-release-unsigned.apk > ../hashes1.txt && cd ..
+          cd apk-build-2 && sha256sum app-*-release-unsigned.apk > ../hashes2.txt && cd ..
+          
+          echo "=== Build 1 Hashes ==="
+          cat hashes1.txt
+          echo "=== Build 2 Hashes ==="
+          cat hashes2.txt
+          
+          # Strip path names to compare purely the hashes and file structures
+          awk '{print $1}' hashes1.txt > clean_hashes1.txt
+          awk '{print $1}' hashes2.txt > clean_hashes2.txt
+          
+          if cmp -s clean_hashes1.txt clean_hashes2.txt; then
+            echo "Reproducible build verified — all split hashes match perfectly."
             echo "reproducible=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Build is NOT reproducible — hashes differ!"
+            echo "Build is NOT reproducible — split hashes differ!"
             echo "reproducible=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -116,11 +126,12 @@ jobs:
       - name: Run diffoscope
         if: steps.compare.outputs.reproducible == 'false'
         run: |
+          # Run diffoscope across the directories to find differences in any split
           diffoscope \
             --text diffoscope-report.txt \
             --html diffoscope-report.html \
-            apk-build-1/app-release-unsigned.apk \
-            apk-build-2/app-release-unsigned.apk || true
+            apk-build-1/ \
+            apk-build-2/ || true
 
       - name: Upload diffoscope report
         if: steps.compare.outputs.reproducible == 'false'
@@ -153,12 +164,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: staging
 
-      - name: Get latest tag
-        id: previoustag
-        uses: WyriHaximus/github-action-get-previous-tag@v2
-        with:
-          fallback: 0.0.0
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -168,19 +173,13 @@ jobs:
         run: |
           if [ ! -f version.properties ]; then
             echo "ERROR: version.properties not found"
-            ls -la
             exit 1
           fi
-          echo "Found version.properties:"
-          cat version.properties
 
       - name: Run bump_version.py
         id: bump
         run: |
-          python ci/bump_version.py \
-            "${{ steps.previoustag.outputs.tag }}" \
-            "staging" \
-            > /tmp/version_bumped.properties
+          python ci/bump_version.py "staging" > /tmp/version_bumped.properties
           cp /tmp/version_bumped.properties version.properties
           echo "result<<EOF" >> $GITHUB_OUTPUT
           cat version.properties >> $GITHUB_OUTPUT
@@ -198,22 +197,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_BODY="Automated version bump from \`staging\` — reproducible build verified ✅
+          PR_BODY="Automated version bump from \`staging\` — reproducible build verified
 
           **version.properties:**
           \`\`\`
           ${{ steps.bump.outputs.result }}
           \`\`\`"
 
+          NEW_VERSION=$(echo "${{ steps.bump.outputs.result }}" | grep "^versionName=" | cut -d'=' -f2)
+
           if gh pr create \
             --base master \
             --head staging \
-            --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+            --title "New release: bump version ($NEW_VERSION)" \
             --body "$PR_BODY"; then
             echo "PR created"
           else
             echo "PR already exists, updating body..."
             gh pr edit staging \
-              --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+              --title "New release: bump version ($NEW_VERSION)" \
               --body "$PR_BODY"
           fi
