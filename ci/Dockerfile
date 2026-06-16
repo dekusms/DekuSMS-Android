@@ -31,7 +31,16 @@ RUN wget -q "https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOO
     && rm /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}
 
 RUN yes | sdkmanager --update --sdk_root="${ANDROID_HOME}"
-RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" "platforms;${ANDROID_API_LEVELS}" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "extras;google;m2repository" "extras;android;m2repository" "extras;google;google_play_services" "ndk;28.0.13004108" "cmake;3.22.1"
+
+RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" --channel=0 "platforms;${ANDROID_API_LEVELS}"
+
+RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" \
+    "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
+    "extras;google;m2repository" \
+    "extras;android;m2repository" \
+    "extras;google;google_play_services" \
+    "ndk;28.0.13004108" \
+    "cmake;3.22.1"
 
 RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
 
