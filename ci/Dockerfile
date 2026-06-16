@@ -3,12 +3,20 @@ FROM ubuntu:jammy-20230624@sha256:b060fffe8e1561c9c3e6dea6db487b900100fc26830b9e
 RUN apt update
 RUN apt install -y git openjdk-17-jdk unzip wget
 
+RUN apt-get update && apt-get install -y wget tar
+
+# Pre-install the JetBrains JDK 21 toolchain locally
+RUN mkdir -p /opt/hostedtoolchains/JetBrains/21.0.0/x64 \
+    && wget -O /tmp/jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbr_jcef-21.0.6-linux-x64-b895.97.tar.gz \
+    && tar -xzf /tmp/jbr.tar.gz -C /opt/hostedtoolchains/JetBrains/21.0.0/x64 --strip-components=1 \
+    && rm /tmp/jbr.tar.gz
+
+# Tell Gradle exactly where to look for local installations
+ENV GRADLE_USER_HOME=/project/.gradle
+
 WORKDIR /android
 
 COPY . .
-
-RUN apt update
-RUN apt install -y git openjdk-17-jdk unzip wget
 
 ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-10406996_latest.zip
 ENV ANDROID_API_LEVELS                  android-36
