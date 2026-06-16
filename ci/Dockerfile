@@ -19,7 +19,7 @@ ENV GRADLE_USER_HOME=/project/.gradle
 WORKDIR /android
 
 ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-14742923_latest.zip
-ENV ANDROID_API_LEVELS                  android-37
+ENV ANDROID_API_LEVELS                  android-36
 ENV ANDROID_BUILD_TOOLS_VERSION         35.0.0
 
 ENV ANDROID_HOME /usr/local/android-sdk-linux
