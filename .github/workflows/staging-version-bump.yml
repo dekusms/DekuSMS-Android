@@ -153,12 +153,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: staging
 
-      - name: Get latest tag
-        id: previoustag
-        uses: WyriHaximus/github-action-get-previous-tag@v2
-        with:
-          fallback: 0.0.0
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -177,10 +171,8 @@ jobs:
       - name: Run bump_version.py
         id: bump
         run: |
-          python ci/bump_version.py \
-            "${{ steps.previoustag.outputs.tag }}" \
-            "staging" \
-            > /tmp/version_bumped.properties
+          # Pass ONLY the branch string ("staging") as the single argument
+          python ci/bump_version.py "staging" > /tmp/version_bumped.properties
           cp /tmp/version_bumped.properties version.properties
           echo "result<<EOF" >> $GITHUB_OUTPUT
           cat version.properties >> $GITHUB_OUTPUT
@@ -205,15 +197,18 @@ jobs:
           ${{ steps.bump.outputs.result }}
           \`\`\`"
 
+          # Extract the new version name from the bump output to use in the PR title
+          NEW_VERSION=$(echo "${{ steps.bump.outputs.result }}" | grep "^versionName=" | cut -d'=' -f2)
+
           if gh pr create \
             --base master \
             --head staging \
-            --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+            --title "New release: bump version ($NEW_VERSION)" \
             --body "$PR_BODY"; then
             echo "PR created"
           else
             echo "PR already exists, updating body..."
             gh pr edit staging \
-              --title "New release: bump version (${{ steps.previoustag.outputs.tag }}" \
+              --title "New release: bump version ($NEW_VERSION)" \
               --body "$PR_BODY"
           fi
