@@ -140,13 +140,6 @@ android {
         abortOnError false
         checkReleaseBuilds false
     }
-
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
-
 }
 
 dependencies {
