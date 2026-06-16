@@ -18,7 +18,8 @@ RUN mkdir -p /opt/hostedtoolchains/JetBrains/21.0.0/x64 \
 ENV GRADLE_USER_HOME=/project/.gradle
 WORKDIR /android
 
-ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-10406996_latest.zip
+# UPDATED: Using a modern command line tools version that recognizes API 37
+ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-14742923_latest.zip
 ENV ANDROID_API_LEVELS                  android-37
 ENV ANDROID_BUILD_TOOLS_VERSION         35.0.0
 
@@ -30,19 +31,21 @@ RUN wget -q "https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOO
     && unzip /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME} -d /usr/local/android-sdk-linux \
     && rm /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}
 
+# Clear out potential legacy tool remnants and set up licensing first
+RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
+
+# Update the core sdkmanager channel manifests
 RUN yes | sdkmanager --update --sdk_root="${ANDROID_HOME}"
 
-RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" --channel=0 "platforms;${ANDROID_API_LEVELS}"
-
+# Install the packages cleanly
 RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" \
+    "platforms;${ANDROID_API_LEVELS}" \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "extras;google;m2repository" \
     "extras;android;m2repository" \
     "extras;google;google_play_services" \
     "ndk;28.0.13004108" \
     "cmake;3.22.1"
-
-RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
 
 RUN rm -rf ${ANDROID_HOME}/tools
 
