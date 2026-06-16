@@ -16,7 +16,7 @@ def versionProperties = new Properties()
 versionProperties.load(new FileInputStream(versionsPropertiesFile))
 
 android {
-    compileSdk 37
+    compileSdk 36
     namespace 'com.afkanerd.deku.DefaultSMS'
 
     def _versionName = versionProperties['versionName']
@@ -50,7 +50,7 @@ android {
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
-        targetSdk 37
+        targetSdk 36
         versionCode tagVersion
         versionName _versionName
 
