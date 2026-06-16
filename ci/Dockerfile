@@ -18,26 +18,30 @@ RUN mkdir -p /opt/hostedtoolchains/JetBrains/21.0.0/x64 \
 ENV GRADLE_USER_HOME=/project/.gradle
 WORKDIR /android
 
-# UPDATED: Using a modern command line tools version that recognizes API 37
 ENV ANDROID_COMMAND_LINE_TOOLS_FILENAME commandlinetools-linux-14742923_latest.zip
 ENV ANDROID_API_LEVELS                  android-37
 ENV ANDROID_BUILD_TOOLS_VERSION         35.0.0
 
 ENV ANDROID_HOME /usr/local/android-sdk-linux
-ENV PATH         ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/bin
+# UPDATED PATH: Added /cmdline-tools/latest/bin to correctly map to the new layout
+ENV PATH         ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/latest/bin
 
-# Explicitly download command-line tools to /usr/local/ using explicit output flags
-RUN wget -q "https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}" -O /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME} \
-    && unzip /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME} -d /usr/local/android-sdk-linux \
-    && rm /usr/local/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}
+# 1. Create the structured directory layout that modern sdkmanager demands
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools
 
-# Clear out potential legacy tool remnants and set up licensing first
+# 2. Explicitly download command-line tools zip
+RUN wget -q "https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}" -O /tmp/${ANDROID_COMMAND_LINE_TOOLS_FILENAME} \
+    && unzip /tmp/${ANDROID_COMMAND_LINE_TOOLS_FILENAME} -d ${ANDROID_HOME}/cmdline-tools \
+    && mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
+    && rm /tmp/${ANDROID_COMMAND_LINE_TOOLS_FILENAME}
+
+# 3. Accept licensing agreements prior to triggering installations
 RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
 
-# Update the core sdkmanager channel manifests
+# 4. Update core sdkmanager channel manifests
 RUN yes | sdkmanager --update --sdk_root="${ANDROID_HOME}"
 
-# Install the packages cleanly
+# 5. Install the packages cleanly (platforms;android-37 will now resolve successfully!)
 RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" \
     "platforms;${ANDROID_API_LEVELS}" \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
@@ -46,7 +50,5 @@ RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" \
     "extras;google;google_play_services" \
     "ndk;28.0.13004108" \
     "cmake;3.22.1"
-
-RUN rm -rf ${ANDROID_HOME}/tools
 
 RUN git config --global --add safe.directory /project
