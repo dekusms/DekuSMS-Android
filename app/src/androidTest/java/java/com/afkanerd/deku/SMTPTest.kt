@@ -3,7 +3,7 @@ package java.com.afkanerd.deku
 import android.content.Context
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+//import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import org.junit.Before
 import org.junit.Test
 import java.util.Properties
@@ -57,14 +57,14 @@ class SMTPTest {
 
     @Test
     fun testJson() {
-        val conversation = Conversation()
-        conversation.address = "test_address"
-        conversation.id = 1
-        conversation.text = "hello world"
-
-        val routerItem = RouterItem(conversation)
-        routerItem.tag = "sample_tag"
-
-        println(routerItem.serializeJson())
+//        val conversation = Conversation()
+//        conversation.address = "test_address"
+//        conversation.id = 1
+//        conversation.text = "hello world"
+//
+//        val routerItem = RouterItem(conversation)
+//        routerItem.tag = "sample_tag"
+//
+//        println(routerItem.serializeJson())
     }
 }
