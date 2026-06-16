@@ -75,18 +75,15 @@ jobs:
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Sign AAB with apksigner
+      - name: Sign AAB with jarsigner
         run: |
-          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
-            --ks ${{ github.workspace }}/release.keystore \
-            --ks-type JKS \
-            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
-            --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
-            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
-            --out app/build/outputs/bundle/release/app-release-signed.aab \
-            --min-sdk-version 24 \
-            app/build/outputs/bundle/release/app-release.aab
+          # Use jarsigner (standard JDK tool) instead of apksigner for AAB bundles
+          jarsigner -keystore ${{ github.workspace }}/release.keystore \
+            -storepass "${{ secrets.STORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -signedjar app/build/outputs/bundle/release/app-release-signed.aab \
+            app/build/outputs/bundle/release/app-release.aab \
+            "${{ secrets.KEY_ALIAS }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
