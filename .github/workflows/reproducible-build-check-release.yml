@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-1:
-    name: Build 1 (signed)
+    name: Build 1 (signed splits)
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -20,14 +20,12 @@ jobs:
             echo "Keystore file is empty — check the KEYSTORE_BASE64 secret."
             exit 1
           fi
-          ls -lh ${{ github.workspace }}/release.keystore
-          echo "Keystore decoded successfully."
 
       - name: Build Docker image
         working-directory: ci
         run: docker build -t deku_rep_build_release .
 
-      - name: Build unsigned APK
+      - name: Build unsigned split APKs
         run: |
           docker run --rm \
             -v "$(pwd)":/project \
@@ -44,34 +42,43 @@ jobs:
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Sign APK with apksigner
+      - name: Sign split APKs with apksigner
         run: |
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
-            --ks ${{ github.workspace }}/release.keystore \
-            --ks-type JKS \
-            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
-            --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
-            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
-            --out app/build/outputs/apk/release/app-release-signed.apk \
-            app/build/outputs/apk/release/app-release-unsigned.apk
+          cd app/build/outputs/apk/release/
+          
+          # Loop through each unsigned split and sign it uniquely
+          for unsigned_apk in app-*-release-unsigned.apk; do
+            abi=$(echo "$unsigned_apk" | sed 's/app-//;s/-release-unsigned.apk//')
+            echo "Signing split for ABI: $abi"
+            
+            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
+              --ks ${{ github.workspace }}/release.keystore \
+              --ks-type JKS \
+              --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+              --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
+              --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+              --out "app-${abi}-release-signed.apk" \
+              "$unsigned_apk"
+          done
 
-      - name: Verify signature
+      - name: Verify signatures
         run: |
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify \
-            --verbose \
-            app/build/outputs/apk/release/app-release-signed.apk
+          for signed_apk in app/build/outputs/apk/release/app-*-release-signed.apk; do
+            echo "Verifying $signed_apk"
+            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify --verbose "$signed_apk"
+          done
 
-      - name: Upload signed APK
+      - name: Upload signed APKs
         uses: actions/upload-artifact@v4
         with:
           name: apk-build-1
-          path: app/build/outputs/apk/release/app-release-signed.apk
+          path: app/build/outputs/apk/release/app-*-release-signed.apk
           retention-days: 1
 
   build-2:
-    name: Build 2 (signed)
+    name: Build 2 (signed splits)
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -82,17 +89,15 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/release.keystore
           if [ ! -s ${{ github.workspace }}/release.keystore ]; then
-            echo "Keystore file is empty — check the KEYSTORE_BASE64 secret."
+            echo "Keystore file is empty."
             exit 1
           fi
-          ls -lh ${{ github.workspace }}/release.keystore
-          echo "Keystore decoded successfully."
 
       - name: Build Docker image
         working-directory: ci
         run: docker build -t deku_rep_build_release .
 
-      - name: Build unsigned APK
+      - name: Build unsigned split APKs
         run: |
           docker run --rm \
             -v "$(pwd)":/project \
@@ -109,30 +114,34 @@ jobs:
               -Dkotlin.daemon.jvm.options="-Xmx512m,-Xss1m" \
               -Dkotlin.compiler.execution.strategy=in-process
 
-      - name: Sign APK with apksigner
+      - name: Sign split APKs with apksigner
         run: |
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
-            --ks ${{ github.workspace }}/release.keystore \
-            --ks-type JKS \
-            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
-            --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
-            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
-            --out app/build/outputs/apk/release/app-release-signed.apk \
-            app/build/outputs/apk/release/app-release-unsigned.apk
+          cd app/build/outputs/apk/release/
+          for unsigned_apk in app-*-release-unsigned.apk; do
+            abi=$(echo "$unsigned_apk" | sed 's/app-//;s/-release-unsigned.apk//')
+            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
+              --ks ${{ github.workspace }}/release.keystore \
+              --ks-type JKS \
+              --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+              --ks-pass pass:"${{ secrets.STORE_PASSWORD }}" \
+              --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+              --out "app-${abi}-release-signed.apk" \
+              "$unsigned_apk"
+          done
 
-      - name: Verify signature
+      - name: Verify signatures
         run: |
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify \
-            --verbose \
-            app/build/outputs/apk/release/app-release-signed.apk
+          for signed_apk in app/build/outputs/apk/release/app-*-release-signed.apk; do
+            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify --verbose "$signed_apk"
+          done
 
-      - name: Upload signed APK
+      - name: Upload signed APKs
         uses: actions/upload-artifact@v4
         with:
           name: apk-build-2
-          path: app/build/outputs/apk/release/app-release-signed.apk
+          path: app/build/outputs/apk/release/app-*-release-signed.apk
           retention-days: 1
 
   compare:
@@ -140,13 +149,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build-1, build-2 ]
     steps:
-      - name: Download APK from build 1
+      - name: Download APKs from build 1
         uses: actions/download-artifact@v4
         with:
           name: apk-build-1
           path: apk-build-1
 
-      - name: Download APK from build 2
+      - name: Download APKs from build 2
         uses: actions/download-artifact@v4
         with:
           name: apk-build-2
@@ -155,11 +164,13 @@ jobs:
       - name: Compare hashes
         id: compare
         run: |
-          SHA1=$(sha256sum apk-build-1/app-release-signed.apk | awk '{ print $1 }')
-          SHA2=$(sha256sum apk-build-2/app-release-signed.apk | awk '{ print $1 }')
-          echo "Build 1: $SHA1"
-          echo "Build 2: $SHA2"
-          if [ "$SHA1" = "$SHA2" ]; then
+          cd apk-build-1 && sha256sum app-*-release-signed.apk > ../hashes1.txt && cd ..
+          cd apk-build-2 && sha256sum app-*-release-signed.apk > ../hashes2.txt && cd ..
+          
+          awk '{print $1}' hashes1.txt > clean_hashes1.txt
+          awk '{print $1}' hashes2.txt > clean_hashes2.txt
+          
+          if cmp -s clean_hashes1.txt clean_hashes2.txt; then
             echo "Reproducible build verified — hashes match."
             echo "reproducible=true" >> "$GITHUB_OUTPUT"
           else
@@ -176,11 +187,7 @@ jobs:
       - name: Run diffoscope
         if: steps.compare.outputs.reproducible == 'false'
         run: |
-          diffoscope \
-            --text diffoscope-report.txt \
-            --html diffoscope-report.html \
-            apk-build-1/app-release-signed.apk \
-            apk-build-2/app-release-signed.apk || true
+          diffoscope --text diffoscope-report.txt --html diffoscope-report.html apk-build-1/ apk-build-2/ || true
 
       - name: Upload diffoscope report
         if: steps.compare.outputs.reproducible == 'false'
@@ -195,7 +202,6 @@ jobs:
       - name: Fail if not reproducible
         if: steps.compare.outputs.reproducible == 'false'
         run: |
-          echo "See the diffoscope-report artifact for a full breakdown of differences."
           exit 1
 
   tag-and-release:
@@ -220,55 +226,50 @@ jobs:
             exit 1
           fi
           VERSION_NAME=$(grep "^versionName=" version.properties | cut -d'=' -f2)
-          if [ -z "$VERSION_NAME" ]; then
-            echo "ERROR: versionName missing from version.properties"
-            exit 1
-          fi
+          TAG_VERSION=$(grep "^tagVersion=" version.properties | cut -d'=' -f2)
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-          echo "versionName=$VERSION_NAME"
-
-      - name: Compute next tag
-        id: next_tag
-        run: |
-          LATEST=$(git tag --sort=-v:refname | head -1)
-          if [ -z "$LATEST" ]; then
-            LATEST="0"
-          fi
-          echo "Latest tag: $LATEST"
-          NEW_TAG=$((LATEST + 1))
-          echo "New tag: $NEW_TAG"
-          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "tag_version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.next_tag.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.version_name }} — reproducible build verified"
-          git push origin "${{ steps.next_tag.outputs.new_tag }}"
-          echo "Tagged ${{ steps.next_tag.outputs.new_tag }} and pushed."
+          # Tags using the clean tagVersion tracking integer
+          git tag "${{ steps.version.outputs.tag_version }}" -m "Release ${{ steps.version.outputs.version_name }} — reproducible splits verified"
+          git push origin "${{ steps.version.outputs.tag_version }}"
 
-      - name: Download signed APK from build-1
+      - name: Download signed APKs from build-1
         uses: actions/download-artifact@v4
         with:
           name: apk-build-1
           path: apk-release
 
-      - name: Rename APK with version name
+      - name: Rename split APKs with version and ABI info
         run: |
-          mv apk-release/app-release-signed.apk \
-             "apk-release/${{ steps.version.outputs.version_name }}.apk"
+          cd apk-release
+          # Example: transforms app-arm64-v8a-release-signed.apk -> [AppName]-0.72.0-arm64-v8a.apk
+          for signed_apk in app-*-release-signed.apk; do
+            abi=$(echo "$signed_apk" | sed 's/app-//;s/-release-signed.apk//')
+            mv "$signed_apk" "${{ steps.version.outputs.version_name }}-${abi}.apk"
+          done
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GH_LIB_SYNC_TOKEN }}
         run: |
-          gh release create "${{ steps.next_tag.outputs.new_tag }}" \
-            "apk-release/${{ steps.version.outputs.version_name }}.apk" \
-            --title "${{ steps.version.outputs.version_name }}" \
-            --notes "**Release:** ${{ steps.version.outputs.version_name }}
-          **Build No:** ${{ steps.next_tag.outputs.new_tag }}
-          **sha256sum:** $(sha256sum "apk-release/${{ steps.version.outputs.version_name }}.apk" | awk '{print $1}')
+          cd apk-release
           
-          **changelogs:** " \
-          --fail-on-no-commits \
-          --verify-tag
+          # Build a release notes string displaying hashes for all 3 versions
+          NOTE_HASHES=$(sha256sum *.apk | awk '{print "**" $2 ":** " $1 "\n"}')
+          
+          gh release create "${{ steps.version.outputs.tag_version }}" \
+            *.apk \
+            --title "${{ steps.version.outputs.version_name }}" \
+            --notes "Reproducible split builds verified
+
+          **Release:** ${{ steps.version.outputs.version_name }}
+          **Build No:** ${{ steps.version.outputs.tag_version }}
+          
+          **SHA-256 Checksums:**
+          $NOTE_HASHES" \
+            --fail-on-no-commits
