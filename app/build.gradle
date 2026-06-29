@@ -15,6 +15,10 @@ def versionsPropertiesFile = rootProject.file("version.properties")
 def versionProperties = new Properties()
 versionProperties.load(new FileInputStream(versionsPropertiesFile))
 
+ext {
+    abiCodes = ['armeabi-v7a': 1, 'x86_64': 2, 'arm64-v8a': 3]
+}
+
 android {
     compileSdk 36
     namespace 'com.afkanerd.deku.DefaultSMS'
@@ -139,6 +143,23 @@ android {
     lint {
         abortOnError false
         checkReleaseBuilds false
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.outputs.each { output ->
+            // Look up the ABI name from the variant filters
+            def abiFilter = output.filters.find { it.filterType.name() == "ABI" }?.identifier
+            def baseAbiVersionCode = project.ext.abiCodes.get(abiFilter)
+
+            if (baseAbiVersionCode != null) {
+                // In AGP 9.x, versionCode is a Property wrapper, so we must use .set()
+                output.versionCode.set((100 * android.defaultConfig.versionCode) + baseAbiVersionCode)
+            } else {
+                output.versionCode.set(100 * android.defaultConfig.versionCode)
+            }
+        }
     }
 }
 
