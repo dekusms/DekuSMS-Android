@@ -94,7 +94,7 @@ fun GatewayClientsMainView(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "Add SMTP forwarder",
+                        text = stringResource(R.string.add_smtp_forwarders),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
@@ -113,7 +113,7 @@ fun GatewayClientsMainView(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "go back"
+                            contentDescription = stringResource(R.string.go_back)
                         )
                     }
                 },

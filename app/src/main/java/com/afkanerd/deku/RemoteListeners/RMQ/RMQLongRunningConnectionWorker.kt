@@ -36,14 +36,16 @@ class RMQLongRunningConnectionWorker(context: Context, parameters: WorkerParamet
                 notificationIntent,
                 PendingIntent.FLAG_IMMUTABLE)
 
-        val title = "Long running..."
+        val title = applicationContext
+            .getString(R.string.remote_listeners_long_running_notification_title)
         val description = ""
 
         val notification =
             NotificationCompat.Builder( applicationContext,
                 applicationContext.getString(R.string.running_gateway_clients_channel_id))
                 .setContentTitle(title)
-                .setContentText("Status")
+                .setContentText(applicationContext
+                    .getString(R.string.remote_listeners_notification_status))
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setSilent(true)

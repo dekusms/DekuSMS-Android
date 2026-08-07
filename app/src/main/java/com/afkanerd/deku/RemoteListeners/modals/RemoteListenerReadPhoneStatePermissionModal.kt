@@ -20,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.R
 import com.example.compose.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,20 +57,20 @@ fun RemoteListenersReadPhoneStatePermissionModal(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "Permission required!",
+                    stringResource(R.string.permission_required_title),
                     style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(Modifier.padding(16.dp))
 
                 Text(
-                    "Grant permission to detect how many SIM cards you have on your device",
+                    stringResource(R.string.remote_listener_phone_state_permission_description),
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(Modifier.padding(8.dp))
                 Text(
-                    "This would also auto fill useful information which can help you identify your various queues.",
+                    stringResource(R.string.remote_listener_phone_state_permission_hint),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary
@@ -76,7 +78,7 @@ fun RemoteListenersReadPhoneStatePermissionModal(
 
                 Spacer(Modifier.padding(12.dp))
                 Button(onClick = grantPermissionsCallback) {
-                    Text("Grant permission")
+                    Text(stringResource(R.string.permission_grant))
                 }
             }
         }

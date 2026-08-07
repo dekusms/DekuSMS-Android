@@ -225,23 +225,24 @@ class RemoteListenerConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        val title = "$numberOfActiveRemoteListeners Active..."
-        val description = ""
-            .plus("# Failed to start: ")
-            .plus("$numberFailedToStart\n")
-            .plus("# Waiting to start: ")
-            .plus("$numberWaitingToStart\n")
-            .plus("# Starting: ")
-            .plus("$numberStarting\n")
-            .plus("# Connected: ")
-            .plus(numberStarted)
+        val title = getString(
+            R.string.remote_listeners_active_notification_title,
+            numberOfActiveRemoteListeners
+        )
+        val description = getString(
+            R.string.remote_listeners_notification_body,
+            numberFailedToStart,
+            numberWaitingToStart,
+            numberStarting,
+            numberStarted
+        )
 
         val notification =
                 NotificationCompat.Builder(
                     applicationContext,
                     getString(R.string.running_gateway_clients_channel_id))
                     .setContentTitle(title)
-                    .setContentText("Status")
+                    .setContentText(getString(R.string.remote_listeners_notification_status))
                     .setSmallIcon(R.drawable.ic_stat_name)
                     .setPriority(NotificationCompat.PRIORITY_LOW)
                     .setSilent(true)

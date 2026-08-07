@@ -456,4 +456,40 @@
     <string name="secure_message_accepted">Secure message accepted</string>
     <string name="enter_subject">Enter subject</string>
 
+    <!-- Remote listeners: permissions -->
+    <string name="permission_required_title">Permission required!</string>
+    <string name="permission_grant">Grant permission</string>
+    <string name="permission_grant_notification">Grant notification permission</string>
+    <string name="permission_grant_phone_state">Grant phone state permission</string>
+    <string name="permission_grant_send_sms">Grant send sms permission</string>
+    <string name="permission_grant_read_sms">Grant read sms permission</string>
+    <string name="permission_notification_rationale">When not default SMS app, you need to grant permissions for listeners to show notifications when changing.</string>
+    <string name="permission_phone_state_rationale">When not default SMS app, you need to grant permissions for listeners to check for sim status and dual sim information.</string>
+    <string name="permission_sms_rationale">When not default SMS app, you need to grant permissions for listeners to send and receive delivery reports.</string>
+    <string name="permission_notification_granted_toast">Well done!</string>
+    <string name="permission_notification_denied_toast">We cannot do without this one…</string>
+    <string name="permission_phone_state_granted_toast">Well done, carry on!</string>
+    <string name="permission_phone_state_denied_toast">You can at anytime…</string>
+    <string name="permission_sms_granted_toast">Carry on activating…</string>
+    <string name="permission_sms_denied_toast">I\'d be back!</string>
+
+    <!-- Remote listeners: modals -->
+    <string name="remote_listener_sms_permission_description">Remote listeners sends messages and listen for delivery reports. This requires permission to read and write SMS messages.</string>
+    <string name="remote_listener_sms_permission_hint">You can make the app your default SMS app, or choose to grant the necessary permissions</string>
+    <string name="remote_listener_make_default">Make default</string>
+    <string name="remote_listener_phone_state_permission_description">Grant permission to detect how many SIM cards you have on your device</string>
+    <string name="remote_listener_phone_state_permission_hint">This would also auto fill useful information which can help you identify your various queues.</string>
+    <string name="remote_listener_configure_title">Configure Remote listener</string>
+    <string name="remote_listener_activate_description">Activating begins the service that tries to connect this remote listener</string>
+    <string name="remote_listener_deactivate_description">Deactivating stops the remote listener and tries to kill all remote connections.</string>
+
+    <!-- Remote listeners: notifications -->
+    <string name="remote_listeners_active_notification_title">%1$d active…</string>
+    <string name="remote_listeners_long_running_notification_title">Long running…</string>
+    <string name="remote_listeners_notification_status">Status</string>
+    <string name="remote_listeners_notification_body"># Failed to start: %1$d\n# Waiting to start: %2$d\n# Starting: %3$d\n# Connected: %4$d</string>
+
+    <!-- Router -->
+    <string name="add_smtp_forwarders">Add SMTP forwarder</string>
+
 </resources>
