@@ -18,9 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.BuildConfig
+import com.afkanerd.deku.DefaultSMS.R
 import com.example.compose.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -57,18 +59,22 @@ fun RemoteListenerModal(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Configure Remote listener",
+                Text(stringResource(R.string.remote_listener_configure_title),
                     style = MaterialTheme.typography.titleMedium)
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
                 Button(onClick = connectionCallback, modifier = Modifier.fillMaxWidth()) {
-                    Text(if(activated) "Deactivate" else "Activate")
+                    Text(stringResource(
+                        if(activated) R.string.gateway_client_customization_deactivate
+                        else R.string.gateway_client_customization_activate
+                    ))
                 }
                 Text(
-                    if(activated)
-                        "Deactivating stops the remote listener and tries to kill all remote connections."
-                    else "Activating begins the service that tries to connect this remote listener",
+                    stringResource(
+                        if(activated) R.string.remote_listener_deactivate_description
+                        else R.string.remote_listener_activate_description
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary
@@ -76,11 +82,11 @@ fun RemoteListenerModal(
                 Spacer(modifier = Modifier.padding(16.dp))
 
                 Button(onClick = editCallback, modifier = Modifier.fillMaxWidth()) {
-                    Text("Edit" )
+                    Text(stringResource(R.string.edit))
                 }
 
                 TextButton(onClick = deleteCallback) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         }

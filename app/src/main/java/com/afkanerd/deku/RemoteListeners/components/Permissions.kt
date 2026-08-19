@@ -22,7 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.RemoteListeners.ui.requiredNotificationsPermissions
 import com.afkanerd.deku.RemoteListeners.ui.requiredReadPhoneStatePermissions
 import com.afkanerd.deku.RemoteListeners.ui.requiredReceiveSMSPermission
@@ -39,10 +41,11 @@ fun NotificationPermissionComposable() {
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                 isGranted ->
             if(isGranted) {
-                Toast.makeText(context, "Well done!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permission_notification_granted_toast,
+                    Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(context, "We cannot do without this one...", Toast.LENGTH_LONG)
-                    .show()
+                Toast.makeText(context, R.string.permission_notification_denied_toast,
+                    Toast.LENGTH_LONG).show()
             }
         }
 
@@ -63,7 +66,7 @@ fun NotificationPermissionComposable() {
                 ) {
                     Icon(imageVector =  Icons.Outlined.Info, "", tint=MaterialTheme.colorScheme.secondary)
                     Text(
-                        "When not default SMS app, you need to grant permissions for listeners to show notifications when changing.",
+                        stringResource(R.string.permission_notification_rationale),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
@@ -78,7 +81,7 @@ fun NotificationPermissionComposable() {
                     TextButton(onClick = {
                         getNotificationsPermissionsLauncher.launch(requiredNotificationsPermissions)
                     }) {
-                        Text("Grant notification permission")
+                        Text(stringResource(R.string.permission_grant_notification))
                     }
                 }
             }
@@ -93,9 +96,11 @@ fun PhoneStatePermissionComposable() {
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                 isGranted ->
             if(isGranted) {
-                Toast.makeText(context, "Well done, carry on!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permission_phone_state_granted_toast,
+                    Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(context, "You can at anytime...", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permission_phone_state_denied_toast,
+                    Toast.LENGTH_LONG).show()
             }
         }
 
@@ -116,7 +121,7 @@ fun PhoneStatePermissionComposable() {
                 ) {
                     Icon(imageVector =  Icons.Outlined.Info, "", tint=MaterialTheme.colorScheme.secondary)
                     Text(
-                        "When not default SMS app, you need to grant permissions for listeners to check for sim status and dual sim information.",
+                        stringResource(R.string.permission_phone_state_rationale),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
@@ -132,7 +137,7 @@ fun PhoneStatePermissionComposable() {
                         getReadPhoneStatePermissionsLauncher
                             .launch(requiredReadPhoneStatePermissions)
                     }) {
-                        Text("Grant phone state permission")
+                        Text(stringResource(R.string.permission_grant_phone_state))
                     }
                 }
             }
@@ -148,9 +153,11 @@ fun SMSPermissionComposable() {
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                 isGranted ->
             if(isGranted) {
-                Toast.makeText(context, "Carry on activating...", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permission_sms_granted_toast,
+                    Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(context, "I'd be back!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permission_sms_denied_toast,
+                    Toast.LENGTH_LONG).show()
             }
         }
 
@@ -174,7 +181,7 @@ fun SMSPermissionComposable() {
                 ) {
                     Icon(imageVector =  Icons.Outlined.Info, "", tint=MaterialTheme.colorScheme.secondary)
                     Text(
-                        "When not default SMS app, you need to grant permissions for listeners to send and receive delivery reports.",
+                        stringResource(R.string.permission_sms_rationale),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.padding(start=16.dp, end=16.dp, top=8.dp)
@@ -190,14 +197,14 @@ fun SMSPermissionComposable() {
                         TextButton(onClick = {
                             getSMSPermissionLauncher.launch(requiredSendSMSPermission)
                         }) {
-                            Text("Grant send sms permission")
+                            Text(stringResource(R.string.permission_grant_send_sms))
                         }
                     }
                     if(!smsReadSMSState.status.isGranted || LocalInspectionMode.current) {
                         TextButton(onClick = {
                             getSMSPermissionLauncher.launch(requiredReceiveSMSPermission)
                         }) {
-                            Text("Grant read sms permission")
+                            Text(stringResource(R.string.permission_grant_read_sms))
                         }
                     }
                 }
