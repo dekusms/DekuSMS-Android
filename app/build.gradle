@@ -86,7 +86,7 @@ android {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
 
         main {
-            jniLibs.srcDirs = ['libs']
+            jniLibs.srcDirs = ['src/main/jniLibs']
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 exclude 'com/afkanerd/deku/DefaultSMS/Deprecated/*'
@@ -106,10 +106,10 @@ android {
     buildTypes {
         debug {
 //            minifyEnabled false
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            testProguardFiles 'proguard-rules.pro'
+//            minifyEnabled true
+//            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            testProguardFiles 'proguard-rules.pro'
         }
         release {
 //            minifyEnabled false

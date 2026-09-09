@@ -23,6 +23,14 @@ import kotlinx.coroutines.withContext
 class SecureConversationViewModel: CustomsConversationsViewModel() {
     var mode by mutableStateOf(EncryptionController.SecureRequestMode.REQUEST_NONE)
 
+    companion object {
+        init {
+            System.loadLibrary("rusty_ratchet_bridge")
+        }
+    }
+
+    external fun newState(): Long
+
     override fun sendSms(
         context: Context,
         text: String,
