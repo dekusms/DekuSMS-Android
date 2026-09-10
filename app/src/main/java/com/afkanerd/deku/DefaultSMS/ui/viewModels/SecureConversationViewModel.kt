@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import com.afkanerd.deku.rust.RustyRatchetBridge
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
@@ -22,14 +23,6 @@ import kotlinx.coroutines.withContext
 
 class SecureConversationViewModel: CustomsConversationsViewModel() {
     var mode by mutableStateOf(EncryptionController.SecureRequestMode.REQUEST_NONE)
-
-    companion object {
-        init {
-            System.loadLibrary("rusty_ratchet_bridge")
-        }
-    }
-
-    external fun newState(): Long
 
     override fun sendSms(
         context: Context,
@@ -98,31 +91,33 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
         threadId: Int,
         callback: (Conversations) -> Unit
     ) {
-        viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                val publicKey = EncryptionController.sendRequest(context, address, mode)
-
-                try {
-                    val smsManager = SmsManager(ConversationsViewModel())
-                    smsManager.sendSms(
-                        text = "",
-                        address = address,
-                        threadId = threadId,
-                        subscriptionId = subscriptionId,
-                        data = publicKey,
-                        context = context,
-                    ) { conversation ->
-                        conversation?.let { callback(it) }
-                    }
-                } catch(e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context,
-                            context.getString(R.string.something_went_wrong_with_sending),
-                            Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
+        val pntState = RustyRatchetBridge.newState()
+        print(pntState)
+//        viewModelScope.launch {
+//            withContext(Dispatchers.Default) {
+//                val publicKey = EncryptionController.sendRequest(context, address, mode)
+//
+//                try {
+//                    val smsManager = SmsManager(ConversationsViewModel())
+//                    smsManager.sendSms(
+//                        text = "",
+//                        address = address,
+//                        threadId = threadId,
+//                        subscriptionId = subscriptionId,
+//                        data = publicKey,
+//                        context = context,
+//                    ) { conversation ->
+//                        conversation?.let { callback(it) }
+//                    }
+//                } catch(e: Exception) {
+//                    e.printStackTrace()
+//                    withContext(Dispatchers.Main) {
+//                        Toast.makeText(context,
+//                            context.getString(R.string.something_went_wrong_with_sending),
+//                            Toast.LENGTH_LONG).show()
+//                    }
+//                }
+//            }
+//        }
     }
 }
