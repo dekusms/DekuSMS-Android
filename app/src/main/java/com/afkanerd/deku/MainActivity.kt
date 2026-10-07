@@ -16,10 +16,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
@@ -92,8 +94,8 @@ class MainActivity : AppCompatActivity(){
                                 Surface(Modifier
                                     .fillMaxSize()
                                 ) {
+                                    val isDefault by threadsViewModel.isDefault.collectAsStateWithLifecycle()
                                     NavHostControllerInstance(
-                                        newLayoutInfo = newLayoutInfo,
                                         navController = navController,
                                         threadsViewModel = threadsViewModel,
                                         searchViewModel = searchViewModel,
@@ -161,6 +163,8 @@ class MainActivity : AppCompatActivity(){
                                             KeyExchangeType(it)
                                         },
                                         conversationsViewModel = conversationViewModel,
+                                        isDefault = isDefault,
+                                        appName = stringResource(R.string.app_name)
                                     ) {
                                         composable<RemoteListenersQueuesScreen> {
                                             RMQQueuesComposable(
