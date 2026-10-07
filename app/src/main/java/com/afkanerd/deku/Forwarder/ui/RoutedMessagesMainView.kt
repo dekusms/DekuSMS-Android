@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.ui
+package com.afkanerd.deku.Forwarder.ui
 
 import android.provider.Telephony
 import androidx.compose.foundation.combinedClickable
@@ -10,6 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.MenuOpen
+import androidx.compose.material.icons.automirrored.filled.More
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +40,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.GatewayClientsListScreen
-import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.deku.GatewayClientsSettingsScreen
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
@@ -74,6 +81,14 @@ fun RoutedMessagesMainView(
                         navController.navigate(GatewayClientsListScreen)
                     }) {
                         Icon(Icons.AutoMirrored.Default.List,
+                            stringResource(R.string.list_gateway_clients)
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        navController.navigate(GatewayClientsSettingsScreen)
+                    }) {
+                        Icon(Icons.Outlined.Settings,
                             stringResource(R.string.list_gateway_clients)
                         )
                     }

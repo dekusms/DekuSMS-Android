@@ -1,15 +1,7 @@
-package com.afkanerd.deku.Router.Models
+package com.afkanerd.deku.Forwarder.Models
 
-import android.database.Cursor
-import android.util.Pair
-import androidx.recyclerview.widget.DiffUtil
-import androidx.room.Embedded
-import androidx.work.DelegatingWorkerFactory
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.google.gson.annotations.Expose
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 @Serializable
 data class RouterItem(

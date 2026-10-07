@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.data
+package com.afkanerd.deku.Forwarder.data
 
 import android.content.Context
 import android.util.Log
@@ -6,10 +6,10 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.Network
-import com.afkanerd.deku.Router.data.models.FTP
-import com.afkanerd.deku.Router.Models.RouterHandler
-import com.afkanerd.deku.Router.Models.RouterItem
-import com.afkanerd.deku.Router.data.models.SMTP
+import com.afkanerd.deku.Forwarder.data.models.FTP
+import com.afkanerd.deku.Forwarder.Models.RouterHandler
+import com.afkanerd.deku.Forwarder.Models.RouterItem
+import com.afkanerd.deku.Forwarder.data.models.SMTP
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.sun.mail.util.MailConnectException
 
@@ -20,11 +20,14 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
         val conversationId = inputData.getString(CONVERSATION_ID)!!
 
         val datastore = Datastore.getDatastore(applicationContext)
-        val gatewayServer = datastore.gatewayServerDAO()[gatewayServerId.toString()]
-        val conversation = applicationContext.getDatabase()
-            .conversationsDao()?.getConversation(conversationId.toLong())
+        val gatewayServer = datastore.gatewayServerDAO()
+            .get(gatewayServerId.toString()) ?: throw Exception("Gateway server not found!: $gatewayServerId")
 
-        val routerItem = RouterItem( conversation!!.sms!!)
+        val conversation = applicationContext.getDatabase()
+            .conversationsDao()
+            ?.getConversation(conversationId.toLong()) ?: throw Exception("Conversation not found: $conversationId")
+
+        val routerItem = RouterItem( conversation.sms!!)
         routerItem.tag = gatewayServer.tag
 
         val jsonStringBody = routerItem.serializeJson()
@@ -50,7 +53,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
             }
             else -> {
                 try {
-                    when(Network.Companion.jsonRequestPost(gatewayServer.URL!!,
+                    when(Network.jsonRequestPost(gatewayServer.URL!!,
                         jsonStringBody)
                         .response.statusCode
                     ) {

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -39,15 +38,14 @@ import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
 import com.afkanerd.deku.RemoteListeners.ui.RMQAddComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQMainComposable
 import com.afkanerd.deku.RemoteListeners.ui.RMQQueuesComposable
-import com.afkanerd.deku.Router.ui.GatewayClientsMainView
-import com.afkanerd.deku.Router.ui.RoutedMessagesMainView
-import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.deku.Forwarder.ui.GatewayClientsMainView
+import com.afkanerd.deku.Forwarder.ui.GatewayClientsSettingsView
+import com.afkanerd.deku.Forwarder.ui.RoutedMessagesMainView
+import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.setNativesLoaded
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
 import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
@@ -80,6 +78,8 @@ class MainActivity : AppCompatActivity(){
             // Fix for three-button nav not properly going edge-to-edge.
             window.isNavigationBarContrastEnforced = false
         }
+
+        threadsViewModel.setIsDefault(isDefault())
 
         remoteListenersViewModel = RemoteListenersViewModel(applicationContext)
 
@@ -195,6 +195,12 @@ class MainActivity : AppCompatActivity(){
                                             RoutedMessagesMainView(
                                                 navController,
                                                 gatewayServerViewModel,
+                                            )
+                                        }
+                                        composable<GatewayClientsSettingsScreen> {
+                                            GatewayClientsSettingsView(
+                                                navController,
+                                                gatewayServerViewModel
                                             )
                                         }
                                         composable<AboutScreen> {
