@@ -89,25 +89,25 @@ fun GatewayClientsSettingsView(
                 ),
             )
 
-            ListItem(
-                headlineContent = { Text(stringResource(com.afkanerd.deku.DefaultSMS.R.string.clear_routed_cache)) },
-                supportingContent = {
-                    Text(stringResource(com.afkanerd.deku.DefaultSMS.R.string.this_would_automatically_remove_the_routed_history_after_24_hours))
-                },
-                trailingContent = {
-                    Switch(
-                        checked = clearRoutedCache,
-                        onCheckedChange = {
-                            gatewayServerViewModel.setClearRouteCache(context, it)
-                        }
-                    )
-                },
-                modifier = Modifier.clickable(
-                    onClick = {
-                        gatewayServerViewModel.setClearRouteCache(context, !clearRoutedCache)
-                    }
-                ),
-            )
+//            ListItem(
+//                headlineContent = { Text(stringResource(com.afkanerd.deku.DefaultSMS.R.string.clear_routed_cache)) },
+//                supportingContent = {
+//                    Text(stringResource(com.afkanerd.deku.DefaultSMS.R.string.this_would_automatically_remove_the_routed_history_after_24_hours))
+//                },
+//                trailingContent = {
+//                    Switch(
+//                        checked = clearRoutedCache,
+//                        onCheckedChange = {
+//                            gatewayServerViewModel.setClearRouteCache(context, it)
+//                        }
+//                    )
+//                },
+//                modifier = Modifier.clickable(
+//                    onClick = {
+//                        gatewayServerViewModel.setClearRouteCache(context, !clearRoutedCache)
+//                    }
+//                ),
+//            )
 
             ListItem(
                 headlineContent = { Text(stringResource(R.string.hash_incoming_address)) },

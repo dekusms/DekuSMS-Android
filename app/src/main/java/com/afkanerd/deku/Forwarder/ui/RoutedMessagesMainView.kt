@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.automirrored.filled.More
+import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MoreVert
@@ -75,8 +76,21 @@ fun RoutedMessagesMainView(
                         )
                     }
                 },
-                title = {Text(stringResource(R.string.routed_messages))},
+                title = {
+                    Text(
+                        stringResource(R.string.routed_messages),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                },
                 actions = {
+                    IconButton(onClick = {
+                        viewModel.clearAllRouted(context)
+                    }) {
+                        Icon(Icons.Filled.ClearAll,
+                            stringResource(R.string.list_gateway_clients)
+                        )
+                    }
+
                     IconButton(onClick = {
                         navController.navigate(GatewayClientsListScreen)
                     }) {
@@ -105,7 +119,7 @@ fun RoutedMessagesMainView(
                     RouterItemCard(
                         routedItemsConversations.conversation,
                         isDefault = isDefault,
-                        status = routedItemsConversations.workInfo.state.name.lowercase()
+                        status = routedItemsConversations.workInfo.state.name.lowercase(),
                     )
                 }
             }

@@ -31,7 +31,7 @@ class GatewayClientsSettingsManager(private val context: Context) {
     fun getRouteOnLowBattery(): Flow<Boolean>  =
         context.dataStore.data.map { preferences ->
             val key = booleanPreferencesKey(prefRouteOnLowBattery)
-            preferences[key] ?: false
+            preferences[key] ?: true
         }
 
     suspend fun setClearRouteCache(clear: Boolean) {

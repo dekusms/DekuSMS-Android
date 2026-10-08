@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -72,12 +73,16 @@ class GatewayServerViewModel : ViewModel() {
         }
     }
 
-    fun route(
+    suspend fun route(
         context: Context,
         conversation: Conversations
     ) {
+        val gatewayClientsSettingsManager = GatewayClientsSettingsManager(context)
+        val routeOnLowBattery = gatewayClientsSettingsManager.getRouteOnLowBattery().first()
+
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(!routeOnLowBattery)
             .build()
 
         val isBase64 = conversation.sms!!.body!!.isBase64Encoded()
@@ -128,7 +133,6 @@ class GatewayServerViewModel : ViewModel() {
                 e.printStackTrace()
             }
         }
-
     }
 
     fun update(
@@ -183,5 +187,9 @@ class GatewayServerViewModel : ViewModel() {
             val gatewayClientsSettingsManager = GatewayClientsSettingsManager(context)
             gatewayClientsSettingsManager.setHashIncomingAddress(clear)
         }
+    }
+
+    fun clearAllRouted(context: Context) {
+        WorkManager.getInstance(context).pruneWork()
     }
 }
