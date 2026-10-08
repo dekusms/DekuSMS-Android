@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Modules
+package com.afkanerd.deku.Forwarder.data
 
 import android.util.Log
 import com.github.kittinunf.fuel.Fuel
@@ -7,10 +7,11 @@ import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import java.lang.Exception
 
 class Network {
     data class NetworkResponseResults(val response: Response,
-                                      val result: Result<String, java.lang.Exception>)
+                                      val result: Result<String, Exception>)
     companion object {
         fun requestGet(url: String, headers: Headers? = null) : NetworkResponseResults{
             val (_, response, result) = if(headers.isNullOrEmpty())

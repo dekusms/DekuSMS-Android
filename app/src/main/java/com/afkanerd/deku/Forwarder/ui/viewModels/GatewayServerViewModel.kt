@@ -1,8 +1,6 @@
 package com.afkanerd.deku.Forwarder.ui.viewModels
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.BackoffPolicy
@@ -16,9 +14,9 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.RemoteListeners.extensions.isBase64Encoded
-import com.afkanerd.deku.Forwarder.Models.RouterHandler
-import com.afkanerd.deku.Forwarder.Models.RouterHandler.getTagForGatewayServers
-import com.afkanerd.deku.Forwarder.Models.RouterHandler.getTagForMessages
+import com.afkanerd.deku.Forwarder.data.RouterHandler
+import com.afkanerd.deku.Forwarder.data.RouterHandler.getTagForGatewayServers
+import com.afkanerd.deku.Forwarder.data.RouterHandler.getTagForMessages
 import com.afkanerd.deku.Forwarder.data.GatewayClientsSettingsManager
 import com.afkanerd.deku.Forwarder.data.RouterWorkManager
 import com.afkanerd.deku.Forwarder.data.RouterWorkManager.Companion.CONVERSATION_ID
@@ -31,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -176,6 +175,13 @@ class GatewayServerViewModel : ViewModel() {
         viewModelScope.launch {
             val gatewayClientsSettingsManager = GatewayClientsSettingsManager(context)
             gatewayClientsSettingsManager.setClearRouteCache(clear)
+        }
+    }
+
+    fun setHashIncomingAddress(context: Context, clear: Boolean) {
+        viewModelScope.launch {
+            val gatewayClientsSettingsManager = GatewayClientsSettingsManager(context)
+            gatewayClientsSettingsManager.setHashIncomingAddress(clear)
         }
     }
 }

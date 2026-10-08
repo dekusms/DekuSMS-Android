@@ -17,6 +17,7 @@ class GatewayClientsSettingsManager(private val context: Context) {
 
     private val prefRouteOnLowBattery = "prefRouteOnLowBattery"
     private val prefClearRouteCache = "prefClearRouteCache"
+    private val prefHashIncomingAddress = "prefHashIncomingAddress"
 
     suspend fun setRouteOnLowBattery(routeOnLowBattery: Boolean) {
         context.dataStore.updateData {
@@ -48,4 +49,19 @@ class GatewayClientsSettingsManager(private val context: Context) {
             preferences[key] ?: false
         }
 
+
+    suspend fun setHashIncomingAddress(clear: Boolean) {
+        context.dataStore.updateData {
+            val key = booleanPreferencesKey(prefHashIncomingAddress)
+            it.toMutablePreferences().also { preferences ->
+                preferences[key] = clear
+            }
+        }
+    }
+
+    fun getHashIncomingAddress(): Flow<Boolean>  =
+        context.dataStore.data.map { preferences ->
+            val key = booleanPreferencesKey(prefHashIncomingAddress)
+            preferences[key] ?: false
+        }
 }

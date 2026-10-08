@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Forwarder.data.GatewayClientsSettingsManager
 import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.example.compose.AppTheme
@@ -43,6 +44,9 @@ fun GatewayClientsSettingsView(
         .collectAsStateWithLifecycle(false)
 
     val clearRoutedCache by gatewayClientsSettingsManager.getClearRouteCache()
+        .collectAsStateWithLifecycle(false)
+
+    val hashIncomingAddress by gatewayClientsSettingsManager.getHashIncomingAddress()
         .collectAsStateWithLifecycle(false)
 
     BackHandler {
@@ -101,6 +105,26 @@ fun GatewayClientsSettingsView(
                 modifier = Modifier.clickable(
                     onClick = {
                         gatewayServerViewModel.setClearRouteCache(context, !clearRoutedCache)
+                    }
+                ),
+            )
+
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.hash_incoming_address)) },
+                supportingContent = {
+                    Text(stringResource(R.string.the_incoming_address_would_be_hashed_using_sha256_before_forwarding))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = hashIncomingAddress,
+                        onCheckedChange = {
+                            gatewayServerViewModel.setHashIncomingAddress(context, it)
+                        }
+                    )
+                },
+                modifier = Modifier.clickable(
+                    onClick = {
+                        gatewayServerViewModel.setHashIncomingAddress(context, !hashIncomingAddress)
                     }
                 ),
             )

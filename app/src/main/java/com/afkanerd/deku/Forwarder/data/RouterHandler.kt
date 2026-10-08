@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Forwarder.Models
+package com.afkanerd.deku.Forwarder.data
 
 import android.util.Log
 import android.util.Pair
