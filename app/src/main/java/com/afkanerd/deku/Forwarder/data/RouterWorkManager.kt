@@ -50,7 +50,7 @@ class RouterWorkManager(context: Context, workerParams: WorkerParameters)
                     } catch (e: Exception) {
                         e.printStackTrace()
                         if (e is MailConnectException) { Result.retry() }
-                        Result.failure()
+                        return@withContext Result.failure()
                     }
                 }
                 FTP.PROTOCOL -> {
@@ -58,21 +58,26 @@ class RouterWorkManager(context: Context, workerParams: WorkerParameters)
                         RouterHandler.routeFTPMessages(jsonStringBody, gatewayServer)
                     } catch (e: Exception) {
                         Log.e(javaClass.getName(), "Exception: ", e)
-                        Result.failure()
+                        return@withContext Result.failure()
                     }
                 }
                 else -> {
                     try {
-                        when(Network.jsonRequestPost(gatewayServer.URL!!,
-                            jsonStringBody)
-                            .response.statusCode
-                        ) {
-                            in 500..600 -> Result.retry()
-                            else -> Result.failure()
+                        gatewayServer.URL ?: throw Exception("Gateway server URL not found")
+                        val url = if(Network.isUrlAnIpAddress(gatewayServer.URL!!))
+                            "http://${gatewayServer.URL}"
+                        else gatewayServer.URL!!
+                        Log.d(javaClass.name, "Forwarding to: $url")
+
+                        val response = Network.jsonRequestPost(url, jsonStringBody)
+                        Log.d(javaClass.name, "Forwarding response code: ${response.response.statusCode}")
+                        when(response.response.statusCode) {
+                            in 500..600 -> return@withContext Result.retry()
+                            else -> return@withContext Result.failure()
                         }
                     } catch(e: Exception) {
                         Log.e(javaClass.name, "Exception routing", e)
-                        Result.retry()
+                        return@withContext Result.retry()
                     }
                 }
             }
