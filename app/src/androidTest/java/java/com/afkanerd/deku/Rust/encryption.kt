@@ -1,19 +1,31 @@
 package java.com.afkanerd.deku.Rust
 
-import android.content.Context
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.afkanerd.deku.DefaultSMS.data.Cryptography
+import com.afkanerd.deku.rust.ExceededMaxSkipMessages
+import com.afkanerd.deku.rust.FailedToDecryptPayload
+import com.afkanerd.deku.rust.FailedToDeserializeState
+import com.afkanerd.deku.rust.FailedToEncryptPayload
+import com.afkanerd.deku.rust.FailedToSerializeHeader
+import com.afkanerd.deku.rust.FailedToSerializeState
+import com.afkanerd.deku.rust.FailedToStoreFinalDecryptionValues
+import com.afkanerd.deku.rust.FailedToStoreFinalEncryptionValues
+import com.afkanerd.deku.rust.RatchetInitFailedForAlice
+import com.afkanerd.deku.rust.RatchetInitFailedForBob
+import com.afkanerd.deku.rust.RatchetResult
 import com.afkanerd.deku.rust.RustyRatchetBridge
-import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.generateSecureRandom
+import com.afkanerd.deku.rust.ratchetCall
+import com.android.mms.service_alt.DownloadRequest.persist
+import junit.framework.TestCase.assertEquals
+import okhttp3.internal.http2.Header
+import org.junit.Assert.assertArrayEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.spongycastle.asn1.x500.style.RFC4519Style.l
-import kotlin.io.encoding.Base64
 
 
-@RunWith(AndroidJUnit4::class)
 class EncryptionTest {
+
+
+    fun decryptMessage(state: ByteArray, ct: ByteArray, header: ByteArray, ad: ByteArray) =
+        ratchetCall { RustyRatchetBridge.decrypt(state, ct, header, ad) }
 
     @Test
     fun simpleRatchet() {
@@ -33,27 +45,93 @@ class EncryptionTest {
             sk = sk,
             bob_dh_public_key = bobPublic
         )
-//
-//        bobState = RustyRatchetBridge.initBob(
-//            state = bobState,
-//            sk = sk,
-//            bob_keypair = bobKeypair
-//        )
-//
-//        val ad = "Hello Bob".toByteArray()
-//        val (newAliceState, ciphertext, header) = RustyRatchetBridge.encrypt(
-//            state = aliceState,
-//            plaintextText = "Hello Bob".toByteArray(),
-//            ad = ad
-//        )
-//        aliceState = newAliceState
-//
-//        val (newBobState, payload) = RustyRatchetBridge.decrypt(
-//            state = bobState,
-//            header = header,
-//            ciphertext = ciphertext,
-//            ad = ad
-//        )
-//        bobState = newBobState
+
+        bobState = RustyRatchetBridge.initBob(
+            state = bobState,
+            sk = sk,
+            bob_keypair = bobPrivate
+        )
+
+        val ad = Cryptography.generateSecureRandom(32)
+        var input = Cryptography.generateSecureRandom(32)
+        var (newAliceState, ciphertext, header) = RustyRatchetBridge.encrypt(
+            state = aliceState,
+            plaintextText = input,
+            ad = ad
+        )
+        aliceState = newAliceState
+
+        val (newBobState, payload) = RustyRatchetBridge.decrypt(
+            state = bobState,
+            header = header,
+            ciphertext = ciphertext,
+            ad = ad
+        )
+        bobState = newBobState
+
+        assertArrayEquals(input, payload)
+
+        input = Cryptography.generateSecureRandom(32)
+
+        val (newBobState1, newCiphertext, newHeader) = RustyRatchetBridge.encrypt(
+            state = bobState,
+            plaintextText = input,
+            ad = ad
+        )
+        bobState = newBobState1
+
+        val (newAliceState1, newPayload) = RustyRatchetBridge.decrypt(
+            state = aliceState,
+            header = newHeader,
+            ciphertext = newCiphertext,
+            ad = ad
+        )
+        aliceState = newAliceState1
+        assertArrayEquals(input, newPayload)
+
+        val (newBobState2, newCiphertext1, newHeader1) = RustyRatchetBridge.encrypt(
+            state = bobState,
+            plaintextText = input,
+            ad = ad
+        )
+        bobState = newBobState2
+        val (state, newPayload2) = RustyRatchetBridge.decrypt(
+            state = aliceState,
+            header = newHeader1,
+            ciphertext = newCiphertext1,
+            ad = ad
+        )
+        aliceState = state
+        assertArrayEquals(input, newPayload2)
+        for(i in 0..100) {
+            val (state, newCiphertext, newHeader) = RustyRatchetBridge.encrypt(
+                state = bobState,
+                plaintextText = input,
+                ad = ad
+            )
+            ciphertext = newCiphertext
+            header = newHeader
+            bobState = state
+        }
+
+        when (val r = decryptMessage(aliceState, ciphertext, header, ad)) {
+            is RatchetResult.Ok -> {
+                val (newState, plaintext) = r.value   // adjust to your array order
+                assertArrayEquals(input, plaintext)
+            }
+            is RatchetResult.Failure -> when (r.error) {
+//                is FailedToDecryptPayload -> dropMessage()          // tampered, duplicate, or wrong session
+//                is ExceededMaxSkipMessages -> requestRehandshake()   // too far out of sync, not retryable
+//                is FailedToDeserializeState,
+//                is FailedToSerializeState -> markSessionCorrupt()   // stored state is bad
+//                is FailedToSerializeHeader,
+//                is FailedToEncryptPayload -> reportInternalError(r.error)
+//                is FailedToStoreFinalEncryptionValues,
+//                is FailedToStoreFinalDecryptionValues -> reportInternalError(r.error)
+//                is RatchetInitFailedForAlice,
+//                is RatchetInitFailedForBob -> abortHandshake()
+                else -> { throw (r.error) }
+            }
+        }
     }
 }
