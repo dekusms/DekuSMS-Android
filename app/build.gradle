@@ -108,10 +108,12 @@ android {
 //            testProguardFiles 'proguard-rules.pro'
         }
         release {
-//            minifyEnabled false
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
