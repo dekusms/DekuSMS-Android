@@ -337,6 +337,7 @@ dependencies {
     // See Add the KSP plugin to your project
     def room_version = "2.8.4"
     ksp "androidx.room:room-compiler:$room_version"
+    implementation("org.bouncycastle:bcprov-jdk18on:1.87")
 }
 
 configurations.all {
