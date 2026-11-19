@@ -131,7 +131,7 @@ class EncryptionUtils {
                             val ciphertext = encryptionUtils.encrypt(
                                 key = encryptionSecret,
                                 plaintext = plaintext,
-                                associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
+                                associatedData = ADDITIONAL_DATA_PAYLOAD.toByteArray()
                             )
 
                             val response = sessionId +
