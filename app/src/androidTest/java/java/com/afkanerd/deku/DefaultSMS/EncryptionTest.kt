@@ -13,10 +13,10 @@ import org.junit.runner.RunWith
 class EncryptionTest {
 
     @Test
-    fun canHandshake() {
+    fun isSameSecret() {
         val encryptionUtils = EncryptionUtils()
 
-        val aliceKeypair = EncryptionUtils.Handshake().generateX25519Keys()
+        val aliceKeypair = encryptionUtils.generateX25519Keys()
         val bobKeypair = encryptionUtils.generateX25519Keys()
 
         val alicePublicKey = aliceKeypair.keyPair.public.toRaw32Bytes()
@@ -37,5 +37,20 @@ class EncryptionTest {
         )
 
         assertArrayEquals(bobSharedSecret.encoded, aliceSharedSecret.encoded)
+    }
+
+    @Test
+    fun canHandshake() {
+        val (request, keypair) = EncryptionUtils.Handshake.makeRequest()
+
+        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_REQ_SIZE, request.second.size)
+        assert(EncryptionUtils.Handshake.isIncomingRequest(request.second))
+
+        val response = EncryptionUtils.Handshake.makeAcknowledgementRequest(
+            request.first,
+            keypair.keyPair.public.toRaw32Bytes()
+        )
+
+        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_ACK_SIZE, response.response.size)
     }
 }
