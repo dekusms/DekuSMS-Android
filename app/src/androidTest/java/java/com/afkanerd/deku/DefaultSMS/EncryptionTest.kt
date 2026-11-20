@@ -46,11 +46,23 @@ class EncryptionTest {
         assertEquals(EncryptionUtils.Handshake.HANDSHAKE_REQ_SIZE, request.second.size)
         assert(EncryptionUtils.Handshake.isIncomingRequest(request.second))
 
+        val (sessionId, peerPublicKey) = EncryptionUtils.Handshake.acceptRequest(request.second)
+        assertArrayEquals(request.first, sessionId)
+        assertArrayEquals(peerPublicKey, keypair.keyPair.public.toRaw32Bytes())
+
         val response = EncryptionUtils.Handshake.makeAcknowledgementRequest(
             request.first,
             keypair.keyPair.public.toRaw32Bytes()
         )
 
         assertEquals(EncryptionUtils.Handshake.HANDSHAKE_ACK_SIZE, response.response.size)
+        assert(EncryptionUtils.Handshake.isAckResponse(response.response))
+
+        val acceptedRequest = EncryptionUtils.Handshake.acceptAckRequest(
+            response.response,
+            keypair.keyPair.private
+        )
+        assertArrayEquals(request.first, acceptedRequest.sessionId)
+        assertArrayEquals(response.publicKey.toRaw32Bytes(), acceptedRequest.peerPublicKey)
     }
 }

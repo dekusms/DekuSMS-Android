@@ -86,6 +86,9 @@ class EncryptionUtils {
 
                 val keyPair = EncryptionUtils().generateX25519Keys()
                 val request = sessionId + keyPair.keyPair.public.toRaw32Bytes() + timestamp
+
+                // TODO: should save once this method is called
+
                 return Pair(Pair(sessionId, request), keyPair)
             }
 
@@ -95,13 +98,32 @@ class EncryptionUtils {
                 }
             }
 
+            fun acceptRequest(
+                data: ByteArray
+            ) : Pair<ByteArray, ByteArray>{
+                val sessionId = data.take(16).toByteArray()
+//                val timestamp = data.takeLast(8).toByteArray()
+//                if (!timestamp.isValidTimestampWithinHours(MAX_VALID_HOURS)) {
+//                    throw IllegalArgumentException("Invalid timestamp")
+//                }
+                val peerPublicKey = data.copyOfRange(16, 16 + 32)
+
+                // TODO: should save once this method is called
+
+                return Pair(sessionId, peerPublicKey)
+            }
+
+            fun isAckResponse(data: ByteArray): Boolean {
+                return data.size == HANDSHAKE_ACK_SIZE
+            }
+
             data class AcknowledgementResponse(
                 val sharedSecret: SecretKey,
+                val publicKey: PublicKey,
                 val ephemeralKeyPair: KeyPair,
                 val response: ByteArray,
             )
 
-            @OptIn(ExperimentalUuidApi::class)
             fun makeAcknowledgementRequest(
                 sessionId: ByteArray,
                 peerPublicKey: ByteArray,
@@ -117,15 +139,15 @@ class EncryptionUtils {
                     val plaintext: ByteArray = Random.nextBytes(4)
                     try {
                         encryptionUtils.generateX25519Keys().use { ephemeralKeypair ->
+                            val encryptedEphemeralKey = encryptionUtils.encrypt(
+                                key = sharedSecret,
+                                plaintext = ephemeralKeypair.keyPair.public.toRaw32Bytes(),
+                                associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
+                            )
+
                             val encryptionSecret = encryptionUtils.computeX25519SharedSecret(
                                 ephemeralKeypair.keyPair.private,
                                 ppk,
-                            )
-
-                            val encryptedEphemeralKey = encryptionUtils.encrypt(
-                                key = encryptionSecret,
-                                plaintext = ephemeralKeypair.keyPair.public.toRaw32Bytes(),
-                                associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
                             )
 
                             val ciphertext = encryptionUtils.encrypt(
@@ -141,6 +163,7 @@ class EncryptionUtils {
 
                             return AcknowledgementResponse(
                                 sharedSecret = sharedSecret,
+                                publicKey = keypair.keyPair.public,
                                 ephemeralKeyPair = ephemeralKeypair.keyPair,
                                 response = response
                             )
@@ -150,8 +173,60 @@ class EncryptionUtils {
                     }
                 }
             }
-        }
 
+            data class AcknowledgementRequest(
+                val sessionId: ByteArray,
+                val peerPublicKey: ByteArray,
+                val ephemeralPublicKey: ByteArray,
+                val payload: ByteArray,
+            )
+
+            fun acceptAckRequest(
+                response: ByteArray,
+                privateKey: PrivateKey,
+            ) : AcknowledgementRequest{
+                val sessionId = response.take(16).toByteArray()
+
+                val pc = 16 + 32
+                val peerPublicKey = response.copyOfRange(16, pc)
+
+                val pc1 = pc + 60
+                val encryptedPeerPublicKey = response.copyOfRange(pc, pc1)
+
+                val encryptionUtils = EncryptionUtils()
+
+                val sharedSecret = encryptionUtils.computeX25519SharedSecret(
+                    privateKey,
+                    encryptionUtils.raw32BytesToX25519PublicKey(peerPublicKey)
+                )
+
+                val peerEphemeralPublicKey = EncryptionUtils().decrypt(
+                    key = sharedSecret,
+                    payload = encryptedPeerPublicKey,
+                    associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
+                )
+
+                val pc2 = pc1 + 32
+                val ciphertext = response.copyOfRange(pc1, pc2)
+
+                val payloadSharedSecret = encryptionUtils.computeX25519SharedSecret(
+                    privateKey,
+                    encryptionUtils.raw32BytesToX25519PublicKey(peerEphemeralPublicKey)
+                )
+                val payload = EncryptionUtils().decrypt(
+                    key = payloadSharedSecret,
+                    payload = ciphertext,
+                    associatedData = ADDITIONAL_DATA_PAYLOAD.toByteArray()
+                )
+
+                return AcknowledgementRequest(
+                    sessionId = sessionId,
+                    peerPublicKey = peerPublicKey,
+                    ephemeralPublicKey = peerEphemeralPublicKey,
+                    payload = payload
+                )
+            }
+        }
     }
 
     class CloseableKeyPair(val keyPair: KeyPair) : AutoCloseable {
