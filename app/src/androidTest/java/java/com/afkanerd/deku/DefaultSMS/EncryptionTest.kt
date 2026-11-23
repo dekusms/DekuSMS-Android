@@ -7,6 +7,7 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.random.Random
 
 
 @RunWith(AndroidJUnit4::class)
@@ -25,15 +26,23 @@ class EncryptionTest {
         assertEquals(32, alicePublicKey.size)
         assertEquals(32, bobPublicKey.size)
 
+        val saltData: ByteArray = Random.nextBytes(16)
+
         // Bob's device
         val bobSharedSecret = encryptionUtils.computeX25519SharedSecret(
-            bobKeypair.keyPair.private,
-            encryptionUtils.raw32BytesToX25519PublicKey(alicePublicKey)
+            keyPair = encryptionUtils.getX25519KeyPairFromRawPrivate(bobKeypair.keyPair.private.toRaw32Bytes()),
+            requesterPublicKey = alicePublicKey,
+            recipientPublicKey = bobPublicKey,
+            peerPublicKey = alicePublicKey,
+            saltData = saltData
         )
 
         val aliceSharedSecret = encryptionUtils.computeX25519SharedSecret(
-            aliceKeypair.keyPair.private,
-            encryptionUtils.raw32BytesToX25519PublicKey(bobPublicKey)
+            keyPair = encryptionUtils.getX25519KeyPairFromRawPrivate(aliceKeypair.keyPair.private.toRaw32Bytes()),
+            requesterPublicKey = alicePublicKey,
+            recipientPublicKey = bobPublicKey,
+            peerPublicKey = bobPublicKey,
+            saltData = saltData
         )
 
         assertArrayEquals(bobSharedSecret.encoded, aliceSharedSecret.encoded)
@@ -41,28 +50,26 @@ class EncryptionTest {
 
     @Test
     fun canHandshake() {
-        val (request, keypair) = EncryptionUtils.Handshake.makeRequest()
+        val initiationRequest = EncryptionUtils.Handshake.makeRequest()
 
-        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_REQ_SIZE, request.second.size)
-        assert(EncryptionUtils.Handshake.isIncomingRequest(request.second))
+        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_REQ_SIZE, initiationRequest.request.size)
+        assert(EncryptionUtils.Handshake.isIncomingRequest(initiationRequest.request))
 
-        val (sessionId, peerPublicKey) = EncryptionUtils.Handshake.acceptRequest(request.second)
-        assertArrayEquals(request.first, sessionId)
-        assertArrayEquals(peerPublicKey, keypair.keyPair.public.toRaw32Bytes())
+        val acceptInitiationRequest = EncryptionUtils.Handshake.acceptRequest(initiationRequest.request)
+        assertArrayEquals(acceptInitiationRequest.sessionId, initiationRequest.sessionId)
+        assertArrayEquals(acceptInitiationRequest.peerPublicKey, initiationRequest.publicKey)
 
-        val response = EncryptionUtils.Handshake.makeAcknowledgementRequest(
-            request.first,
-            keypair.keyPair.public.toRaw32Bytes()
+        val ackResponse = EncryptionUtils.Handshake.makeAcknowledgementRequest(
+            acceptInitiationRequest.sessionId,
+            acceptInitiationRequest.peerPublicKey,
+            timestamp = initiationRequest.timestamp
         )
 
-        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_ACK_SIZE, response.response.size)
-        assert(EncryptionUtils.Handshake.isAckResponse(response.response))
+        assertEquals(EncryptionUtils.Handshake.HANDSHAKE_ACK_SIZE, ackResponse.response.size)
+        assert(EncryptionUtils.Handshake.isAckResponse(ackResponse.response))
 
-        val acceptedRequest = EncryptionUtils.Handshake.acceptAckRequest(
-            response.response,
-            keypair.keyPair.private
-        )
-        assertArrayEquals(request.first, acceptedRequest.sessionId)
-        assertArrayEquals(response.publicKey.toRaw32Bytes(), acceptedRequest.peerPublicKey)
+        val acceptedRequest = EncryptionUtils.Handshake.acceptAckRequest(ackResponse.response)
+        assertArrayEquals(initiationRequest.sessionId, acceptedRequest.sessionId)
+        assertArrayEquals(ackResponse.publicKey.toRaw32Bytes(), acceptedRequest.peerPublicKey)
     }
 }

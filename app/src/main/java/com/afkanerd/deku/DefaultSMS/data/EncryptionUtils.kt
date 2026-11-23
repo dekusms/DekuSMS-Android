@@ -1,11 +1,13 @@
 package com.afkanerd.deku.DefaultSMS.data
 
+import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.ADDITIONAL_DATA_EPHEMERAL_KEY
 import com.afkanerd.deku.DefaultSMS.extensions.isValidTimestampWithinHours
 import com.afkanerd.deku.DefaultSMS.extensions.toRaw32Bytes
 import org.bouncycastle.crypto.EphemeralKeyPair
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
+import org.bouncycastle.crypto.params.X25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory
 import org.bouncycastle.jcajce.interfaces.XDHPublicKey
@@ -16,11 +18,13 @@ import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Security
 import java.security.spec.ECGenParameterSpec
+import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.time.format.DateTimeParseException
 import javax.crypto.Cipher
@@ -70,13 +74,20 @@ class EncryptionUtils {
              * 60 Bytes x25519 chacha encrypted ephemeral public key
              * 32 Bytes chacha encrypted payload
              */
-            const val HANDSHAKE_ACK_SIZE = 140
+            const val HANDSHAKE_ACK_SIZE = 48
             const val MAX_VALID_HOURS = 3L
-            const val ADDITIONAL_DATA_PAYLOAD = "DekuSMS-X25519-CHACHAPOLY1305-HANDSHAKE-PAYLOAD"
             const val ADDITIONAL_DATA_EPHEMERAL_KEY = "DekuSMS-X25519-CHACHAPOLY1305-HANDSHAKE-EPHEMERAL_KEY"
 
+            data class InitiationRequest(
+                val sessionId: ByteArray,
+                val publicKey: ByteArray,
+                val request: ByteArray,
+                val timestamp: ByteArray,
+            )
+
+
             @OptIn(ExperimentalUuidApi::class)
-            fun makeRequest() : Pair<Pair<ByteArray, ByteArray>, CloseableKeyPair> {
+            fun makeRequest() : InitiationRequest {
                 val sessionId = Uuid.random().toByteArray()
 
                 val timestamp = ByteBuffer.allocate(Long.SIZE_BYTES)
@@ -85,11 +96,17 @@ class EncryptionUtils {
                     .array()
 
                 val keyPair = EncryptionUtils().generateX25519Keys()
-                val request = sessionId + keyPair.keyPair.public.toRaw32Bytes() + timestamp
+                val publicKey = keyPair.keyPair.public.toRaw32Bytes()
+                val request = sessionId + publicKey + timestamp
 
                 // TODO: should save once this method is called
 
-                return Pair(Pair(sessionId, request), keyPair)
+                return InitiationRequest(
+                    sessionId,
+                    publicKey,
+                    request,
+                    timestamp
+                )
             }
 
             fun isIncomingRequest(data: ByteArray) : Boolean{
@@ -98,19 +115,30 @@ class EncryptionUtils {
                 }
             }
 
+
+            data class AcceptInitiationRequest(
+                val sessionId: ByteArray,
+                val peerPublicKey: ByteArray,
+                val timestamp: ByteArray,
+            )
+
             fun acceptRequest(
                 data: ByteArray
-            ) : Pair<ByteArray, ByteArray>{
+            ) : AcceptInitiationRequest {
                 val sessionId = data.take(16).toByteArray()
-//                val timestamp = data.takeLast(8).toByteArray()
-//                if (!timestamp.isValidTimestampWithinHours(MAX_VALID_HOURS)) {
-//                    throw IllegalArgumentException("Invalid timestamp")
-//                }
+                val timestamp = data.takeLast(8).toByteArray()
+                if (!timestamp.isValidTimestampWithinHours(MAX_VALID_HOURS)) {
+                    throw IllegalArgumentException("Invalid timestamp")
+                }
                 val peerPublicKey = data.copyOfRange(16, 16 + 32)
 
                 // TODO: should save once this method is called
 
-                return Pair(sessionId, peerPublicKey)
+                return AcceptInitiationRequest(
+                    sessionId,
+                    peerPublicKey,
+                    timestamp
+                )
             }
 
             fun isAckResponse(data: ByteArray): Boolean {
@@ -120,110 +148,51 @@ class EncryptionUtils {
             data class AcknowledgementResponse(
                 val sharedSecret: SecretKey,
                 val publicKey: PublicKey,
-                val ephemeralKeyPair: KeyPair,
                 val response: ByteArray,
             )
 
             fun makeAcknowledgementRequest(
                 sessionId: ByteArray,
                 peerPublicKey: ByteArray,
+                timestamp: ByteArray,
             ) : AcknowledgementResponse {
                 val encryptionUtils = EncryptionUtils()
-                val ppk = encryptionUtils.raw32BytesToX25519PublicKey(peerPublicKey)
                 encryptionUtils.generateX25519Keys().use { keypair ->
                     val sharedSecret = encryptionUtils.computeX25519SharedSecret(
-                        keypair.keyPair.private,
-                        ppk,
+                        keyPair = keypair.keyPair,
+                        requesterPublicKey = peerPublicKey,
+                        recipientPublicKey = keypair.keyPair.public.toRaw32Bytes(),
+                        peerPublicKey = peerPublicKey,
+                        saltData = timestamp
                     )
 
-                    val plaintext: ByteArray = Random.nextBytes(4)
-                    try {
-                        encryptionUtils.generateX25519Keys().use { ephemeralKeypair ->
-                            val encryptedEphemeralKey = encryptionUtils.encrypt(
-                                key = sharedSecret,
-                                plaintext = ephemeralKeypair.keyPair.public.toRaw32Bytes(),
-                                associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
-                            )
+                    val response = sessionId +
+                            keypair.keyPair.public.toRaw32Bytes()
 
-                            val encryptionSecret = encryptionUtils.computeX25519SharedSecret(
-                                ephemeralKeypair.keyPair.private,
-                                ppk,
-                            )
-
-                            val ciphertext = encryptionUtils.encrypt(
-                                key = encryptionSecret,
-                                plaintext = plaintext,
-                                associatedData = ADDITIONAL_DATA_PAYLOAD.toByteArray()
-                            )
-
-                            val response = sessionId +
-                                    keypair.keyPair.public.toRaw32Bytes() +
-                                    encryptedEphemeralKey +
-                                    ciphertext
-
-                            return AcknowledgementResponse(
-                                sharedSecret = sharedSecret,
-                                publicKey = keypair.keyPair.public,
-                                ephemeralKeyPair = ephemeralKeypair.keyPair,
-                                response = response
-                            )
-                        }
-                    } catch (e: Exception) {
-                        throw e
-                    }
+                    return AcknowledgementResponse(
+                        sharedSecret = sharedSecret,
+                        publicKey = keypair.keyPair.public,
+                        response = response
+                    )
                 }
             }
 
             data class AcknowledgementRequest(
                 val sessionId: ByteArray,
                 val peerPublicKey: ByteArray,
-                val ephemeralPublicKey: ByteArray,
-                val payload: ByteArray,
             )
 
             fun acceptAckRequest(
                 response: ByteArray,
-                privateKey: PrivateKey,
             ) : AcknowledgementRequest{
                 val sessionId = response.take(16).toByteArray()
 
                 val pc = 16 + 32
                 val peerPublicKey = response.copyOfRange(16, pc)
 
-                val pc1 = pc + 60
-                val encryptedPeerPublicKey = response.copyOfRange(pc, pc1)
-
-                val encryptionUtils = EncryptionUtils()
-
-                val sharedSecret = encryptionUtils.computeX25519SharedSecret(
-                    privateKey,
-                    encryptionUtils.raw32BytesToX25519PublicKey(peerPublicKey)
-                )
-
-                val peerEphemeralPublicKey = EncryptionUtils().decrypt(
-                    key = sharedSecret,
-                    payload = encryptedPeerPublicKey,
-                    associatedData = ADDITIONAL_DATA_EPHEMERAL_KEY.toByteArray()
-                )
-
-                val pc2 = pc1 + 32
-                val ciphertext = response.copyOfRange(pc1, pc2)
-
-                val payloadSharedSecret = encryptionUtils.computeX25519SharedSecret(
-                    privateKey,
-                    encryptionUtils.raw32BytesToX25519PublicKey(peerEphemeralPublicKey)
-                )
-                val payload = EncryptionUtils().decrypt(
-                    key = payloadSharedSecret,
-                    payload = ciphertext,
-                    associatedData = ADDITIONAL_DATA_PAYLOAD.toByteArray()
-                )
-
                 return AcknowledgementRequest(
                     sessionId = sessionId,
                     peerPublicKey = peerPublicKey,
-                    ephemeralPublicKey = peerEphemeralPublicKey,
-                    payload = payload
                 )
             }
         }
@@ -247,13 +216,25 @@ class EncryptionUtils {
     }
 
     fun computeX25519SharedSecret(
-        privateKey: PrivateKey,
-        peerPublicKey: PublicKey
+        keyPair: KeyPair,
+        requesterPublicKey: ByteArray,
+        recipientPublicKey: ByteArray,
+        peerPublicKey: ByteArray,
+        saltData: ByteArray,
     ): SecretKey {
         val keyAgreement = KeyAgreement.getInstance("X25519", "BC")
-        keyAgreement.init(privateKey)
-        keyAgreement.doPhase(peerPublicKey, true)
-        return deriveAesKeyFromSharedSecret(keyAgreement.generateSecret())
+        keyAgreement.init(keyPair.private)
+        keyAgreement.doPhase(raw32BytesToX25519PublicKey(peerPublicKey), true)
+
+        val salt = MessageDigest
+            .getInstance("SHA-256")
+            .digest(requesterPublicKey + recipientPublicKey + saltData)
+
+        return deriveAesKeyFromSharedSecret(
+            sharedSecret = keyAgreement.generateSecret(),
+            salt = salt,
+            info = ADDITIONAL_DATA_EPHEMERAL_KEY.encodeToByteArray(),
+        )
     }
 
     private fun deriveAesKeyFromSharedSecret(
@@ -354,6 +335,31 @@ class EncryptionUtils {
     fun keyFromBytes(rawKey: ByteArray): SecretKey {
         require(rawKey.size == 32) { "Key must be exactly 32 bytes" }
         return SecretKeySpec(rawKey, KEY_ALGORITHM)
+    }
+
+    fun getX25519KeyPairFromRawPrivate(rawPrivateKeyBytes: ByteArray): KeyPair {
+        require(rawPrivateKeyBytes.size == 32) { "X25519 raw private key must be 32 bytes" }
+
+        // Ensure Bouncy Castle provider is registered
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(BouncyCastleProvider())
+        }
+
+        // 1. Load private key parameters and derive the public key
+        val privParams = X25519PrivateKeyParameters(rawPrivateKeyBytes, 0)
+        val pubParams = privParams.generatePublicKey()
+
+        // 2. Wrap into standard JCA PrivateKey and PublicKey objects
+        val keyFactory = KeyFactory.getInstance("X25519", BouncyCastleProvider.PROVIDER_NAME)
+
+        // Convert Bouncy Castle params to JCA keys via ASN.1/DER encoding
+        val privateKeyInfo = org.bouncycastle.crypto.util.PrivateKeyInfoFactory.createPrivateKeyInfo(privParams)
+        val publicKeyInfo = org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(pubParams)
+
+        val privateKey = keyFactory.generatePrivate(PKCS8EncodedKeySpec(privateKeyInfo.encoded))
+        val publicKey = keyFactory.generatePublic(X509EncodedKeySpec(publicKeyInfo.encoded))
+
+        return KeyPair(publicKey, privateKey)
     }
 
     companion object {
