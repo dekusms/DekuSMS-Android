@@ -1,6 +1,10 @@
 package com.afkanerd.deku
 
 import android.content.Context
+import androidx.annotation.NonNull
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.DeleteColumn
@@ -25,6 +29,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.data.Cryptography.getDatabasePas
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import kotlin.concurrent.Volatile
 
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "geneeral_storage")
 
 @Database(
     entities = [GatewayServer::class, RemoteListenersQueues::class, RemoteListeners::class],

@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 fun SecureRequestAcceptModal(
     address: String,
     subscriptionId: Long,
-    show: Boolean = true,
+    show: Boolean,
     displayMode: EncryptionController.SecureRequestMode,
     dismissCallback: (() -> Unit)? = {},
     simCardChanger: (SubscriptionInfo) -> Unit = {},

@@ -83,7 +83,7 @@ android {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
 
         main {
-            jniLibs.srcDirs = ['libs']
+            jniLibs.srcDirs = ['src/main/jniLibs']
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 exclude 'com/afkanerd/deku/DefaultSMS/Deprecated/*'
@@ -102,6 +102,7 @@ android {
 
     buildTypes {
         debug {
+//            minifyEnabled false
 //            minifyEnabled true
 //            shrinkResources true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -151,7 +152,9 @@ androidComponents {
 }
 
 dependencies {
-    implementation 'com.github.smswithoutborders:lib_smsmms_android:d315c816eb'
+    implementation project(':lib-smsmms-external-module')
+//    implementation 'com.github.smswithoutborders:lib_smsmms_android:c403a77de8'
+//    implementation 'com.github.smswithoutborders:lib_smsmms_android:d315c816eb'
     implementation 'com.github.smswithoutborders:lib_signal_double_ratchet_java:ad727a57b3'
     androidTestImplementation libs.androidx.room.testing
     implementation libs.androidx.activity
@@ -330,6 +333,7 @@ dependencies {
     // See Add the KSP plugin to your project
     def room_version = "2.8.4"
     ksp "androidx.room:room-compiler:$room_version"
+    implementation("org.bouncycastle:bcprov-jdk18on:1.87")
 }
 
 configurations.all {

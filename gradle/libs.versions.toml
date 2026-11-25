@@ -13,7 +13,7 @@ commonsCodec = "1.19.0"
 commonsNet = "3.12.0"
 composeBom = "2025.09.01"
 constraintlayout = "2.2.1"
-datastorePreferences = "1.1.7"
+datastorePreferences = "1.3.0"
 datastorePreferencesRxjava2 = "1.1.7"
 espressoCore = "3.7.0"
 fuelVersion = "2.3.1"
@@ -22,7 +22,7 @@ gson = "2.13.2"
 javaWebsocket = "1.6.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
-kotlin = "2.3.0"
+kotlin = "2.4.21"
 kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
 ktx = "1.17.0"
@@ -55,6 +55,7 @@ workRuntime = "2.10.5"
 activity = "1.11.0"
 android-smsmms = "c3e678befd"
 media3ExoplayerVersion = "1.8.0"
+coreKtxVersion = "1.19.1"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
@@ -135,6 +136,7 @@ rxbinding = { module = "com.jakewharton.rxbinding:rxbinding", version.ref = "rxb
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3ExoplayerVersion" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
 
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

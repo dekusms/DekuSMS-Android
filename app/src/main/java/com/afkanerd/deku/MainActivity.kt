@@ -56,6 +56,9 @@ import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
+import kotlin.jvm.java
 
 
 class MainActivity : AppCompatActivity(){
@@ -154,10 +157,8 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         },
                                         conversationsCustomViewModel = secureViewModel, //This can be an array
-                                        conversationsCustomComposable = { vm ->
-                                            SecureConversationComposable(
-                                                vm as SecureConversationViewModel
-                                            )
+                                        conversationsCustomComposable = {
+                                            SecureConversationComposable( viewModel = secureViewModel )
                                         },
                                         conversationsCustomDataView = {
                                             KeyExchangeType(it)
@@ -291,4 +292,5 @@ class MainActivity : AppCompatActivity(){
             }
         }
     }
+
 }

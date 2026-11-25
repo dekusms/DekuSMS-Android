@@ -31,3 +31,6 @@
 
 -dontwarn androidx.window.extensions.embedding.ActivityStack$Token
 -dontwarn androidx.window.extensions.embedding.SplitInfo$Token
+
+-keep class com.afkanerd.lib.** extends java.lang.Exception { *; }
+-keepclassmembers class com.afkanerd.deku.rust.RustyRatchetBridge { native <methods>; }
