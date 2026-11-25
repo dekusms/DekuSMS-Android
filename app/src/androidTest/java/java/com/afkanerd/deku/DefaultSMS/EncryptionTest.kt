@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils
 import com.afkanerd.deku.DefaultSMS.extensions.toRaw32Bytes
 import junit.framework.TestCase.assertEquals
+import org.apache.commons.codec.binary.Base64
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,5 +72,25 @@ class EncryptionTest {
         val acceptedRequest = EncryptionUtils.Handshake.acceptAckRequest(ackResponse.response)
         assertArrayEquals(initiationRequest.sessionId, acceptedRequest.sessionId)
         assertArrayEquals(ackResponse.publicKey.toRaw32Bytes(), acceptedRequest.peerPublicKey)
+    }
+
+    @Test
+    fun canOob() {
+        val alicePublicKey = android.util.Base64.decode("YW1b2pvL1mU++q1EVO6wy1MfGKraFkgp/rn+0qOJxSM=", android.util.Base64.DEFAULT)
+        val bobPublicKey = android.util.Base64.decode("HD2tS9uYdz591mnTbgqH+ipcPd5ChdshHFLClLwdllc=", android.util.Base64.DEFAULT)
+
+        val aliceAddress = "+1234567890".encodeToByteArray()
+        val bobAddress = "+1234567891".encodeToByteArray()
+
+        val expected = "eb90b082a418edc8f80ca23fdd9da57938b5129d74662d222697745aabecaba9".hexToByteArray()
+
+        val generatedOob = EncryptionUtils.Handshake.generateOobVerification(
+            requesterPublicKey = alicePublicKey,
+            recipientPublicKey = bobPublicKey,
+            requesterAddress = aliceAddress,
+            recipientAddress = bobAddress
+        )
+
+        assertArrayEquals(expected, generatedOob)
     }
 }

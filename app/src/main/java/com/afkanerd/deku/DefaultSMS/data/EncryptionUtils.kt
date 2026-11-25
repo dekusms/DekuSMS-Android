@@ -12,6 +12,7 @@ import org.bouncycastle.crypto.params.X25519PublicKeyParameters
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory
 import org.bouncycastle.jcajce.interfaces.XDHPublicKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.slf4j.helpers.Reporter.info
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
@@ -195,6 +196,23 @@ class EncryptionUtils {
                     peerPublicKey = peerPublicKey,
                 )
             }
+
+            fun generateOobVerification(
+                requesterPublicKey: ByteArray,
+                recipientPublicKey: ByteArray,
+                requesterAddress: ByteArray,
+                recipientAddress: ByteArray,
+            ) : ByteArray {
+                return MessageDigest
+                    .getInstance("SHA-256")
+                    .digest(
+                        OOB_INFO.toByteArray() +
+                                requesterPublicKey +
+                                recipientPublicKey +
+                                requesterAddress +
+                                recipientAddress
+                    )
+            }
         }
     }
 
@@ -366,7 +384,7 @@ class EncryptionUtils {
         private const val TRANSFORMATION = "ChaCha20-Poly1305"
         private const val KEY_ALGORITHM = "ChaCha20"
         private const val NONCE_SIZE_BYTES = 12
-        private const val KEY_SIZE_BITS = 256
+        private const val OOB_INFO = "DekuSMS-OOB-v1"
     }
 
 }
