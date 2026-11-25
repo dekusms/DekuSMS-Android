@@ -158,7 +158,8 @@ androidComponents {
 }
 
 dependencies {
-    implementation 'com.github.smswithoutborders:lib_smsmms_android:c403a77de8'
+    implementation project(':lib-smsmms-external-module')
+//    implementation 'com.github.smswithoutborders:lib_smsmms_android:c403a77de8'
     implementation 'com.github.smswithoutborders:lib_signal_double_ratchet_java:ad727a57b3'
     androidTestImplementation libs.androidx.room.testing
     implementation libs.androidx.activity

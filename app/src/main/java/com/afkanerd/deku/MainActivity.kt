@@ -155,10 +155,8 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         },
                                         conversationsCustomViewModel = secureViewModel, //This can be an array
-                                        conversationsCustomComposable = { vm ->
-                                            SecureConversationComposable(
-                                                vm as SecureConversationViewModel
-                                            )
+                                        conversationsCustomComposable = {
+                                            SecureConversationComposable( viewModel = secureViewModel )
                                         },
                                         conversationsCustomDataView = {
                                             KeyExchangeType(it)
