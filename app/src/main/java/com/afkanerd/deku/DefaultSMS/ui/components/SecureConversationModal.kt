@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionBitmap
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionName
@@ -59,7 +60,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SecureRequestAcceptModal(
-    address: String,
+    address: Addresses,
     subscriptionId: Long,
     show: Boolean,
     displayMode: EncryptionController.SecureRequestMode,
@@ -75,7 +76,8 @@ fun SecureRequestAcceptModal(
     )
 
     var contactName by remember{
-        mutableStateOf( context.retrieveContactName(address) ?: address )}
+        mutableStateOf( context.retrieveContactName(address.getAddress) ?: address)
+    }
 
     val url = stringResource(
         R.string.conversations_secure_conversation_request_information_deku_encryption_link)
@@ -247,8 +249,10 @@ fun SimCardLayout(
 @Preview(showBackground = true, name = "Secure Request Modal - Request Flow")
 @Composable
 fun SecureRequestModal_RequestFlow_Preview() {
+    val context = LocalContext.current
+    val address = Addresses.build(context, "234567890")
     SecureRequestAcceptModal(
-        "+237123456789",
+        address = address,
         -1,
         true,
         displayMode = EncryptionController.SecureRequestMode.REQUEST_NONE,
@@ -260,8 +264,10 @@ fun SecureRequestModal_RequestFlow_Preview() {
 @Preview(showBackground = true, name = "Secure Request Modal - Accept Flow")
 @Composable
 fun SecureRequestModal_AcceptFlow_Preview() {
+    val context = LocalContext.current
+    val address = Addresses.build(context, "234567890")
     SecureRequestAcceptModal(
-        "+237123456789",
+        address,
         -1,
         true,
         displayMode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED,

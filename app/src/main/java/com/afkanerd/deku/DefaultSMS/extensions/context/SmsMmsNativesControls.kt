@@ -10,13 +10,14 @@ import android.provider.Telephony
 import android.widget.Toast
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.SmsMmsNatives
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.jvm.java
 
 /**
  *

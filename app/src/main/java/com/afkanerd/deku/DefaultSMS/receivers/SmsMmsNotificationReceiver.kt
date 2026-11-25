@@ -14,7 +14,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedMode
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionRatchetStates
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
+import com.afkanerd.smswithoutborders_libsmsmms.data.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase

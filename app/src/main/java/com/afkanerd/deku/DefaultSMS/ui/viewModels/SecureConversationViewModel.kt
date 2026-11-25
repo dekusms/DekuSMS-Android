@@ -10,7 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.afkanerd.deku.rust.RustyRatchetBridge
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.lib_smsmms_android.R
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsManager
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
+import com.afkanerd.smswithoutborders_libsmsmms.data.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendSms
@@ -86,20 +87,20 @@ class SecureConversationViewModel: CustomsConversationsViewModel() {
 
     fun requestSecureConversation(
         context: Context,
-        address: String,
+        address: Addresses,
         subscriptionId: Long,
         threadId: Int,
         callback: (Conversations) -> Unit
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val publicKey = EncryptionController.sendRequest(context, address, mode)
+                val publicKey = EncryptionController.sendRequest(context, address.getAddress, mode)
 
                 try {
                     val smsManager = SmsManager(ConversationsViewModel())
                     smsManager.sendSms(
                         text = "",
-                        address = address,
+                        address = address.getAddress,
                         threadId = threadId,
                         subscriptionId = subscriptionId,
                         data = publicKey,

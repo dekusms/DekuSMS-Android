@@ -43,11 +43,12 @@ import com.afkanerd.deku.Forwarder.ui.GatewayClientsSettingsView
 import com.afkanerd.deku.Forwarder.ui.RoutedMessagesMainView
 import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NEW_NOTIFICATION_ACTION
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.makeE16PhoneNumber
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTheme
-import com.afkanerd.smswithoutborders_libsmsmms.ui.components.NavHostControllerInstance
+import com.afkanerd.smswithoutborders_libsmsmms.ui.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
@@ -151,7 +152,7 @@ class MainActivity : AppCompatActivity(){
                                                     )
                                                 },
                                                 onClick = {
-                                                    secureViewModel.setModal(true)
+                                                    secureViewModel.setTrigger(true)
                                                     it(false)
                                                 }
                                             )
@@ -234,7 +235,7 @@ class MainActivity : AppCompatActivity(){
                 val address = intent.getStringExtra("address")
                 address?.let {
                     intent.removeExtra("address")
-                    navController.navigate(ConversationsScreenNav(address))
+                    navController.navigate(ConversationsScreenNav( it ))
                 }
             }
             Intent.ACTION_SEND -> {

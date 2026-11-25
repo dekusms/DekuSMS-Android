@@ -2,7 +2,7 @@ package com.afkanerd.deku.Forwarder.data.models
 
 import android.util.Log
 import com.afkanerd.deku.Forwarder.extensions.toSha256
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.SmsMmsNatives
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

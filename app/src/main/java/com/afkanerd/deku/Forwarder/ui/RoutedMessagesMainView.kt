@@ -43,8 +43,8 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.GatewayClientsListScreen
 import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.deku.GatewayClientsSettingsScreen
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.DateTimeUtils
-import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
+import com.afkanerd.smswithoutborders_libsmsmms.data.DateTimeUtils
+import com.afkanerd.smswithoutborders_libsmsmms.data.SmsMmsNatives
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.isDefault
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.retrieveContactName
