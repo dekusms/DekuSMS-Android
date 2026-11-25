@@ -1,0 +1,2 @@
+Changes from lib_sms_mms:
+- Introduced font scaling: Conversations can now be read with 5 distinct font choices
