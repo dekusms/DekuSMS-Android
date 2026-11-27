@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import androidx.core.net.toUri
+import com.afkanerd.deku.DefaultSMS.data.models.SecureConversationType
 import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSubscriptionBitmap
@@ -63,7 +64,7 @@ fun SecureRequestAcceptModal(
     address: Addresses,
     subscriptionId: Long,
     show: Boolean,
-    displayMode: EncryptionController.SecureRequestMode,
+    displayMode: SecureConversationType,
     dismissCallback: (() -> Unit)? = {},
     simCardChanger: (SubscriptionInfo) -> Unit = {},
     onRequestClickedCallback: () -> Unit,
@@ -100,7 +101,7 @@ fun SecureRequestAcceptModal(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 when(displayMode) {
-                    EncryptionController.SecureRequestMode.REQUEST_RECEIVED -> {
+                    SecureConversationType.REQUESTED -> {
                         Text(
                             text = stringResource(
                                 com.afkanerd.deku.DefaultSMS.R.string.has_requested_to_secure_this_conversation,
@@ -255,7 +256,7 @@ fun SecureRequestModal_RequestFlow_Preview() {
         address = address,
         -1,
         true,
-        displayMode = EncryptionController.SecureRequestMode.REQUEST_NONE,
+        displayMode = SecureConversationType.REQUEST,
         dismissCallback = {}
     ){}
 }
@@ -270,7 +271,7 @@ fun SecureRequestModal_AcceptFlow_Preview() {
         address,
         -1,
         true,
-        displayMode = EncryptionController.SecureRequestMode.REQUEST_RECEIVED,
+        displayMode = SecureConversationType.REQUESTED,
         dismissCallback = {}
     ){}
 }

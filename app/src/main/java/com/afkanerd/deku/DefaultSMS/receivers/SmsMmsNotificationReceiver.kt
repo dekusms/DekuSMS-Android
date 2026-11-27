@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.widget.Toast
-import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
 import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
@@ -14,6 +13,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedMode
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.getEncryptionModeStatesSync
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionModeStates
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.removeEncryptionRatchetStates
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
 import com.afkanerd.smswithoutborders_libsmsmms.data.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.NotificationTxType
@@ -22,6 +22,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.notify
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.sendNotificationBroadcast
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsMmsActionsImpl
 import com.afkanerd.smswithoutborders_libsmsmms.receivers.SmsTextReceivedReceiver
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,8 @@ import kotlinx.coroutines.withContext
 
 class SmsMmsNotificationReceiver: BroadcastReceiver() {
     private val cls = MainActivity::class.java
+    private val conversationsViewModel = ConversationsViewModel()
+
     override fun onReceive(context: Context?, intent: Intent?) {
         when(intent?.action) {
             SmsTextReceivedReceiver.SMS_SENT_BROADCAST_INTENT_LIB -> {
@@ -76,16 +79,16 @@ class SmsMmsNotificationReceiver: BroadcastReceiver() {
 
             SmsMmsActionsImpl.NOTIFICATION_REPLY_ACTION_INTENT_ACTION_REPLAY -> {
                 val address = intent.getStringExtra("address")
+                    ?: throw Exception("Failed to get address in notification")
                 val threadId = intent.getIntExtra("threadId", -1)
                 val subscriptionId = intent.getLongExtra("subscriptionId", -1)
                 val reply = intent.getStringExtra("reply")
 
-                val smsManager = SmsManager(SecureConversationViewModel())
                 try {
-                    smsManager.sendSms(
+                    conversationsViewModel.sendSms(
                         context = context!!,
                         text = reply!!,
-                        address = address!!,
+                        address = Addresses.build(context, address),
                         threadId = threadId,
                         subscriptionId = subscriptionId,
                         data = null,

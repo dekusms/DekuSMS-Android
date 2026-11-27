@@ -1,8 +1,18 @@
 package com.afkanerd.deku.DefaultSMS.data
 
+import android.content.Context
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.ADDITIONAL_DATA_EPHEMERAL_KEY
+import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.KEY_ALGORITHM
+import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.NONCE_SIZE_BYTES
+import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.OOB_INFO
+import com.afkanerd.deku.DefaultSMS.data.EncryptionUtils.Handshake.Companion.TRANSFORMATION
+import com.afkanerd.deku.DefaultSMS.data.models.SecureConversation
+import com.afkanerd.deku.DefaultSMS.data.models.SecureConversationType
 import com.afkanerd.deku.DefaultSMS.extensions.isValidTimestampWithinHours
 import com.afkanerd.deku.DefaultSMS.extensions.toRaw32Bytes
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
+import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getDatabase
 import org.bouncycastle.crypto.EphemeralKeyPair
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
@@ -86,9 +96,10 @@ class EncryptionUtils {
                 val timestamp: ByteArray,
             )
 
-
-            @OptIn(ExperimentalUuidApi::class)
-            fun makeRequest() : InitiationRequest {
+            fun makeRequest(
+                context: Context,
+                address: Addresses,
+            ) : InitiationRequest {
                 val sessionId = Uuid.random().toByteArray()
 
                 val timestamp = ByteBuffer.allocate(Long.SIZE_BYTES)
@@ -100,14 +111,30 @@ class EncryptionUtils {
                 val publicKey = keyPair.keyPair.public.toRaw32Bytes()
                 val request = sessionId + publicKey + timestamp
 
-                // TODO: should save once this method is called
-
+                keyPair.use { kp ->
+                    val database = Datastore.getDatastore(context)
+                    database.secureConversationDao().insert(
+                        SecureConversation(
+                            type = SecureConversationType.REQUEST.value,
+                            sessionId = sessionId,
+                            address = address.getFullE164Address,
+                            timestamp = timestamp,
+                            privateKey = kp.keyPair.private.toRaw32Bytes(),
+                            publicKey = publicKey,
+                            isRequester = true
+                        )
+                    )
+                }
                 return InitiationRequest(
                     sessionId,
                     publicKey,
                     request,
                     timestamp
                 )
+            }
+
+            fun save() {
+
             }
 
             fun isIncomingRequest(data: ByteArray) : Boolean{
@@ -124,7 +151,9 @@ class EncryptionUtils {
             )
 
             fun acceptRequest(
-                data: ByteArray
+                context: Context,
+                address: Addresses,
+                data: ByteArray,
             ) : AcceptInitiationRequest {
                 val sessionId = data.take(16).toByteArray()
                 val timestamp = data.takeLast(8).toByteArray()
@@ -133,7 +162,19 @@ class EncryptionUtils {
                 }
                 val peerPublicKey = data.copyOfRange(16, 16 + 32)
 
-                // TODO: should save once this method is called
+                val database = Datastore.getDatastore(context)
+                database.secureConversationDao().insert(
+                    SecureConversation(
+                        type = SecureConversationType.ACKNOWLEDGE.value,
+                        sessionId = sessionId,
+                        address = address.getFullE164Address,
+                        timestamp = timestamp,
+                        privateKey = ByteArray(0),
+                        publicKey = ByteArray(0),
+                        peerPublicKey = peerPublicKey,
+                        isRequester = false
+                    )
+                )
 
                 return AcceptInitiationRequest(
                     sessionId,
@@ -153,22 +194,33 @@ class EncryptionUtils {
             )
 
             fun makeAcknowledgementRequest(
-                sessionId: ByteArray,
-                peerPublicKey: ByteArray,
-                timestamp: ByteArray,
+                context: Context,
+                secureConversation: SecureConversation
             ) : AcknowledgementResponse {
                 val encryptionUtils = EncryptionUtils()
                 encryptionUtils.generateX25519Keys().use { keypair ->
+                    require(secureConversation.peerPublicKey != null) { "Peer public key cannot be null"}
+
                     val sharedSecret = encryptionUtils.computeX25519SharedSecret(
                         keyPair = keypair.keyPair,
-                        requesterPublicKey = peerPublicKey,
+                        requesterPublicKey = secureConversation.peerPublicKey,
                         recipientPublicKey = keypair.keyPair.public.toRaw32Bytes(),
-                        peerPublicKey = peerPublicKey,
-                        saltData = timestamp
+                        peerPublicKey = secureConversation.peerPublicKey,
+                        saltData = secureConversation.timestamp
                     )
 
-                    val response = sessionId +
+                    val response = secureConversation.sessionId +
                             keypair.keyPair.public.toRaw32Bytes()
+
+                    val database = Datastore.getDatastore(context)
+                    database.secureConversationDao().update(
+                        secureConversation.apply {
+                            this.privateKey = keypair.keyPair.private.toRaw32Bytes()
+                            this.publicKey = keypair.keyPair.public.toRaw32Bytes()
+                            this.type = SecureConversationType.ACKNOWLEDGED.value
+                            this.sharedSecret = sharedSecret.encoded
+                        }
+                    )
 
                     return AcknowledgementResponse(
                         sharedSecret = sharedSecret,
@@ -185,11 +237,21 @@ class EncryptionUtils {
 
             fun acceptAckRequest(
                 response: ByteArray,
+                secureConversation: SecureConversation
             ) : AcknowledgementRequest{
                 val sessionId = response.take(16).toByteArray()
 
                 val pc = 16 + 32
                 val peerPublicKey = response.copyOfRange(16, pc)
+
+                val encryptionUtils = EncryptionUtils()
+                val sharedSecret = encryptionUtils.computeX25519SharedSecret(
+                    keyPair = keypair.keyPair,
+                    requesterPublicKey = secureConversation.peerPublicKey,
+                    recipientPublicKey = keypair.keyPair.public.toRaw32Bytes(),
+                    peerPublicKey = secureConversation.peerPublicKey,
+                    saltData = secureConversation.timestamp
+                )
 
                 return AcknowledgementRequest(
                     sessionId = sessionId,

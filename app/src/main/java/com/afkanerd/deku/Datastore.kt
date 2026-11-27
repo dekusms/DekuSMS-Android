@@ -19,6 +19,8 @@ import com.afkanerd.deku.Datastore.Migrate20To21
 import com.afkanerd.deku.Datastore.Migrate21To22
 import com.afkanerd.deku.Datastore.Migrate22To23
 import com.afkanerd.deku.Datastore.Migrate28To29
+import com.afkanerd.deku.DefaultSMS.data.dao.SecureConversationDao
+import com.afkanerd.deku.DefaultSMS.data.models.SecureConversation
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQueuesDao
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
@@ -32,8 +34,13 @@ import kotlin.concurrent.Volatile
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "geneeral_storage")
 
 @Database(
-    entities = [GatewayServer::class, RemoteListenersQueues::class, RemoteListeners::class],
-    version = 31,
+    entities = [
+        GatewayServer::class,
+        RemoteListenersQueues::class,
+        RemoteListeners::class,
+        SecureConversation::class,
+    ],
+    version = 32,
     autoMigrations = [AutoMigration(from = 9, to = 10), AutoMigration(
         from = 10,
         to = 11
@@ -68,13 +75,15 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "ge
         from = 28,
         to = 29,
         spec = Migrate28To29::class
-    ), AutoMigration(from = 29, to = 30), AutoMigration(from = 30, to = 31)]
+    ), AutoMigration(from = 29, to = 30), AutoMigration(from = 30, to = 31),
+        AutoMigration(from = 31, to = 32)]
 )
 abstract class Datastore : RoomDatabase() {
     abstract fun gatewayServerDAO(): GatewayServerDAO
 
     abstract fun remoteListenerDAO(): RemoteListenerDAO
     abstract fun remoteListenersQueuesDao(): RemoteListenersQueuesDao
+    abstract fun secureConversationDao(): SecureConversationDao
 
     init {
         System.loadLibrary("sqlcipher")

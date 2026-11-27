@@ -18,6 +18,7 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersHandler
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
+import com.afkanerd.smswithoutborders_libsmsmms.data.Addresses
 import com.afkanerd.smswithoutborders_libsmsmms.data.SmsManager
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getSimCardInformation
 import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.getThreadId
@@ -312,16 +313,13 @@ class RMQConnectionWorker(
         bundle.putLong(RMQConnectionHandler.RMQ_DELIVERY_TAG, deliveryTag)
         bundle.putLong(RMQConnectionHandler.RMQ_ID, rmqConnectionId)
 
-        SmsManager(ConversationsViewModel()).sendSms(
-            context = context,
+        SmsManager(context).sendSms(
             text = smsRequest.text,
-            address = smsRequest.to,
-            subscriptionId = smsRequest.sid.toLong(),
+            address = Addresses.build(context, smsRequest.to),
             threadId = context.getThreadId(smsRequest.to),
+            subscriptionId = smsRequest.sid.toLong(),
             bundle = bundle
-        ) {
-
-        }
+        )
     }
 
     private fun getDeliverCallback(

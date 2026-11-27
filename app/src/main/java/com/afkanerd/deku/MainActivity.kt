@@ -31,7 +31,6 @@ import androidx.window.layout.WindowInfoTracker
 import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
 import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
-import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenerQueuesViewModel
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersViewModel
 import com.afkanerd.deku.RemoteListeners.RemoteListenerConnectionService
@@ -51,6 +50,7 @@ import com.afkanerd.smswithoutborders_libsmsmms.extensions.context.settingsGetTh
 import com.afkanerd.smswithoutborders_libsmsmms.ui.NavHostControllerInstance
 import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.ConversationsScreenNav
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ConversationsViewModel
+import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.CustomsConversationsViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.SearchViewModel
 import com.afkanerd.smswithoutborders_libsmsmms.ui.viewModels.ThreadsViewModel
 import com.example.compose.AppTheme
@@ -67,7 +67,8 @@ class MainActivity : AppCompatActivity(){
     private lateinit var navController: NavHostController
     private val threadsViewModel: ThreadsViewModel by viewModels()
     private val conversationViewModel: ConversationsViewModel by viewModels()
-    private val secureViewModel: SecureConversationViewModel by viewModels()
+
+    private val customConversationViewModel: CustomsConversationsViewModel by viewModels()
     private val gatewayServerViewModel: GatewayServerViewModel by viewModels()
     private val searchViewModel: SearchViewModel by viewModels()
 
@@ -152,14 +153,17 @@ class MainActivity : AppCompatActivity(){
                                                     )
                                                 },
                                                 onClick = {
-                                                    secureViewModel.setTrigger(true)
+                                                    customConversationViewModel.setTrigger(true)
                                                     it(false)
                                                 }
                                             )
                                         },
-                                        conversationsCustomViewModel = secureViewModel, //This can be an array
+                                        conversationsCustomViewModel = customConversationViewModel,
                                         conversationsCustomComposable = {
-                                            SecureConversationComposable( viewModel = secureViewModel )
+                                            SecureConversationComposable(
+                                                customConversationViewModel,
+                                                conversationViewModel
+                                            )
                                         },
                                         conversationsCustomDataView = {
                                             KeyExchangeType(it)
